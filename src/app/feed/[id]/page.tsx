@@ -1,6 +1,13 @@
 import prisma from "@/lib/prismaClient";
-import { refreshFeed } from "@/app/actions";
 import RefreshFeedButton from "@/components/RefreshFeedButton";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Link from "next/link";
 
 const Feed = async ({ params }: { params: { id: string } }) => {
   const feedId = parseInt(params.id);
@@ -22,13 +29,17 @@ const Feed = async ({ params }: { params: { id: string } }) => {
         Last updated: {feed.lastFetched.toLocaleString()}
       </div>
       {articles.map((article) => (
-        <article key={article.id}>
-          <h2>
-            <a href={article.link}>{article.title}</a>
-          </h2>
-          <p>{article.publicationDate.toLocaleString()}</p>
-          <p>{article.description}</p>
-        </article>
+        <Card key={article.id}>
+          <CardHeader>
+            <CardTitle>
+              <Link href={article.link}>{article.title}</Link>
+            </CardTitle>
+            <CardDescription>
+              {article.publicationDate.toLocaleString()}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>{article.description}</CardContent>
+        </Card>
       ))}
     </>
   );
