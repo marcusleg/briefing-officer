@@ -9,16 +9,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { BookText, ExternalLink, Filter, Sparkles } from "lucide-react";
 import ToggleReadButton from "@/components/ToggleReadButton";
+import FeedFilterButton from "@/components/FeedFilterButton";
 
 const Feed = async ({
   params,
   searchParams,
 }: {
   params: { feedId: string };
-  searchParams: { [show: string]: "all" | "unread" };
+  searchParams: { show: "all" | "unread" };
 }) => {
   const feedId = parseInt(params.feedId);
   const showSearchParam = searchParams["show"] || "unread";
@@ -40,10 +41,7 @@ const Feed = async ({
         {feed.title}
       </h2>
       <div className="flex flex-row gap-4 items-center my-4">
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Filter
-        </Button>
+        <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />
         Last updated: {feed.lastFetched.toLocaleString()}
       </div>
