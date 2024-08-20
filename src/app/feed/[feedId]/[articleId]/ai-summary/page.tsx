@@ -1,52 +1,23 @@
 import prisma from "@/lib/prismaClient";
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Speech } from "lucide-react";
-import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
-import {
-  BedrockRuntimeClient,
-  ConverseCommand,
-} from "@aws-sdk/client-bedrock-runtime";
-
-const bedrockRuntimeClient = new BedrockRuntimeClient({
-  region: "eu-central-1",
-});
-const generateSummary = async (title: string, content: string) => {
-  const command = new ConverseCommand({
-    modelId: "anthropic.claude-3-5-sonnet-20240620-v1:0",
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            text: `Sum up this article:\n\n${title}\n\n${content}`,
-          },
-        ],
-      },
-    ],
-  });
-  const response = await bedrockRuntimeClient.send(command);
-
-  if (response.output?.message?.content?.length == 0) {
-    return null;
-  }
-
-  return response.output?.message.content[0].text;
-};
+import { Speech } from "lucide-react";
+import { getAiSummary } from "./actions";
 
 const AiSummary = async ({
   params,
 }: {
   params: { feedId: string; articleId: string };
 }) => {
+  let articleId = parseInt(params.articleId);
+
   const article = await prisma.article.findUniqueOrThrow({
     where: {
-      id: parseInt(params.articleId),
+      id: articleId,
     },
   });
 
-  const readability = await getReadability(article.id, article.link);
-  const summary = await generateSummary(article.title, readability.textContent);
+  const summary = await getAiSummary(articleId);
 
   return (
     <div className="m-2 max-w-4xl flex flex-col gap-2">
@@ -63,7 +34,7 @@ const AiSummary = async ({
           {article.title}
         </h2>
         <p className="text-justify text-pretty hyphens-auto reader-view whitespace-pre">
-          {summary}
+          {summary.summary}
         </p>
       </article>
     </div>
