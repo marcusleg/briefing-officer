@@ -43,7 +43,9 @@ const Feed = async ({
       <div className="flex flex-row gap-4 items-center my-4">
         <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />
-        Last updated: {feed.lastFetched.toLocaleString()}
+        <p className="text-sm text-muted-foreground">
+          Last updated: {feed.lastFetched.toLocaleString()}
+        </p>
       </div>
       <div className="flex flex-col gap-4">
         {articles.map((article) => (
