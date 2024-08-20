@@ -1,6 +1,7 @@
 "use client";
 import { refreshFeed } from "@/app/actions";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 interface RefreshFeedButtonProps {
   feedId: number;
@@ -14,7 +15,7 @@ const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
     router.refresh();
   };
 
-  return <button onClick={handleClick}>Refresh now</button>;
+  return <Button onClick={handleClick}>Refresh now</Button>;
 };
 
 export default RefreshFeedButton;

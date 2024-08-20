@@ -14,7 +14,9 @@ const Feed = async ({ params }: { params: { id: string } }) => {
 
   return (
     <>
-      <h2>{feed.title}</h2>
+      <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+        {feed.title}
+      </h2>
       <div>
         <RefreshFeedButton feedId={feedId} />
         Last updated: {feed.lastFetched.toLocaleString()}
