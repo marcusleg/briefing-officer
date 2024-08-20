@@ -1,11 +1,8 @@
 import prisma from "@/lib/prismaClient";
-import axios from "axios";
-import DOMPurify from "isomorphic-dompurify";
-import { JSDOM } from "jsdom";
-import { Readability } from "@mozilla/readability";
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Speech } from "lucide-react";
+import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 
 const ReaderView = async ({
   params,
@@ -18,10 +15,7 @@ const ReaderView = async ({
     },
   });
 
-  const website = await axios.get(article.link);
-  const cleanBody = DOMPurify.sanitize(website.data);
-  const document = new JSDOM(cleanBody);
-  const readerDocument = new Readability(document.window.document).parse();
+  const readerDocument = await getReadability(article.id, article.link);
 
   return (
     <div className="m-2 max-w-4xl flex flex-col gap-2">

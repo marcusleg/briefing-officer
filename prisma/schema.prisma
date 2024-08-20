@@ -24,15 +24,26 @@ model Feed {
 }
 
 model Article {
-  id              Int      @id @default(autoincrement())
-  title           String
-  publicationDate DateTime
-  description     String
-  content         String?
-  link            String   @unique
-  read            Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  feedId          Int
-  feed            Feed     @relation(fields: [feedId], references: [id])
+  id                 Int                  @id @default(autoincrement())
+  title              String
+  publicationDate    DateTime
+  description        String
+  content            String?
+  link               String               @unique
+  read               Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  feedId             Int
+  feed               Feed                 @relation(fields: [feedId], references: [id])
+  ArticleReadability ArticleReadability[]
+}
+
+model ArticleReadability {
+  articleId   Int      @id
+  article     Article  @relation(fields: [articleId], references: [id])
+  content     String
+  textContent String
+  byLine      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
