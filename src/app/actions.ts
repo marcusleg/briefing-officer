@@ -23,6 +23,34 @@ export const getFeeds = async () => {
   return prisma.feed.findMany({ orderBy: { title: "asc" } });
 };
 
+export const refreshFeed = async (id: number) => {
+  const feed = await prisma.feed.findUniqueOrThrow({
+    where: { id },
+  });
+  const fetchedFeed = await fetch(feed.link).then((res) => res.text());
+  const parsedFeed = parseFeed(fetchedFeed);
+  if (!parsedFeed) {
+    throw new Error("Unable to parse feed.");
+  }
+
+  await prisma.article.createMany({
+    data: parsedFeed.items.map((item) => ({
+      title: item.title,
+      description: item.description,
+      link: item.link,
+      publicationDate: new Date(item.pubDate),
+      feedId: feed.id,
+    })),
+  });
+
+  await prisma.feed.update({
+    where: { id: feed.id },
+    data: {
+      lastFetched: new Date(),
+    },
+  });
+};
+
 export const refreshFeeds = async () => {
   const feeds = await prisma.feed.findMany({});
   const promises = feeds.map((feed) =>

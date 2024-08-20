@@ -14,27 +14,7 @@ const fetchFeeds = async () => {
 const Home = async () => {
   const feeds = await fetchFeeds();
 
-  return (
-    <main>
-      <div>Last refresh: {new Date().toISOString()}</div>
-      {feeds.map((feed) => (
-        <section key={feed?.id}>
-          <h2>{feed?.title}</h2>
-          {feed?.items.map((item) => (
-            <article key={item.id}>
-              <h3>
-                <a href={`/summary/${encodeURIComponent(item.link!!)}`}>
-                  {item.title}
-                </a>
-              </h3>
-              <p>{item.pubDate?.toISOString()}</p>
-              <p>{item.description}</p>
-            </article>
-          ))}
-        </section>
-      ))}
-    </main>
-  );
+  return <main>This is the frontpage.</main>;
 };
 
 export default Home;

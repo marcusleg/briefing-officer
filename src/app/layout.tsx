@@ -21,7 +21,9 @@ export default async function RootLayout({
         <div>
           <ul>
             {feeds.map((feed) => (
-              <li key={feed.id}>{feed.title}</li>
+              <li key={feed.id}>
+                <a href={`/feed/${feed.id}`}>{feed.title}</a>
+              </li>
             ))}
           </ul>
           <AddFeed />
