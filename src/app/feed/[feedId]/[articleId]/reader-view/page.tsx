@@ -45,7 +45,7 @@ const ReaderView = async ({
           {readerDocument?.byline}
         </p>
         <p
-          className="text-justify text-pretty hyphens-auto"
+          className="text-justify text-pretty hyphens-auto reader-view"
           dangerouslySetInnerHTML={{ __html: readerDocument?.content }}
         ></p>
       </article>

@@ -67,3 +67,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+.reader-view p {
+  @apply leading-7 [&:not(:first-child)]:mt-6
+}
+
+.reader-view a {
+  @apply underline
+}
