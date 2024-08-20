@@ -11,7 +11,6 @@ import {
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { BookText, ExternalLink, Sparkles, SquareCheck } from "lucide-react";
-import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
 import ToggleReadButton from "@/components/ToggleReadButton";
 
 const Feed = async ({ params }: { params: { feedId: string } }) => {
@@ -54,10 +53,13 @@ const Feed = async ({ params }: { params: { feedId: string } }) => {
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Visit
               </Link>
-              <Button variant="outline">
+              <Link
+                className={buttonVariants({ variant: "outline" })}
+                href={`/feed/${feedId}/${article.id}/reader-view`}
+              >
                 <BookText className="mr-2 h-4 w-4" />
-                Reader Mode
-              </Button>
+                Reader View
+              </Link>
               <ToggleReadButton
                 feedId={feedId}
                 articleId={article.id}
