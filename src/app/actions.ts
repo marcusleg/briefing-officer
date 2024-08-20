@@ -1,6 +1,7 @@
 "use server";
 import prisma from "../lib/prismaClient";
 import { parseFeed } from "htmlparser2";
+import { revalidatePath } from "next/cache";
 
 export const addFeed = async (url: string) => {
   const feed = await fetch(url).then((res) => res.text());
@@ -23,9 +24,9 @@ export const getFeeds = async () => {
   return prisma.feed.findMany({ orderBy: { title: "asc" } });
 };
 
-export const refreshFeed = async (id: number) => {
+export const refreshFeed = async (feedId: number) => {
   const feed = await prisma.feed.findUniqueOrThrow({
-    where: { id },
+    where: { id: feedId },
   });
   const fetchedFeed = await fetch(feed.link).then((res) => res.text());
   const parsedFeed = parseFeed(fetchedFeed);
@@ -58,4 +59,6 @@ export const refreshFeed = async (id: number) => {
       lastFetched: new Date(),
     },
   });
+
+  revalidatePath(`/feed/${feedId}`);
 };

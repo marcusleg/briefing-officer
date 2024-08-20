@@ -30,6 +30,7 @@ model Article {
   description     String
   content         String?
   link            String   @unique
+  read            Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   feedId          Int

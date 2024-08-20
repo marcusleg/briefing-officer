@@ -11,6 +11,8 @@ import {
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { BookText, ExternalLink, Sparkles, SquareCheck } from "lucide-react";
+import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
+import ToggleReadButton from "@/components/ToggleReadButton";
 
 const Feed = async ({ params }: { params: { feedId: string } }) => {
   const feedId = parseInt(params.feedId);
@@ -33,7 +35,7 @@ const Feed = async ({ params }: { params: { feedId: string } }) => {
       </div>
       <div className="flex flex-col gap-4">
         {articles.map((article) => (
-          <Card key={article.id}>
+          <Card key={article.id} className={article.read ? "opacity-50" : ""}>
             <CardHeader>
               <CardTitle>
                 <Link href={article.link}>{article.title}</Link>
@@ -56,10 +58,11 @@ const Feed = async ({ params }: { params: { feedId: string } }) => {
                 <BookText className="mr-2 h-4 w-4" />
                 Reader Mode
               </Button>
-              <Button variant="outline">
-                <SquareCheck className="mr-2 h-4 w-4" />
-                Mark as read
-              </Button>
+              <ToggleReadButton
+                feedId={feedId}
+                articleId={article.id}
+                isRead={article.read}
+              />
               <Button variant="outline">
                 <Sparkles className="mr-2 h-4 w-4" />
                 AI Summary
