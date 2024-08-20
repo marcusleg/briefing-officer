@@ -3,7 +3,7 @@ import {
   markArticleAsRead,
   markArticleAsUnread,
 } from "@/app/feed/[feedId]/actions";
-import { Square, SquareCheck } from "lucide-react";
+import { BookCheck, BookX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const ToggleReadButton = ({
@@ -21,7 +21,7 @@ const ToggleReadButton = ({
         variant="outline"
         onClick={() => markArticleAsUnread(feedId, articleId)}
       >
-        <Square className="mr-2 h-4 w-4" />
+        <BookX className="mr-2 h-4 w-4" />
         Mark as unread
       </Button>
     );
@@ -32,7 +32,7 @@ const ToggleReadButton = ({
       variant="outline"
       onClick={() => markArticleAsRead(feedId, articleId)}
     >
-      <SquareCheck className="mr-2 h-4 w-4" />
+      <BookCheck className="mr-2 h-4 w-4" />
       Mark as read
     </Button>
   );
