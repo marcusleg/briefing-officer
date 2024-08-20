@@ -33,15 +33,24 @@ export const refreshFeed = async (id: number) => {
     throw new Error("Unable to parse feed.");
   }
 
-  await prisma.article.createMany({
-    data: parsedFeed.items.map((item) => ({
-      title: item.title,
-      description: item.description,
-      link: item.link,
-      publicationDate: new Date(item.pubDate),
-      feedId: feed.id,
-    })),
-  });
+  const promises = parsedFeed.items.map((item) =>
+    prisma.article.upsert({
+      where: { link: item.link },
+      update: {
+        title: item.title,
+        description: item.description,
+        publicationDate: new Date(item.pubDate),
+      },
+      create: {
+        title: item.title,
+        description: item.description,
+        link: item.link,
+        publicationDate: new Date(item.pubDate),
+        feedId: feed.id,
+      },
+    }),
+  );
+  await Promise.all(promises);
 
   await prisma.feed.update({
     where: { id: feed.id },
