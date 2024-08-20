@@ -35,7 +35,7 @@ export default async function RootLayout({
         <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
           Briefing Officer
         </h1>
-        <div className="flex flex-row gap-4 mt-4">
+        <div className="flex flex-row gap-4 mt-4 m-2">
           <div className="flex flex-col gap-4">
             <nav className="flex flex-col gap-1 px-2">
               {feeds.map((feed) => (

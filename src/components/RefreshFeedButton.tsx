@@ -2,6 +2,7 @@
 import { refreshFeed } from "@/app/actions";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { RotateCw } from "lucide-react";
 
 interface RefreshFeedButtonProps {
   feedId: number;
@@ -15,7 +16,12 @@ const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
     router.refresh();
   };
 
-  return <Button onClick={handleClick}>Refresh now</Button>;
+  return (
+    <Button onClick={handleClick}>
+      <RotateCw className="mr-2 h-4 w-4" />
+      Refresh now
+    </Button>
+  );
 };
 
 export default RefreshFeedButton;
