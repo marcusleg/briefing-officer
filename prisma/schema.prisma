@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./data/database.sqlite"
+}
+
+model Feed {
+  id          Int       @id @default(autoincrement())
+  title       String
+  link        String    @unique
+  lastFetched DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  articles    Article[]
+}
+
+model Article {
+  id             Int      @id @default(autoincrement())
+  title          String
+  publiationDate DateTime
+  description    String
+  content        String
+  link           String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  feedId         Int
+  feed           Feed     @relation(fields: [feedId], references: [id])
+}
