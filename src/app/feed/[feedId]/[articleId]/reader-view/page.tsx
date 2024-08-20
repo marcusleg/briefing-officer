@@ -33,10 +33,10 @@ const ReaderView = async ({
 
       <article>
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-          {readerDocument?.title}
+          {article.title}
         </h2>
         <p className="text-sm text-muted-foreground">
-          {readerDocument?.byline}
+          {readerDocument?.byLine}
         </p>
         <p
           className="text-justify text-pretty hyphens-auto reader-view"

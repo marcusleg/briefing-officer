@@ -65,10 +65,13 @@ const Feed = async ({ params }: { params: { feedId: string } }) => {
                 articleId={article.id}
                 isRead={article.read}
               />
-              <Button variant="outline">
+              <Link
+                className={buttonVariants({ variant: "outline" })}
+                href={`/feed/${feedId}/${article.id}/ai-summary`}
+              >
                 <Sparkles className="mr-2 h-4 w-4" />
                 AI Summary
-              </Button>
+              </Link>
             </CardFooter>
           </Card>
         ))}
