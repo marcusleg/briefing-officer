@@ -3,19 +3,24 @@ import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Speech } from "lucide-react";
 import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
+import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
 
 const ReaderView = async ({
   params,
 }: {
   params: { feedId: string; articleId: string };
 }) => {
+  const feedId = parseInt(params.feedId);
+  const articleId = parseInt(params.articleId);
+
   const article = await prisma.article.findUniqueOrThrow({
     where: {
-      id: parseInt(params.articleId),
+      id: articleId,
     },
   });
 
   const readerDocument = await getReadability(article.id, article.link);
+  void markArticleAsRead(feedId, articleId);
 
   return (
     <div className="m-2 max-w-4xl flex flex-col gap-2">
