@@ -9,7 +9,7 @@ interface RefreshFeedButtonProps {
 
 const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
   return (
-    <Button onClick={() => refreshFeed(feedId)}>
+    <Button variant="outline" onClick={() => refreshFeed(feedId)}>
       <RotateCw className="mr-2 h-4 w-4" />
       Refresh
     </Button>

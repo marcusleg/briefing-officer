@@ -10,17 +10,28 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { BookText, ExternalLink, Sparkles, SquareCheck } from "lucide-react";
+import { BookText, ExternalLink, Filter, Sparkles } from "lucide-react";
 import ToggleReadButton from "@/components/ToggleReadButton";
 
-const Feed = async ({ params }: { params: { feedId: string } }) => {
+const Feed = async ({
+  params,
+  searchParams,
+}: {
+  params: { feedId: string };
+  searchParams: { [show: string]: "all" | "unread" };
+}) => {
   const feedId = parseInt(params.feedId);
+  const showSearchParam = searchParams["show"] || "unread";
 
   const feed = await prisma.feed.findUniqueOrThrow({
     where: { id: feedId },
   });
   const articles = await prisma.article.findMany({
-    where: { feedId: feedId },
+    where: {
+      feedId: feedId,
+      read: showSearchParam === "all" ? undefined : false,
+    },
+    orderBy: { publicationDate: "desc" },
   });
 
   return (
@@ -29,6 +40,10 @@ const Feed = async ({ params }: { params: { feedId: string } }) => {
         {feed.title}
       </h2>
       <div className="flex flex-row gap-4 items-center my-4">
+        <Button variant="outline">
+          <Filter className="mr-2 h-4 w-4" />
+          Filter
+        </Button>
         <RefreshFeedButton feedId={feedId} />
         Last updated: {feed.lastFetched.toLocaleString()}
       </div>
