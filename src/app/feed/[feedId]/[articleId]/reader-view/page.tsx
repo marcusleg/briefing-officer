@@ -3,6 +3,7 @@ import axios from "axios";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
+import BackButton from "@/components/BackButton";
 
 const ReaderView = async ({
   params,
@@ -21,16 +22,24 @@ const ReaderView = async ({
   const readerDocument = new Readability(document.window.document).parse();
 
   return (
-    <article className="m-2 max-w-4xl">
-      <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-        {readerDocument?.title}
-      </h2>
-      <p className="text-sm text-muted-foreground">{readerDocument?.byline}</p>
-      <p
-        className="text-justify text-pretty hyphens-auto"
-        dangerouslySetInnerHTML={{ __html: readerDocument?.content }}
-      ></p>
-    </article>
+    <div className="m-2 max-w-4xl flex flex-col gap-2">
+      <div>
+        <BackButton />
+      </div>
+
+      <article>
+        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+          {readerDocument?.title}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {readerDocument?.byline}
+        </p>
+        <p
+          className="text-justify text-pretty hyphens-auto"
+          dangerouslySetInnerHTML={{ __html: readerDocument?.content }}
+        ></p>
+      </article>
+    </div>
   );
 };
 
