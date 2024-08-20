@@ -21,7 +21,9 @@ const Feed = async ({ params }: { params: { id: string } }) => {
       </div>
       {articles.map((article) => (
         <article key={article.id}>
-          <h2>{article.title}</h2>
+          <h2>
+            <a href={article.link}>{article.title}</a>
+          </h2>
           <p>{article.publicationDate.toLocaleString()}</p>
           <p>{article.description}</p>
         </article>
