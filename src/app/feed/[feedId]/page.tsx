@@ -4,13 +4,16 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { BookText, ExternalLink, Sparkles, SquareCheck } from "lucide-react";
 
-const Feed = async ({ params }: { params: { id: string } }) => {
-  const feedId = parseInt(params.id);
+const Feed = async ({ params }: { params: { feedId: string } }) => {
+  const feedId = parseInt(params.feedId);
 
   const feed = await prisma.feed.findUniqueOrThrow({
     where: { id: feedId },
@@ -40,6 +43,28 @@ const Feed = async ({ params }: { params: { id: string } }) => {
               </CardDescription>
             </CardHeader>
             <CardContent>{article.description}</CardContent>
+            <CardFooter className="flex flex-row gap-2">
+              <Link
+                className={buttonVariants({ variant: "outline" })}
+                href={article.link}
+                referrerPolicy="no-referrer"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Visit
+              </Link>
+              <Button variant="outline">
+                <BookText className="mr-2 h-4 w-4" />
+                Reader Mode
+              </Button>
+              <Button variant="outline">
+                <SquareCheck className="mr-2 h-4 w-4" />
+                Mark as read
+              </Button>
+              <Button variant="outline">
+                <Sparkles className="mr-2 h-4 w-4" />
+                AI Summary
+              </Button>
+            </CardFooter>
           </Card>
         ))}
       </div>
