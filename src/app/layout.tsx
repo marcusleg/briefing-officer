@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { getFeeds } from "@/app/actions";
 import AddFeed from "@/components/AddFeed";
 import { cn } from "@/lib/utils";
+import { Button, buttonVariants } from "@/components/ui/button";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Briefing Officer",
@@ -33,18 +35,29 @@ export default async function RootLayout({
         <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
           Briefing Officer
         </h1>
-        <div className=""></div>
-        <div>
-          <ul>
-            {feeds.map((feed) => (
-              <li key={feed.id}>
-                <a href={`/feed/${feed.id}`}>{feed.title}</a>
-              </li>
-            ))}
-          </ul>
-          <AddFeed />
+        <div className="flex flex-row gap-4 mt-4">
+          <div className="flex flex-col gap-4">
+            <nav className="flex flex-col gap-1 px-2">
+              {feeds.map((feed) => (
+                <Link
+                  key={feed.id}
+                  href={`/feed/${feed.id}`}
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" }),
+                    "justify-start w-full font-bold",
+                  )}
+                >
+                  {feed.title}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="px-2">
+              <AddFeed />
+            </div>
+          </div>
+          <main>{children}</main>
         </div>
-        <div>{children}</div>
       </body>
     </html>
   );
