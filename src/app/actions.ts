@@ -59,12 +59,3 @@ export const refreshFeed = async (id: number) => {
     },
   });
 };
-
-export const refreshFeeds = async () => {
-  const feeds = await prisma.feed.findMany({});
-  const promises = feeds.map((feed) =>
-    fetch(feed.link).then((res) => res.text()),
-  );
-  const results = await Promise.all(promises);
-  return results.map((result) => parseFeed(result));
-};
