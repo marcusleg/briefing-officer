@@ -6,6 +6,7 @@ import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
+import Link from "next/link";
 import "../app/globals.css";
 
 export const metadata: Metadata = {
@@ -33,7 +34,11 @@ export default async function RootLayout({
           fontSans.variable,
         )}
       >
-        <Typography variant="h1">Briefing Officer</Typography>
+        <div className="w-full bg-black p-4 text-white">
+          <Typography variant="h1">
+            <Link href="/">Briefing Officer</Link>
+          </Typography>
+        </div>
         <div className="m-2 mt-4 flex flex-row gap-4">
           <div className="flex flex-col gap-4">
             <FeedNavigation feeds={feeds} />
