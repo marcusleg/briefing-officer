@@ -9,8 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import RenameFeedDialog from "@/components/feed/RenameFeedDialog";
-import DeleteFeedDialog from "@/components/feed/DeleteFeedDialog";
+import RenameFeedMenuItem from "@/components/feed/RenameFeedMenuItem";
+import DeleteFeedMenuItem from "@/components/feed/DeleteFeedMenuItem";
 
 interface AdditionalFeedActionsButtonProps {
   feedId: number;
@@ -32,8 +32,8 @@ const AdditionalFeedActionsButton = ({
         <DropdownMenuLabel>Feed</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <RenameFeedDialog feedId={feedId} currentFeedTitle={feedTitle} />
-          <DeleteFeedDialog feedTitle={feedTitle} feedId={feedId} />
+          <RenameFeedMenuItem feedId={feedId} currentFeedTitle={feedTitle} />
+          <DeleteFeedMenuItem feedTitle={feedTitle} feedId={feedId} />
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

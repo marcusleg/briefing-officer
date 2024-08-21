@@ -18,15 +18,15 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { renameFeed } from "@/app/actions";
 
-interface RenameFeedDialogProps {
+interface RenameFeedMenuItemProps {
   currentFeedTitle: string;
   feedId: number;
 }
 
-const RenameFeedDialog = ({
+const RenameFeedMenuItem = ({
   currentFeedTitle,
   feedId,
-}: RenameFeedDialogProps) => {
+}: RenameFeedMenuItemProps) => {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newFeedTitle, setNewFeedTitle] = useState(currentFeedTitle);
   const [renamingInProgress, setRenamingInProgress] = useState(false);
@@ -85,4 +85,4 @@ const RenameFeedDialog = ({
   );
 };
 
-export default RenameFeedDialog;
+export default RenameFeedMenuItem;

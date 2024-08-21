@@ -16,12 +16,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { deleteFeed } from "@/app/actions";
 
-interface DeleteFeedDialogProps {
+interface DeleteFeedMenuItemProps {
   feedTitle: string;
   feedId: number;
 }
 
-const DeleteFeedDialog = ({ feedId, feedTitle }: DeleteFeedDialogProps) => {
+const DeleteFeedMenuItem = ({ feedId, feedTitle }: DeleteFeedMenuItemProps) => {
   const [deletionInProgress, setDeletionInProgress] = useState(false);
 
   const handleDelete = async () => {
@@ -61,4 +61,4 @@ const DeleteFeedDialog = ({ feedId, feedTitle }: DeleteFeedDialogProps) => {
   );
 };
 
-export default DeleteFeedDialog;
+export default DeleteFeedMenuItem;
