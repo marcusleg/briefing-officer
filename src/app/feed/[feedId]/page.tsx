@@ -68,15 +68,14 @@ const Feed = async ({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {article.aiSummary?.lead ? (
-                <Typography className="text-sm" variant="p">
-                  {article.aiSummary.lead}
-                </Typography>
-              ) : (
-                <Typography className="text-sm" variant="p">
-                  {article.description}
-                </Typography>
-              )}
+              <Typography
+                className="text-pretty text-justify text-sm"
+                variant="p"
+              >
+                {article.aiSummary?.lead
+                  ? article.aiSummary.lead
+                  : article.description}
+              </Typography>
             </CardContent>
             <CardFooter className="flex flex-row gap-2">
               <Link
