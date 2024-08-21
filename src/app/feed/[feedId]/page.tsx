@@ -10,10 +10,11 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { BookText, ExternalLink, Filter, Sparkles } from "lucide-react";
+import { BookText, ExternalLink, Sparkles } from "lucide-react";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import FeedFilterButton from "@/components/feed/FeedFilterButton";
 import Typography from "@/components/ui/typography";
+import AdditionalFeedActionsButton from "@/components/feed/AdditionalFeedActionsButton";
 
 const Feed = async ({
   params,
@@ -42,6 +43,7 @@ const Feed = async ({
       <div className="flex flex-row gap-4 items-center my-4">
         <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />
+        <AdditionalFeedActionsButton feedId={feedId} />
         <p className="text-sm text-muted-foreground">
           Last updated: {feed.lastFetched.toLocaleString()}
         </p>
