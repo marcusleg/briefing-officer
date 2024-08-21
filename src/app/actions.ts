@@ -1,4 +1,5 @@
 "use server";
+
 import prisma from "../lib/prismaClient";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
@@ -61,4 +62,15 @@ export const refreshFeed = async (feedId: number) => {
   });
 
   revalidatePath(`/feed/${feedId}`);
+};
+
+export const renameFeed = async (feedId: number, newTitle: string) => {
+  await prisma.feed.update({
+    where: { id: feedId },
+    data: {
+      title: newTitle,
+    },
+  });
+
+  revalidatePath("/", "layout");
 };

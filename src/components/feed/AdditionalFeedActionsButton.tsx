@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Ellipsis, Filter, Pencil, Trash } from "lucide-react";
+import { Ellipsis, Trash } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,13 +9,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import RenameFeedDialog from "@/components/feed/RenameFeedDialog";
 
 interface AdditionalFeedActionsButtonProps {
   feedId: number;
+  feedTitle: string;
 }
 
 const AdditionalFeedActionsButton = ({
   feedId,
+  feedTitle,
 }: AdditionalFeedActionsButtonProps) => {
   return (
     <DropdownMenu>
@@ -28,10 +31,7 @@ const AdditionalFeedActionsButton = ({
         <DropdownMenuLabel>Feed</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <Pencil className="mr-2 h-4 w-4" />
-            <span>Rename</span>
-          </DropdownMenuItem>
+          <RenameFeedDialog feedId={feedId} currentFeedTitle={feedTitle} />
           <DropdownMenuItem>
             <Trash className="mr-2 h-4 w-4" />
             <span>Delete</span>
