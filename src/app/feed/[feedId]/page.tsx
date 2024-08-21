@@ -1,5 +1,5 @@
 import prisma from "@/lib/prismaClient";
-import RefreshFeedButton from "@/components/RefreshFeedButton";
+import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
 import {
   Card,
   CardContent,
@@ -11,8 +11,8 @@ import {
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { BookText, ExternalLink, Filter, Sparkles } from "lucide-react";
-import ToggleReadButton from "@/components/ToggleReadButton";
-import FeedFilterButton from "@/components/FeedFilterButton";
+import ToggleReadButton from "@/components/article/ToggleReadButton";
+import FeedFilterButton from "@/components/feed/FeedFilterButton";
 
 const Feed = async ({
   params,

@@ -3,7 +3,7 @@ import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Speech } from "lucide-react";
 import { getAiSummary } from "./actions";
-import ToggleReadButton from "@/components/ToggleReadButton";
+import ToggleReadButton from "@/components/article/ToggleReadButton";
 
 const AiSummary = async ({
   params,

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Speech } from "lucide-react";
 import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
-import ReadAloudButton from "@/components/ReadAloudButton";
+import ReadAloudButton from "@/components/article/ReadAloudButton";
 
 const ReaderView = async ({
   params,
