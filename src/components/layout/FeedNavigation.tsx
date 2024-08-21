@@ -3,12 +3,15 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { Feed } from "@prisma/client";
+import { useParams } from "next/navigation";
 
 interface FeedNavigationProps {
   feeds: Feed[];
 }
 
 const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
+  const params = useParams<{ feedId: string }>();
+
   return (
     <nav className="flex flex-col gap-1 px-2">
       {feeds.map((feed) => (
@@ -16,7 +19,9 @@ const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
           key={feed.id}
           href={`/feed/${feed.id}`}
           className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
+            feed.id === parseInt(params.feedId)
+              ? buttonVariants({ variant: "default", size: "sm" })
+              : buttonVariants({ variant: "ghost", size: "sm" }),
             "justify-start w-full font-bold",
           )}
         >
