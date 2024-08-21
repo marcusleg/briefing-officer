@@ -13,7 +13,7 @@ const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
   const params = useParams<{ feedId: string }>();
 
   return (
-    <nav className="flex flex-col gap-1 px-2">
+    <nav className="flex flex-col gap-2 px-2">
       {feeds.map((feed) => (
         <Link
           key={feed.id}
