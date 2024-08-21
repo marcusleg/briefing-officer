@@ -61,7 +61,9 @@ const Feed = async ({
           >
             <CardHeader>
               <CardTitle>
-                <Link href={article.link}>{article.title}</Link>
+                <Link href={article.link} referrerPolicy="no-referrer">
+                  {article.title}
+                </Link>
               </CardTitle>
               <CardDescription>
                 {article.publicationDate.toLocaleString()}
