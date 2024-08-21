@@ -4,10 +4,9 @@ import type { Metadata } from "next";
 import { getFeeds } from "@/app/actions";
 import AddFeed from "@/components/AddFeed";
 import { cn } from "@/lib/utils";
-import { Button, buttonVariants } from "@/components/ui/button";
-import Link from "next/link";
 import Typography from "@/components/ui/typography";
 import FeedNavigation from "@/components/layout/FeedNavigation";
+import { Separator } from "@/components/ui/separator";
 
 export const metadata: Metadata = {
   title: "Briefing Officer",
@@ -38,6 +37,8 @@ export default async function RootLayout({
         <div className="flex flex-row gap-4 mt-4 m-2">
           <div className="flex flex-col gap-4">
             <FeedNavigation feeds={feeds} />
+
+            <Separator />
 
             <div className="px-2">
               <AddFeed />
