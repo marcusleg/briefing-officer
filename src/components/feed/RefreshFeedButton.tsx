@@ -1,7 +1,7 @@
 "use client";
 import { refreshFeed } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import { RotateCw } from "lucide-react";
+import { LoaderCircle, RotateCw } from "lucide-react";
 import { useState } from "react";
 
 interface RefreshFeedButtonProps {
@@ -23,7 +23,11 @@ const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
       onClick={handleCLick}
       variant="outline"
     >
-      <RotateCw className="mr-2 h-4 w-4" />
+      {refreshInProgress ? (
+        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <RotateCw className="mr-2 h-4 w-4" />
+      )}
       Refresh
     </Button>
   );
