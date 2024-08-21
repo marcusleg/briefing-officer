@@ -1,10 +1,10 @@
-import prisma from "@/lib/prismaClient";
+import ToggleReadButton from "@/components/article/ToggleReadButton";
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
+import Typography from "@/components/ui/typography";
+import prisma from "@/lib/prismaClient";
 import { Speech } from "lucide-react";
 import { getAiSummary } from "./actions";
-import ToggleReadButton from "@/components/article/ToggleReadButton";
-import Typography from "@/components/ui/typography";
 
 const AiSummary = async ({
   params,

@@ -1,12 +1,12 @@
-import "../app/globals.css";
-import { Inter as FontSans } from "next/font/google";
-import type { Metadata } from "next";
 import { getFeeds } from "@/app/actions";
 import AddFeed from "@/components/AddFeed";
-import { cn } from "@/lib/utils";
-import Typography from "@/components/ui/typography";
 import FeedNavigation from "@/components/layout/FeedNavigation";
 import { Separator } from "@/components/ui/separator";
+import Typography from "@/components/ui/typography";
+import { cn } from "@/lib/utils";
+import type { Metadata } from "next";
+import { Inter as FontSans } from "next/font/google";
+import "../app/globals.css";
 
 export const metadata: Metadata = {
   title: "Briefing Officer",

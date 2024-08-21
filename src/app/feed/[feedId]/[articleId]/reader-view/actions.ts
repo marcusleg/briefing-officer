@@ -1,8 +1,8 @@
 import prisma from "@/lib/prismaClient";
+import { Readability } from "@mozilla/readability";
 import axios from "axios";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
-import { Readability } from "@mozilla/readability";
 
 export const getReadability = async (
   articleId: number,

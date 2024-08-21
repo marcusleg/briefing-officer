@@ -1,9 +1,9 @@
 "use server";
 
-import prisma from "../lib/prismaClient";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import prisma from "../lib/prismaClient";
 
 export const addFeed = async (url: string) => {
   const feed = await fetch(url).then((res) => res.text());

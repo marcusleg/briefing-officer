@@ -1,11 +1,11 @@
-import prisma from "@/lib/prismaClient";
-import BackButton from "@/components/BackButton";
-import { Button } from "@/components/ui/button";
-import { Sparkles, Speech } from "lucide-react";
 import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
 import ReadAloudButton from "@/components/article/ReadAloudButton";
+import BackButton from "@/components/BackButton";
+import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
+import prisma from "@/lib/prismaClient";
+import { Sparkles } from "lucide-react";
 
 const ReaderView = async ({
   params,

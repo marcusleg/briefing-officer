@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Speech } from "lucide-react";
 import { getSpeechSynthesis } from "@/lib/polly";
+import { Speech } from "lucide-react";
 
 interface ReadAloudButtonProps {
   feedId: number;

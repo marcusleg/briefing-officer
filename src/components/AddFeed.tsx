@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { addFeed } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 
 const AddFeed = () => {
   const [inputFeedUrl, setInputFeedUrl] = useState("");

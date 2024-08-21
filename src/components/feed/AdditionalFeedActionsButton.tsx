@@ -1,16 +1,15 @@
+import DeleteFeedMenuItem from "@/components/feed/DeleteFeedMenuItem";
+import RenameFeedMenuItem from "@/components/feed/RenameFeedMenuItem";
 import { Button } from "@/components/ui/button";
-import { Ellipsis, Trash } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import RenameFeedMenuItem from "@/components/feed/RenameFeedMenuItem";
-import DeleteFeedMenuItem from "@/components/feed/DeleteFeedMenuItem";
+import { Ellipsis } from "lucide-react";
 
 interface AdditionalFeedActionsButtonProps {
   feedId: number;

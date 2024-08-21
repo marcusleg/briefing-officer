@@ -1,5 +1,7 @@
 "use client";
 
+import { renameFeed } from "@/app/actions";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -11,12 +13,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Pencil } from "lucide-react";
 import { useState } from "react";
-import { renameFeed } from "@/app/actions";
 
 interface RenameFeedMenuItemProps {
   currentFeedTitle: string;

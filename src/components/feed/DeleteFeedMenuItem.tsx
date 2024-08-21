@@ -1,8 +1,6 @@
 "use client";
 
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Trash } from "lucide-react";
-import { useState } from "react";
+import { deleteFeed } from "@/app/actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +12,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { deleteFeed } from "@/app/actions";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Trash } from "lucide-react";
+import { useState } from "react";
 
 interface DeleteFeedMenuItemProps {
   feedTitle: string;

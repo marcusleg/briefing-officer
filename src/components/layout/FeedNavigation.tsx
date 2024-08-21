@@ -1,8 +1,8 @@
 "use client";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Feed } from "@prisma/client";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 
 interface FeedNavigationProps {

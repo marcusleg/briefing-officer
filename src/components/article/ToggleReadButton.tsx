@@ -3,8 +3,8 @@ import {
   markArticleAsRead,
   markArticleAsUnread,
 } from "@/app/feed/[feedId]/actions";
-import { BookCheck, BookX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BookCheck, BookX } from "lucide-react";
 
 const ToggleReadButton = ({
   feedId,

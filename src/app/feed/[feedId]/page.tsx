@@ -1,5 +1,8 @@
-import prisma from "@/lib/prismaClient";
+import ToggleReadButton from "@/components/article/ToggleReadButton";
+import AdditionalFeedActionsButton from "@/components/feed/AdditionalFeedActionsButton";
+import FeedFilterButton from "@/components/feed/FeedFilterButton";
 import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,13 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
-import { BookText, ExternalLink, Sparkles } from "lucide-react";
-import ToggleReadButton from "@/components/article/ToggleReadButton";
-import FeedFilterButton from "@/components/feed/FeedFilterButton";
 import Typography from "@/components/ui/typography";
-import AdditionalFeedActionsButton from "@/components/feed/AdditionalFeedActionsButton";
+import prisma from "@/lib/prismaClient";
+import { BookText, ExternalLink, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 const Feed = async ({
   params,

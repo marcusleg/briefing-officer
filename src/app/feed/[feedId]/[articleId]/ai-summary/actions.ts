@@ -1,9 +1,9 @@
+import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
+import prisma from "@/lib/prismaClient";
 import {
   BedrockRuntimeClient,
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
-import prisma from "@/lib/prismaClient";
-import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 
 const bedrockRuntimeClient = new BedrockRuntimeClient({
   region: "eu-central-1",
