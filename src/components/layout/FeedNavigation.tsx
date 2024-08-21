@@ -22,7 +22,7 @@ const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
             feed.id === parseInt(params.feedId)
               ? buttonVariants({ variant: "default", size: "sm" })
               : buttonVariants({ variant: "ghost", size: "sm" }),
-            "justify-start w-full font-bold",
+            "w-full justify-start font-bold",
           )}
         >
           {feed.title}

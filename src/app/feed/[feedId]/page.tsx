@@ -40,7 +40,7 @@ const Feed = async ({
   return (
     <div className="m-2">
       <Typography variant="h2">{feed.title}</Typography>
-      <div className="flex flex-row gap-4 items-center my-4">
+      <div className="my-4 flex flex-row items-center gap-4">
         <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />
         <AdditionalFeedActionsButton feedId={feedId} feedTitle={feed.title} />

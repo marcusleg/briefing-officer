@@ -25,7 +25,7 @@ const ReaderView = async ({
   void markArticleAsRead(feedId, articleId);
 
   return (
-    <div className="m-2 max-w-4xl flex flex-col gap-2">
+    <div className="m-2 flex max-w-4xl flex-col gap-2">
       <div className="flex flex-row gap-2">
         <BackButton />
         <Button variant="outline">
@@ -41,7 +41,7 @@ const ReaderView = async ({
           {readerDocument?.byLine}
         </p>
         <p
-          className="text-justify text-pretty hyphens-auto reader-view"
+          className="reader-view hyphens-auto text-pretty text-justify"
           dangerouslySetInnerHTML={{ __html: readerDocument?.content }}
         ></p>
       </article>

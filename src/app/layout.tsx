@@ -34,7 +34,7 @@ export default async function RootLayout({
         )}
       >
         <Typography variant="h1">Briefing Officer</Typography>
-        <div className="flex flex-row gap-4 mt-4 m-2">
+        <div className="m-2 mt-4 flex flex-row gap-4">
           <div className="flex flex-col gap-4">
             <FeedNavigation feeds={feeds} />
 

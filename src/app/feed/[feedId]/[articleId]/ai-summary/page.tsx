@@ -23,7 +23,7 @@ const AiSummary = async ({
   const summary = await getAiSummary(articleId);
 
   return (
-    <div className="m-2 max-w-4xl flex flex-col gap-2">
+    <div className="m-2 flex max-w-4xl flex-col gap-2">
       <div className="flex flex-row gap-2">
         <BackButton />
         <ToggleReadButton
@@ -40,7 +40,7 @@ const AiSummary = async ({
       <article>
         <Typography variant="h2">{article.title}</Typography>
         <p
-          className="text-justify text-pretty hyphens-auto reader-view"
+          className="reader-view hyphens-auto text-pretty text-justify"
           dangerouslySetInnerHTML={{
             __html: summary.summary.replace(/\n/g, "<br />"),
           }}
