@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import Typography from "@/components/ui/typography";
+import FeedNavigation from "@/components/layout/FeedNavigation";
 
 export const metadata: Metadata = {
   title: "Briefing Officer",
@@ -36,20 +37,7 @@ export default async function RootLayout({
         <Typography variant="h1">Briefing Officer</Typography>
         <div className="flex flex-row gap-4 mt-4 m-2">
           <div className="flex flex-col gap-4">
-            <nav className="flex flex-col gap-1 px-2">
-              {feeds.map((feed) => (
-                <Link
-                  key={feed.id}
-                  href={`/feed/${feed.id}`}
-                  className={cn(
-                    buttonVariants({ variant: "ghost", size: "sm" }),
-                    "justify-start w-full font-bold",
-                  )}
-                >
-                  {feed.title}
-                </Link>
-              ))}
-            </nav>
+            <FeedNavigation feeds={feeds} />
 
             <div className="px-2">
               <AddFeed />
