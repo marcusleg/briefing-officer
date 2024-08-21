@@ -59,7 +59,11 @@ const Feed = async ({
                 {article.publicationDate.toLocaleString()}
               </CardDescription>
             </CardHeader>
-            <CardContent>{article.description}</CardContent>
+            <CardContent>
+              <Typography className="text-sm" variant="p">
+                {article.description}
+              </Typography>
+            </CardContent>
             <CardFooter className="flex flex-row gap-2">
               <Link
                 className={buttonVariants({ variant: "outline" })}
