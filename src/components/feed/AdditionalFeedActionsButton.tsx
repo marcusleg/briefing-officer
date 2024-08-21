@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import RenameFeedDialog from "@/components/feed/RenameFeedDialog";
+import DeleteFeedDialog from "@/components/feed/DeleteFeedDialog";
 
 interface AdditionalFeedActionsButtonProps {
   feedId: number;
@@ -32,10 +33,7 @@ const AdditionalFeedActionsButton = ({
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <RenameFeedDialog feedId={feedId} currentFeedTitle={feedTitle} />
-          <DropdownMenuItem>
-            <Trash className="mr-2 h-4 w-4" />
-            <span>Delete</span>
-          </DropdownMenuItem>
+          <DeleteFeedDialog feedTitle={feedTitle} feedId={feedId} />
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

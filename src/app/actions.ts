@@ -3,6 +3,7 @@
 import prisma from "../lib/prismaClient";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export const addFeed = async (url: string) => {
   const feed = await fetch(url).then((res) => res.text());
@@ -19,6 +20,16 @@ export const addFeed = async (url: string) => {
       lastFetched: new Date(),
     },
   });
+
+  revalidatePath("/", "layout");
+};
+
+export const deleteFeed = async (feedId: number) => {
+  await prisma.article.deleteMany({ where: { feedId: feedId } });
+  await prisma.feed.delete({ where: { id: feedId } });
+
+  revalidatePath("/", "layout");
+  redirect("/");
 };
 
 export const getFeeds = async () => {
