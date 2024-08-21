@@ -29,4 +29,3 @@ To learn more about dependencies, take a look at the following resources:
 - [Tailwind CSS](https://tailwindcss.com/docs/installation)
 - [shadcn/ui](https://ui.shadcn.com/docs)
 - [Lucide Icons](https://lucide.dev/icons/)
-
