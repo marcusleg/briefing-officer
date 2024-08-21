@@ -42,7 +42,8 @@ model Article {
 model ArticleAiSummary {
   articleId Int      @id
   article   Article  @relation(fields: [articleId], references: [id])
-  summary   String
+  summary   String?
+  lead      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

@@ -13,8 +13,10 @@ import {
 } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
+import { cn } from "@/lib/utils";
 import { BookText, ExternalLink, Sparkles } from "lucide-react";
 import Link from "next/link";
+import AiLeadButton from "@/components/article/AiLeadButton";
 
 const Feed = async ({
   params,
@@ -30,6 +32,9 @@ const Feed = async ({
     where: { id: feedId },
   });
   const articles = await prisma.article.findMany({
+    include: {
+      aiSummary: true,
+    },
     where: {
       feedId: feedId,
       read: showSearchParam === "all" ? undefined : false,
@@ -50,7 +55,10 @@ const Feed = async ({
       </div>
       <div className="flex flex-col gap-4">
         {articles.map((article) => (
-          <Card key={article.id} className={article.read ? "opacity-50" : ""}>
+          <Card
+            key={article.id}
+            className={cn("max-w-4xl", article.read ? "opacity-50" : "")}
+          >
             <CardHeader>
               <CardTitle>
                 <Link href={article.link}>{article.title}</Link>
@@ -60,9 +68,15 @@ const Feed = async ({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Typography className="text-sm" variant="p">
-                {article.description}
-              </Typography>
+              {article.aiSummary?.lead ? (
+                <Typography className="text-sm" variant="p">
+                  {article.aiSummary.lead}
+                </Typography>
+              ) : (
+                <Typography className="text-sm" variant="p">
+                  {article.description}
+                </Typography>
+              )}
             </CardContent>
             <CardFooter className="flex flex-row gap-2">
               <Link
@@ -85,6 +99,9 @@ const Feed = async ({
                 articleId={article.id}
                 isRead={article.read}
               />
+              {!article.aiSummary?.lead && (
+                <AiLeadButton feedId={feedId} articleId={article.id} />
+              )}
               <Link
                 className={buttonVariants({ variant: "outline" })}
                 href={`/feed/${feedId}/${article.id}/ai-summary`}
