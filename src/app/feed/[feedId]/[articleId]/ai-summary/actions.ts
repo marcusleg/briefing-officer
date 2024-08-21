@@ -8,7 +8,7 @@ import {
 const bedrockRuntimeClient = new BedrockRuntimeClient({
   region: "eu-central-1",
 });
-export const generateSummary = async (title: string, content: string) => {
+const promptClaude = async (text: string) => {
   const command = new ConverseCommand({
     modelId: "anthropic.claude-3-5-sonnet-20240620-v1:0",
     messages: [
@@ -16,7 +16,7 @@ export const generateSummary = async (title: string, content: string) => {
         role: "user",
         content: [
           {
-            text: `Sum up this article:\n\n${title}\n\n${content}`,
+            text: text,
           },
         ],
       },
@@ -45,7 +45,9 @@ export const getAiSummary = async (articleId: number) => {
   });
   const readability = await getReadability(article.id, article.link);
 
-  const summary = await generateSummary(article.title, readability.textContent);
+  const summary = await promptClaude(
+    `Sum up the following article. Format your response in Markdown. \n\n${article.title}\n\n${readability.textContent}`,
+  );
   if (!summary) {
     throw new Error("Failed to generate summary");
   }
