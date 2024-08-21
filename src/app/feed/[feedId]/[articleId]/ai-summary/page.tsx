@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Speech } from "lucide-react";
 import { getAiSummary } from "./actions";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
+import Typography from "@/components/ui/typography";
 
 const AiSummary = async ({
   params,
@@ -37,9 +38,7 @@ const AiSummary = async ({
       </div>
 
       <article>
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-          {article.title}
-        </h2>
+        <Typography variant="h2">{article.title}</Typography>
         <p
           className="text-justify text-pretty hyphens-auto reader-view"
           dangerouslySetInnerHTML={{

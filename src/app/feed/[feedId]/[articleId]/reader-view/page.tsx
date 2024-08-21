@@ -5,6 +5,7 @@ import { Sparkles, Speech } from "lucide-react";
 import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
 import ReadAloudButton from "@/components/article/ReadAloudButton";
+import Typography from "@/components/ui/typography";
 
 const ReaderView = async ({
   params,
@@ -35,9 +36,7 @@ const ReaderView = async ({
       </div>
 
       <article>
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-          {article.title}
-        </h2>
+        <Typography variant="h2">{article.title}</Typography>
         <p className="text-sm text-muted-foreground">
           {readerDocument?.byLine}
         </p>

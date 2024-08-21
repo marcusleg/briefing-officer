@@ -13,6 +13,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { BookText, ExternalLink, Filter, Sparkles } from "lucide-react";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import FeedFilterButton from "@/components/feed/FeedFilterButton";
+import Typography from "@/components/ui/typography";
 
 const Feed = async ({
   params,
@@ -37,9 +38,7 @@ const Feed = async ({
 
   return (
     <div className="m-2">
-      <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-        {feed.title}
-      </h2>
+      <Typography variant="h2">{feed.title}</Typography>
       <div className="flex flex-row gap-4 items-center my-4">
         <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />

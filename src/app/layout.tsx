@@ -6,6 +6,7 @@ import AddFeed from "@/components/AddFeed";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
+import Typography from "@/components/ui/typography";
 
 export const metadata: Metadata = {
   title: "Briefing Officer",
@@ -32,9 +33,7 @@ export default async function RootLayout({
           fontSans.variable,
         )}
       >
-        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-          Briefing Officer
-        </h1>
+        <Typography variant="h1">Briefing Officer</Typography>
         <div className="flex flex-row gap-4 mt-4 m-2">
           <div className="flex flex-col gap-4">
             <nav className="flex flex-col gap-1 px-2">
