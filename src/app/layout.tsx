@@ -49,6 +49,9 @@ export default async function RootLayout({
               <AddFeed />
             </div>
           </div>
+
+          <Separator className="h-auto py-4" orientation="vertical" />
+
           <main>{children}</main>
         </div>
       </body>
