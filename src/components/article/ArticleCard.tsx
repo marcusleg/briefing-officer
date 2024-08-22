@@ -17,7 +17,6 @@ import Link from "next/link";
 
 const ArticleCard = (props: {
   article: Prisma.ArticleGetPayload<{ include: { aiSummary: true } }>;
-  feedId: number;
 }) => (
   <Card className={cn("max-w-4xl", props.article.read ? "opacity-50" : "")}>
     <CardHeader>
@@ -48,22 +47,25 @@ const ArticleCard = (props: {
       </Link>
       <Link
         className={buttonVariants({ variant: "outline" })}
-        href={`/feed/${props.feedId}/${props.article.id}/reader-view`}
+        href={`/feed/${props.article.feedId}/${props.article.id}/reader-view`}
       >
         <BookText className="mr-2 h-4 w-4" />
         Reader View
       </Link>
       <ToggleReadButton
-        feedId={props.feedId}
+        feedId={props.article.feedId}
         articleId={props.article.id}
         isRead={props.article.read}
       />
       {!props.article.aiSummary?.lead && (
-        <AiLeadButton feedId={props.feedId} articleId={props.article.id} />
+        <AiLeadButton
+          feedId={props.article.feedId}
+          articleId={props.article.id}
+        />
       )}
       <Link
         className={buttonVariants({ variant: "outline" })}
-        href={`/feed/${props.feedId}/${props.article.id}/ai-summary`}
+        href={`/feed/${props.article.feedId}/${props.article.id}/ai-summary`}
       >
         <Sparkles className="mr-2 h-4 w-4" />
         AI Summary

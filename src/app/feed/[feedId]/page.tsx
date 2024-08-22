@@ -42,7 +42,7 @@ const Feed = async ({
       </div>
       <div className="flex flex-col gap-4">
         {articles.map((article) => (
-          <ArticleCard key={article.id} article={article} feedId={feedId} />
+          <ArticleCard key={article.id} article={article} />
         ))}
       </div>
     </div>
