@@ -1,22 +1,9 @@
-import ToggleReadButton from "@/components/article/ToggleReadButton";
+import ArticleCard from "@/components/article/ArticleCard";
 import AdditionalFeedActionsButton from "@/components/feed/AdditionalFeedActionsButton";
 import FeedFilterButton from "@/components/feed/FeedFilterButton";
 import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
-import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
-import { cn } from "@/lib/utils";
-import { BookText, ExternalLink, Sparkles } from "lucide-react";
-import Link from "next/link";
-import AiLeadButton from "@/components/article/AiLeadButton";
 
 const Feed = async ({
   params,
@@ -55,63 +42,7 @@ const Feed = async ({
       </div>
       <div className="flex flex-col gap-4">
         {articles.map((article) => (
-          <Card
-            key={article.id}
-            className={cn("max-w-4xl", article.read ? "opacity-50" : "")}
-          >
-            <CardHeader>
-              <CardTitle>
-                <Link href={article.link} referrerPolicy="no-referrer">
-                  {article.title}
-                </Link>
-              </CardTitle>
-              <CardDescription>
-                {article.publicationDate.toLocaleString()}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Typography
-                className="text-pretty text-justify text-sm"
-                variant="p"
-              >
-                {article.aiSummary?.lead
-                  ? article.aiSummary.lead
-                  : article.description}
-              </Typography>
-            </CardContent>
-            <CardFooter className="flex flex-row gap-2">
-              <Link
-                className={buttonVariants({ variant: "outline" })}
-                href={article.link}
-                referrerPolicy="no-referrer"
-              >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Visit
-              </Link>
-              <Link
-                className={buttonVariants({ variant: "outline" })}
-                href={`/feed/${feedId}/${article.id}/reader-view`}
-              >
-                <BookText className="mr-2 h-4 w-4" />
-                Reader View
-              </Link>
-              <ToggleReadButton
-                feedId={feedId}
-                articleId={article.id}
-                isRead={article.read}
-              />
-              {!article.aiSummary?.lead && (
-                <AiLeadButton feedId={feedId} articleId={article.id} />
-              )}
-              <Link
-                className={buttonVariants({ variant: "outline" })}
-                href={`/feed/${feedId}/${article.id}/ai-summary`}
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                AI Summary
-              </Link>
-            </CardFooter>
-          </Card>
+          <ArticleCard key={article.id} article={article} feedId={feedId} />
         ))}
       </div>
     </div>
