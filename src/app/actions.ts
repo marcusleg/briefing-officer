@@ -75,6 +75,12 @@ export const refreshFeed = async (feedId: number) => {
   revalidatePath(`/feed/${feedId}`);
 };
 
+export const refreshFeeds = async () => {
+  const feeds = await prisma.feed.findMany({ select: { id: true } });
+  const promises = feeds.map((feed) => refreshFeed(feed.id));
+  await Promise.all(promises);
+};
+
 export const renameFeed = async (feedId: number, newTitle: string) => {
   await prisma.feed.update({
     where: { id: feedId },
