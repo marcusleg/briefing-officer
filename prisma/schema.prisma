@@ -27,7 +27,7 @@ model Article {
   id              Int                 @id @default(autoincrement())
   title           String
   publicationDate DateTime
-  description     String
+  description     String?
   content         String?
   link            String              @unique
   read            Boolean             @default(false)

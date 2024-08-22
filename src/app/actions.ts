@@ -46,8 +46,13 @@ export const refreshFeed = async (feedId: number) => {
     throw new Error("Unable to parse feed.");
   }
 
-  const promises = parsedFeed.items.map((item) =>
-    prisma.article.upsert({
+  const promises = parsedFeed.items.map((item) => {
+    if (!item.title || !item.link || !item.pubDate) {
+      console.log("Invalid feed item", item);
+      return;
+    }
+
+    return prisma.article.upsert({
       where: { link: item.link },
       update: {
         title: item.title,
@@ -61,8 +66,8 @@ export const refreshFeed = async (feedId: number) => {
         publicationDate: new Date(item.pubDate),
         feedId: feed.id,
       },
-    }),
-  );
+    });
+  });
   await Promise.all(promises);
 
   await prisma.feed.update({
