@@ -15,10 +15,19 @@ import { Prisma } from "@prisma/client";
 import { BookText, ExternalLink, Sparkles } from "lucide-react";
 import Link from "next/link";
 
-const ArticleCard = (props: {
+interface ArticleCardProps {
   article: Prisma.ArticleGetPayload<{ include: { aiSummary: true } }>;
-}) => (
-  <Card className={cn("max-w-4xl", props.article.read ? "opacity-50" : "")}>
+  className?: string;
+}
+
+const ArticleCard = (props: ArticleCardProps) => (
+  <Card
+    className={cn(
+      "max-w-4xl",
+      props.article.read ? "opacity-50" : "",
+      props.className,
+    )}
+  >
     <CardHeader>
       <CardTitle>
         <Link href={props.article.link} referrerPolicy="no-referrer">
