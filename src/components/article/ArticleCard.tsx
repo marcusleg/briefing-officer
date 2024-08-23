@@ -98,8 +98,10 @@ const ArticleCard = (props: ArticleCardProps) => {
         </CardTitle>
         <CardDescription className="flex flex-row gap-2 align-middle text-sm">
           <div>
-            {props.article.feed.title},{" "}
-            <IntlRelativeTime date={props.article.publicationDate} />
+            <Link href={`/feed/${props.article.feedId}`}>
+              {props.article.feed.title}
+            </Link>
+            , <IntlRelativeTime date={props.article.publicationDate} />
           </div>
           {articleReadingTime && (
             <>
