@@ -4,6 +4,7 @@ import {
 } from "@/app/feed/[feedId]/actions";
 import AiLeadButton from "@/components/article/AiLeadButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
+import IntlDateTime from "@/components/IntlDateTime";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -80,7 +81,7 @@ const ArticleCard = (props: ArticleCardProps) => {
           </Link>
         </CardTitle>
         <CardDescription>
-          {props.article.publicationDate.toLocaleString()}
+          <IntlDateTime date={props.article.publicationDate} />
         </CardDescription>
       </CardHeader>
       <CardContent>
