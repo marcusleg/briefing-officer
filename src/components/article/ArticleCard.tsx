@@ -18,6 +18,7 @@ import Link from "next/link";
 interface ArticleCardProps {
   article: Prisma.ArticleGetPayload<{ include: { aiSummary: true } }>;
   className?: string;
+  onClick?: () => void;
 }
 
 const ArticleCard = (props: ArticleCardProps) => (
@@ -27,6 +28,7 @@ const ArticleCard = (props: ArticleCardProps) => (
       props.article.read ? "opacity-50" : "",
       props.className,
     )}
+    onClick={props.onClick}
   >
     <CardHeader>
       <CardTitle>

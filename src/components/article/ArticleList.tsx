@@ -69,6 +69,7 @@ const ArticleList = ({ articles }: ArticleListProps) => {
               : undefined
           }
           article={article}
+          onClick={() => setSelectedArticle(index)}
         />
       ))}
     </div>
