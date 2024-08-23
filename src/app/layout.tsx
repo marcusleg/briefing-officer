@@ -45,7 +45,7 @@ export default async function RootLayout({
 
             <Separator />
 
-            <div className="px-2">
+            <div className="flex flex-row justify-center gap-2 px-2">
               <AddFeed />
             </div>
           </div>

@@ -14,6 +14,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -25,10 +31,18 @@ const AddFeed = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="w-full" size="sm" variant="ghost">
-          <Plus className="mr-2 h-4 w-4" />
-          Add feed
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button size="icon" variant="outline">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>Add feed</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -44,7 +58,7 @@ const AddFeed = () => {
               defaultValue={inputFeedUrl}
               id="url"
               onChange={(event) => setInputFeedUrl(event.target.value)}
-              placeholder="http://example.com/rss"
+              placeholder="https://example.com/rss"
               type="url"
             />
           </div>
