@@ -6,7 +6,9 @@ import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 interface ArticleListProps {
-  articles: Prisma.ArticleGetPayload<{ include: { aiSummary: true } }>[];
+  articles: Prisma.ArticleGetPayload<{
+    include: { aiSummary: true; feed: true; readability: true };
+  }>[];
 }
 
 const ArticleList = ({ articles }: ArticleListProps) => {

@@ -22,6 +22,8 @@ const Feed = async ({
   const articles = await prisma.article.findMany({
     include: {
       aiSummary: true,
+      feed: true,
+      readability: true,
     },
     where: {
       feedId: feedId,

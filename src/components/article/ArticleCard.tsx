@@ -4,7 +4,8 @@ import {
 } from "@/app/feed/[feedId]/actions";
 import AiLeadButton from "@/components/article/AiLeadButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
-import IntlDateTime from "@/components/IntlDateTime";
+import IntlRelativeTime from "@/components/IntlRelativeTime";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -17,13 +18,22 @@ import {
 import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
-import { BookText, ExternalLink, Sparkles } from "lucide-react";
+import {
+  BookText,
+  Clock,
+  ExternalLink,
+  LetterText,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import readingTime from "reading-time";
 
 interface ArticleCardProps {
-  article: Prisma.ArticleGetPayload<{ include: { aiSummary: true } }>;
+  article: Prisma.ArticleGetPayload<{
+    include: { aiSummary: true; feed: true; readability: true };
+  }>;
   className?: string;
   onClick?: () => void;
   selected?: boolean;
@@ -64,6 +74,10 @@ const ArticleCard = (props: ArticleCardProps) => {
     }
   });
 
+  const articleReadingTime = props.article.readability
+    ? readingTime(props.article.readability.textContent)
+    : undefined;
+
   return (
     <Card
       className={cn(
@@ -75,13 +89,28 @@ const ArticleCard = (props: ArticleCardProps) => {
       ref={cardRef}
     >
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="flex flex-col gap-4">
           <Link href={props.article.link} referrerPolicy="no-referrer">
             {props.article.title}
           </Link>
         </CardTitle>
-        <CardDescription>
-          <IntlDateTime date={props.article.publicationDate} />
+        <CardDescription className="flex flex-row gap-2 align-middle text-sm">
+          <div>
+            {props.article.feed.title},{" "}
+            <IntlRelativeTime date={props.article.publicationDate} />
+          </div>
+          {articleReadingTime && (
+            <>
+              <Badge className="text-muted-foreground" variant="outline">
+                <Clock className="mr-2 h-4 w-4" />
+                {articleReadingTime.text}
+              </Badge>
+              <Badge className="text-muted-foreground" variant="outline">
+                <LetterText className="mr-2 h-4 w-4" />
+                {articleReadingTime.words} words
+              </Badge>
+            </>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>
