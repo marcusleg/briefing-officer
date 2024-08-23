@@ -1,7 +1,7 @@
 import { getFeeds } from "@/app/actions";
-import AddFeedButton from "@/components/AddFeedButton";
+import AddFeedButton from "@/components/layout/AddFeedButton";
 import FeedNavigation from "@/components/layout/FeedNavigation";
-import RefreshAllFeedsButton from "@/components/ui/RefreshAllFeedsButton";
+import RefreshAllFeedsButton from "@/components/layout/RefreshAllFeedsButton";
 import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
