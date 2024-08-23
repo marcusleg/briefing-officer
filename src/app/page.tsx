@@ -69,7 +69,7 @@ const Home = async () => {
           _all: true,
         },
         where: {
-          createdAt: {
+          publicationDate: {
             gte: new Date(dateRange.from),
             lt: new Date(dateRange.to),
           },
