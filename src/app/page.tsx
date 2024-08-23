@@ -1,6 +1,7 @@
 import ArticleList from "@/components/article/ArticleList";
 import NumberOfArticlesLast7DaysChart from "@/components/frontpage/NumberOfArticlesLast7DaysChart";
 import UnreadArticlesChart from "@/components/frontpage/UnreadArticlesChart";
+import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
 
 const getLast7Days = () => {
@@ -87,6 +88,8 @@ const Home = async () => {
           to={last7Days[6].to}
         />
       </div>
+
+      <Typography variant="h2">Unread articles from your feeds</Typography>
 
       <ArticleList articles={articles} />
     </div>
