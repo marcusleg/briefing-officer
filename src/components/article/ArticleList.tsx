@@ -16,6 +16,15 @@ interface ArticleListProps {
 const ArticleList = ({ articles }: ArticleListProps) => {
   const [selectedArticle, setSelectedArticle] = useState<number>();
 
+  useHotkeys("v", async () => {
+    if (selectedArticle === undefined) {
+      return;
+    }
+
+    window.open(articles[selectedArticle].link, "_blank");
+    await markArticleAsRead(articles[selectedArticle].id);
+  });
+
   useHotkeys("p", () => {
     if (selectedArticle === undefined || selectedArticle === 0) {
       return;
