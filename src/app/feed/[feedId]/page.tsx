@@ -2,6 +2,7 @@ import ArticleList from "@/components/article/ArticleList";
 import AdditionalFeedActionsButton from "@/components/feed/AdditionalFeedActionsButton";
 import FeedFilterButton from "@/components/feed/FeedFilterButton";
 import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
+import IntlRelativeTime from "@/components/IntlRelativeTime";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
 
@@ -36,9 +37,12 @@ const Feed = async ({
         <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />
         <AdditionalFeedActionsButton feedId={feedId} feedTitle={feed.title} />
-        <p className="text-sm text-muted-foreground">
-          Last updated: {feed.lastFetched.toLocaleString()}
-        </p>
+        <time
+          className="text-sm text-muted-foreground"
+          dateTime={feed.lastFetched.toISOString()}
+        >
+          Last updated <IntlRelativeTime date={feed.lastFetched} />
+        </time>
       </div>
       <ArticleList articles={articles} />
     </div>
