@@ -1,6 +1,7 @@
 import { getFeeds } from "@/app/actions";
-import AddFeed from "@/components/AddFeed";
+import AddFeedButton from "@/components/AddFeedButton";
 import FeedNavigation from "@/components/layout/FeedNavigation";
+import RefreshAllFeedsButton from "@/components/ui/RefreshAllFeedsButton";
 import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,8 @@ export default async function RootLayout({
             <Separator />
 
             <div className="flex flex-row justify-center gap-2 px-2">
-              <AddFeed />
+              <AddFeedButton />
+              <RefreshAllFeedsButton />
             </div>
           </div>
 

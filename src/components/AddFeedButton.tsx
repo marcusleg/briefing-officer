@@ -23,7 +23,7 @@ import {
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-const AddFeed = () => {
+const AddFeedButton = () => {
   const [inputFeedUrl, setInputFeedUrl] = useState("");
 
   const handleAddFeed = () => addFeed(inputFeedUrl);
@@ -78,4 +78,4 @@ const AddFeed = () => {
   );
 };
 
-export default AddFeed;
+export default AddFeedButton;
