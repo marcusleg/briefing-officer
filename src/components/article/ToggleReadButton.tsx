@@ -17,10 +17,7 @@ const ToggleReadButton = ({
 }) => {
   if (isRead) {
     return (
-      <Button
-        variant="outline"
-        onClick={() => markArticleAsUnread(feedId, articleId)}
-      >
+      <Button variant="outline" onClick={() => markArticleAsUnread(articleId)}>
         <BookX className="mr-2 h-4 w-4" />
         Mark as unread
       </Button>
@@ -28,10 +25,7 @@ const ToggleReadButton = ({
   }
 
   return (
-    <Button
-      variant="outline"
-      onClick={() => markArticleAsRead(feedId, articleId)}
-    >
+    <Button variant="outline" onClick={() => markArticleAsRead(articleId)}>
       <BookCheck className="mr-2 h-4 w-4" />
       Mark as read
     </Button>

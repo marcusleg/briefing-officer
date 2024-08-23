@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  markArticleAsRead,
+  markArticleAsUnread,
+} from "@/app/feed/[feedId]/actions";
 import ArticleCard from "@/components/article/ArticleCard";
 import { Prisma } from "@prisma/client";
 import { useState } from "react";
@@ -31,6 +35,18 @@ const ArticleList = ({ articles }: ArticleListProps) => {
     }
 
     setSelectedArticle(selectedArticle + 1);
+  });
+
+  useHotkeys("m", async () => {
+    if (selectedArticle === undefined) {
+      return;
+    }
+
+    if (articles[selectedArticle].read) {
+      await markArticleAsUnread(articles[selectedArticle].id);
+    } else {
+      await markArticleAsRead(articles[selectedArticle].id);
+    }
   });
 
   return (

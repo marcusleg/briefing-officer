@@ -2,8 +2,8 @@
 import prisma from "@/lib/prismaClient";
 import { revalidatePath } from "next/cache";
 
-export const markArticleAsRead = async (feedId: number, articleId: number) => {
-  await prisma.article.update({
+export const markArticleAsRead = async (articleId: number) => {
+  const updatedArticle = await prisma.article.update({
     where: {
       id: articleId,
     },
@@ -12,14 +12,11 @@ export const markArticleAsRead = async (feedId: number, articleId: number) => {
     },
   });
 
-  revalidatePath(`/feed/${feedId}`);
+  revalidatePath(`/feed/${updatedArticle.feedId}`);
 };
 
-export const markArticleAsUnread = async (
-  feedId: number,
-  articleId: number,
-) => {
-  await prisma.article.update({
+export const markArticleAsUnread = async (articleId: number) => {
+  const updatedArticle = await prisma.article.update({
     where: {
       id: articleId,
     },
@@ -28,5 +25,5 @@ export const markArticleAsUnread = async (
     },
   });
 
-  revalidatePath(`/feed/${feedId}`);
+  revalidatePath(`/feed/${updatedArticle.feedId}`);
 };
