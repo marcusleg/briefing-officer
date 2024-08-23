@@ -68,7 +68,7 @@ export const getAiSummary = async (articleId: number) => {
   });
 };
 
-export const getAiLead = async (feedId: number, articleId: number) => {
+export const getAiLead = async (articleId: number) => {
   const articleAiSummary = await prisma.articleAiSummary.findUnique({
     where: { articleId: articleId },
   });
@@ -101,7 +101,7 @@ export const getAiLead = async (feedId: number, articleId: number) => {
     },
   });
 
-  revalidatePath(`/feed/${feedId}`);
+  revalidatePath(`/feed/${article.feedId}`);
 
   return newLead;
 };

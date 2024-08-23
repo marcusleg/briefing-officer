@@ -1,22 +1,21 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { getAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
+import { Button } from "@/components/ui/button";
 import { LoaderCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 interface AiLeadButtonProps {
-  feedId: number;
   articleId: number;
 }
 
-const AiLeadButton = ({ feedId, articleId }: AiLeadButtonProps) => {
+const AiLeadButton = ({ articleId }: AiLeadButtonProps) => {
   const [leadGenerationInProgress, setLeadGenerationInProgress] =
     useState(false);
 
   const handleClick = async () => {
     setLeadGenerationInProgress(true);
-    await getAiLead(feedId, articleId);
+    await getAiLead(articleId);
     setLeadGenerationInProgress(false);
   };
 

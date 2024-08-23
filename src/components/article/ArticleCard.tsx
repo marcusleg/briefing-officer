@@ -67,10 +67,7 @@ const ArticleCard = (props: ArticleCardProps) => (
         isRead={props.article.read}
       />
       {!props.article.aiSummary?.lead && (
-        <AiLeadButton
-          feedId={props.article.feedId}
-          articleId={props.article.id}
-        />
+        <AiLeadButton articleId={props.article.id} />
       )}
       <Link
         className={buttonVariants({ variant: "outline" })}
