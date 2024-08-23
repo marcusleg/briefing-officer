@@ -13,7 +13,12 @@ const ArticleList = ({ articles }: ArticleListProps) => {
   const [selectedArticle, setSelectedArticle] = useState<number>();
 
   useHotkeys("p", () => {
-    if (selectedArticle === undefined || selectedArticle === 0) {
+    if (selectedArticle === undefined) {
+      return;
+    }
+
+    if (selectedArticle === 0) {
+      setSelectedArticle(undefined);
       return;
     }
 
