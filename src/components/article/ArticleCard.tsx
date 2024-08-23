@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 import { BookText, ExternalLink, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 interface ArticleCardProps {
@@ -28,6 +29,19 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = (props: ArticleCardProps) => {
+  const cardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!props.selected || !cardRef.current) {
+      return;
+    }
+
+    cardRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [props.selected]);
+
   useHotkeys("v", async () => {
     if (!props.selected) {
       return;
@@ -57,6 +71,7 @@ const ArticleCard = (props: ArticleCardProps) => {
         props.className,
       )}
       onClick={props.onClick}
+      ref={cardRef}
     >
       <CardHeader>
         <CardTitle>
