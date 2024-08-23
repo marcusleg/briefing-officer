@@ -1,9 +1,5 @@
 "use client";
 
-import {
-  markArticleAsRead,
-  markArticleAsUnread,
-} from "@/app/feed/[feedId]/actions";
 import ArticleCard from "@/components/article/ArticleCard";
 import { Prisma } from "@prisma/client";
 import { useState } from "react";
@@ -15,15 +11,6 @@ interface ArticleListProps {
 
 const ArticleList = ({ articles }: ArticleListProps) => {
   const [selectedArticle, setSelectedArticle] = useState<number>();
-
-  useHotkeys("v", async () => {
-    if (selectedArticle === undefined) {
-      return;
-    }
-
-    window.open(articles[selectedArticle].link, "_blank");
-    await markArticleAsRead(articles[selectedArticle].id);
-  });
 
   useHotkeys("p", () => {
     if (selectedArticle === undefined || selectedArticle === 0) {
@@ -46,18 +33,6 @@ const ArticleList = ({ articles }: ArticleListProps) => {
     setSelectedArticle(selectedArticle + 1);
   });
 
-  useHotkeys("m", async () => {
-    if (selectedArticle === undefined) {
-      return;
-    }
-
-    if (articles[selectedArticle].read) {
-      await markArticleAsUnread(articles[selectedArticle].id);
-    } else {
-      await markArticleAsRead(articles[selectedArticle].id);
-    }
-  });
-
   return (
     <div className="flex flex-col gap-4">
       {articles.map((article, index) => (
@@ -70,6 +45,7 @@ const ArticleList = ({ articles }: ArticleListProps) => {
           }
           article={article}
           onClick={() => setSelectedArticle(index)}
+          selected={index === selectedArticle}
         />
       ))}
     </div>
