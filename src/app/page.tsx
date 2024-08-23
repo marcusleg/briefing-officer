@@ -1,6 +1,19 @@
 import NumberOfArticlesLast7DaysChart from "@/components/frontpage/NumberOfArticlesLast7DaysChart";
 import UnreadArticlesChart from "@/components/frontpage/UnreadArticlesChart";
+import IntlRelativeTime from "@/components/IntlRelativeTime";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import prisma from "@/lib/prismaClient";
+import { MoreHorizontal } from "lucide-react";
+import Link from "next/link";
 
 const getLast7Days = () => {
   const dates = [];
@@ -22,6 +35,16 @@ const getLast7Days = () => {
 };
 
 const Home = async () => {
+  const latestArticles = await prisma.article.findMany({
+    orderBy: {
+      publicationDate: "desc",
+    },
+    take: 10,
+    include: {
+      feed: true,
+    },
+  });
+
   const feedWithUnreadArticleCount = await prisma.feed.findMany({
     include: {
       _count: {
@@ -63,13 +86,58 @@ const Home = async () => {
   );
 
   return (
-    <div className="grid grid-cols-3 gap-4">
-      <UnreadArticlesChart chartData={unreadArticlesChartData} />
-      <NumberOfArticlesLast7DaysChart
-        chartData={numberOfArticlesLast7DaysChartData}
-        from={last7Days[0].from}
-        to={last7Days[6].to}
-      />
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-3 gap-4">
+        <UnreadArticlesChart chartData={unreadArticlesChartData} />
+        <NumberOfArticlesLast7DaysChart
+          chartData={numberOfArticlesLast7DaysChartData}
+          from={last7Days[0].from}
+          to={last7Days[6].to}
+        />
+      </div>
+
+      <Table>
+        <TableCaption>Latest articles from your feeds.</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Feed</TableHead>
+            <TableHead>Article</TableHead>
+            <TableHead>Published</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {latestArticles.map((article) => (
+            <TableRow key={article.id}>
+              <TableCell>
+                <Link
+                  className="hover:underline"
+                  href={`/feed/${article.feedId}`}
+                >
+                  {article.feed.title}
+                </Link>
+              </TableCell>
+              <TableCell>
+                <Link
+                  className="hover:underline"
+                  href={article.link}
+                  referrerPolicy="no-referrer"
+                >
+                  {article.title}
+                </Link>
+              </TableCell>
+              <TableCell>
+                <IntlRelativeTime date={article.publicationDate} />
+              </TableCell>
+              <TableCell>
+                <Button className="h-8 w-8 p-0" variant="ghost">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };
