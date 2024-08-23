@@ -32,10 +32,6 @@ export const deleteFeed = async (feedId: number) => {
   redirect("/");
 };
 
-export const getFeeds = async () => {
-  return prisma.feed.findMany({ orderBy: { title: "asc" } });
-};
-
 export const refreshFeed = async (feedId: number) => {
   const feed = await prisma.feed.findUniqueOrThrow({
     where: { id: feedId },

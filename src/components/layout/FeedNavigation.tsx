@@ -1,12 +1,15 @@
 "use client";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Feed } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+interface FeedNavigationProps {}
+
 interface FeedNavigationProps {
-  feeds: Feed[];
+  feeds: Prisma.FeedGetPayload<{ include: { _count: true } }>[];
 }
 
 const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
@@ -25,7 +28,10 @@ const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
             "w-full justify-start font-bold",
           )}
         >
-          {feed.title}
+          <div className="mr-2">{feed.title}</div>
+          <Badge className="ml-auto" variant="secondary">
+            {feed._count.articles}
+          </Badge>
         </Link>
       ))}
     </nav>

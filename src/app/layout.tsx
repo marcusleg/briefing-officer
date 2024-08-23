@@ -1,9 +1,9 @@
-import { getFeeds } from "@/app/actions";
 import AddFeedButton from "@/components/layout/AddFeedButton";
 import FeedNavigation from "@/components/layout/FeedNavigation";
 import RefreshAllFeedsButton from "@/components/layout/RefreshAllFeedsButton";
 import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
+import prisma from "@/lib/prismaClient";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
@@ -25,7 +25,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const feeds = await getFeeds();
+  const feeds = await prisma.feed.findMany({
+    include: {
+      _count: {
+        select: {
+          articles: { where: { read: false } },
+        },
+      },
+    },
+    orderBy: { title: "asc" },
+  });
 
   return (
     <html lang="en">
