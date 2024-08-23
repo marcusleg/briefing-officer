@@ -122,7 +122,7 @@ const ArticleCard = (props: ArticleCardProps) => {
       </CardContent>
       <CardFooter className="flex flex-row gap-2">
         <Link
-          className={buttonVariants({ variant: "outline" })}
+          className={buttonVariants({ size: "sm", variant: "outline" })}
           href={props.article.link}
           referrerPolicy="no-referrer"
         >
@@ -130,14 +130,13 @@ const ArticleCard = (props: ArticleCardProps) => {
           Visit
         </Link>
         <Link
-          className={buttonVariants({ variant: "outline" })}
+          className={buttonVariants({ size: "sm", variant: "outline" })}
           href={`/feed/${props.article.feedId}/${props.article.id}/reader-view`}
         >
           <BookText className="mr-2 h-4 w-4" />
           Reader View
         </Link>
         <ToggleReadButton
-          feedId={props.article.feedId}
           articleId={props.article.id}
           isRead={props.article.read}
         />
@@ -145,7 +144,7 @@ const ArticleCard = (props: ArticleCardProps) => {
           <AiLeadButton articleId={props.article.id} />
         )}
         <Link
-          className={buttonVariants({ variant: "outline" })}
+          className={buttonVariants({ size: "sm", variant: "outline" })}
           href={`/feed/${props.article.feedId}/${props.article.id}/ai-summary`}
         >
           <Sparkles className="mr-2 h-4 w-4" />

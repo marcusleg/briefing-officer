@@ -21,9 +21,10 @@ const AiLeadButton = ({ articleId }: AiLeadButtonProps) => {
 
   return (
     <Button
-      variant="outline"
-      onClick={handleClick}
       disabled={leadGenerationInProgress}
+      size="sm"
+      onClick={handleClick}
+      variant="outline"
     >
       {leadGenerationInProgress ? (
         <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
