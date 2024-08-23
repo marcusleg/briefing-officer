@@ -1,5 +1,4 @@
-import UnreadArticlesInTotal from "@/components/frontpage/UnreadArticlesInTotal";
-import UnreadArticlesPerFeedChart from "@/components/frontpage/UnreadArticlesPerFeedChart";
+import UnreadArticlesChart from "@/components/frontpage/UnreadArticlesChart";
 import prisma from "@/lib/prismaClient";
 
 const Home = async () => {
@@ -19,15 +18,9 @@ const Home = async () => {
     };
   });
 
-  const unreadArticlesInTotal = feedWithUnreadArticleCount.reduce(
-    (acc, feed) => acc + feed._count.articles,
-    0,
-  );
-
   return (
     <main className="flex gap-4">
-      <UnreadArticlesInTotal unreadArticles={unreadArticlesInTotal} />
-      <UnreadArticlesPerFeedChart chartData={chartData} />
+      <UnreadArticlesChart chartData={chartData} />
     </main>
   );
 };
