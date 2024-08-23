@@ -1,4 +1,4 @@
-import ArticleCard from "@/components/article/ArticleCard";
+import ArticleList from "@/components/article/ArticleList";
 import AdditionalFeedActionsButton from "@/components/feed/AdditionalFeedActionsButton";
 import FeedFilterButton from "@/components/feed/FeedFilterButton";
 import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
@@ -40,11 +40,7 @@ const Feed = async ({
           Last updated: {feed.lastFetched.toLocaleString()}
         </p>
       </div>
-      <div className="flex flex-col gap-4">
-        {articles.map((article) => (
-          <ArticleCard key={article.id} article={article} />
-        ))}
-      </div>
+      <ArticleList articles={articles} />
     </div>
   );
 };
