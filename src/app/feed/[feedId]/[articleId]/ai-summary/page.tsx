@@ -26,11 +26,7 @@ const AiSummary = async ({
     <div className="m-2 flex max-w-4xl flex-col gap-2">
       <div className="flex flex-row gap-2">
         <BackButton />
-        <ToggleReadButton
-          feedId={feedId}
-          articleId={articleId}
-          isRead={article.read}
-        />
+        <ToggleReadButton articleId={articleId} isRead={article.read} />
         <Button variant="outline">
           <Speech className="mr-2 h-4 w-4" />
           Read aloud
