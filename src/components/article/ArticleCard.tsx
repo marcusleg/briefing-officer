@@ -6,6 +6,7 @@ import {
 } from "@/app/feed/[feedId]/actions";
 import AiLeadButton from "@/components/article/AiLeadButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
+import VisitButton from "@/components/article/VisitButton";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -20,13 +21,7 @@ import {
 import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
-import {
-  BookText,
-  Clock,
-  ExternalLink,
-  LetterText,
-  Sparkles,
-} from "lucide-react";
+import { BookText, Clock, LetterText, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -125,14 +120,7 @@ const ArticleCard = (props: ArticleCardProps) => {
         </Typography>
       </CardContent>
       <CardFooter className="flex flex-row gap-2">
-        <Link
-          className={buttonVariants({ size: "sm", variant: "outline" })}
-          href={props.article.link}
-          referrerPolicy="no-referrer"
-        >
-          <ExternalLink className="mr-2 h-4 w-4" />
-          Visit
-        </Link>
+        <VisitButton link={props.article.link} size="sm" />
         <Link
           className={buttonVariants({ size: "sm", variant: "outline" })}
           href={`/feed/${props.article.feedId}/${props.article.id}/reader-view`}
