@@ -5,6 +5,7 @@ import {
   markArticleAsUnread,
 } from "@/app/feed/[feedId]/actions";
 import AiLeadButton from "@/components/article/AiLeadButton";
+import AiSummaryButton from "@/components/article/AiSummaryButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import VisitButton from "@/components/article/VisitButton";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
@@ -21,7 +22,7 @@ import {
 import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
-import { BookText, Clock, LetterText, Sparkles } from "lucide-react";
+import { BookText, Clock, LetterText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -131,13 +132,11 @@ const ArticleCard = (props: ArticleCardProps) => {
         {!props.article.aiSummary?.lead && (
           <AiLeadButton articleId={props.article.id} />
         )}
-        <Link
-          className={buttonVariants({ size: "sm", variant: "outline" })}
-          href={`/feed/${props.article.feedId}/${props.article.id}/ai-summary`}
-        >
-          <Sparkles className="mr-2 h-4 w-4" />
-          AI Summary
-        </Link>
+        <AiSummaryButton
+          feedId={props.article.feedId}
+          articleId={props.article.id}
+          size="sm"
+        />
       </CardFooter>
     </Card>
   );
