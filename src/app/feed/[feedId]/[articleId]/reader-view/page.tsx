@@ -1,12 +1,11 @@
 import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
+import AiSummaryButton from "@/components/article/AiSummaryButton";
 import ReadAloudButton from "@/components/article/ReadAloudButton";
 import VisitButton from "@/components/article/VisitButton";
 import BackButton from "@/components/layout/BackButton";
-import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
-import { Sparkles } from "lucide-react";
 
 const ReaderView = async ({
   params,
@@ -30,10 +29,7 @@ const ReaderView = async ({
       <div className="flex flex-row flex-wrap gap-2">
         <BackButton />
         <VisitButton link={article.link} />
-        <Button variant="outline">
-          <Sparkles className="mr-2 h-4 w-4" />
-          AI Summary
-        </Button>
+        <AiSummaryButton feedId={article.feedId} articleId={article.id} />
         <ReadAloudButton feedId={feedId} articleId={articleId} />
       </div>
 
