@@ -46,7 +46,17 @@ const Feed = async ({
           Last updated <IntlRelativeTime date={feed.lastFetched} />
         </time>
       </div>
-      <ArticleList articles={articles} />
+
+      {articles.length > 0 ? (
+        <ArticleList articles={articles} />
+      ) : (
+        <Typography
+          variant="p"
+          className="my-8 text-center text-lg text-muted-foreground"
+        >
+          There are no {showSearchParam === "unread" && "unread"} articles.
+        </Typography>
+      )}
     </div>
   );
 };
