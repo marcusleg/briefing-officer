@@ -1,6 +1,7 @@
 import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
 import ReadAloudButton from "@/components/article/ReadAloudButton";
+import VisitButton from "@/components/article/VisitButton";
 import BackButton from "@/components/layout/BackButton";
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
@@ -28,6 +29,7 @@ const ReaderView = async ({
     <div className="m-2 flex max-w-4xl flex-col gap-2">
       <div className="flex flex-row gap-2">
         <BackButton />
+        <VisitButton link={article.link} />
         <Button variant="outline">
           <Sparkles className="mr-2 h-4 w-4" />
           AI Summary
