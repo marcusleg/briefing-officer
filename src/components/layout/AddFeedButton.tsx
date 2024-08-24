@@ -30,7 +30,7 @@ const AddFeedButton = () => {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
