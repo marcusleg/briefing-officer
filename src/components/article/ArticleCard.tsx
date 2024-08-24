@@ -4,7 +4,6 @@ import {
   markArticleAsRead,
   markArticleAsUnread,
 } from "@/app/feed/[feedId]/actions";
-import AiLeadButton from "@/components/article/AiLeadButton";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import VisitButton from "@/components/article/VisitButton";
@@ -129,9 +128,6 @@ const ArticleCard = (props: ArticleCardProps) => {
           articleId={props.article.id}
           isRead={props.article.read}
         />
-        {!props.article.aiSummary?.lead && (
-          <AiLeadButton articleId={props.article.id} />
-        )}
         <AiSummaryButton
           feedId={props.article.feedId}
           articleId={props.article.id}
