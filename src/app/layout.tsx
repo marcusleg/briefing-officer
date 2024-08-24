@@ -49,11 +49,11 @@ export default async function RootLayout({
             <Link href="/">Briefing Officer</Link>
           </Typography>
         </div>
-        <div className="m-2 mx-auto mt-4 flex max-w-screen-xl flex-row gap-4">
+        <div className="m-2 mx-auto mt-4 flex max-w-screen-xl flex-col gap-4 md:flex-row">
           <div className="flex flex-col gap-4">
             <FeedNavigation feeds={feeds} />
 
-            <Separator />
+            <Separator className="md:hidden" orientation="vertical" />
 
             <div className="flex flex-row justify-center gap-2 px-2">
               <AddFeedButton />

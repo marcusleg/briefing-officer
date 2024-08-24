@@ -16,7 +16,7 @@ const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
   const params = useParams<{ feedId: string }>();
 
   return (
-    <nav className="flex flex-col gap-2 px-2">
+    <nav className="flex flex-row flex-wrap justify-evenly gap-2 px-2 md:flex-col md:flex-nowrap">
       {feeds.map((feed) => (
         <Link
           key={feed.id}
@@ -25,7 +25,7 @@ const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
             feed.id === parseInt(params.feedId)
               ? buttonVariants({ variant: "default", size: "sm" })
               : buttonVariants({ variant: "ghost", size: "sm" }),
-            "w-full justify-start font-bold",
+            "justify-start font-bold md:w-full",
           )}
         >
           <div className="mr-2">{feed.title}</div>

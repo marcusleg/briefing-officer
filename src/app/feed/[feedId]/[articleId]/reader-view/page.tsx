@@ -27,7 +27,7 @@ const ReaderView = async ({
 
   return (
     <div className="m-2 flex flex-col gap-2">
-      <div className="flex flex-row gap-2">
+      <div className="flex flex-row flex-wrap gap-2">
         <BackButton />
         <VisitButton link={article.link} />
         <Button variant="outline">

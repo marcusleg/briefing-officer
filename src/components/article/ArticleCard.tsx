@@ -115,7 +115,7 @@ const ArticleCard = (props: ArticleCardProps) => {
             : props.article.description}
         </Typography>
       </CardContent>
-      <CardFooter className="flex flex-row gap-2">
+      <CardFooter className="flex flex-row flex-wrap gap-2">
         <VisitButton link={props.article.link} size="sm" />
         <Link
           className={buttonVariants({ size: "sm", variant: "outline" })}
