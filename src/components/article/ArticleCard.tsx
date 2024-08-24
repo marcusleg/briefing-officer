@@ -77,11 +77,7 @@ const ArticleCard = (props: ArticleCardProps) => {
 
   return (
     <Card
-      className={cn(
-        "max-w-4xl",
-        props.article.read ? "opacity-50" : "",
-        props.className,
-      )}
+      className={cn(props.article.read ? "opacity-50" : "", props.className)}
       onClick={props.onClick}
       ref={cardRef}
     >

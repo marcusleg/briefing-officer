@@ -26,7 +26,7 @@ const ReaderView = async ({
   void markArticleAsRead(articleId);
 
   return (
-    <div className="m-2 flex max-w-4xl flex-col gap-2">
+    <div className="m-2 flex flex-col gap-2">
       <div className="flex flex-row gap-2">
         <BackButton />
         <VisitButton link={article.link} />

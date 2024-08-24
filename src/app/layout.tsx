@@ -44,12 +44,12 @@ export default async function RootLayout({
           fontSans.variable,
         )}
       >
-        <div className="w-full bg-black p-4 text-white">
-          <Typography variant="h1">
+        <div className="w-full bg-black text-white">
+          <Typography className="mx-auto max-w-screen-xl p-2" variant="h1">
             <Link href="/">Briefing Officer</Link>
           </Typography>
         </div>
-        <div className="m-2 mt-4 flex flex-row gap-4">
+        <div className="m-2 mx-auto mt-4 flex max-w-screen-xl flex-row gap-4">
           <div className="flex flex-col gap-4">
             <FeedNavigation feeds={feeds} />
 

@@ -23,7 +23,7 @@ const AiSummary = async ({
   const summary = await getAiSummary(articleId);
 
   return (
-    <div className="m-2 flex max-w-4xl flex-col gap-2">
+    <div className="m-2 flex flex-col gap-2">
       <div className="flex flex-row gap-2">
         <BackButton />
         <ToggleReadButton articleId={articleId} isRead={article.read} />
