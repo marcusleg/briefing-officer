@@ -83,7 +83,7 @@ export const getAiLead = async (articleId: number) => {
   const readability = await getReadability(article.id, article.link);
 
   const lead = await promptClaude(
-    `Please analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words.\n\n${article.title}\n\n${readability.textContent}`,
+    `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Reply in the same language in which the article is written.\n\n${article.title}\n\n${readability.textContent}`,
   );
   if (!lead) {
     throw new Error("Failed to generate summary");
