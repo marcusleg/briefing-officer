@@ -22,7 +22,7 @@ const ReaderView = async ({
   });
 
   const readerDocument = await getReadability(article.id, article.link);
-  void markArticleAsRead(feedId, articleId);
+  void markArticleAsRead(articleId);
 
   return (
     <div className="m-2 flex max-w-4xl flex-col gap-2">
