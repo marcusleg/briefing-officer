@@ -27,10 +27,12 @@ export const getReadability = async (
 
   return prisma.articleReadability.create({
     data: {
-      articleId: articleId,
+      article: {
+        connect: { id: articleId },
+      },
       content: parsedArticle.content,
       textContent: parsedArticle.textContent,
-      byLine: parsedArticle.byline,
+      byLine: parsedArticle.byline ?? "",
     },
   });
 };
