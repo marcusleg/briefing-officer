@@ -1,5 +1,7 @@
 "use server";
 
+import { getAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
+import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -64,7 +66,16 @@ export const refreshFeed = async (feedId: number) => {
       },
     });
   });
-  await Promise.all(promises);
+  const newArticles = await Promise.all(promises);
+
+  newArticles.forEach((article) => {
+    if (!article) {
+      return;
+    }
+
+    void getReadability(article.id, article.link);
+    void getAiLead(article.id);
+  });
 
   await prisma.feed.update({
     where: { id: feed.id },
