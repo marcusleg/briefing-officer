@@ -34,14 +34,14 @@ model Article {
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   feedId          Int
-  feed            Feed                @relation(fields: [feedId], references: [id])
+  feed            Feed                @relation(fields: [feedId], references: [id], onDelete: Cascade)
   aiSummary       ArticleAiSummary?
   readability     ArticleReadability?
 }
 
 model ArticleAiSummary {
   articleId Int      @id
-  article   Article  @relation(fields: [articleId], references: [id])
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
   summary   String?
   lead      String?
   createdAt DateTime @default(now())
@@ -50,7 +50,7 @@ model ArticleAiSummary {
 
 model ArticleReadability {
   articleId   Int      @id
-  article     Article  @relation(fields: [articleId], references: [id])
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
   content     String
   textContent String
   byLine      String
