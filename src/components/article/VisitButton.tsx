@@ -1,3 +1,5 @@
+"use client";
+
 import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Article } from "@prisma/client";
