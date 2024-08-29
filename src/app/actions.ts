@@ -34,6 +34,16 @@ export const deleteFeed = async (feedId: number) => {
   redirect("/");
 };
 
+export const markAllArticlesAsRead = async (feedId: number) => {
+  await prisma.article.updateMany({
+    where: { feedId: feedId },
+    data: { read: true },
+  });
+
+  revalidatePath(`/feed/${feedId}`);
+  revalidatePath("/");
+};
+
 export const refreshFeed = async (feedId: number) => {
   const feed = await prisma.feed.findUniqueOrThrow({
     where: { id: feedId },
