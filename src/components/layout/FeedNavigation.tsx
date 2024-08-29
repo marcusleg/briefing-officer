@@ -29,9 +29,11 @@ const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
           )}
         >
           <div className="mr-2">{feed.title}</div>
-          <Badge className="ml-auto" variant="secondary">
-            {feed._count.articles}
-          </Badge>
+          {feed._count.articles !== 0 && (
+            <Badge className="ml-auto" variant="secondary">
+              {feed._count.articles}
+            </Badge>
+          )}
         </Link>
       ))}
     </nav>
