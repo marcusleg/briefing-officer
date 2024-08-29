@@ -1,7 +1,7 @@
 import ArticleList from "@/components/article/ArticleList";
 import AdditionalFeedActionsButton from "@/components/feed/AdditionalFeedActionsButton";
 import FeedFilterButton from "@/components/feed/FeedFilterButton";
-import MarkAllAsReadButton from "@/components/feed/MarkAllAsReadButton";
+import MarkAsReadButton from "@/components/feed/MarkAsReadButton";
 import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
 import Typography from "@/components/ui/typography";
@@ -39,7 +39,7 @@ const Feed = async ({
       <div className="my-4 flex flex-row flex-wrap items-center gap-4">
         <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />
-        <MarkAllAsReadButton disabled={articles.length === 0} feedId={feedId} />
+        <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
         <AdditionalFeedActionsButton feedId={feedId} feedTitle={feed.title} />
         <time
           className="text-sm text-muted-foreground"

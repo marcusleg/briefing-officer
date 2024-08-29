@@ -34,9 +34,15 @@ export const deleteFeed = async (feedId: number) => {
   redirect("/");
 };
 
-export const markAllArticlesAsRead = async (feedId: number) => {
+export const markArticlesOlderThanXDaysAsRead = async (
+  feedId: number,
+  days: number,
+) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+
   await prisma.article.updateMany({
-    where: { feedId: feedId },
+    where: { feedId: feedId, publicationDate: { lte: date } },
     data: { read: true },
   });
 
