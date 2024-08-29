@@ -36,7 +36,7 @@ const Feed = async ({
   return (
     <div className="m-2">
       <Typography variant="h2">{feed.title}</Typography>
-      <div className="my-4 flex flex-row items-center gap-4">
+      <div className="my-4 flex flex-row flex-wrap items-center gap-4">
         <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />
         <MarkAllAsRead disabled={articles.length === 0} feedId={feedId} />
