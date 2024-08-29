@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 interface TypographyProps {
   children: React.ReactNode;
   className?: string;
-  variant?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p";
+  variant?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "ul" | "ol";
 }
 
 const Typography = ({ children, className, variant }: TypographyProps) => {
@@ -83,6 +83,14 @@ const Typography = ({ children, className, variant }: TypographyProps) => {
         {children}
       </h4>
     );
+  }
+
+  if (variant === "ul") {
+    return <ul className="my-6 ml-6 list-disc [&>li]:mt-2">{children}</ul>;
+  }
+
+  if (variant === "ol") {
+    return <ol className="my-6 ml-6 list-decimal [&>li]:mt-2">{children}</ol>;
   }
 
   return (

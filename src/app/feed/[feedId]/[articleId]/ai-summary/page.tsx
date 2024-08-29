@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
 import { AlertCircleIcon, Speech } from "lucide-react";
+import Markdown from "markdown-to-jsx";
 import { getAiSummary } from "./actions";
 
 const AiSummary = async ({
@@ -46,13 +47,54 @@ const AiSummary = async ({
       </div>
 
       <article>
-        <Typography variant="h2">{article.title}</Typography>
-        <p
-          className="reader-view hyphens-auto text-pretty text-justify"
-          dangerouslySetInnerHTML={{
-            __html: summary.summary.replace(/\n/g, "<br />"),
+        <Markdown
+          className="flex flex-col gap-4"
+          options={{
+            overrides: {
+              h1: {
+                component: Typography,
+                props: { variant: "h1" },
+              },
+              h2: {
+                component: Typography,
+                props: { variant: "h2" },
+              },
+              h3: {
+                component: Typography,
+                props: { variant: "h3" },
+              },
+              h4: {
+                component: Typography,
+                props: { variant: "h4" },
+              },
+              h5: {
+                component: Typography,
+                props: { variant: "h5" },
+              },
+              h6: {
+                component: Typography,
+                props: { variant: "h6" },
+              },
+              ul: {
+                component: Typography,
+                props: { variant: "ul" },
+              },
+              ol: {
+                component: Typography,
+                props: { variant: "ol" },
+              },
+              p: {
+                component: Typography,
+                props: {
+                  className: "hyphens-auto text-pretty text-justify",
+                  variant: "p",
+                },
+              },
+            },
           }}
-        />
+        >
+          {summary.summary}
+        </Markdown>
       </article>
     </div>
   );
