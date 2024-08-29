@@ -124,14 +124,14 @@ const ArticleCard = (props: ArticleCardProps) => {
           <BookText className="mr-2 h-4 w-4" />
           Reader View
         </Link>
-        <ToggleReadButton
-          articleId={props.article.id}
-          isRead={props.article.read}
-        />
         <AiSummaryButton
           feedId={props.article.feedId}
           articleId={props.article.id}
           size="sm"
+        />
+        <ToggleReadButton
+          articleId={props.article.id}
+          isRead={props.article.read}
         />
       </CardFooter>
     </Card>
