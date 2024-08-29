@@ -28,7 +28,7 @@ const ReaderView = async ({
     <div className="m-2 flex flex-col gap-2">
       <div className="flex flex-row flex-wrap gap-2">
         <BackButton />
-        <VisitButton link={article.link} />
+        <VisitButton article={article} />
         <AiSummaryButton feedId={article.feedId} articleId={article.id} />
         <ReadAloudButton feedId={feedId} articleId={articleId} />
       </div>
