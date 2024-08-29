@@ -116,7 +116,7 @@ const ArticleCard = (props: ArticleCardProps) => {
         </Typography>
       </CardContent>
       <CardFooter className="flex flex-row flex-wrap gap-2">
-        <VisitButton link={props.article.link} size="sm" />
+        <VisitButton article={props.article} size="sm" />
         <Link
           className={buttonVariants({ size: "sm", variant: "outline" })}
           href={`/feed/${props.article.feedId}/${props.article.id}/reader-view`}
