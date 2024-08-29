@@ -9,7 +9,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDownIcon, ChevronUpIcon, Filter } from "lucide-react";
+import { ChevronDownIcon, Filter } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -27,9 +27,9 @@ const FeedFilterButton = () => {
           <Filter className="mr-2 h-4 w-4" />
           Filter
           {isOpen ? (
-            <ChevronUpIcon className="ml-2 h-4 w-4" />
+            <ChevronDownIcon className="ml-2 h-4 w-4 rotate-180 transition-transform" />
           ) : (
-            <ChevronDownIcon className="ml-2 h-4 w-4" />
+            <ChevronDownIcon className="ml-2 h-4 w-4 transition-transform" />
           )}
         </Button>
       </DropdownMenuTrigger>

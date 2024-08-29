@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BookCheck, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { BookCheck, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
 interface MarkAllAsReadProps {
@@ -30,9 +30,9 @@ const MarkAsReadButton = ({ disabled, feedId }: MarkAllAsReadProps) => {
           <BookCheck className="mr-2 h-4 w-4" />
           Mark as read
           {isOpen ? (
-            <ChevronUpIcon className="ml-2 h-4 w-4" />
+            <ChevronDownIcon className="ml-2 h-4 w-4 rotate-180 transition-transform" />
           ) : (
-            <ChevronDownIcon className="ml-2 h-4 w-4" />
+            <ChevronDownIcon className="ml-2 h-4 w-4 transition-transform" />
           )}
         </Button>
       </DropdownMenuTrigger>
