@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 
-const formatter = new Intl.RelativeTimeFormat(navigator.language, {
+const formatter = new Intl.RelativeTimeFormat("en-US", {
   numeric: "auto",
 });
 

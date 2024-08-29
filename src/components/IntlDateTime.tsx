@@ -1,6 +1,6 @@
 "use client";
 
-const formatter = new Intl.DateTimeFormat(navigator.language, {
+const formatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "full",
   timeStyle: "short",
 });
