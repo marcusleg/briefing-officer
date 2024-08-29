@@ -1,9 +1,10 @@
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import BackButton from "@/components/layout/BackButton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
-import { Speech } from "lucide-react";
+import { AlertCircleIcon, Speech } from "lucide-react";
 import { getAiSummary } from "./actions";
 
 const AiSummary = async ({
@@ -11,7 +12,6 @@ const AiSummary = async ({
 }: {
   params: { feedId: string; articleId: string };
 }) => {
-  let feedId = parseInt(params.feedId);
   let articleId = parseInt(params.articleId);
 
   const article = await prisma.article.findUniqueOrThrow({
@@ -21,6 +21,18 @@ const AiSummary = async ({
   });
 
   const summary = await getAiSummary(articleId);
+
+  if (!summary.summary) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon className="h-4 w-4" />
+        <AlertTitle>Failed to obtain AI summary</AlertTitle>
+        <AlertDescription>
+          The summary field in database is null.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="m-2 flex flex-col gap-2">
