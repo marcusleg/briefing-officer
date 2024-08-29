@@ -8,7 +8,7 @@ interface MarkAllAsReadProps {
   feedId: number;
 }
 
-const MarkAllAsRead = ({ disabled, feedId }: MarkAllAsReadProps) => {
+const MarkAllAsReadButton = ({ disabled, feedId }: MarkAllAsReadProps) => {
   const handleCLick = async () => {
     await markAllArticlesAsRead(feedId);
   };
@@ -21,4 +21,4 @@ const MarkAllAsRead = ({ disabled, feedId }: MarkAllAsReadProps) => {
   );
 };
 
-export default MarkAllAsRead;
+export default MarkAllAsReadButton;
