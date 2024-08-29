@@ -25,10 +25,10 @@ const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
             feed.id === parseInt(params.feedId)
               ? buttonVariants({ variant: "default", size: "sm" })
               : buttonVariants({ variant: "ghost", size: "sm" }),
-            "justify-start font-bold md:w-full",
+            "max-w-52 justify-start font-bold",
           )}
         >
-          <div className="mr-2">{feed.title}</div>
+          <div className="mr-2 truncate">{feed.title}</div>
           {feed._count.articles !== 0 && (
             <Badge className="ml-auto" variant="secondary">
               {feed._count.articles}
