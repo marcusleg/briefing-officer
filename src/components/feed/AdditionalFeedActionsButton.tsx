@@ -1,5 +1,5 @@
 import DeleteFeedMenuItem from "@/components/feed/DeleteFeedMenuItem";
-import RenameFeedMenuItem from "@/components/feed/RenameFeedMenuItem";
+import EditFeedMenuItem from "@/components/feed/EditFeedMenuItem";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,16 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Feed } from "@prisma/client";
 import { Ellipsis } from "lucide-react";
 
 interface AdditionalFeedActionsButtonProps {
-  feedId: number;
-  feedTitle: string;
+  feed: Feed;
 }
 
 const AdditionalFeedActionsButton = ({
-  feedId,
-  feedTitle,
+  feed,
 }: AdditionalFeedActionsButtonProps) => {
   return (
     <DropdownMenu>
@@ -31,8 +30,8 @@ const AdditionalFeedActionsButton = ({
         <DropdownMenuLabel>Feed</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <RenameFeedMenuItem feedId={feedId} currentFeedTitle={feedTitle} />
-          <DeleteFeedMenuItem feedTitle={feedTitle} feedId={feedId} />
+          <EditFeedMenuItem feed={feed} />
+          <DeleteFeedMenuItem feedTitle={feed.title} feedId={feed.id} />
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

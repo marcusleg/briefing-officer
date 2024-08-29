@@ -15,25 +15,22 @@ import {
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Feed } from "@prisma/client";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 
 interface RenameFeedMenuItemProps {
-  currentFeedTitle: string;
-  feedId: number;
+  feed: Feed;
 }
 
-const RenameFeedMenuItem = ({
-  currentFeedTitle,
-  feedId,
-}: RenameFeedMenuItemProps) => {
+const EditFeedMenuItem = ({ feed }: RenameFeedMenuItemProps) => {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [newFeedTitle, setNewFeedTitle] = useState(currentFeedTitle);
+  const [newFeedTitle, setNewFeedTitle] = useState(feed.title);
   const [renamingInProgress, setRenamingInProgress] = useState(false);
 
   const handleSubmit = async () => {
     setRenamingInProgress(true);
-    await renameFeed(feedId, newFeedTitle);
+    await renameFeed(feed.id, newFeedTitle);
     setRenamingInProgress(false);
     setRenameDialogOpen(false);
   };
@@ -43,12 +40,12 @@ const RenameFeedMenuItem = ({
       <DialogTrigger asChild>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
           <Pencil className="mr-2 h-4 w-4" />
-          <span>Rename</span>
+          <span>Edit</span>
         </DropdownMenuItem>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rename feed</DialogTitle>
+          <DialogTitle>Edit feed</DialogTitle>
           <DialogDescription>
             Change the display name of this feed.
           </DialogDescription>
@@ -76,7 +73,7 @@ const RenameFeedMenuItem = ({
             onClick={handleSubmit}
             type="button"
           >
-            Save
+            Update
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -84,4 +81,4 @@ const RenameFeedMenuItem = ({
   );
 };
 
-export default RenameFeedMenuItem;
+export default EditFeedMenuItem;

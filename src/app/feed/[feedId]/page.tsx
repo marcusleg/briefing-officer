@@ -40,7 +40,7 @@ const Feed = async ({
         <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />
         <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
-        <AdditionalFeedActionsButton feedId={feedId} feedTitle={feed.title} />
+        <AdditionalFeedActionsButton feed={feed} />
         <time
           className="text-sm text-muted-foreground"
           dateTime={feed.lastFetched.toISOString()}
