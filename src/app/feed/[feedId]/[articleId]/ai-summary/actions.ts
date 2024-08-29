@@ -27,7 +27,10 @@ const promptClaude = async (text: string) => {
   });
   const response = await bedrockRuntimeClient.send(command);
 
-  if (response.output?.message?.content?.length == 0) {
+  if (
+    !response.output?.message?.content ||
+    response.output?.message?.content?.length == 0
+  ) {
     return null;
   }
 
