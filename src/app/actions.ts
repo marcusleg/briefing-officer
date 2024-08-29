@@ -112,11 +112,16 @@ export const refreshFeeds = async () => {
   feeds.forEach((feed) => revalidatePath(`/feed/${feed.id}`));
 };
 
-export const renameFeed = async (feedId: number, newTitle: string) => {
+export const editFeed = async (
+  feedId: number,
+  newTitle: string,
+  newFeedUrl: string,
+) => {
   await prisma.feed.update({
     where: { id: feedId },
     data: {
       title: newTitle,
+      link: newFeedUrl,
     },
   });
 

@@ -1,12 +1,11 @@
 "use client";
 
-import { renameFeed } from "@/app/actions";
+import { editFeed } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -25,13 +24,15 @@ interface RenameFeedMenuItemProps {
 
 const EditFeedMenuItem = ({ feed }: RenameFeedMenuItemProps) => {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [editInProgress, setEditInProgress] = useState(false);
+
   const [newFeedTitle, setNewFeedTitle] = useState(feed.title);
-  const [renamingInProgress, setRenamingInProgress] = useState(false);
+  const [newFeedUrl, setNewFeedUrl] = useState(feed.link);
 
   const handleSubmit = async () => {
-    setRenamingInProgress(true);
-    await renameFeed(feed.id, newFeedTitle);
-    setRenamingInProgress(false);
+    setEditInProgress(true);
+    await editFeed(feed.id, newFeedTitle, newFeedUrl);
+    setEditInProgress(false);
     setRenameDialogOpen(false);
   };
 
@@ -46,19 +47,25 @@ const EditFeedMenuItem = ({ feed }: RenameFeedMenuItemProps) => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit feed</DialogTitle>
-          <DialogDescription>
-            Change the display name of this feed.
-          </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center space-x-2">
-          <div className="grid flex-1 gap-2">
-            <Label htmlFor="link" className="sr-only">
-              Link
-            </Label>
+        <div className="flex flex-col gap-2">
+          <div>
+            <Label htmlFor="title">Title</Label>
             <Input
               defaultValue={newFeedTitle}
-              disabled={renamingInProgress}
+              disabled={editInProgress}
+              id="title"
               onChange={(event) => setNewFeedTitle(event.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="link">Feed URL</Label>
+            <Input
+              defaultValue={newFeedUrl}
+              disabled={editInProgress}
+              id="link"
+              onChange={(event) => setNewFeedUrl(event.target.value)}
             />
           </div>
         </div>
@@ -69,7 +76,7 @@ const EditFeedMenuItem = ({ feed }: RenameFeedMenuItemProps) => {
             </Button>
           </DialogClose>
           <Button
-            disabled={renamingInProgress}
+            disabled={editInProgress}
             onClick={handleSubmit}
             type="button"
           >
