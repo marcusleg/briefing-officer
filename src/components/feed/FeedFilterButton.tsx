@@ -9,21 +9,28 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Filter } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon, Filter } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 const FeedFilterButton = () => {
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
 
   const currentFilter = searchParams.get("show") || "unread";
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline">
           <Filter className="mr-2 h-4 w-4" />
           Filter
+          {isOpen ? (
+            <ChevronUpIcon className="ml-2 h-4 w-4" />
+          ) : (
+            <ChevronDownIcon className="ml-2 h-4 w-4" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">

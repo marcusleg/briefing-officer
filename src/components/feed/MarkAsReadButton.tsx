@@ -8,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BookCheck } from "lucide-react";
+import { BookCheck, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { useState } from "react";
 
 interface MarkAllAsReadProps {
   disabled?: boolean;
@@ -16,16 +17,23 @@ interface MarkAllAsReadProps {
 }
 
 const MarkAsReadButton = ({ disabled, feedId }: MarkAllAsReadProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   const handleClick = async (days: number) => {
     await markArticlesOlderThanXDaysAsRead(feedId, days);
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
       <DropdownMenuTrigger disabled={disabled}>
         <Button disabled={disabled} variant="outline">
           <BookCheck className="mr-2 h-4 w-4" />
           Mark as read
+          {isOpen ? (
+            <ChevronUpIcon className="ml-2 h-4 w-4" />
+          ) : (
+            <ChevronDownIcon className="ml-2 h-4 w-4" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
