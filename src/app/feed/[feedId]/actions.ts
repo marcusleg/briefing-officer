@@ -13,6 +13,7 @@ export const markArticleAsRead = async (articleId: number) => {
   });
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
+  revalidatePath("/");
 };
 
 export const markArticleAsUnread = async (articleId: number) => {
@@ -26,4 +27,5 @@ export const markArticleAsUnread = async (articleId: number) => {
   });
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
+  revalidatePath("/");
 };
