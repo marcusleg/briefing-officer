@@ -1,5 +1,12 @@
 "use client";
 
+import IntlDateTime from "@/components/IntlDateTime";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, {
@@ -27,19 +34,27 @@ const IntlRelativeTime = ({ date }: IntlRelativeTimeProps) => {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
+  let relativeTime;
   if (Math.abs(days) > 1) {
-    return <>{formatter.format(days, "day")}</>;
+    relativeTime = formatter.format(days, "day");
+  } else if (Math.abs(hours) > 1) {
+    relativeTime = formatter.format(hours, "hour");
+  } else if (Math.abs(minutes) > 1) {
+    relativeTime = formatter.format(minutes, "minute");
+  } else {
+    relativeTime = "less than a minute ago";
   }
 
-  if (Math.abs(hours) > 1) {
-    return <>{formatter.format(hours, "hour")}</>;
-  }
-
-  if (Math.abs(minutes) > 1) {
-    return <>{formatter.format(minutes, "minute")}</>;
-  }
-
-  return <>less than a minute ago</>;
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger className="cursor-auto">{relativeTime}</TooltipTrigger>
+        <TooltipContent>
+          <IntlDateTime date={date} />
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 };
 
 export default IntlRelativeTime;
