@@ -4,6 +4,7 @@ import {
   markArticleAsRead,
   markArticleAsUnread,
 } from "@/app/feed/[feedId]/actions";
+import AiLeadButton from "@/components/article/AiLeadButton";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import VisitButton from "@/components/article/VisitButton";
@@ -124,6 +125,9 @@ const ArticleCard = (props: ArticleCardProps) => {
           <BookText className="mr-2 h-4 w-4" />
           Reader View
         </Link>
+        {!props.article.aiSummary?.lead && (
+          <AiLeadButton articleId={props.article.id} />
+        )}
         <AiSummaryButton
           feedId={props.article.feedId}
           articleId={props.article.id}
