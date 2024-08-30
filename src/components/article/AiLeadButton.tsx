@@ -1,6 +1,6 @@
 "use client";
 
-import { getAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
+import { generateAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
 import { Button } from "@/components/ui/button";
 import { LoaderCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -15,7 +15,7 @@ const AiLeadButton = ({ articleId }: AiLeadButtonProps) => {
 
   const handleClick = async () => {
     setLeadGenerationInProgress(true);
-    await getAiLead(articleId);
+    await generateAiLead(articleId);
     setLeadGenerationInProgress(false);
   };
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { getAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
+import { generateAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
 import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
@@ -90,7 +90,7 @@ export const refreshFeed = async (feedId: number) => {
     }
 
     void getReadability(article.id, article.link);
-    void getAiLead(article.id);
+    void generateAiLead(article.id);
   });
 
   await prisma.feed.update({
