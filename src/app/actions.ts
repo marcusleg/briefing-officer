@@ -82,16 +82,20 @@ export const refreshFeed = async (feedId: number) => {
       },
     });
   });
-  const newArticles = await Promise.all(promises);
+  const newArticlePromises = await Promise.all(promises);
+  const definedNewArticlesPromises = newArticlePromises.filter(
+    (article) => article !== undefined,
+  );
 
-  newArticles.forEach((article) => {
-    if (!article) {
-      return;
-    }
+  const newArticleReadabilityPromises = definedNewArticlesPromises.map(
+    (article) => getReadability(article.id, article.link),
+  );
+  await Promise.all(newArticleReadabilityPromises);
 
-    void getReadability(article.id, article.link);
-    void generateAiLead(article.id);
-  });
+  // generate AI leads sequentially to avoid rate limiting
+  for (const article of definedNewArticlesPromises) {
+    await generateAiLead(article.id);
+  }
 
   await prisma.feed.update({
     where: { id: feed.id },

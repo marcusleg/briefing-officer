@@ -6,11 +6,14 @@ import {
   BedrockRuntimeClient,
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
+import { ConfiguredRetryStrategy } from "@smithy/util-retry";
 import { revalidatePath } from "next/cache";
 
 const bedrockRuntimeClient = new BedrockRuntimeClient({
   region: "eu-central-1",
+  retryStrategy: new ConfiguredRetryStrategy(10, 2000),
 });
+
 const promptClaude = async (text: string) => {
   const command = new ConverseCommand({
     modelId: "anthropic.claude-3-5-sonnet-20240620-v1:0",
@@ -58,6 +61,8 @@ export const getAiSummary = async (articleId: number) => {
     throw new Error("Failed to generate summary");
   }
 
+  console.log(`Generated AI summary for article ${articleId}.`);
+
   return prisma.articleAiSummary.upsert({
     where: { articleId: articleId },
     create: {
@@ -95,6 +100,8 @@ export const generateAiLead = async (articleId: number) => {
       lead: lead,
     },
   });
+
+  console.log(`Generated AI lead for article ${articleId}.`);
 
   revalidatePath(`/feed/${article.feedId}`);
 
