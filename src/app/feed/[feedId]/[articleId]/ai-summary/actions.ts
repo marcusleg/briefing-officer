@@ -77,6 +77,14 @@ export const getAiSummary = async (articleId: number) => {
 };
 
 export const generateAiLead = async (articleId: number) => {
+  const articleAiSummary = await prisma.articleAiSummary.findUnique({
+    where: { articleId: articleId },
+  });
+
+  if (articleAiSummary?.lead) {
+    return articleAiSummary;
+  }
+
   const article = await prisma.article.findUniqueOrThrow({
     where: { id: articleId },
   });
