@@ -1,6 +1,7 @@
 "use server";
 
 import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
+import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import {
   BedrockRuntimeClient,
@@ -61,7 +62,14 @@ export const getAiSummary = async (articleId: number) => {
     throw new Error("Failed to generate summary");
   }
 
-  console.log(`Generated AI summary for article ${articleId}.`);
+  logger.info(
+    {
+      articleId,
+      articleTitle: article.title,
+      feedId: article.feedId,
+    },
+    "Generated AI summary for article.",
+  );
 
   return prisma.articleAiSummary.upsert({
     where: { articleId: articleId },
@@ -109,7 +117,14 @@ export const generateAiLead = async (articleId: number) => {
     },
   });
 
-  console.log(`Generated AI lead for article ${articleId}.`);
+  logger.info(
+    {
+      articleId,
+      articleTitle: article.title,
+      feedId: article.feedId,
+    },
+    "Generated AI lead for article.",
+  );
 
   revalidatePath(`/feed/${article.feedId}`);
 

@@ -2,6 +2,7 @@
 
 import { generateAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
 import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
+import logger from "@/lib/logger";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -62,7 +63,10 @@ export const refreshFeed = async (feedId: number) => {
 
   const promises = parsedFeed.items.map((item) => {
     if (!item.title || !item.link || !item.pubDate) {
-      console.log("Invalid feed item", item);
+      logger.error(
+        { feedId: item.id, feedTitle: item.title },
+        "Invalid feed item.",
+      );
       return;
     }
 

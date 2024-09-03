@@ -1,5 +1,6 @@
 "use server";
 
+import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
 import * as fs from "node:fs";
@@ -7,7 +8,7 @@ import * as fs from "node:fs";
 const client = new PollyClient();
 
 export const getSpeechSynthesis = async (feedId: number, articleId: number) => {
-  console.log("Synthesizing speech");
+  logger.debug({ feedId, articleId }, "Synthesizing speech");
 
   const article = await prisma.article.findUniqueOrThrow({
     where: {
