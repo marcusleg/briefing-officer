@@ -2,6 +2,7 @@ import AddFeedButton from "@/components/layout/AddFeedButton";
 import FeedNavigation from "@/components/layout/FeedNavigation";
 import RefreshAllFeedsButton from "@/components/layout/RefreshAllFeedsButton";
 import { Separator } from "@/components/ui/separator";
+import { Toaster } from "@/components/ui/toaster";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,7 @@ export default async function RootLayout({
 
           <main>{children}</main>
         </div>
+        <Toaster />
       </body>
     </html>
   );

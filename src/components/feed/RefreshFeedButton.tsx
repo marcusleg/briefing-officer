@@ -1,6 +1,8 @@
 "use client";
+
 import { refreshFeed } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { LoaderCircle, RotateCw } from "lucide-react";
 import { useState } from "react";
 
@@ -11,10 +13,17 @@ interface RefreshFeedButtonProps {
 const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
   const [refreshInProgress, setRefreshInProgress] = useState(false);
 
+  const { toast } = useToast();
+
   const handleCLick = async () => {
     setRefreshInProgress(true);
     await refreshFeed(feedId);
     setRefreshInProgress(false);
+
+    toast({
+      title: "Feed refreshed.",
+      description: "The latest articles for this feed have been fetched.",
+    });
   };
 
   return (

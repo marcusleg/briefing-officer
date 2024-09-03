@@ -8,16 +8,23 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 import { LoaderCircle, RotateCw } from "lucide-react";
 import { useState } from "react";
 
 const RefreshAllFeedsButton = () => {
   const [refreshing, setRefreshing] = useState(false);
+  const { toast } = useToast();
 
   const handleClick = async () => {
     setRefreshing(true);
     await refreshFeeds();
     setRefreshing(false);
+
+    toast({
+      title: "All feeds refreshed",
+      description: "The latest articles for all feeds have been fetched.",
+    });
   };
 
   return (
