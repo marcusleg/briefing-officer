@@ -55,6 +55,9 @@ export const refreshFeed = async (feedId: number) => {
   const feed = await prisma.feed.findUniqueOrThrow({
     where: { id: feedId },
   });
+
+  logger.info({ feedId, feedTitle: feed.title }, "Refreshing feed.");
+
   const fetchedFeed = await fetch(feed.link).then((res) => res.text());
   const parsedFeed = parseFeed(fetchedFeed);
   if (!parsedFeed) {
@@ -109,9 +112,13 @@ export const refreshFeed = async (feedId: number) => {
   });
 
   revalidatePath(`/feed/${feedId}`);
+
+  logger.info({ feedId, feedTitle: feed.title }, "Feed refreshed.");
 };
 
 export const refreshFeeds = async () => {
+  logger.info("Refreshing all feeds.");
+
   const feeds = await prisma.feed.findMany({ select: { id: true } });
   const promises = feeds.map((feed) => refreshFeed(feed.id));
   await Promise.all(promises);
