@@ -64,7 +64,7 @@ export const refreshFeed = async (feedId: number) => {
     throw new Error("Unable to parse feed.");
   }
 
-  const promises = parsedFeed.items.map((item) => {
+  const promises = parsedFeed.items.slice(0, 100).map((item) => {
     if (!item.title || !item.link || !item.pubDate) {
       logger.error(
         { feedId: item.id, feedTitle: item.title },
@@ -99,10 +99,10 @@ export const refreshFeed = async (feedId: number) => {
   );
   await Promise.all(newArticleReadabilityPromises);
 
-  // generate AI leads sequentially to avoid rate limiting
-  for (const article of definedNewArticlesPromises) {
-    await generateAiLead(article.id);
-  }
+  const generateAiLeadsPromises = definedNewArticlesPromises.map((article) =>
+    generateAiLead(article.id),
+  );
+  await Promise.all(generateAiLeadsPromises);
 
   await prisma.feed.update({
     where: { id: feed.id },
