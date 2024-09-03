@@ -1,5 +1,6 @@
 import AddFeedButton from "@/components/layout/AddFeedButton";
 import FeedNavigation from "@/components/layout/FeedNavigation";
+import LeftTopNavigation from "@/components/layout/LeftTopNavigation";
 import RefreshAllFeedsButton from "@/components/layout/RefreshAllFeedsButton";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/toaster";
@@ -52,7 +53,13 @@ export default async function RootLayout({
         </div>
         <div className="m-2 mx-auto mt-4 flex max-w-screen-xl flex-col gap-4 md:flex-row">
           <div className="flex flex-col gap-4">
-            <FeedNavigation feeds={feeds} />
+            <nav className="flex flex-row flex-wrap justify-evenly gap-2 px-2 md:flex-col md:flex-nowrap">
+              <LeftTopNavigation />
+
+              <Separator />
+
+              <FeedNavigation feeds={feeds} />
+            </nav>
 
             <Separator className="md:hidden" orientation="vertical" />
 
