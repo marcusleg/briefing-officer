@@ -30,7 +30,6 @@ model Article {
   description     String?
   content         String?
   link            String              @unique
-  read            Boolean             @default(false)
   readAt          DateTime?
   readLater       Boolean             @default(false)
   starred         Boolean             @default(false)
