@@ -35,7 +35,7 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
     await markArticleAsUnread(article.id);
   };
 
-  if (article.read) {
+  if (article.readAt !== null) {
     return (
       <Button size="sm" variant="outline" onClick={handleMarkAsUnread}>
         <BookX className="mr-2 h-4 w-4" />

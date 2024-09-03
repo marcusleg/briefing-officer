@@ -30,7 +30,7 @@ export default async function RootLayout({
     include: {
       _count: {
         select: {
-          articles: { where: { read: false } },
+          articles: { where: { readAt: null } },
         },
       },
     },

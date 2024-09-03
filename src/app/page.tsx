@@ -31,7 +31,7 @@ const Home = async () => {
       readability: true,
     },
     where: {
-      read: false,
+      readAt: null,
     },
     orderBy: {
       publicationDate: "desc",
@@ -42,7 +42,7 @@ const Home = async () => {
     include: {
       _count: {
         select: {
-          articles: { where: { read: false } },
+          articles: { where: { readAt: null } },
         },
       },
     },

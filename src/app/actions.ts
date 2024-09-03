@@ -44,7 +44,7 @@ export const markArticlesOlderThanXDaysAsRead = async (
 
   await prisma.article.updateMany({
     where: { feedId: feedId, publicationDate: { lte: date } },
-    data: { read: true },
+    data: { readAt: new Date() },
   });
 
   revalidatePath(`/feed/${feedId}`);

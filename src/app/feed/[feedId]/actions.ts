@@ -8,7 +8,7 @@ export const markArticleAsRead = async (articleId: number) => {
       id: articleId,
     },
     data: {
-      read: true,
+      readAt: new Date(),
     },
   });
 
@@ -22,7 +22,7 @@ export const markArticleAsUnread = async (articleId: number) => {
       id: articleId,
     },
     data: {
-      read: false,
+      readAt: null,
     },
   });
 

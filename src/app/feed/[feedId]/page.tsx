@@ -28,7 +28,7 @@ const Feed = async ({
     },
     where: {
       feedId: feedId,
-      read: showSearchParam === "all" ? undefined : false,
+      readAt: showSearchParam === "all" ? undefined : null,
     },
     orderBy: { publicationDate: "desc" },
   });

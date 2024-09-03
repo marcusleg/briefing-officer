@@ -65,7 +65,7 @@ const ArticleCard = (props: ArticleCardProps) => {
       return;
     }
 
-    if (props.article.read) {
+    if (props.article.readAt !== null) {
       await markArticleAsUnread(props.article.id);
     } else {
       await markArticleAsRead(props.article.id);
@@ -78,7 +78,7 @@ const ArticleCard = (props: ArticleCardProps) => {
 
   return (
     <Card
-      className={cn(props.article.read ? "opacity-50" : "", props.className)}
+      className={cn(props.article.readAt !== null ? "opacity-50" : "", props.className)}
       onClick={props.onClick}
       ref={cardRef}
     >
