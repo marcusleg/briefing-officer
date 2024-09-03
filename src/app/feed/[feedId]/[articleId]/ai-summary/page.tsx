@@ -39,7 +39,7 @@ const AiSummary = async ({
     <div className="m-2 flex flex-col gap-2">
       <div className="flex flex-row flex-wrap gap-2">
         <BackButton />
-        <ToggleReadButton articleId={articleId} isRead={article.read} />
+        <ToggleReadButton article={article} />
         <Button variant="outline">
           <Speech className="mr-2 h-4 w-4" />
           Read aloud

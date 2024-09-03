@@ -133,10 +133,7 @@ const ArticleCard = (props: ArticleCardProps) => {
           articleId={props.article.id}
           size="sm"
         />
-        <ToggleReadButton
-          articleId={props.article.id}
-          isRead={props.article.read}
-        />
+        <ToggleReadButton article={props.article} />
       </CardFooter>
     </Card>
   );
