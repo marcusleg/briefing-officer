@@ -71,7 +71,7 @@ export default async function RootLayout({
 
           <Separator className="h-auto py-4" orientation="vertical" />
 
-          <main>{children}</main>
+          <main className="grow">{children}</main>
         </div>
         <Toaster />
       </body>
