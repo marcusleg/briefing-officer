@@ -17,12 +17,20 @@ const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
 
   const handleCLick = async () => {
     setRefreshInProgress(true);
-    await refreshFeed(feedId);
+    try {
+      await refreshFeed(feedId);
+    } catch (error) {
+      toast({
+        title: "An error occurred refreshing this feed.",
+        description: "Please check the server logs to learn more.",
+        variant: "destructive",
+      });
+    }
     setRefreshInProgress(false);
 
     toast({
-      title: "Feed refreshed.",
-      description: "The latest articles for this feed have been fetched.",
+      title: "Your feed has been refreshed.",
+      description: "The latest articles are now available.",
     });
   };
 

@@ -61,13 +61,18 @@ export const refreshFeed = async (feedId: number) => {
   const fetchedFeed = await fetch(feed.link).then((res) => res.text());
   const parsedFeed = parseFeed(fetchedFeed);
   if (!parsedFeed) {
+    logger.error(
+      { feed: { id: feed.id, title: feed.title, link: feed.link } },
+      "Unable to parse feed.",
+    );
+
     throw new Error("Unable to parse feed.");
   }
 
   const promises = parsedFeed.items.slice(0, 100).map((item) => {
     if (!item.title || !item.link || !item.pubDate) {
       logger.error(
-        { feedId: item.id, feedTitle: item.title },
+        { feed: { id: feed.id, title: feed.title, link: feed.link } },
         "Invalid feed item.",
       );
       return;
@@ -113,7 +118,10 @@ export const refreshFeed = async (feedId: number) => {
 
   revalidatePath(`/feed/${feedId}`);
 
-  logger.info({ feedId, feedTitle: feed.title }, "Feed refreshed.");
+  logger.info(
+    { feed: { id: feed.id, title: feed.title, link: feed.link } },
+    "Feed refreshed.",
+  );
 };
 
 export const refreshFeeds = async () => {
