@@ -2,11 +2,12 @@
 
 import {
   markArticleAsRead,
-  markArticleAsUnread,
+  unmarkArticleRead,
 } from "@/app/feed/[feedId]/actions";
 import AiLeadButton from "@/components/article/AiLeadButton";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
+import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
 import VisitButton from "@/components/article/VisitButton";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +67,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     }
 
     if (props.article.readAt !== null) {
-      await markArticleAsUnread(props.article.id);
+      await unmarkArticleRead(props.article.id);
     } else {
       await markArticleAsRead(props.article.id);
     }
@@ -144,6 +145,8 @@ const ArticleCard = (props: ArticleCardProps) => {
         />
 
         <ToggleReadButton article={props.article} />
+
+        <ToggleReadLaterButton article={props.article} />
       </CardFooter>
     </Card>
   );

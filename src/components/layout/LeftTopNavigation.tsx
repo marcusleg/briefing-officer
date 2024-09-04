@@ -2,7 +2,7 @@
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BookCheck, BookMarkedIcon, HouseIcon, StarIcon } from "lucide-react";
+import { BookCheck, BookmarkIcon, HouseIcon, StarIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -11,7 +11,7 @@ const LeftTopNavigation = () => {
 
   const links = [
     { href: "/", icon: HouseIcon, label: "Home" },
-    { href: "/read-later", icon: BookMarkedIcon, label: "Read Later" },
+    { href: "/read-later", icon: BookmarkIcon, label: "Read Later" },
     { href: "/read-history", icon: BookCheck, label: "Read History" },
     { href: "/starred-articles", icon: StarIcon, label: "Starred Articles" },
   ];
