@@ -2,6 +2,7 @@
 
 import { refreshFeeds } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import { ToastAction } from "@/components/ui/toast";
 import {
   Tooltip,
   TooltipContent,
@@ -25,7 +26,15 @@ const RefreshAllFeedsButton = () => {
         title: "An error occurred refreshing your feeds.",
         description: "Please check the server logs to find out more.",
         variant: "destructive",
+        action: (
+          <ToastAction altText="Try again" onClick={handleClick}>
+            Try again
+          </ToastAction>
+        ),
       });
+
+      setRefreshing(false);
+      return;
     }
     setRefreshing(false);
 
