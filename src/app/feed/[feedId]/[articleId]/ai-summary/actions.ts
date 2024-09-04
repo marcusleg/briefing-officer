@@ -42,7 +42,7 @@ const promptClaude = async (text: string) => {
 };
 
 export const getAiSummary = async (articleId: number) => {
-  const articleSummary = await prisma.articleAiSummary.findUnique({
+  const articleSummary = await prisma.articleAiTexts.findUnique({
     where: { articleId: articleId },
   });
 
@@ -71,7 +71,7 @@ export const getAiSummary = async (articleId: number) => {
     "Generated AI summary for article.",
   );
 
-  return prisma.articleAiSummary.upsert({
+  return prisma.articleAiTexts.upsert({
     where: { articleId: articleId },
     create: {
       articleId: articleId,
@@ -85,12 +85,12 @@ export const getAiSummary = async (articleId: number) => {
 };
 
 export const generateAiLead = async (articleId: number) => {
-  const articleAiSummary = await prisma.articleAiSummary.findUnique({
+  const articleAiTexts = await prisma.articleAiTexts.findUnique({
     where: { articleId: articleId },
   });
 
-  if (articleAiSummary?.lead) {
-    return articleAiSummary;
+  if (articleAiTexts?.lead) {
+    return articleAiTexts;
   }
 
   const article = await prisma.article.findUniqueOrThrow({
@@ -105,7 +105,7 @@ export const generateAiLead = async (articleId: number) => {
     throw new Error("Failed to generate summary");
   }
 
-  const newLead = prisma.articleAiSummary.upsert({
+  const newLead = prisma.articleAiTexts.upsert({
     where: { articleId: articleId },
     create: {
       articleId: articleId,

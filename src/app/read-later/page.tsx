@@ -5,7 +5,7 @@ import prisma from "@/lib/prismaClient";
 const getReadLaterArticles = () => {
   return prisma.article.findMany({
     include: {
-      aiSummary: true,
+      aiTexts: true,
       feed: true,
       readability: true,
     },

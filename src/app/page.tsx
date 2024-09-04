@@ -26,7 +26,7 @@ const getLast7Days = () => {
 const Home = async () => {
   const articles = await prisma.article.findMany({
     include: {
-      aiSummary: true,
+      aiTexts: true,
       feed: true,
       readability: true,
     },

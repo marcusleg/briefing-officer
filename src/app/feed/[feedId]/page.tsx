@@ -22,7 +22,7 @@ const Feed = async ({
   });
   const articles = await prisma.article.findMany({
     include: {
-      aiSummary: true,
+      aiTexts: true,
       feed: true,
       readability: true,
     },

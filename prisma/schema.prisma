@@ -37,11 +37,11 @@ model Article {
   updatedAt       DateTime            @updatedAt
   feedId          Int
   feed            Feed                @relation(fields: [feedId], references: [id], onDelete: Cascade)
-  aiSummary       ArticleAiSummary?
+  aiTexts         ArticleAiTexts?
   readability     ArticleReadability?
 }
 
-model ArticleAiSummary {
+model ArticleAiTexts {
   articleId Int      @id
   article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
   summary   String?

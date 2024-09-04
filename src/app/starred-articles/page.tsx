@@ -5,7 +5,7 @@ import prisma from "@/lib/prismaClient";
 const getStarredArticles = () => {
   return prisma.article.findMany({
     include: {
-      aiSummary: true,
+      aiTexts: true,
       feed: true,
       readability: true,
     },

@@ -30,7 +30,7 @@ import readingTime from "reading-time";
 
 interface ArticleCardProps {
   article: Prisma.ArticleGetPayload<{
-    include: { aiSummary: true; feed: true; readability: true };
+    include: { aiTexts: true; feed: true; readability: true };
   }>;
   className?: string;
   onClick?: () => void;
@@ -78,7 +78,10 @@ const ArticleCard = (props: ArticleCardProps) => {
 
   return (
     <Card
-      className={cn(props.article.readAt !== null ? "opacity-50" : "", props.className)}
+      className={cn(
+        props.article.readAt !== null ? "opacity-50" : "",
+        props.className,
+      )}
       onClick={props.onClick}
       ref={cardRef}
     >
@@ -111,8 +114,8 @@ const ArticleCard = (props: ArticleCardProps) => {
       </CardHeader>
       <CardContent>
         <Typography className="text-pretty text-justify text-sm" variant="p">
-          {props.article.aiSummary?.lead
-            ? props.article.aiSummary.lead
+          {props.article.aiTexts?.lead
+            ? props.article.aiTexts.lead
             : props.article.description}
         </Typography>
       </CardContent>
@@ -125,7 +128,7 @@ const ArticleCard = (props: ArticleCardProps) => {
           <BookText className="mr-2 h-4 w-4" />
           Reader View
         </Link>
-        {!props.article.aiSummary?.lead && (
+        {!props.article.aiTexts?.lead && (
           <AiLeadButton articleId={props.article.id} />
         )}
         <AiSummaryButton
