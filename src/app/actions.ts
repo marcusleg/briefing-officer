@@ -128,11 +128,18 @@ export const refreshFeeds = async () => {
   logger.info("Refreshing all feeds.");
 
   const feeds = await prisma.feed.findMany({ select: { id: true } });
-  const promises = feeds.map((feed) => refreshFeed(feed.id));
-  await Promise.all(promises);
+
+  const promises = feeds.map(async (feed) => {
+    await refreshFeed(feed.id);
+    revalidatePath(`/feed/${feed.id}`);
+  });
+  const results = await Promise.allSettled(promises);
 
   revalidatePath("/");
-  feeds.forEach((feed) => revalidatePath(`/feed/${feed.id}`));
+
+  if (results.filter((result) => result.status === "rejected").length > 0) {
+    throw new Error("Failed to refresh one or more feeds.");
+  }
 };
 
 export const editFeed = async (

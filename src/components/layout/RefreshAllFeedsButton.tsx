@@ -18,12 +18,20 @@ const RefreshAllFeedsButton = () => {
 
   const handleClick = async () => {
     setRefreshing(true);
-    await refreshFeeds();
+    try {
+      await refreshFeeds();
+    } catch (error) {
+      toast({
+        title: "An error occurred refreshing your feeds.",
+        description: "Please check the server logs to find out more.",
+        variant: "destructive",
+      });
+    }
     setRefreshing(false);
 
     toast({
       title: "All feeds refreshed",
-      description: "The latest articles for all feeds have been fetched.",
+      description: "The latest articles for all your feeds are now available.",
     });
   };
 
