@@ -91,6 +91,7 @@ const ArticleCard = (props: ArticleCardProps) => {
             {props.article.title}
           </Link>
         </CardTitle>
+
         <CardDescription className="flex flex-row gap-2 align-middle text-sm">
           <div>
             <Link href={`/feed/${props.article.feedId}`}>
@@ -112,6 +113,7 @@ const ArticleCard = (props: ArticleCardProps) => {
           )}
         </CardDescription>
       </CardHeader>
+
       <CardContent>
         <Typography className="text-pretty text-justify text-sm" variant="p">
           {props.article.aiTexts?.lead
@@ -119,8 +121,10 @@ const ArticleCard = (props: ArticleCardProps) => {
             : props.article.description}
         </Typography>
       </CardContent>
+
       <CardFooter className="flex flex-row flex-wrap gap-2">
         <VisitButton article={props.article} size="sm" />
+
         <Link
           className={buttonVariants({ size: "sm", variant: "outline" })}
           href={`/feed/${props.article.feedId}/${props.article.id}/reader-view`}
@@ -128,14 +132,17 @@ const ArticleCard = (props: ArticleCardProps) => {
           <BookText className="mr-2 h-4 w-4" />
           Reader View
         </Link>
+
         {!props.article.aiTexts?.lead && (
           <AiLeadButton articleId={props.article.id} />
         )}
+
         <AiSummaryButton
           feedId={props.article.feedId}
           articleId={props.article.id}
           size="sm"
         />
+
         <ToggleReadButton article={props.article} />
       </CardFooter>
     </Card>
