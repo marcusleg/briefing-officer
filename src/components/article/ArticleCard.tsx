@@ -6,6 +6,7 @@ import {
 } from "@/app/feed/[feedId]/actions";
 import AiLeadButton from "@/components/article/AiLeadButton";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
+import { ReadingTimeBadge } from "@/components/article/ReadingTimeBadge";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
 import VisitButton from "@/components/article/VisitButton";
@@ -23,7 +24,7 @@ import {
 import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
-import { BookText, Clock, LetterText } from "lucide-react";
+import { BookText, LetterText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -102,10 +103,7 @@ const ArticleCard = (props: ArticleCardProps) => {
           </div>
           {articleReadingTime && (
             <>
-              <Badge className="text-muted-foreground" variant="outline">
-                <Clock className="mr-2 h-4 w-4" />
-                {articleReadingTime.text}
-              </Badge>
+              <ReadingTimeBadge minutes={articleReadingTime.minutes} />
               <Badge className="text-muted-foreground" variant="outline">
                 <LetterText className="mr-2 h-4 w-4" />
                 {articleReadingTime.words} words
