@@ -10,8 +10,8 @@ import { ReadingTimeBadge } from "@/components/article/ReadingTimeBadge";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
 import VisitButton from "@/components/article/VisitButton";
+import { WordCountBadge } from "@/components/article/WordCountBadge";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -24,7 +24,7 @@ import {
 import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
-import { BookText, LetterText } from "lucide-react";
+import { BookText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -104,10 +104,7 @@ const ArticleCard = (props: ArticleCardProps) => {
           {articleReadingTime && (
             <>
               <ReadingTimeBadge minutes={articleReadingTime.minutes} />
-              <Badge className="text-muted-foreground" variant="outline">
-                <LetterText className="mr-2 h-4 w-4" />
-                {articleReadingTime.words} words
-              </Badge>
+              <WordCountBadge words={articleReadingTime.words} />
             </>
           )}
         </CardDescription>
