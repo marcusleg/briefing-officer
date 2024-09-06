@@ -1,6 +1,6 @@
 "use server";
 
-import { scrapeArticle } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
+import { scrapeArticle } from "@/lib/articleScraper";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import {

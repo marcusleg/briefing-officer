@@ -1,9 +1,9 @@
-import { scrapeArticle } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
 import ReadAloudButton from "@/components/article/ReadAloudButton";
 import VisitButton from "@/components/article/VisitButton";
 import BackButton from "@/components/layout/BackButton";
 import Typography from "@/components/ui/typography";
+import { scrapeArticle } from "@/lib/articleScraper";
 import prisma from "@/lib/prismaClient";
 import { markArticleAsRead } from "@/lib/repository/articleRepository";
 
