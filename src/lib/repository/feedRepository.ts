@@ -4,13 +4,14 @@ import { generateAiLead } from "@/lib/ai";
 import { scrapeArticle } from "@/lib/articleScraper";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
+import { FeedSchema } from "@/lib/repository/feedSchema";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export const createFeed = async (url: string) => {
-  const feed = await fetch(url).then((res) => res.text());
-  const parsedFeed = parseFeed(feed);
+export const createFeed = async (feed: FeedSchema) => {
+  const fetchedFeed = await fetch(feed.link).then((res) => res.text());
+  const parsedFeed = parseFeed(fetchedFeed);
 
   if (!parsedFeed || !parsedFeed.title) {
     throw new Error("Invalid feed");
@@ -18,9 +19,9 @@ export const createFeed = async (url: string) => {
 
   const createdFeed = await prisma.feed.create({
     data: {
-      title: parsedFeed.title,
-      link: url,
-      lastFetched: new Date(),
+      ...feed,
+      title: feed.title || parsedFeed.title,
+      lastFetched: new Date(0),
     },
   });
 
@@ -128,16 +129,11 @@ export const refreshFeeds = async () => {
   }
 };
 
-export const editFeed = async (
-  feedId: number,
-  newTitle: string,
-  newFeedUrl: string,
-) => {
+export const updateFeed = async (feedId: number, feed: FeedSchema) => {
   await prisma.feed.update({
     where: { id: feedId },
     data: {
-      title: newTitle,
-      link: newFeedUrl,
+      ...feed,
     },
   });
 

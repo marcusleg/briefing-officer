@@ -13,6 +13,7 @@
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.624.0",
     "@aws-sdk/client-polly": "^3.632.0",
+    "@hookform/resolvers": "^3.9.0",
     "@mozilla/readability": "^0.5.0",
     "@prisma/client": "^5.18.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -41,7 +42,8 @@
     "reading-time": "^1.5.0",
     "recharts": "^2.12.7",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20",
