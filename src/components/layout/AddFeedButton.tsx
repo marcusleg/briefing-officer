@@ -17,10 +17,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 
 const AddFeedButton = () => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger>
         <TooltipProvider>
           <Tooltip>
@@ -43,7 +46,7 @@ const AddFeedButton = () => {
             Enter a URL of an RSS or Atom feed.
           </DialogDescription>
         </DialogHeader>
-        <FeedForm />
+        <FeedForm onSubmitComplete={() => setDialogOpen(false)} />
       </DialogContent>
     </Dialog>
   );
