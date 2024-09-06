@@ -4,17 +4,10 @@ import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/app/feed/[feedId]/actions";
-import AiLeadButton from "@/components/article/AiLeadButton";
-import AiSummaryButton from "@/components/article/AiSummaryButton";
+import { ArticleCardActions } from "@/components/article/ArticleCardActions";
 import { ReadingTimeBadge } from "@/components/article/ReadingTimeBadge";
-import ToggleReadButton from "@/components/article/ToggleReadButton";
-
-import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
-import ToggleStarredButton from "@/components/article/ToggleStarredButton";
-import VisitButton from "@/components/article/VisitButton";
 import { WordCountBadge } from "@/components/article/WordCountBadge";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
-import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -23,11 +16,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
-import { BookText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -121,36 +112,8 @@ const ArticleCard = (props: ArticleCardProps) => {
         </Typography>
       </CardContent>
 
-      <CardFooter className="flex flex-row flex-wrap gap-2">
-        <ToggleReadButton article={props.article} />
-
-        <Separator className="mx-1 h-auto py-4" orientation="vertical" />
-
-        <VisitButton article={props.article} size="sm" />
-
-        <Link
-          className={buttonVariants({ size: "sm", variant: "outline" })}
-          href={`/feed/${props.article.feedId}/${props.article.id}/reader-view`}
-        >
-          <BookText className="mr-2 h-4 w-4" />
-          Reader View
-        </Link>
-
-        {!props.article.aiTexts?.lead && (
-          <AiLeadButton articleId={props.article.id} />
-        )}
-
-        <AiSummaryButton
-          feedId={props.article.feedId}
-          articleId={props.article.id}
-          size="sm"
-        />
-
-        <Separator className="mx-1 h-auto py-4" orientation="vertical" />
-
-        <ToggleReadLaterButton article={props.article} />
-
-        <ToggleStarredButton article={props.article} />
+      <CardFooter>
+        <ArticleCardActions article={props.article} />
       </CardFooter>
     </Card>
   );
