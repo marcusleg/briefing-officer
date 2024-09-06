@@ -1,4 +1,3 @@
-import { generateAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,6 +6,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { generateAiLead } from "@/lib/ai";
 import { scrapeArticle } from "@/lib/articleScraper";
 import { Prisma } from "@prisma/client";
 import {

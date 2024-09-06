@@ -1,6 +1,6 @@
 "use server";
 
-import { generateAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
+import { generateAiLead } from "@/lib/ai";
 import { scrapeArticle } from "@/lib/articleScraper";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";

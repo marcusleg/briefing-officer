@@ -6,7 +6,7 @@ import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
 import { AlertCircleIcon, Speech } from "lucide-react";
 import Markdown from "markdown-to-jsx";
-import { getAiSummary } from "./actions";
+import { getAiSummary } from "../../../../../lib/ai";
 
 const AiSummary = async ({
   params,

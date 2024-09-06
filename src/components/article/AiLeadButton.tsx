@@ -1,7 +1,7 @@
 "use client";
 
-import { generateAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
 import { Button } from "@/components/ui/button";
+import { generateAiLead } from "@/lib/ai";
 import { LoaderCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 
