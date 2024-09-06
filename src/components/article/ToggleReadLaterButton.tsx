@@ -3,8 +3,14 @@ import {
   unmarkArticleAsReadLater,
 } from "@/app/feed/[feedId]/actions";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Article } from "@prisma/client";
-import { BookmarkMinusIcon, BookmarkPlus } from "lucide-react";
+import { BookmarkIcon } from "lucide-react";
 
 interface ToggleReadLaterButtonProps {
   article: Article;
@@ -21,22 +27,34 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
 
   if (article.readLater) {
     return (
-      <Button
-        onClick={handleRemoveFromReadLaterClick}
-        size="sm"
-        variant="outline"
-      >
-        <BookmarkMinusIcon className="mr-2 h-4 w-4" />
-        Remove from read later
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <Button
+              onClick={handleRemoveFromReadLaterClick}
+              size="sm"
+              variant="outline"
+            >
+              <BookmarkIcon className="h-4 w-4" fill="black" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Remove from Read Later</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
   return (
-    <Button onClick={handleReadLaterClick} size="sm" variant="outline">
-      <BookmarkPlus className="mr-2 h-4 w-4" />
-      Read later
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <Button onClick={handleReadLaterClick} size="sm" variant="outline">
+            <BookmarkIcon className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Read Later</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 

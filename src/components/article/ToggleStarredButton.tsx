@@ -3,8 +3,14 @@ import {
   unmarkArticleAsStarred,
 } from "@/app/feed/[feedId]/actions";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Article } from "@prisma/client";
-import { StarIcon, StarOffIcon } from "lucide-react";
+import { StarIcon } from "lucide-react";
 
 interface ToggleStarredButtonProps {
   article: Article;
@@ -21,18 +27,30 @@ const ToggleStarredButton = ({ article }: ToggleStarredButtonProps) => {
 
   if (article.starred) {
     return (
-      <Button onClick={handleUnstarClick} size="sm" variant="outline">
-        <StarOffIcon className="mr-2 h-4 w-4" />
-        Unstar
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <Button onClick={handleUnstarClick} size="sm" variant="outline">
+              <StarIcon className="h-4 w-4" fill="black" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Unstar</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
   return (
-    <Button onClick={handleStarClick} size="sm" variant="outline">
-      <StarIcon className="mr-2 h-4 w-4" />
-      Star
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <Button onClick={handleStarClick} size="sm" variant="outline">
+            <StarIcon className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Star</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
