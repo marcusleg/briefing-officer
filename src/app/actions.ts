@@ -16,7 +16,7 @@ export const addFeed = async (url: string) => {
     throw new Error("Invalid feed");
   }
 
-  await prisma.feed.create({
+  const createdFeed = await prisma.feed.create({
     data: {
       title: parsedFeed.title,
       link: url,
@@ -25,6 +25,8 @@ export const addFeed = async (url: string) => {
   });
 
   revalidatePath("/", "layout");
+
+  void refreshFeed(createdFeed.id);
 };
 
 export const deleteFeed = async (feedId: number) => {
