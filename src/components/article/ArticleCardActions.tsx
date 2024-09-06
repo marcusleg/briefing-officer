@@ -1,3 +1,4 @@
+import AdditionArticleActionsButton from "@/components/article/AdditionArticleActionsButton";
 import AiLeadButton from "@/components/article/AiLeadButton";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
@@ -45,5 +46,9 @@ export const ArticleCardActions = (props: {
     <ToggleReadLaterButton article={props.article} />
 
     <ToggleStarredButton article={props.article} />
+
+    <Separator className="mx-1 h-auto py-4" orientation="vertical" />
+
+    <AdditionArticleActionsButton article={props.article} />
   </div>
 );

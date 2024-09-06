@@ -84,13 +84,28 @@ export const getAiSummary = async (articleId: number) => {
   });
 };
 
-export const generateAiLead = async (articleId: number) => {
-  const articleAiTexts = await prisma.articleAiTexts.findUnique({
-    where: { articleId: articleId },
-  });
+interface GenerateAiLeadOptios {
+  forceGeneration: boolean;
+}
 
-  if (articleAiTexts?.lead) {
-    return articleAiTexts;
+const defaultGenerateAiLeadOptions: GenerateAiLeadOptios = {
+  forceGeneration: false,
+};
+
+export const generateAiLead = async (
+  articleId: number,
+  options?: GenerateAiLeadOptios,
+) => {
+  const mergedOptions = { ...defaultGenerateAiLeadOptions, ...options };
+
+  if (!mergedOptions.forceGeneration) {
+    const articleAiTexts = await prisma.articleAiTexts.findUnique({
+      where: { articleId: articleId },
+    });
+
+    if (articleAiTexts?.lead) {
+      return articleAiTexts;
+    }
   }
 
   const article = await prisma.article.findUniqueOrThrow({

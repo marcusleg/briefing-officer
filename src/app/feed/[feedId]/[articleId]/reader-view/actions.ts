@@ -1,19 +1,35 @@
+"use server";
+
+import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { Readability } from "@mozilla/readability";
 import axios from "axios";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
 
+interface GetReadabilityOptions {
+  forceScrape: boolean;
+}
+
+const defaultGetReadabilityOptions: GetReadabilityOptions = {
+  forceScrape: false,
+};
+
 export const getReadability = async (
   articleId: number,
   articleLink: string,
+  options?: GetReadabilityOptions,
 ) => {
-  const readability = await prisma.articleReadability.findUnique({
-    where: { articleId: articleId },
-  });
+  const mergedOptions = { ...defaultGetReadabilityOptions, ...options };
 
-  if (readability) {
-    return readability;
+  if (!mergedOptions.forceScrape) {
+    const readability = await prisma.articleReadability.findUnique({
+      where: { articleId: articleId },
+    });
+
+    if (readability) {
+      return readability;
+    }
   }
 
   const website = await axios.get(articleLink);
@@ -25,8 +41,9 @@ export const getReadability = async (
     throw new Error("Failed to parse article");
   }
 
-  return prisma.articleReadability.create({
-    data: {
+  const readability = prisma.articleReadability.upsert({
+    where: { articleId: articleId },
+    create: {
       article: {
         connect: { id: articleId },
       },
@@ -34,5 +51,19 @@ export const getReadability = async (
       textContent: parsedArticle.textContent,
       byLine: parsedArticle.byline ?? "",
     },
+    update: {
+      content: parsedArticle.content,
+      textContent: parsedArticle.textContent,
+      byLine: parsedArticle.byline ?? "",
+    },
   });
+
+  logger.info(
+    {
+      article: { id: articleId, link: articleLink },
+    },
+    "Scraped article.",
+  );
+
+  return readability;
 };
