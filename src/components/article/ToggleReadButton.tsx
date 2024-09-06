@@ -1,7 +1,7 @@
 "use client";
 import {
   markArticleAsRead,
-  unmarkArticleRead,
+  unmarkArticleAsRead,
 } from "@/app/feed/[feedId]/actions";
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
@@ -32,7 +32,7 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
   };
 
   const handleMarkAsUnread = async () => {
-    await unmarkArticleRead(article.id);
+    await unmarkArticleAsRead(article.id);
   };
 
   if (article.readAt !== null) {

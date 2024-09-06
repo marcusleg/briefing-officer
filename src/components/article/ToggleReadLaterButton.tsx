@@ -1,6 +1,6 @@
 import {
   markArticleAsReadLater,
-  unmarkArticleReadLater,
+  unmarkArticleAsReadLater,
 } from "@/app/feed/[feedId]/actions";
 import { Button } from "@/components/ui/button";
 import { Article } from "@prisma/client";
@@ -16,7 +16,7 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
   };
 
   const handleRemoveFromReadLaterClick = async () => {
-    await unmarkArticleReadLater(article.id);
+    await unmarkArticleAsReadLater(article.id);
   };
 
   if (article.readLater) {

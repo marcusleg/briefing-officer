@@ -2,7 +2,7 @@
 
 import {
   markArticleAsRead,
-  unmarkArticleRead,
+  unmarkArticleAsRead,
 } from "@/app/feed/[feedId]/actions";
 import AiLeadButton from "@/components/article/AiLeadButton";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
@@ -70,7 +70,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     }
 
     if (props.article.readAt !== null) {
-      await unmarkArticleRead(props.article.id);
+      await unmarkArticleAsRead(props.article.id);
     } else {
       await markArticleAsRead(props.article.id);
     }

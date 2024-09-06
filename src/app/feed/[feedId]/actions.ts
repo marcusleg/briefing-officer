@@ -46,7 +46,7 @@ export const markArticleAsStarred = async (articleId: number) => {
   revalidatePath("/");
 };
 
-export const unmarkArticleRead = async (articleId: number) => {
+export const unmarkArticleAsRead = async (articleId: number) => {
   const updatedArticle = await prisma.article.update({
     where: {
       id: articleId,
@@ -59,7 +59,7 @@ export const unmarkArticleRead = async (articleId: number) => {
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/");
 };
-export const unmarkArticleReadLater = async (articleId: number) => {
+export const unmarkArticleAsReadLater = async (articleId: number) => {
   const updatedArticle = await prisma.article.update({
     where: {
       id: articleId,
