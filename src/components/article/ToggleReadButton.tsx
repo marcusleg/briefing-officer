@@ -1,8 +1,4 @@
 "use client";
-import {
-  markArticleAsRead,
-  unmarkArticleAsRead,
-} from "@/app/feed/[feedId]/actions";
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
 import {
@@ -12,6 +8,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import {
+  markArticleAsRead,
+  unmarkArticleAsRead,
+} from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
 import { CircleCheckBigIcon, CircleIcon } from "lucide-react";
 

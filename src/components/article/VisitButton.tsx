@@ -1,7 +1,7 @@
 "use client";
 
-import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { markArticleAsRead } from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";

@@ -1,7 +1,3 @@
-import {
-  markArticleAsReadLater,
-  unmarkArticleAsReadLater,
-} from "@/app/feed/[feedId]/actions";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -9,6 +5,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  markArticleAsReadLater,
+  unmarkArticleAsReadLater,
+} from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
 import { BookmarkIcon } from "lucide-react";
 

@@ -1,4 +1,5 @@
 "use server";
+
 import prisma from "@/lib/prismaClient";
 import { revalidatePath } from "next/cache";
 
@@ -43,6 +44,22 @@ export const markArticleAsStarred = async (articleId: number) => {
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/starred-articles");
+  revalidatePath("/");
+};
+
+export const markArticlesOlderThanXDaysAsRead = async (
+  feedId: number,
+  days: number,
+) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+
+  await prisma.article.updateMany({
+    where: { feedId: feedId, publicationDate: { lte: date } },
+    data: { readAt: new Date() },
+  });
+
+  revalidatePath(`/feed/${feedId}`);
   revalidatePath("/");
 };
 

@@ -1,7 +1,3 @@
-import {
-  markArticleAsStarred,
-  unmarkArticleAsStarred,
-} from "@/app/feed/[feedId]/actions";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -9,6 +5,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  markArticleAsStarred,
+  unmarkArticleAsStarred,
+} from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
 import { StarIcon } from "lucide-react";
 

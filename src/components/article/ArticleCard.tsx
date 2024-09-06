@@ -1,9 +1,5 @@
 "use client";
 
-import {
-  markArticleAsRead,
-  unmarkArticleAsRead,
-} from "@/app/feed/[feedId]/actions";
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
 import { ReadingTimeBadge } from "@/components/article/ReadingTimeBadge";
 import { WordCountBadge } from "@/components/article/WordCountBadge";
@@ -17,6 +13,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
+import {
+  markArticleAsRead,
+  unmarkArticleAsRead,
+} from "@/lib/repository/articleRepository";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 import Link from "next/link";

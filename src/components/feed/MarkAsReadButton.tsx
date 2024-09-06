@@ -1,6 +1,5 @@
 "use client";
 
-import { markArticlesOlderThanXDaysAsRead } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { markArticlesOlderThanXDaysAsRead } from "@/lib/repository/articleRepository";
 import { BookCheck, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
