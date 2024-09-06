@@ -5,9 +5,15 @@ import {
 } from "@/app/feed/[feedId]/actions";
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Article } from "@prisma/client";
-import { BookCheck, BookX } from "lucide-react";
+import { CircleCheckBigIcon, CircleIcon } from "lucide-react";
 
 const ToggleReadButton = ({ article }: { article: Article }) => {
   const { toast } = useToast();
@@ -37,18 +43,30 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
 
   if (article.readAt !== null) {
     return (
-      <Button size="sm" variant="outline" onClick={handleMarkAsUnread}>
-        <BookX className="mr-2 h-4 w-4" />
-        Mark as unread
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <Button size="sm" variant="outline" onClick={handleMarkAsUnread}>
+              <CircleCheckBigIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Mark as unread</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
   return (
-    <Button size="sm" variant="outline" onClick={handleMarkAsRead}>
-      <BookCheck className="mr-2 h-4 w-4" />
-      Mark as read
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <Button size="sm" variant="outline" onClick={handleMarkAsRead}>
+            <CircleIcon className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Mark as read</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
