@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
@@ -141,11 +142,15 @@ const ArticleCard = (props: ArticleCardProps) => {
           size="sm"
         />
 
-        <ToggleReadButton article={props.article} />
+        <Separator className="mx-1 h-auto py-4" orientation="vertical" />
 
         <ToggleReadLaterButton article={props.article} />
 
         <ToggleStarredButton article={props.article} />
+
+        <Separator className="mx-1 h-auto py-4" orientation="vertical" />
+
+        <ToggleReadButton article={props.article} />
       </CardFooter>
     </Card>
   );
