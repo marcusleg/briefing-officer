@@ -36,6 +36,7 @@
     "pino": "^9.3.2",
     "react": "^18",
     "react-dom": "^18",
+    "react-hook-form": "^7.53.0",
     "react-hotkeys-hook": "^4.5.0",
     "reading-time": "^1.5.0",
     "recharts": "^2.12.7",

@@ -1,6 +1,5 @@
 "use client";
 
-import { editFeed } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +13,7 @@ import {
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { editFeed } from "@/lib/repository/feedRepository";
 import { Feed } from "@prisma/client";
 import { Pencil } from "lucide-react";
 import { useState } from "react";

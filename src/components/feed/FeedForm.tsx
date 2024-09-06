@@ -1,9 +1,9 @@
 "use client";
 
-import { addFeed } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createFeed } from "@/lib/repository/feedRepository";
 import { useState } from "react";
 
 interface FeedFormProps {
@@ -14,7 +14,7 @@ const FeedForm = ({ onSubmitComplete }: FeedFormProps) => {
   const [inputFeedUrl, setInputFeedUrl] = useState("");
 
   const handleAddFeed = async () => {
-    await addFeed(inputFeedUrl);
+    await createFeed(inputFeedUrl);
     onSubmitComplete();
   };
 

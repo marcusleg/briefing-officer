@@ -1,5 +1,5 @@
-import { refreshFeeds } from "@/app/actions";
 import logger from "@/lib/logger";
+import { refreshFeeds } from "@/lib/repository/feedRepository";
 
 const apiKey = "hardcoded-api-keys-are-a-terrible-idea"; // TODO
 

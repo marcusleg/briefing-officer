@@ -1,8 +1,8 @@
 "use client";
 
-import { refreshFeed } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { refreshFeed } from "@/lib/repository/feedRepository";
 import { LoaderCircle, RotateCw } from "lucide-react";
 import { useState } from "react";
 
