@@ -84,7 +84,7 @@ const ArticleCard = (props: ArticleCardProps) => {
   return (
     <Card
       className={cn(
-        props.article.readAt !== null ? "opacity-50" : "",
+        props.article.readAt !== null ? "opacity-65" : "",
         props.className,
       )}
       onClick={props.onClick}
