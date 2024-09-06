@@ -9,7 +9,7 @@ export const POST = async (request: Request) => {
   }
 
   refreshFeeds()
-    .then(() => logger.info("Cron finished successfully."))
+    .then(() => logger.debug("Cron finished successfully."))
     .catch((error) => logger.error({ error }, "Cron failed."));
 
   return new Response("", { status: 200 });

@@ -56,7 +56,7 @@ export const refreshFeed = async (feedId: number) => {
     where: { id: feedId },
   });
 
-  logger.info({ feedId, feedTitle: feed.title }, "Refreshing feed.");
+  logger.debug({ feedId, feedTitle: feed.title }, "Refreshing feed.");
 
   const fetchedFeed = await fetch(feed.link).then((res) => res.text());
   const parsedFeed = parseFeed(fetchedFeed);
@@ -125,7 +125,7 @@ export const refreshFeed = async (feedId: number) => {
 };
 
 export const refreshFeeds = async () => {
-  logger.info("Refreshing all feeds.");
+  logger.debug("Refreshing all feeds.");
 
   const feeds = await prisma.feed.findMany({ select: { id: true } });
 
