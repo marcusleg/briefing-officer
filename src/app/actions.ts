@@ -102,7 +102,7 @@ export const refreshFeed = async (feedId: number) => {
   const newArticleReadabilityPromises = definedNewArticlesPromises.map(
     (article) => getReadability(article.id, article.link),
   );
-  await Promise.all(newArticleReadabilityPromises);
+  await Promise.allSettled(newArticleReadabilityPromises); // TODO handle errors, emit log message
 
   const generateAiLeadsPromises = definedNewArticlesPromises.map((article) =>
     generateAiLead(article.id),
