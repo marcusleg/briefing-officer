@@ -122,6 +122,10 @@ const ArticleCard = (props: ArticleCardProps) => {
       </CardContent>
 
       <CardFooter className="flex flex-row flex-wrap gap-2">
+        <ToggleReadButton article={props.article} />
+
+        <Separator className="mx-1 h-auto py-4" orientation="vertical" />
+
         <VisitButton article={props.article} size="sm" />
 
         <Link
@@ -147,10 +151,6 @@ const ArticleCard = (props: ArticleCardProps) => {
         <ToggleReadLaterButton article={props.article} />
 
         <ToggleStarredButton article={props.article} />
-
-        <Separator className="mx-1 h-auto py-4" orientation="vertical" />
-
-        <ToggleReadButton article={props.article} />
       </CardFooter>
     </Card>
   );
