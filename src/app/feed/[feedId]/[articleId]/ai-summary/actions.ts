@@ -1,6 +1,6 @@
 "use server";
 
-import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
+import { scrapeArticle } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import {
@@ -53,10 +53,10 @@ export const getAiSummary = async (articleId: number) => {
   const article = await prisma.article.findUniqueOrThrow({
     where: { id: articleId },
   });
-  const readability = await getReadability(article.id, article.link);
+  const scrape = await scrapeArticle(article.id, article.link);
 
   const summary = await promptClaude(
-    `Sum up the following article. Format your response in Markdown. \n\n${article.title}\n\n${readability.textContent}`,
+    `Sum up the following article. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
   );
   if (!summary) {
     throw new Error("Failed to generate summary");
@@ -111,10 +111,10 @@ export const generateAiLead = async (
   const article = await prisma.article.findUniqueOrThrow({
     where: { id: articleId },
   });
-  const readability = await getReadability(article.id, article.link);
+  const scrape = await scrapeArticle(article.id, article.link);
 
   const lead = await promptClaude(
-    `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Reply in the same language in which the article is written.\n\n${article.title}\n\n${readability.textContent}`,
+    `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Reply in the same language in which the article is written.\n\n${article.title}\n\n${scrape.textContent}`,
   );
   if (!lead) {
     throw new Error("Failed to generate summary");

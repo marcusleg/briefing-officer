@@ -13,7 +13,7 @@ import Link from "next/link";
 
 export const ArticleCardActions = (props: {
   article: Prisma.ArticleGetPayload<{
-    include: { aiTexts: true; feed: true; readability: true };
+    include: { aiTexts: true; feed: true; scrape: true };
   }>;
 }) => (
   <div className="flex flex-row flex-wrap gap-2">

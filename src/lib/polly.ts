@@ -15,7 +15,7 @@ export const getSpeechSynthesis = async (feedId: number, articleId: number) => {
       id: articleId,
     },
   });
-  const readability = await prisma.articleReadability.findUniqueOrThrow({
+  const scrape = await prisma.articleScrape.findUniqueOrThrow({
     where: { articleId: articleId },
   });
 
@@ -23,7 +23,7 @@ export const getSpeechSynthesis = async (feedId: number, articleId: number) => {
     Engine: "generative",
     LanguageCode: "en-US",
     OutputFormat: "ogg_vorbis",
-    Text: `${article.title}. ${readability.textContent}`,
+    Text: `${article.title}. ${scrape.textContent}`,
     VoiceId: "Ruth",
   });
   const response = await client.send(command);

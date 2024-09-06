@@ -7,28 +7,28 @@ import axios from "axios";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
 
-interface GetReadabilityOptions {
+interface ScrapeArticleOptions {
   forceScrape: boolean;
 }
 
-const defaultGetReadabilityOptions: GetReadabilityOptions = {
+const defaultScrapeArticleOptions: ScrapeArticleOptions = {
   forceScrape: false,
 };
 
-export const getReadability = async (
+export const scrapeArticle = async (
   articleId: number,
   articleLink: string,
-  options?: GetReadabilityOptions,
+  options?: ScrapeArticleOptions,
 ) => {
-  const mergedOptions = { ...defaultGetReadabilityOptions, ...options };
+  const mergedOptions = { ...defaultScrapeArticleOptions, ...options };
 
   if (!mergedOptions.forceScrape) {
-    const readability = await prisma.articleReadability.findUnique({
+    const scrape = await prisma.articleScrape.findUnique({
       where: { articleId: articleId },
     });
 
-    if (readability) {
-      return readability;
+    if (scrape) {
+      return scrape;
     }
   }
 
@@ -41,20 +41,20 @@ export const getReadability = async (
     throw new Error("Failed to parse article");
   }
 
-  const readability = prisma.articleReadability.upsert({
+  const scrape = prisma.articleScrape.upsert({
     where: { articleId: articleId },
     create: {
       article: {
         connect: { id: articleId },
       },
-      content: parsedArticle.content,
+      htmlContent: parsedArticle.content,
       textContent: parsedArticle.textContent,
-      byLine: parsedArticle.byline ?? "",
+      author: parsedArticle.byline ?? "",
     },
     update: {
-      content: parsedArticle.content,
+      htmlContent: parsedArticle.content,
       textContent: parsedArticle.textContent,
-      byLine: parsedArticle.byline ?? "",
+      author: parsedArticle.byline ?? "",
     },
   });
 
@@ -65,5 +65,5 @@ export const getReadability = async (
     "Scraped article.",
   );
 
-  return readability;
+  return scrape;
 };

@@ -1,5 +1,5 @@
 import { generateAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
-import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
+import { scrapeArticle } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ import {
 
 interface AdditionArticleActionsButtonProps {
   article: Prisma.ArticleGetPayload<{
-    include: { aiTexts: true; feed: true; readability: true };
+    include: { aiTexts: true; feed: true; scrape: true };
   }>;
 }
 
@@ -29,7 +29,7 @@ const AdditionArticleActionsButton = ({
   };
 
   const handleScrapeArticle = async () => {
-    await getReadability(article.id, article.link, { forceScrape: true });
+    await scrapeArticle(article.id, article.link, { forceScrape: true });
   };
 
   return (

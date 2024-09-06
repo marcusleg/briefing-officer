@@ -1,4 +1,4 @@
-import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
+import { scrapeArticle } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import { markArticleAsRead } from "@/app/feed/[feedId]/actions";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
 import ReadAloudButton from "@/components/article/ReadAloudButton";
@@ -21,7 +21,7 @@ const ReaderView = async ({
     },
   });
 
-  const readerDocument = await getReadability(article.id, article.link);
+  const readerDocument = await scrapeArticle(article.id, article.link);
   void markArticleAsRead(articleId);
 
   return (

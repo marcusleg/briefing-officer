@@ -26,7 +26,7 @@ import readingTime from "reading-time";
 
 interface ArticleCardProps {
   article: Prisma.ArticleGetPayload<{
-    include: { aiTexts: true; feed: true; readability: true };
+    include: { aiTexts: true; feed: true; scrape: true };
   }>;
   className?: string;
   onClick?: () => void;
@@ -68,8 +68,8 @@ const ArticleCard = (props: ArticleCardProps) => {
     }
   });
 
-  const articleReadingTime = props.article.readability
-    ? readingTime(props.article.readability.textContent)
+  const articleReadingTime = props.article.scrape
+    ? readingTime(props.article.scrape.textContent)
     : undefined;
 
   return (

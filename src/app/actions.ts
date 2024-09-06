@@ -1,7 +1,7 @@
 "use server";
 
 import { generateAiLead } from "@/app/feed/[feedId]/[articleId]/ai-summary/actions";
-import { getReadability } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
+import { scrapeArticle } from "@/app/feed/[feedId]/[articleId]/reader-view/actions";
 import logger from "@/lib/logger";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
@@ -99,10 +99,10 @@ export const refreshFeed = async (feedId: number) => {
     (article) => article !== undefined,
   );
 
-  const newArticleReadabilityPromises = definedNewArticlesPromises.map(
-    (article) => getReadability(article.id, article.link),
+  const newArticleScrapesPromises = definedNewArticlesPromises.map((article) =>
+    scrapeArticle(article.id, article.link),
   );
-  await Promise.allSettled(newArticleReadabilityPromises); // TODO handle errors, emit log message
+  await Promise.allSettled(newArticleScrapesPromises); // TODO handle errors, emit log message
 
   const generateAiLeadsPromises = definedNewArticlesPromises.map((article) =>
     generateAiLead(article.id),

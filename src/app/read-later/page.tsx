@@ -7,7 +7,7 @@ const getReadLaterArticles = () => {
     include: {
       aiTexts: true,
       feed: true,
-      readability: true,
+      scrape: true,
     },
     where: {
       readLater: true,
