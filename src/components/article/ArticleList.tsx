@@ -47,7 +47,7 @@ const ArticleList = ({ articles }: ArticleListProps) => {
           key={article.id}
           className={
             index == selectedArticle
-              ? "outline outline-2 outline-gray-800"
+              ? "bg-gray-50 outline outline-1 outline-gray-800"
               : undefined
           }
           article={article}
