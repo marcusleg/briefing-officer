@@ -8,7 +8,9 @@ import AiLeadButton from "@/components/article/AiLeadButton";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
 import { ReadingTimeBadge } from "@/components/article/ReadingTimeBadge";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
+
 import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
+import ToggleStarredButton from "@/components/article/ToggleStarredButton";
 import VisitButton from "@/components/article/VisitButton";
 import { WordCountBadge } from "@/components/article/WordCountBadge";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
@@ -142,6 +144,8 @@ const ArticleCard = (props: ArticleCardProps) => {
         <ToggleReadButton article={props.article} />
 
         <ToggleReadLaterButton article={props.article} />
+
+        <ToggleStarredButton article={props.article} />
       </CardFooter>
     </Card>
   );

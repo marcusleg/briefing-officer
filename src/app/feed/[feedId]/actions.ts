@@ -31,6 +31,21 @@ export const markArticleAsReadLater = async (articleId: number) => {
   revalidatePath("/");
 };
 
+export const markArticleAsStarred = async (articleId: number) => {
+  const updatedArticle = await prisma.article.update({
+    where: {
+      id: articleId,
+    },
+    data: {
+      starred: true,
+    },
+  });
+
+  revalidatePath(`/feed/${updatedArticle.feedId}`);
+  revalidatePath("/starred-articles");
+  revalidatePath("/");
+};
+
 export const unmarkArticleRead = async (articleId: number) => {
   const updatedArticle = await prisma.article.update({
     where: {
@@ -56,5 +71,20 @@ export const unmarkArticleReadLater = async (articleId: number) => {
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/read-later");
+  revalidatePath("/");
+};
+
+export const unmarkArticleAsStarred = async (articleId: number) => {
+  const updatedArticle = await prisma.article.update({
+    where: {
+      id: articleId,
+    },
+    data: {
+      starred: false,
+    },
+  });
+
+  revalidatePath(`/feed/${updatedArticle.feedId}`);
+  revalidatePath("/starred-articles");
   revalidatePath("/");
 };
