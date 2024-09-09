@@ -34,7 +34,7 @@ const AdditionArticleActionsButton = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline">
           <EllipsisVerticalIcon className="h-4 w-4" />
         </Button>

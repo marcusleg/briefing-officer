@@ -45,7 +45,7 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
     return (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button size="sm" variant="outline" onClick={handleMarkAsUnread}>
               <CircleCheckBigIcon className="h-4 w-4" />
             </Button>
@@ -59,7 +59,7 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Button size="sm" variant="outline" onClick={handleMarkAsRead}>
             <CircleIcon className="h-4 w-4" />
           </Button>

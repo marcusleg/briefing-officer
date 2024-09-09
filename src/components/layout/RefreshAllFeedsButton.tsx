@@ -47,7 +47,7 @@ const RefreshAllFeedsButton = () => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Button
             disabled={refreshing}
             onClick={handleClick}

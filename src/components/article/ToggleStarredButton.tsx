@@ -29,7 +29,7 @@ const ToggleStarredButton = ({ article }: ToggleStarredButtonProps) => {
     return (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button onClick={handleUnstarClick} size="sm" variant="outline">
               <StarIcon className="h-4 w-4" fill="black" />
             </Button>
@@ -43,7 +43,7 @@ const ToggleStarredButton = ({ article }: ToggleStarredButtonProps) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Button onClick={handleStarClick} size="sm" variant="outline">
             <StarIcon className="h-4 w-4" />
           </Button>

@@ -29,7 +29,7 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
     return (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button
               onClick={handleRemoveFromReadLaterClick}
               size="sm"
@@ -47,7 +47,7 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Button onClick={handleReadLaterClick} size="sm" variant="outline">
             <BookmarkIcon className="h-4 w-4" />
           </Button>

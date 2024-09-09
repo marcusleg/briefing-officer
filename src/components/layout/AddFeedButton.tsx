@@ -1,7 +1,7 @@
 "use client";
 
 import FeedForm from "@/components/feed/FeedForm";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -24,10 +24,13 @@ const AddFeedButton = () => {
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger
+              asChild
+              className={buttonVariants({ size: "icon", variant: "outline" })}
+            >
               <Button size="icon" variant="outline">
                 <Plus className="h-4 w-4" />
               </Button>
