@@ -7,7 +7,6 @@ import IntlRelativeTime from "@/components/IntlRelativeTime";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -88,7 +87,7 @@ const ArticleCard = (props: ArticleCardProps) => {
           </Link>
         </CardTitle>
 
-        <CardDescription className="flex flex-row gap-2 align-middle text-sm">
+        <div className="flex flex-row gap-2 align-middle text-sm text-muted-foreground">
           <div>
             <Link href={`/feed/${props.article.feedId}`}>
               {props.article.feed.title}
@@ -101,7 +100,7 @@ const ArticleCard = (props: ArticleCardProps) => {
               <WordCountBadge words={articleReadingTime.words} />
             </>
           )}
-        </CardDescription>
+        </div>
       </CardHeader>
 
       <CardContent>
