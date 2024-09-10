@@ -5,6 +5,7 @@ import { scrapeArticle } from "@/lib/articleScraper";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { FeedSchema } from "@/lib/repository/feedSchema";
+import { Article } from "@prisma/client";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -38,6 +39,30 @@ export const deleteFeed = async (feedId: number) => {
   redirect("/");
 };
 
+const processArticle = async (article: Article) => {
+  try {
+    await scrapeArticle(article.id, article.link);
+  } catch (error) {
+    logger.error(
+      { article: { id: article.id, title: article.title, link: article.link } },
+      "Failed to scrape article.",
+    );
+  }
+
+  try {
+    await generateAiLead(article.id);
+  } catch (error) {
+    logger.error(
+      { article: { id: article.id, title: article.title, link: article.link } },
+      "Failed to generate AI lead.",
+    );
+  }
+
+  revalidatePath(`/feed/${article.feedId}`);
+  revalidatePath(`/feed/${article.feedId}/${article.id}`);
+  revalidatePath(`/feed/${article.feedId}/${article.id}/reader-view`);
+};
+
 export const refreshFeed = async (feedId: number) => {
   const feed = await prisma.feed.findUniqueOrThrow({
     where: { id: feedId },
@@ -56,58 +81,49 @@ export const refreshFeed = async (feedId: number) => {
     throw new Error("Unable to parse feed.");
   }
 
-  const promises = parsedFeed.items.slice(0, 100).map((item) => {
+  const validFeedItems: Pick<
+    Article,
+    "title" | "link" | "description" | "publicationDate"
+  >[] = [];
+  parsedFeed.items.forEach((item) => {
     if (!item.title || !item.link || !item.pubDate) {
-      logger.error(
-        { feed: { id: feed.id, title: feed.title, link: feed.link } },
-        "Invalid feed item.",
-      );
-      return;
-    }
-
-    return prisma.article.upsert({
-      where: { link: item.link },
-      update: {
+      logger.error({ item }, "Invalid feed item.");
+    } else {
+      validFeedItems.push({
         title: item.title,
-        description: item.description,
-        publicationDate: new Date(item.pubDate),
-      },
-      create: {
-        title: item.title,
-        description: item.description,
         link: item.link,
+        description: item.description ? item.description : null,
         publicationDate: new Date(item.pubDate),
+      });
+    }
+  });
+
+  const createArticlePromises = validFeedItems.map((item) =>
+    prisma.article.create({
+      data: {
+        ...item,
         feedId: feed.id,
       },
-    });
-  });
-  const newArticlePromises = await Promise.all(promises);
-  const definedNewArticlesPromises = newArticlePromises.filter(
-    (article) => article !== undefined,
+    }),
   );
 
-  const newArticleScrapesPromises = definedNewArticlesPromises.map((article) =>
-    scrapeArticle(article.id, article.link),
-  );
-  await Promise.allSettled(newArticleScrapesPromises); // TODO handle errors, emit log message
+  const createArticleResults = await Promise.allSettled(createArticlePromises);
+  // TODO check whether articles that already exist have changed
+  const createdArticles = createArticleResults
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value);
 
-  const generateAiLeadsPromises = definedNewArticlesPromises.map((article) =>
-    generateAiLead(article.id),
-  );
-  await Promise.all(generateAiLeadsPromises);
-
-  await prisma.feed.update({
-    where: { id: feed.id },
-    data: {
-      lastFetched: new Date(),
-    },
-  });
+  // process articles asynchronously
+  createdArticles.map((article) => processArticle(article));
 
   revalidatePath(`/feed/${feedId}`);
 
   logger.info(
-    { feed: { id: feed.id, title: feed.title, link: feed.link } },
-    "Feed refreshed.",
+    {
+      feed: { id: feed.id, title: feed.title, link: feed.link },
+      numberOfNewArticles: createdArticles.length,
+    },
+    "Feed refreshed. Processing new articles in the background.",
   );
 };
 
