@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { createFeed, updateFeed } from "@/lib/repository/feedRepository";
 import { feedSchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +32,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
       : {
           title: "",
           link: "",
+          titleFilterExpressions: "",
         },
   });
 
@@ -72,6 +74,26 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                 <FormLabel>Feed URL</FormLabel>
                 <FormControl>
                   <Input placeholder="http://example.org/feed.xml" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="titleFilterExpressions"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title Filter Expressions</FormLabel>
+                <FormControl>
+                  <Textarea
+                    className="resize-none"
+                    placeholder={`^(Advertisement: |Sponsored: ).+$
+^.*NSFW.*$`}
+                    rows={5}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
