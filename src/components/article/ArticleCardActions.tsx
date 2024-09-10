@@ -22,7 +22,13 @@ interface ArticleCardActionsProps {
 
 export const ArticleCardActions = (props: ArticleCardActionsProps) => (
   <div className="flex flex-row flex-wrap gap-2">
-    {props.showBackButton && <BackButton />}
+    {props.showBackButton && (
+      <>
+        <BackButton />
+
+        <Separator className="mx-1 h-auto py-4" orientation="vertical" />
+      </>
+    )}
 
     <ToggleReadButton article={props.article} />
 
