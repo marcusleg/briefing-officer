@@ -108,7 +108,14 @@ export const refreshFeed = async (feedId: number) => {
 
       if (test) {
         logger.debug(
-          { item, matchedTitleFilterExpression: regexString },
+          {
+            article: {
+              title: item.title,
+              link: item.link,
+              publicationDate: item.publicationDate,
+            },
+            matchedTitleFilterExpression: regexString,
+          },
           "Filtered out article because of title filter.",
         );
       }
