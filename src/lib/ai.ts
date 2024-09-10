@@ -21,7 +21,7 @@ export const getAiSummary = async (articleId: number) => {
   const scrape = await scrapeArticle(article.id, article.link);
 
   const summary = await promptClaude(
-    `Sum up the following article. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
+    `Write a synopsis as prose of the following article. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
   );
   if (!summary) {
     throw new Error("Failed to generate summary");
