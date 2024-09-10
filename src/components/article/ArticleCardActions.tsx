@@ -1,6 +1,7 @@
 import AdditionArticleActionsButton from "@/components/article/AdditionArticleActionsButton";
 import AiLeadButton from "@/components/article/AiLeadButton";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
+import ReadAloudButton from "@/components/article/ReadAloudButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
 import ToggleStarredButton from "@/components/article/ToggleStarredButton";
@@ -29,6 +30,8 @@ export const ArticleCardActions = (props: {
       articleId={props.article.id}
       size="sm"
     />
+
+    <ReadAloudButton article={props.article} />
 
     <Separator className="mx-1 h-auto py-4" orientation="vertical" />
 

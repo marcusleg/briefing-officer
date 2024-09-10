@@ -10,6 +10,16 @@ const client = new PollyClient();
 export const getSpeechSynthesis = async (feedId: number, articleId: number) => {
   logger.debug({ feedId, articleId }, "Synthesizing speech");
 
+  let filePath = `./public/tts/${articleId}.ogg`;
+
+  if (fs.existsSync(filePath)) {
+    logger.debug(
+      { filePath, article: { id: articleId, feedId } },
+      "Speech already synthesized.",
+    );
+    return;
+  }
+
   const article = await prisma.article.findUniqueOrThrow({
     where: {
       id: articleId,
@@ -32,10 +42,13 @@ export const getSpeechSynthesis = async (feedId: number, articleId: number) => {
     throw new Error("Failed to generate speech");
   }
 
-  const writeableStream = fs.createWriteStream(
-    `./data/speech-${feedId}-${articleId}.ogg`,
-  );
+  const writeableStream = fs.createWriteStream(filePath);
   writeableStream.write(
     Buffer.from(await response.AudioStream.transformToByteArray()),
+  );
+
+  logger.info(
+    { filePath, article: { id: articleId, feedId } },
+    "Synthesized speech.",
   );
 };

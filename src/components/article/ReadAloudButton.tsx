@@ -1,25 +1,58 @@
 "use client";
 
+import AudioPlayer from "@/components/article/AudioPlayer";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { getSpeechSynthesis } from "@/lib/polly";
-import { Speech } from "lucide-react";
+import { Article } from "@prisma/client";
+import { LoaderCircle, Speech } from "lucide-react";
+import { useState } from "react";
 
 interface ReadAloudButtonProps {
-  feedId: number;
-  articleId: number;
+  article: Article;
 }
 
-const ReadAloudButton = ({ feedId, articleId }: ReadAloudButtonProps) => {
+const ReadAloudButton = ({ article }: ReadAloudButtonProps) => {
+  const [synthesisInProgress, setSynthesisInProgress] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   const handleClick = async () => {
-    await getSpeechSynthesis(feedId, articleId);
-    // TODO play audio
+    setSynthesisInProgress(true);
+    await getSpeechSynthesis(article.feedId, article.id);
+    setSynthesisInProgress(false);
+
+    setDialogOpen(true);
   };
 
   return (
-    <Button variant="outline" onClick={handleClick}>
-      <Speech className="mr-2 h-4 w-4" />
-      Read aloud
-    </Button>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Button
+        disabled={synthesisInProgress}
+        variant="outline"
+        onClick={handleClick}
+      >
+        {synthesisInProgress ? (
+          <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Speech className="mr-2 h-4 w-4" />
+        )}
+        Read aloud
+      </Button>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{article.title}</DialogTitle>
+          <DialogDescription>
+            <AudioPlayer src={`/tts/${article.id}.ogg`} />
+          </DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
   );
 };
 
