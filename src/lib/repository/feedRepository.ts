@@ -98,7 +98,24 @@ export const refreshFeed = async (feedId: number) => {
     }
   });
 
-  const createArticlePromises = validFeedItems.map((item) =>
+  const titleFilterExpressions = feed.titleFilterExpressions.split("\n");
+  const filteredFeedItems = validFeedItems.filter((item) => {
+    return !titleFilterExpressions.some((regexString) => {
+      const regex = new RegExp(regexString);
+      const test = regex.test(item.title);
+
+      if (test) {
+        logger.debug(
+          { item, matchedTitleFilterExpression: regexString },
+          "Filtered out article because of title filter.",
+        );
+      }
+
+      return test;
+    });
+  });
+
+  const createArticlePromises = filteredFeedItems.map((item) =>
     prisma.article.create({
       data: {
         ...item,
