@@ -98,7 +98,9 @@ export const refreshFeed = async (feedId: number) => {
     }
   });
 
-  const titleFilterExpressions = feed.titleFilterExpressions.split("\n");
+  const titleFilterExpressions = feed.titleFilterExpressions
+    .split("\n")
+    .filter((regex) => regex !== "");
   const filteredFeedItems = validFeedItems.filter((item) => {
     return !titleFilterExpressions.some((regexString) => {
       const regex = new RegExp(regexString);
