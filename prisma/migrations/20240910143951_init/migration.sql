@@ -4,6 +4,7 @@ CREATE TABLE "Feed" (
     "title" TEXT NOT NULL,
     "link" TEXT NOT NULL,
     "lastFetched" DATETIME NOT NULL,
+    "titleFilterExpressions" TEXT NOT NULL DEFAULT '',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
@@ -19,7 +20,6 @@ CREATE TABLE "Article" (
     "readAt" DATETIME,
     "readLater" BOOLEAN NOT NULL DEFAULT false,
     "starred" BOOLEAN NOT NULL DEFAULT false,
-    "titleFilterExpressions" TEXT NOT NULL DEFAULT '',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "feedId" INTEGER NOT NULL,
