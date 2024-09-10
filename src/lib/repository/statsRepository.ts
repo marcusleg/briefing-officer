@@ -64,3 +64,30 @@ export const getWeeklyArticleCountPerFeed = async () => {
     count: numberOfArticlesLast7Days[index]._count._all,
   }));
 };
+
+export const getWeeklyArticlesRead = async () => {
+  const last7Days = getLast7Days();
+
+  const numberOfArticlesReadLast7Days = await Promise.all(
+    last7Days.map((dateRange) =>
+      prisma.article.aggregate({
+        _count: {
+          _all: true,
+        },
+        where: {
+          readAt: {
+            gte: new Date(dateRange.from),
+            lt: new Date(dateRange.to),
+          },
+        },
+      }),
+    ),
+  );
+  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  return last7Days.map((dateRange, index) => ({
+    date: dateRange.from.split("T")[0],
+    weekday: weekDays[new Date(dateRange.to).getDay()],
+    count: numberOfArticlesReadLast7Days[index]._count._all,
+  }));
+};
