@@ -5,11 +5,8 @@ import ToggleReadButton from "@/components/article/ToggleReadButton";
 import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
 import ToggleStarredButton from "@/components/article/ToggleStarredButton";
 import VisitButton from "@/components/article/VisitButton";
-import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Prisma } from "@prisma/client";
-import { BookText } from "lucide-react";
-import Link from "next/link";
 
 export const ArticleCardActions = (props: {
   article: Prisma.ArticleGetPayload<{
@@ -22,14 +19,6 @@ export const ArticleCardActions = (props: {
     <Separator className="mx-1 h-auto py-4" orientation="vertical" />
 
     <VisitButton article={props.article} size="sm" />
-
-    <Link
-      className={buttonVariants({ size: "sm", variant: "outline" })}
-      href={`/feed/${props.article.feedId}/${props.article.id}/reader-view`}
-    >
-      <BookText className="mr-2 h-4 w-4" />
-      Reader View
-    </Link>
 
     {!props.article.aiTexts?.lead && (
       <AiLeadButton articleId={props.article.id} />
