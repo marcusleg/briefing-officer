@@ -27,7 +27,7 @@ interface NumberOfArticlesLast7DaysChartProps {
   chartData: { date: string; weekday: string; count: number }[];
 }
 
-const NumberOfArticlesLast7DaysChart = ({
+const NumberOfNewArticlesLast7DaysChart = ({
   chartData,
 }: NumberOfArticlesLast7DaysChartProps) => {
   const dailyAverage = chartData.reduce((acc, day) => acc + day.count, 0) / 7;
@@ -85,4 +85,4 @@ const NumberOfArticlesLast7DaysChart = ({
   );
 };
 
-export default NumberOfArticlesLast7DaysChart;
+export default NumberOfNewArticlesLast7DaysChart;

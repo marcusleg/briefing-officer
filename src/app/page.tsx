@@ -1,6 +1,6 @@
 import ArticleList from "@/components/article/ArticleList";
-import NumberOfArticlesLast7DaysChart from "@/components/frontpage/NumberOfArticlesLast7DaysChart";
 import NumberOfArticlesReadLast7DaysChart from "@/components/frontpage/NumberOfArticlesReadLast7DaysChart";
+import NumberOfNewArticlesLast7DaysChart from "@/components/frontpage/NumberOfNewArticlesLast7DaysChart";
 import UnreadArticlesChart from "@/components/frontpage/UnreadArticlesChart";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
@@ -26,7 +26,7 @@ const Home = async () => {
   });
 
   const unreadArticlesChartData = await getUnreadArticlesPerFeed();
-  const numberOfArticlesLast7DaysChartData =
+  const numberOfNewArticlesLast7DaysChartData =
     await getWeeklyArticleCountPerFeed();
   const numberOfArticlesReadLast7DaysChartData = await getWeeklyArticlesRead();
 
@@ -34,8 +34,8 @@ const Home = async () => {
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-3 gap-4">
         <UnreadArticlesChart chartData={unreadArticlesChartData} />
-        <NumberOfArticlesLast7DaysChart
-          chartData={numberOfArticlesLast7DaysChartData}
+        <NumberOfNewArticlesLast7DaysChart
+          chartData={numberOfNewArticlesLast7DaysChartData}
         />
         <NumberOfArticlesReadLast7DaysChart
           chartData={numberOfArticlesReadLast7DaysChartData}
