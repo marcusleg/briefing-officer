@@ -24,20 +24,20 @@ const AddFeedButton = () => {
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger asChild>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
               <Button size="icon" variant="outline">
                 <Plus className="h-4 w-4" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              <p>Add feed</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </DialogTrigger>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>Add feed</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
