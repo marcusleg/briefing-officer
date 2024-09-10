@@ -8,7 +8,7 @@ const BackButton = () => {
   const router = useRouter();
 
   return (
-    <Button onClick={router.back} variant="outline">
+    <Button onClick={router.back} size="sm" variant="outline">
       <ArrowLeft className="mr-2 h-4 w-4" />
       Back
     </Button>

@@ -1,10 +1,10 @@
-import ToggleReadButton from "@/components/article/ToggleReadButton";
-import BackButton from "@/components/layout/BackButton";
+"use server";
+
+import { ArticleCardActions } from "@/components/article/ArticleCardActions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
-import { AlertCircleIcon, Speech } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
 import Markdown from "markdown-to-jsx";
 import { getAiSummary } from "../../../../../lib/ai";
 
@@ -16,6 +16,11 @@ const AiSummary = async ({
   let articleId = parseInt(params.articleId);
 
   const article = await prisma.article.findUniqueOrThrow({
+    include: {
+      aiTexts: true,
+      feed: true,
+      scrape: true,
+    },
     where: {
       id: articleId,
     },
@@ -37,14 +42,7 @@ const AiSummary = async ({
 
   return (
     <div className="m-2 flex flex-col gap-2">
-      <div className="flex flex-row flex-wrap gap-2">
-        <BackButton />
-        <ToggleReadButton article={article} />
-        <Button variant="outline">
-          <Speech className="mr-2 h-4 w-4" />
-          Read aloud
-        </Button>
-      </div>
+      <ArticleCardActions article={article} hideAiSummary showBackButton />
 
       <article>
         <Markdown
