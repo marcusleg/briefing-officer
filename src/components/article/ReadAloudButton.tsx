@@ -34,6 +34,7 @@ const ReadAloudButton = ({ article }: ReadAloudButtonProps) => {
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <Button
         disabled={synthesisInProgress}
+        size="sm"
         variant="outline"
         onClick={handleClick}
       >
