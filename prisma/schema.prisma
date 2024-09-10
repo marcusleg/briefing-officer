@@ -24,21 +24,22 @@ model Feed {
 }
 
 model Article {
-  id              Int             @id @default(autoincrement())
-  title           String
-  publicationDate DateTime
-  description     String?
-  content         String?
-  link            String          @unique
-  readAt          DateTime?
-  readLater       Boolean         @default(false)
-  starred         Boolean         @default(false)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  feedId          Int
-  feed            Feed            @relation(fields: [feedId], references: [id], onDelete: Cascade)
-  aiTexts         ArticleAiTexts?
-  scrape          ArticleScrape?
+  id                     Int             @id @default(autoincrement())
+  title                  String
+  publicationDate        DateTime
+  description            String?
+  content                String?
+  link                   String          @unique
+  readAt                 DateTime?
+  readLater              Boolean         @default(false)
+  starred                Boolean         @default(false)
+  titleFilterExpressions String          @default("")
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  feedId                 Int
+  feed                   Feed            @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  aiTexts                ArticleAiTexts?
+  scrape                 ArticleScrape?
 }
 
 model ArticleAiTexts {
