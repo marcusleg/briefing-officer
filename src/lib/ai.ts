@@ -6,7 +6,7 @@ import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { revalidatePath } from "next/cache";
 
-export const getAiSummary = async (articleId: number) => {
+export const generateAiSummary = async (articleId: number) => {
   const articleSummary = await prisma.articleAiTexts.findUnique({
     where: { articleId: articleId },
   });

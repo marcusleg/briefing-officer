@@ -3,10 +3,10 @@
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Typography from "@/components/ui/typography";
+import { generateAiSummary } from "@/lib/ai";
 import prisma from "@/lib/prismaClient";
 import { AlertCircleIcon } from "lucide-react";
 import Markdown from "markdown-to-jsx";
-import { getAiSummary } from "../../../../../lib/ai";
 
 const AiSummary = async ({
   params,
@@ -26,9 +26,11 @@ const AiSummary = async ({
     },
   });
 
-  const summary = await getAiSummary(articleId);
+  const summary = article.aiTexts?.summary
+    ? article.aiTexts.summary
+    : (await generateAiSummary(articleId)).summary;
 
-  if (!summary.summary) {
+  if (!summary) {
     return (
       <Alert variant="destructive">
         <AlertCircleIcon className="h-4 w-4" />
@@ -91,7 +93,7 @@ const AiSummary = async ({
             },
           }}
         >
-          {summary.summary}
+          {summary}
         </Markdown>
       </article>
     </div>
