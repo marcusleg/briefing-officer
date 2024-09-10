@@ -1,17 +1,34 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { getNumberOfReadLaterArticles } from "@/lib/repository/statsRepository";
 import { cn } from "@/lib/utils";
 import { BookCheck, BookmarkIcon, HouseIcon, StarIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const LeftTopNavigation = () => {
   const pathname = usePathname();
 
+  const [numberOfReadLaterArticles, setNumberOfReadLaterArticles] =
+    useState<number>();
+
+  useEffect(() => {
+    getNumberOfReadLaterArticles().then((count) =>
+      setNumberOfReadLaterArticles(count),
+    );
+  }, [numberOfReadLaterArticles]);
+
   const links = [
     { href: "/", icon: HouseIcon, label: "Home" },
-    { href: "/read-later", icon: BookmarkIcon, label: "Read Later" },
+    {
+      href: "/read-later",
+      icon: BookmarkIcon,
+      label: "Read Later",
+      badge: numberOfReadLaterArticles,
+    },
     { href: "/read-history", icon: BookCheck, label: "Read History" },
     { href: "/starred-articles", icon: StarIcon, label: "Starred Articles" },
   ];
@@ -31,6 +48,11 @@ const LeftTopNavigation = () => {
         >
           <link.icon className="mr-2 h-4 w-4" />
           {link.label}
+          {link.badge && (
+            <Badge className="ml-auto" variant="secondary">
+              {link.badge}
+            </Badge>
+          )}
         </Link>
       ))}
     </>

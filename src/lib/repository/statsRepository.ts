@@ -1,4 +1,14 @@
+"use server";
+
 import prisma from "@/lib/prismaClient";
+
+export const getNumberOfReadLaterArticles = async () => {
+  return prisma.article.count({
+    where: {
+      readLater: true,
+    },
+  });
+};
 
 export const getUnreadArticlesPerFeed = async () => {
   const feedWithUnreadArticleCount = await prisma.feed.findMany({
