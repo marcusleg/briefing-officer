@@ -9,11 +9,13 @@ import VisitButton from "@/components/article/VisitButton";
 import { Separator } from "@/components/ui/separator";
 import { Prisma } from "@prisma/client";
 
-export const ArticleCardActions = (props: {
+interface ArticleCardActionsProps {
   article: Prisma.ArticleGetPayload<{
     include: { aiTexts: true; feed: true; scrape: true };
   }>;
-}) => (
+}
+
+export const ArticleCardActions = (props: ArticleCardActionsProps) => (
   <div className="flex flex-row flex-wrap gap-2">
     <ToggleReadButton article={props.article} />
 
