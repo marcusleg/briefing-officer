@@ -24,17 +24,16 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 interface NumberOfArticlesLast7DaysChartProps {
-  from: string;
-  to: string;
-  chartData: { weekday: string; count: number }[];
+  chartData: { date: string; weekday: string; count: number }[];
 }
 
 const NumberOfArticlesLast7DaysChart = ({
-  from,
-  to,
   chartData,
 }: NumberOfArticlesLast7DaysChartProps) => {
   const dailyAverage = chartData.reduce((acc, day) => acc + day.count, 0) / 7;
+
+  const from = chartData[0].date;
+  const to = chartData[6].date;
 
   return (
     <Card>
