@@ -16,12 +16,17 @@ const ReaderView = async ({
   const articleId = parseInt(params.articleId);
 
   const article = await prisma.article.findUniqueOrThrow({
+    include: {
+      scrape: true,
+    },
     where: {
       id: articleId,
     },
   });
 
-  const readerDocument = await scrapeArticle(article.id, article.link);
+  const scrape = article.scrape
+    ? article.scrape
+    : await scrapeArticle(article.id, article.link);
   void markArticleAsRead(articleId);
 
   return (
@@ -35,13 +40,11 @@ const ReaderView = async ({
 
       <article>
         <Typography variant="h2">{article.title}</Typography>
-        <p className="text-sm text-muted-foreground">
-          {readerDocument?.byLine}
-        </p>
-        <p
+        <p className="text-sm text-muted-foreground">{scrape.author}</p>
+        <div
           className="reader-view hyphens-auto text-pretty text-justify"
-          dangerouslySetInnerHTML={{ __html: readerDocument?.content }}
-        ></p>
+          dangerouslySetInnerHTML={{ __html: scrape.htmlContent }}
+        ></div>
       </article>
     </div>
   );
