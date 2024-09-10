@@ -138,4 +138,6 @@ export const updateFeed = async (feedId: number, feed: FeedSchema) => {
   });
 
   revalidatePath("/", "layout");
+
+  void refreshFeed(feedId);
 };
