@@ -142,6 +142,13 @@ export const refreshFeed = async (feedId: number) => {
   // process articles asynchronously
   createdArticles.map((article) => processArticle(article));
 
+  await prisma.feed.update({
+    where: { id: feed.id },
+    data: {
+      lastFetched: new Date(),
+    },
+  });
+
   revalidatePath(`/feed/${feedId}`);
 
   logger.info(
