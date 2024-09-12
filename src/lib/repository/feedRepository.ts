@@ -102,8 +102,24 @@ export const refreshFeed = async (feedId: number) => {
     .split("\n")
     .filter((regex) => regex !== "");
   const filteredFeedItems = validFeedItems.filter((item) => {
+    let regex: RegExp;
     return !titleFilterExpressions.some((regexString) => {
-      const regex = new RegExp(regexString);
+      try {
+        regex = new RegExp(regexString);
+      } catch (error) {
+        logger.warn(
+          {
+            article: {
+              title: item.title,
+              link: item.link,
+              publicationDate: item.publicationDate,
+            },
+            titleFilterExpression: regexString,
+          },
+          "Invalid title filter expression.",
+        );
+        return false; // ignore invalid regex
+      }
       const test = regex.test(item.title);
 
       if (test) {
