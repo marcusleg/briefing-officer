@@ -13,6 +13,11 @@
       "schedule": ["at any time"]
     },
     {
+      "extends": ["monorepo:aws-sdk-js-v3"],
+      "groupName": "aws-sdk-js-v3 monorepo",
+      "schedule": ["after 10pm on Sunday"]
+    },
+    {
       "matchDepTypes": ["devDependencies"],
       "matchPackageNames": ["eslint", "prettier", "prettier-plugin-*"],
       "automerge": true
