@@ -5,6 +5,7 @@ COPY . /app
 
 RUN npm ci
 RUN npx prisma generate
+RUN npx prisma db push
 RUN npm run build
 
 
