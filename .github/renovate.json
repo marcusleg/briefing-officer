@@ -7,6 +7,12 @@
       "automerge": true
     },
     {
+      "matchPackageNames": ["next", "eslint-config-next"],
+      "groupName": "next",
+      "groupSlug": "next",
+      "schedule": ["at any time"]
+    },
+    {
       "matchDepTypes": ["devDependencies"],
       "matchPackageNames": ["eslint", "prettier", "prettier-plugin-*"],
       "automerge": true
