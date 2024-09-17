@@ -1,4 +1,4 @@
-FROM docker.io/library/node:22 AS build
+FROM docker.io/library/node:22.8.0 AS build
 WORKDIR /app
 
 COPY . /app
@@ -8,7 +8,7 @@ RUN npx prisma generate
 RUN npm run build
 
 
-FROM docker.io/library/node:22-slim
+FROM docker.io/library/node:22.8.0-slim
 WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y openssl
