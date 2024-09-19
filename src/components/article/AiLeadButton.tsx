@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { generateAiLead } from "@/lib/ai";
 import { LoaderCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -10,12 +11,24 @@ interface AiLeadButtonProps {
 }
 
 const AiLeadButton = ({ articleId }: AiLeadButtonProps) => {
+  const { toast } = useToast();
+
   const [leadGenerationInProgress, setLeadGenerationInProgress] =
     useState(false);
 
   const handleClick = async () => {
     setLeadGenerationInProgress(true);
-    await generateAiLead(articleId);
+
+    try {
+      await generateAiLead(articleId);
+    } catch (error) {
+      toast({
+        title: "Failed to generate AI lead",
+        description: "Please check the server logs to find out more.",
+        variant: "destructive",
+      });
+    }
+
     setLeadGenerationInProgress(false);
   };
 
