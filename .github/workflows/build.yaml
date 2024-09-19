@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: runner-set-marcusleg-briefing-officer
 
     env:
       DATABASE_URL: /tmp/database.db

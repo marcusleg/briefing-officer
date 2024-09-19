@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: runner-set-marcusleg-briefing-officer
 
     steps:
       - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
