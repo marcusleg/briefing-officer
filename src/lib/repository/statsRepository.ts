@@ -10,6 +10,14 @@ export const getNumberOfReadLaterArticles = async () => {
   });
 };
 
+export const getNumberOfUnreadArticles = async () => {
+  return prisma.article.count({
+    where: {
+      readAt: null,
+    },
+  });
+};
+
 export const getUnreadArticlesPerFeed = async () => {
   const feedWithUnreadArticleCount = await prisma.feed.findMany({
     include: {

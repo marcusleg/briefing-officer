@@ -2,7 +2,10 @@
 
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { getNumberOfReadLaterArticles } from "@/lib/repository/statsRepository";
+import {
+  getNumberOfReadLaterArticles,
+  getNumberOfUnreadArticles,
+} from "@/lib/repository/statsRepository";
 import { cn } from "@/lib/utils";
 import { BookCheck, BookmarkIcon, HouseIcon, StarIcon } from "lucide-react";
 import Link from "next/link";
@@ -12,6 +15,8 @@ import { useEffect, useState } from "react";
 const LeftTopNavigation = () => {
   const pathname = usePathname();
 
+  const [numberOfUnreadArticles, setNumberOfUnreadArticles] =
+    useState<number>();
   const [numberOfReadLaterArticles, setNumberOfReadLaterArticles] =
     useState<number>();
 
@@ -19,10 +24,19 @@ const LeftTopNavigation = () => {
     getNumberOfReadLaterArticles().then((count) =>
       setNumberOfReadLaterArticles(count),
     );
+
+    getNumberOfUnreadArticles().then((count) =>
+      setNumberOfUnreadArticles(count),
+    );
   }, [numberOfReadLaterArticles]);
 
   const links = [
-    { href: "/", icon: HouseIcon, label: "Home" },
+    {
+      href: "/",
+      icon: HouseIcon,
+      label: "Home",
+      badge: numberOfUnreadArticles,
+    },
     {
       href: "/read-later",
       icon: BookmarkIcon,
