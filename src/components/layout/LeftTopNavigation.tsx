@@ -28,7 +28,7 @@ const LeftTopNavigation = () => {
     getNumberOfUnreadArticles().then((count) =>
       setNumberOfUnreadArticles(count),
     );
-  }, [numberOfReadLaterArticles]);
+  }, [numberOfUnreadArticles, numberOfReadLaterArticles]);
 
   const links = [
     {
