@@ -33,7 +33,7 @@
     "htmlparser2": "^9.1.0",
     "isomorphic-dompurify": "^2.14.0",
     "jsdom": "^25.0.0",
-    "lucide-react": "^0.446.0",
+    "lucide-react": "^0.447.0",
     "markdown-to-jsx": "^7.5.0",
     "next": "14.2.14",
     "pino": "^9.3.2",
