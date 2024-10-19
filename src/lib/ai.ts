@@ -1,7 +1,7 @@
 "use server";
 
 import { scrapeArticle } from "@/lib/articleScraper";
-import { promptClaude } from "@/lib/llm/claude";
+import { promptOpenAI } from "@/lib/llm/openai";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { revalidatePath } from "next/cache";
@@ -20,7 +20,7 @@ export const generateAiSummary = async (articleId: number) => {
   });
   const scrape = await scrapeArticle(article.id, article.link);
 
-  const summary = await promptClaude(
+  const summary = await promptOpenAI(
     `Write a synopsis as prose of the following article. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
   );
   if (!summary) {
@@ -78,7 +78,7 @@ export const generateAiLead = async (
   });
   const scrape = await scrapeArticle(article.id, article.link);
 
-  const lead = await promptClaude(
+  const lead = await promptOpenAI(
     `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Begin directly with the content of the lead, without any introductory phrases. Reply in the same language in which the article is written.\n\n${article.title}\n\n${scrape.textContent}`,
   );
   if (!lead) {

@@ -9,6 +9,8 @@
     <envs>
       <env name="AWS_PROFILE" value="codecentric-marcus-legendre" />
       <env name="DATABASE_URL" value="file:../data/database.sqlite" />
+      <env name="OPENAI_API_KEY" value="yo" />
+      <env name="OPENAI_API_URL" value="http://localhost:4000" />
     </envs>
     <method v="2" />
   </configuration>
