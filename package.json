@@ -9,7 +9,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate-dev": "DATABASE_URL=file:../data/database.sqlite prisma migrate dev"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.624.0",

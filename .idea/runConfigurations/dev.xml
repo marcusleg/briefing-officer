@@ -8,6 +8,7 @@
     <node-interpreter value="project" />
     <envs>
       <env name="AWS_PROFILE" value="codecentric-marcus-legendre" />
+      <env name="DATABASE_URL" value="file:../data/database.sqlite" />
     </envs>
     <method v="2" />
   </configuration>
