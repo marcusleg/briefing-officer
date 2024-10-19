@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "data-migration:20240903144019": "tsx ./prisma/migrations/20240903144019_/data-migration.ts",
     "dev": "next dev",
     "build": "next build",
     "format": "prettier --write .",
