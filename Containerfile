@@ -3,6 +3,8 @@ WORKDIR /app
 
 COPY . /app
 
+ENV DATABASE_URL="file:/tmp/database.sqlite"
+
 RUN npm ci
 RUN npx prisma generate
 RUN npx prisma db push

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:container": "podman build -t ghcr.io/marcusleg/briefing-officer:local .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "start": "next start",
