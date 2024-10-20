@@ -21,7 +21,7 @@ export const generateAiSummary = async (articleId: number) => {
   const scrape = await scrapeArticle(article.id, article.link);
 
   const summary = await promptOpenAI(
-    `Write a synopsis as prose of the following article. Leave the headline as is. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
+    `Write a summary of the following article. Leave the headline as is. Reply in the same language in which the article is written. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
   );
   if (!summary) {
     throw new Error("Failed to generate summary");
