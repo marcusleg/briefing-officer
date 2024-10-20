@@ -1,5 +1,6 @@
 "use server";
 
+import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { revalidatePath } from "next/cache";
 
@@ -45,6 +46,28 @@ export const markArticleAsStarred = async (articleId: number) => {
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/starred-articles");
   revalidatePath("/");
+};
+
+export const deleteArticlesOlderThanXDays = async (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+
+  const result = await prisma.article.deleteMany({
+    where: {
+      publicationDate: { lte: date },
+      readLater: false,
+      starred: false,
+    },
+  });
+
+  if (result.count > 0) {
+    logger.info(
+      { count: result.count, days },
+      "Deleted articles older than X days.",
+    );
+    revalidatePath("/feed/*");
+    revalidatePath("/");
+  }
 };
 
 export const markArticlesOlderThanXDaysAsRead = async (
