@@ -80,6 +80,7 @@ export const generateAiLead = async (
 
   const lead = await promptOpenAI(
     `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Begin directly with the content of the lead, without any introductory phrases. Reply in the same language in which the article is written.\n\n${article.title}\n\n${scrape.textContent}`,
+    200,
   );
   if (!lead) {
     throw new Error("Failed to generate summary");

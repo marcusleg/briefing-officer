@@ -5,7 +5,10 @@ const client = new OpenAI({
   baseURL: process.env["OPENAI_API_URL"],
 });
 
-export const promptOpenAI = async (text: string) => {
+export const promptOpenAI = async (
+  text: string,
+  max_completion_tokens: number | null = null,
+) => {
   const response = await client.chat.completions
     .create({
       messages: [
@@ -20,6 +23,7 @@ export const promptOpenAI = async (text: string) => {
       ],
       model: "gpt-4o-mini",
       stream: false,
+      max_completion_tokens,
     })
     .withResponse();
 
