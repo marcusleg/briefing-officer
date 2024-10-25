@@ -32,7 +32,7 @@ const Home = async () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="hidden grid-cols-3 gap-4 lg:visible lg:grid">
         <UnreadArticlesChart chartData={unreadArticlesChartData} />
         <NumberOfNewArticlesLast7DaysChart
           chartData={numberOfNewArticlesLast7DaysChartData}
