@@ -47,13 +47,16 @@ export default async function RootLayout({
         )}
       >
         <div className="w-full bg-black text-white">
-          <Typography className="mx-auto max-w-screen-xl p-2" variant="h1">
+          <Typography
+            className="mx-auto max-w-screen-xl py-2 pl-4"
+            variant="h1"
+          >
             <Link href="/">Briefing Officer</Link>
           </Typography>
         </div>
-        <div className="m-2 mx-auto mt-4 flex max-w-screen-xl flex-col gap-4 md:flex-row">
+        <div className="m-2 mx-auto mt-4 flex max-w-screen-xl flex-col gap-4 p-4 md:flex-row xl:p-0">
           <div className="flex flex-col gap-4">
-            <nav className="flex flex-row flex-wrap justify-evenly gap-2 px-2 md:flex-col md:flex-nowrap">
+            <nav className="flex flex-row flex-wrap justify-evenly gap-2 md:flex-col md:flex-nowrap">
               <LeftTopNavigation />
 
               <Separator />
