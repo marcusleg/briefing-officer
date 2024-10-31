@@ -4,6 +4,8 @@ WORKDIR /app
 COPY . /app
 
 ENV DATABASE_URL="file:/tmp/database.sqlite"
+ENV OPENAI_API_KEY="any-value-will-do-at-build-time"
+ENV OPENAI_API_URL="http://localhost"
 
 RUN npm ci
 RUN npx prisma generate
