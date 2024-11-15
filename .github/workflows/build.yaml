@@ -6,7 +6,7 @@ jobs:
     runs-on: runner-set-marcusleg-briefing-officer
 
     env:
-      DATABASE_URL: /tmp/database.db
+      DATABASE_URL: file:/tmp/database.sqlite
       OPENAI_API_KEY=: any-value-will-do-at-build-time
       OPENAI_API_URL=: http://localhost
 
