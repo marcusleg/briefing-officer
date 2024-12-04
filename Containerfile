@@ -13,7 +13,7 @@ RUN npx prisma db push
 RUN npm run build
 
 
-FROM docker.io/library/node:22.12.0-slim@sha256:af534e18ad023c8dc7a420f636a1617f40887a57d4771a08a1ad045b837947d6
+FROM docker.io/library/node:22.12.0-slim@sha256:a4b757cd491c7f0b57f57951f35f4e85b7e1ad54dbffca4cf9af0725e1650cd8
 WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y openssl
