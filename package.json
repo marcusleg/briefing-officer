@@ -31,7 +31,7 @@
     "axios": "^1.7.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "htmlparser2": "^9.1.0",
+    "htmlparser2": "^10.0.0",
     "isomorphic-dompurify": "^2.14.0",
     "jsdom": "^25.0.0",
     "lucide-react": "^0.468.0",
