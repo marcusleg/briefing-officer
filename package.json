@@ -34,7 +34,7 @@
     "htmlparser2": "^9.1.0",
     "isomorphic-dompurify": "^2.14.0",
     "jsdom": "^26.0.0",
-    "lucide-react": "^0.511.0",
+    "lucide-react": "^0.513.0",
     "markdown-to-jsx": "^7.5.0",
     "next": "14.2.29",
     "openai": "^4.68.1",
