@@ -23,7 +23,7 @@ const StarredArticlesPage = async () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Typography variant="h2">Read Later</Typography>
+      <Typography variant="h2">Starred Articles</Typography>
 
       {articles.length > 0 ? (
         <ArticleList articles={articles} />
