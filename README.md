@@ -1,18 +1,21 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Briefing Officer
+
+AI summaries for your favorite news feeds.
+
+## Prerequisites
+
+- An OpenAI API-compatible Large Language Model (LLM) or LLM Proxy (e.g. [LiteLLM](https://github.com/BerriAI/litellm)) 
 
 ## Getting Started
 
-First, run the development server:
-
-```bash
-kubectl -n ai-services port-forward svc/litellm 4000:4000
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+docker run -it --rm \
+  -e DATABASE_URL=file:../data/database.sqlite \
+  -e OPENAI_API_URL=http://localhost:4000 \
+  -e OPENAI_API_KEY=lorem-ipsum \
+  -p 3000:3000 \
+  ghcr.io/marcusleg/briefing-officer:unstable
+```
 
 ## Dependency documentation
 
