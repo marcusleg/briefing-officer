@@ -14,7 +14,6 @@
     "prisma:migrate-dev": "DATABASE_URL=file:../data/database.sqlite prisma migrate dev"
   },
   "dependencies": {
-    "@aws-sdk/client-polly": "^3.826.0",
     "@hookform/resolvers": "^3.9.0",
     "@mozilla/readability": "^0.6.0",
     "@prisma/client": "^6.9.0",
