@@ -4,7 +4,7 @@ AI summaries for your favorite news feeds.
 
 ## Prerequisites
 
-- An OpenAI API-compatible Large Language Model (LLM) or LLM Proxy (e.g. [LiteLLM](https://github.com/BerriAI/litellm)) 
+- An OpenAI API-compatible Large Language Model (LLM) or LLM Proxy (e.g. [LiteLLM](https://github.com/BerriAI/litellm))
 
 ## Getting Started
 
