@@ -47,14 +47,14 @@ export const scrapeArticle = async (
       article: {
         connect: { id: articleId },
       },
-      htmlContent: parsedArticle.content,
-      textContent: parsedArticle.textContent,
+      htmlContent: parsedArticle.content ?? "",
+      textContent: parsedArticle.textContent ?? "",
       author: parsedArticle.byline ?? "",
     },
     update: {
-      htmlContent: parsedArticle.content,
-      textContent: parsedArticle.textContent,
-      author: parsedArticle.byline ?? "",
+      htmlContent: parsedArticle.content ?? undefined,
+      textContent: parsedArticle.textContent ?? undefined,
+      author: parsedArticle.byline ?? undefined,
     },
   });
 
