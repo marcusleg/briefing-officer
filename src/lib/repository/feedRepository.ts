@@ -1,10 +1,10 @@
 "use server";
 
 import { generateAiLead } from "@/lib/ai";
-import { scrapeArticle } from "@/lib/articleScraper";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { FeedSchema } from "@/lib/repository/feedSchema";
+import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
 import { Article } from "@prisma/client";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
@@ -70,38 +70,12 @@ export const refreshFeed = async (feedId: number) => {
 
   logger.debug({ feedId, feedTitle: feed.title }, "Refreshing feed.");
 
-  const fetchedFeed = await fetch(feed.link).then((res) => res.text());
-  const parsedFeed = parseFeed(fetchedFeed);
-  if (!parsedFeed) {
-    logger.error(
-      { feed: { id: feed.id, title: feed.title, link: feed.link } },
-      "Unable to parse feed.",
-    );
-
-    throw new Error("Unable to parse feed.");
-  }
-
-  const validFeedItems: Pick<
-    Article,
-    "title" | "link" | "description" | "publicationDate"
-  >[] = [];
-  parsedFeed.items.forEach((item) => {
-    if (!item.title || !item.link || !item.pubDate) {
-      logger.error({ item }, "Invalid feed item.");
-    } else {
-      validFeedItems.push({
-        title: item.title,
-        link: item.link,
-        description: item.description ? item.description : null,
-        publicationDate: new Date(item.pubDate),
-      });
-    }
-  });
+  const feedItems = await scrapeFeed(feed);
 
   const titleFilterExpressions = feed.titleFilterExpressions
     .split("\n")
     .filter((regex) => regex !== "");
-  const filteredFeedItems = validFeedItems.filter((item) => {
+  const filteredFeedItems = feedItems.filter((item) => {
     let regex: RegExp;
     return !titleFilterExpressions.some((regexString) => {
       try {

@@ -3,7 +3,9 @@
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { Readability } from "@mozilla/readability";
+import { Article, Feed } from "@prisma/client";
 import axios from "axios";
+import { parseFeed } from "htmlparser2";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
 
@@ -66,4 +68,34 @@ export const scrapeArticle = async (
   );
 
   return scrape;
+};
+export const scrapeFeed = async (feed: Feed) => {
+  const fetchedFeed = await fetch(feed.link).then((res) => res.text());
+  const parsedFeed = parseFeed(fetchedFeed);
+  if (!parsedFeed) {
+    logger.error(
+      { feed: { id: feed.id, title: feed.title, link: feed.link } },
+      "Unable to parse feed.",
+    );
+
+    throw new Error("Unable to parse feed.");
+  }
+
+  const validFeedItems: Pick<
+    Article,
+    "title" | "link" | "description" | "publicationDate"
+  >[] = [];
+  parsedFeed.items.forEach((item) => {
+    if (!item.title || !item.link || !item.pubDate) {
+      logger.error({ item }, "Invalid feed item.");
+    } else {
+      validFeedItems.push({
+        title: item.title,
+        link: item.link,
+        description: item.description ? item.description : null,
+        publicationDate: new Date(item.pubDate),
+      });
+    }
+  });
+  return validFeedItems;
 };

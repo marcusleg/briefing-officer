@@ -1,9 +1,9 @@
 "use server";
 
-import { scrapeArticle } from "@/lib/articleScraper";
 import { promptOpenAI } from "@/lib/llm/openai";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
+import { scrapeArticle } from "@/lib/scraper";
 import { revalidatePath } from "next/cache";
 
 export const generateAiSummary = async (articleId: number) => {

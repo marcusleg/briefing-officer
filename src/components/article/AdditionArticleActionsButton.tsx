@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { generateAiLead } from "@/lib/ai";
-import { scrapeArticle } from "@/lib/articleScraper";
+import { scrapeArticle } from "@/lib/scraper";
 import { Prisma } from "@prisma/client";
 import {
   EllipsisVerticalIcon,
