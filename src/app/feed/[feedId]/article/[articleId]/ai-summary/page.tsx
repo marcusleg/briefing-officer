@@ -8,11 +8,12 @@ import prisma from "@/lib/prismaClient";
 import { AlertCircleIcon } from "lucide-react";
 import Markdown from "markdown-to-jsx";
 
-const AiSummary = async ({
-  params,
-}: {
-  params: { feedId: string; articleId: string };
-}) => {
+const AiSummary = async (
+  props0: {
+    params: Promise<{ feedId: string; articleId: string }>;
+  }
+) => {
+  const params = await props0.params;
   let articleId = parseInt(params.articleId);
 
   const article = await prisma.article.findUniqueOrThrow({

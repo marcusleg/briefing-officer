@@ -7,13 +7,14 @@ import IntlRelativeTime from "@/components/IntlRelativeTime";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
 
-const Feed = async ({
-  params,
-  searchParams,
-}: {
-  params: { feedId: string };
-  searchParams: { show: "all" | "unread" };
-}) => {
+const Feed = async (
+  props: {
+    params: Promise<{ feedId: string }>;
+    searchParams: Promise<{ show: "all" | "unread" }>;
+  }
+) => {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const feedId = parseInt(params.feedId);
   const showSearchParam = searchParams["show"] || "unread";
 
