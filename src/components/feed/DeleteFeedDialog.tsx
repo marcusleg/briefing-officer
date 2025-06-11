@@ -9,38 +9,35 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { deleteFeed } from "@/lib/repository/feedRepository";
-import { Trash } from "lucide-react";
+import { Feed } from "@prisma/client";
 import { useState } from "react";
 
-interface DeleteFeedMenuItemProps {
-  feedTitle: string;
-  feedId: number;
+interface DeleteFeedDialogProps {
+  feed: Feed;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-const DeleteFeedMenuItem = ({ feedId, feedTitle }: DeleteFeedMenuItemProps) => {
+const DeleteFeedDialog = ({
+  feed,
+  open,
+  onOpenChange,
+}: DeleteFeedDialogProps) => {
   const [deletionInProgress, setDeletionInProgress] = useState(false);
 
   const handleDelete = async () => {
     setDeletionInProgress(true);
-    await deleteFeed(feedId);
+    await deleteFeed(feed.id);
     setDeletionInProgress(false);
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <Trash className="mr-2 h-4 w-4" />
-          <span>Delete</span>
-        </DropdownMenuItem>
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {feedTitle}?</AlertDialogTitle>
+          <AlertDialogTitle>Delete {feed.title}?</AlertDialogTitle>
           <AlertDialogDescription>
             This permanently deletes the feed and all its articles.
           </AlertDialogDescription>
@@ -61,4 +58,4 @@ const DeleteFeedMenuItem = ({ feedId, feedTitle }: DeleteFeedMenuItemProps) => {
   );
 };
 
-export default DeleteFeedMenuItem;
+export default DeleteFeedDialog;
