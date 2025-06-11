@@ -3,5 +3,6 @@
     "prettier-plugin-organize-imports",
     "prettier-plugin-prisma",
     "prettier-plugin-tailwindcss"
-  ]
+  ],
+  "proseWrap": "always"
 }
