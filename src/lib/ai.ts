@@ -28,7 +28,7 @@ export const generateAiSummary = async (articleId: number) => {
 
   const summary = await generateText({
     model: azureOpenAi("gpt-4.1-nano"),
-    prompt: `Write a summary of the following article. Leave the headline as is. Reply in the same language in which the article is written. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
+    prompt: `Write a summary of the following article. Leave the headline as is. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
   });
 
   logger.info(
@@ -84,7 +84,7 @@ export const generateAiLead = async (
 
   const lead = await generateText({
     model: azureOpenAi("gpt-4.1-nano"),
-    prompt: `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Begin directly with the content of the lead, without any introductory phrases. Reply in the same language in which the article is written.\n\n${article.title}\n\n${scrape.textContent}`,
+    prompt: `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Begin directly with the content of the lead, without any introductory phrases.\n\n${article.title}\n\n${scrape.textContent}`,
   });
 
   const newLead = prisma.articleAiTexts.upsert({
