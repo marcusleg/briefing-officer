@@ -5,7 +5,7 @@ import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { FeedSchema } from "@/lib/repository/feedSchema";
 import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
-import { Article } from "@prisma/client";
+import { Article, Feed } from "@prisma/client";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -132,12 +132,7 @@ export const refreshFeed = async (feedId: number) => {
   // process articles asynchronously
   createdArticles.map((article) => processArticle(article));
 
-  await prisma.feed.update({
-    where: { id: feed.id },
-    data: {
-      lastFetched: new Date(),
-    },
-  });
+  await updateLastFetchedToNow(feed);
 
   revalidatePath(`/feed/${feedId}`);
 
@@ -179,4 +174,13 @@ export const updateFeed = async (feedId: number, feed: FeedSchema) => {
   revalidatePath("/", "layout");
 
   void refreshFeed(feedId);
+};
+
+const updateLastFetchedToNow = async (feed: Feed) => {
+  await prisma.feed.update({
+    where: { id: feed.id },
+    data: {
+      lastFetched: new Date(),
+    },
+  });
 };
