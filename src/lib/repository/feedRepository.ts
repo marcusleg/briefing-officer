@@ -28,7 +28,7 @@ export const createFeed = async (feed: FeedSchema) => {
 
   revalidatePath("/", "layout");
 
-  void refreshFeed(createdFeed.id);
+  await refreshFeed(createdFeed.id);
 };
 
 export const deleteFeed = async (feedId: number) => {
@@ -129,8 +129,10 @@ export const refreshFeed = async (feedId: number) => {
     .filter((result) => result.status === "fulfilled")
     .map((result) => result.value);
 
-  // process articles asynchronously
-  createdArticles.map((article) => processArticle(article));
+  const processedArticles = createdArticles.map((article) =>
+    processArticle(article),
+  );
+  await Promise.allSettled(processedArticles);
 
   await updateLastFetchedToNow(feed);
 
@@ -173,7 +175,7 @@ export const updateFeed = async (feedId: number, feed: FeedSchema) => {
 
   revalidatePath("/", "layout");
 
-  void refreshFeed(feedId);
+  await refreshFeed(feedId);
 };
 
 const updateLastFetchedToNow = async (feed: Feed) => {
