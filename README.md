@@ -12,8 +12,8 @@ AI summaries for your favorite news feeds.
 ```
 docker run -it --rm \
   -e DATABASE_URL=file:../data/database.sqlite \
-  -e OPENAI_API_URL=http://localhost:4000 \
-  -e OPENAI_API_KEY=lorem-ipsum \
+  -e AZURE_OPENAI_RESOURCE_NAME=oai-example-dev-001 \
+  -e AZURE_OPENAI_API_KEY=lorem-ipsum \
   -p 3000:3000 \
   ghcr.io/marcusleg/briefing-officer:unstable
 ```

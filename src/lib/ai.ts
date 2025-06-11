@@ -1,10 +1,16 @@
 "use server";
 
-import { promptOpenAI } from "@/lib/llm/openai";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { scrapeArticle } from "@/lib/scraper";
+import { createAzure } from "@ai-sdk/azure";
+import { generateText } from "ai";
 import { revalidatePath } from "next/cache";
+
+const azureOpenAi = createAzure({
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
+  resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
+});
 
 export const generateAiSummary = async (articleId: number) => {
   const articleSummary = await prisma.articleAiTexts.findUnique({
@@ -20,12 +26,10 @@ export const generateAiSummary = async (articleId: number) => {
   });
   const scrape = await scrapeArticle(article.id, article.link);
 
-  const summary = await promptOpenAI(
-    `Write a summary of the following article. Leave the headline as is. Reply in the same language in which the article is written. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
-  );
-  if (!summary) {
-    throw new Error("Failed to generate summary");
-  }
+  const summary = await generateText({
+    model: azureOpenAi("gpt-4.1-nano"),
+    prompt: `Write a summary of the following article. Leave the headline as is. Reply in the same language in which the article is written. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
+  });
 
   logger.info(
     {
@@ -40,26 +44,26 @@ export const generateAiSummary = async (articleId: number) => {
     where: { articleId: articleId },
     create: {
       articleId: articleId,
-      summary: summary,
+      summary: summary.text,
     },
     update: {
       articleId: articleId,
-      summary: summary,
+      summary: summary.text,
     },
   });
 };
 
-interface GenerateAiLeadOptios {
+interface GenerateAiLeadOptions {
   forceGeneration: boolean;
 }
 
-const defaultGenerateAiLeadOptions: GenerateAiLeadOptios = {
+const defaultGenerateAiLeadOptions: GenerateAiLeadOptions = {
   forceGeneration: false,
 };
 
 export const generateAiLead = async (
   articleId: number,
-  options?: GenerateAiLeadOptios,
+  options?: GenerateAiLeadOptions,
 ) => {
   const mergedOptions = { ...defaultGenerateAiLeadOptions, ...options };
 
@@ -78,23 +82,20 @@ export const generateAiLead = async (
   });
   const scrape = await scrapeArticle(article.id, article.link);
 
-  const lead = await promptOpenAI(
-    `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Begin directly with the content of the lead, without any introductory phrases. Reply in the same language in which the article is written.\n\n${article.title}\n\n${scrape.textContent}`,
-    200,
-  );
-  if (!lead) {
-    throw new Error("Failed to generate summary");
-  }
+  const lead = await generateText({
+    model: azureOpenAi("gpt-4.1-nano"),
+    prompt: `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Begin directly with the content of the lead, without any introductory phrases. Reply in the same language in which the article is written.\n\n${article.title}\n\n${scrape.textContent}`,
+  });
 
   const newLead = prisma.articleAiTexts.upsert({
     where: { articleId: articleId },
     create: {
       articleId: articleId,
-      lead: lead,
+      lead: lead.text,
     },
     update: {
       articleId: articleId,
-      lead: lead,
+      lead: lead.text,
     },
   });
 

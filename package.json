@@ -14,6 +14,8 @@
     "prisma:migrate-dev": "DATABASE_URL=file:../data/database.sqlite prisma migrate dev"
   },
   "dependencies": {
+    "@ai-sdk/azure": "^2.0.0-alpha.11",
+    "@ai-sdk/react": "^2.0.0-alpha.11",
     "@hookform/resolvers": "^3.9.0",
     "@mozilla/readability": "^0.6.0",
     "@prisma/client": "^6.9.0",
@@ -27,6 +29,7 @@
     "@radix-ui/react-toast": "^1.2.1",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@types/jsdom": "^21.1.7",
+    "ai": "^5.0.0-alpha.11",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -36,7 +39,6 @@
     "lucide-react": "^0.513.0",
     "markdown-to-jsx": "^7.5.0",
     "next": "15.3.3",
-    "openai": "^4.68.1",
     "pino": "^9.3.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
