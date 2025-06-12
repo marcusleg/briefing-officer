@@ -17,13 +17,13 @@ import { useState } from "react";
 interface DeleteFeedDialogProps {
   feed: Feed;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  setIsDialogOpen: (open: boolean) => void;
 }
 
 const DeleteFeedDialog = ({
   feed,
   open,
-  onOpenChange,
+  setIsDialogOpen,
 }: DeleteFeedDialogProps) => {
   const [deletionInProgress, setDeletionInProgress] = useState(false);
 
@@ -31,10 +31,11 @@ const DeleteFeedDialog = ({
     setDeletionInProgress(true);
     await deleteFeed(feed.id);
     setDeletionInProgress(false);
+    setIsDialogOpen(false);
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={setIsDialogOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete {feed.title}?</AlertDialogTitle>

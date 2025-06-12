@@ -12,16 +12,16 @@ import { Feed } from "@prisma/client";
 interface RenameFeedMenuItemProps {
   feed: Feed;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  setIsDialogOpen: (open: boolean) => void;
 }
 
 const EditFeedDialog = ({
   feed,
   open,
-  onOpenChange,
+  setIsDialogOpen,
 }: RenameFeedMenuItemProps) => {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setIsDialogOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit feed</DialogTitle>
@@ -29,7 +29,7 @@ const EditFeedDialog = ({
 
         <FeedForm
           editFeed={feed}
-          onSubmitComplete={() => onOpenChange(false)}
+          onSubmitComplete={() => setIsDialogOpen(false)}
         />
       </DialogContent>
     </Dialog>

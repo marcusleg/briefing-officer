@@ -53,12 +53,12 @@ const AdditionalFeedActionsButton = ({
       <DeleteFeedDialog
         feed={feed}
         open={isDeleteFeedDialogOpen}
-        onOpenChange={setIsDeleteFeedDialogOpen}
+        setIsDialogOpen={setIsDeleteFeedDialogOpen}
       />
       <EditFeedDialog
         feed={feed}
         open={isEditFeedDialogOpen}
-        onOpenChange={setIsEditFeedDialogOpen}
+        setIsDialogOpen={setIsEditFeedDialogOpen}
       />
     </>
   );
