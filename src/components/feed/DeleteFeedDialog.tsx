@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { deleteFeed } from "@/lib/repository/feedRepository";
 import { Feed } from "@prisma/client";
+import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 
 interface DeleteFeedDialogProps {
@@ -51,7 +52,11 @@ const DeleteFeedDialog = ({
             disabled={deletionInProgress}
             onClick={handleDelete}
           >
-            Delete
+            {deletionInProgress ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              "Delete"
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

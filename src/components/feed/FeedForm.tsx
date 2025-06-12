@@ -16,6 +16,7 @@ import { createFeed, updateFeed } from "@/lib/repository/feedRepository";
 import { feedSchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Feed } from "@prisma/client";
+import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -44,6 +45,8 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
     setSubmitting(false);
     onSubmitComplete();
   };
+
+  const submitButtonText = editFeed ? "Update" : "Create";
 
   return (
     <Form {...form}>
@@ -105,7 +108,11 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
               <Button variant="secondary">Cancel</Button>
             </DialogClose>
             <Button disabled={submitting} type="submit">
-              {editFeed ? "Update" : "Create"}
+              {submitting ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                submitButtonText
+              )}
             </Button>
           </div>
         </div>
