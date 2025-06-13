@@ -3,17 +3,8 @@
 import DeleteFeedDialog from "@/components/feed/DeleteFeedDialog";
 import EditFeedDialog from "@/components/feed/EditFeedDialog";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Feed } from "@prisma/client";
-import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { Pencil, Trash } from "lucide-react";
 import { useState } from "react";
 
 interface AdditionalFeedActionsButtonProps {
@@ -28,27 +19,12 @@ const AdditionalFeedActionsButton = ({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon">
-            <MoreHorizontal />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuLabel>Feed</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => setIsEditFeedDialogOpen(true)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              <span>Edit</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsDeleteFeedDialogOpen(true)}>
-              <Trash className="mr-2 h-4 w-4" />
-              <span>Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button onClick={() => setIsEditFeedDialogOpen(true)} variant="outline">
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button onClick={() => setIsDeleteFeedDialogOpen(true)} variant="outline">
+        <Trash className="h-4 w-4" />
+      </Button>
 
       <DeleteFeedDialog
         feed={feed}
