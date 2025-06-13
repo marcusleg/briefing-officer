@@ -31,7 +31,7 @@ const EditFeedButton = ({ feed }: EditFeedButtonProps) => {
               <Pencil className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Edit</TooltipContent>
+          <TooltipContent>Edit Feed</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 

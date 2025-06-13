@@ -31,7 +31,7 @@ const DeleteFeedButton = ({ feed }: DeleteFeedButtonProps) => {
               <Trash className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Delete</TooltipContent>
+          <TooltipContent>Delete Feed</TooltipContent>
         </Tooltip>
       </TooltipProvider>
       <DeleteFeedDialog
