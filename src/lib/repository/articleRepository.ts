@@ -16,6 +16,7 @@ export const markArticleAsRead = async (articleId: number) => {
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/");
+  revalidatePath("/", "layout");
 };
 
 export const markArticleAsReadLater = async (articleId: number) => {
@@ -31,6 +32,7 @@ export const markArticleAsReadLater = async (articleId: number) => {
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/read-later");
   revalidatePath("/");
+  revalidatePath("/", "layout");
 };
 
 export const markArticleAsStarred = async (articleId: number) => {
@@ -67,6 +69,7 @@ export const deleteArticlesOlderThanXDays = async (days: number) => {
     );
     revalidatePath("/feed/*");
     revalidatePath("/");
+    revalidatePath("/", "layout");
   }
 };
 
@@ -84,6 +87,7 @@ export const markArticlesOlderThanXDaysAsRead = async (
 
   revalidatePath(`/feed/${feedId}`);
   revalidatePath("/");
+  revalidatePath("/", "layout");
 };
 
 export const unmarkArticleAsRead = async (articleId: number) => {
@@ -98,7 +102,9 @@ export const unmarkArticleAsRead = async (articleId: number) => {
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/");
+  revalidatePath("/", "layout");
 };
+
 export const unmarkArticleAsReadLater = async (articleId: number) => {
   const updatedArticle = await prisma.article.update({
     where: {
@@ -112,6 +118,7 @@ export const unmarkArticleAsReadLater = async (articleId: number) => {
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/read-later");
   revalidatePath("/");
+  revalidatePath("/", "layout");
 };
 
 export const unmarkArticleAsStarred = async (articleId: number) => {
