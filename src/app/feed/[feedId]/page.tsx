@@ -1,5 +1,6 @@
 import ArticleList from "@/components/article/ArticleList";
-import AdditionalFeedActionsButton from "@/components/feed/AdditionalFeedActionsButton";
+import DeleteFeedButton from "@/components/feed/DeleteFeedButton";
+import EditFeedButton from "@/components/feed/EditFeedButton";
 import FeedFilterButton from "@/components/feed/FeedFilterButton";
 import MarkAsReadButton from "@/components/feed/MarkAsReadButton";
 import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
@@ -39,7 +40,8 @@ const Feed = async (props: {
         <FeedFilterButton />
         <RefreshFeedButton feedId={feedId} />
         <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
-        <AdditionalFeedActionsButton feed={feed} />
+        <EditFeedButton feed={feed} />
+        <DeleteFeedButton feed={feed} />
         <time
           className="text-sm text-muted-foreground"
           dateTime={feed.lastFetched.toISOString()}
