@@ -1,6 +1,12 @@
 "use client";
 
 import EditFeedDialog from "@/components/feed/EditFeedDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Feed } from "@prisma/client";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
@@ -15,9 +21,19 @@ const EditFeedButton = ({ feed }: EditFeedButtonProps) => {
 
   return (
     <>
-      <Button onClick={() => setIsEditFeedDialogOpen(true)} variant="outline">
-        <Pencil className="h-4 w-4" />
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <Button
+              onClick={() => setIsEditFeedDialogOpen(true)}
+              variant="outline"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Edit</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <EditFeedDialog
         feed={feed}
