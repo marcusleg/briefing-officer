@@ -1,5 +1,4 @@
 import LeftNavigation from "@/components/layout/LeftNavigation";
-import UserAccountButton from "@/components/layout/UserAccountButton";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/toaster";
 import Typography from "@/components/ui/typography";
@@ -39,13 +38,10 @@ export default async function RootLayout({
         )}
       >
         <div className="w-full bg-black text-white">
-          <div className="mx-auto flex max-w-screen-xl items-center justify-between gap-4 px-4 py-2">
+          <div className="mx-auto max-w-screen-xl px-4 py-2">
             <Typography variant="h1">
               <Link href="/">Briefing Officer</Link>
             </Typography>
-            <div>
-              <UserAccountButton />
-            </div>
           </div>
         </div>
 
