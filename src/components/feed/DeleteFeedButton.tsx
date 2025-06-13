@@ -37,7 +37,7 @@ const DeleteFeedButton = ({ feed }: DeleteFeedButtonProps) => {
       <DeleteFeedDialog
         feed={feed}
         open={isDeleteFeedDialogOpen}
-        onOpenChange={setIsDeleteFeedDialogOpen}
+        setIsDialogOpen={setIsDeleteFeedDialogOpen}
       />
     </>
   );

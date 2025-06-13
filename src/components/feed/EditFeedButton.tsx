@@ -38,7 +38,7 @@ const EditFeedButton = ({ feed }: EditFeedButtonProps) => {
       <EditFeedDialog
         feed={feed}
         open={isEditFeedDialogOpen}
-        onOpenChange={setIsEditFeedDialogOpen}
+        setIsDialogOpen={setIsEditFeedDialogOpen}
       />
     </>
   );
