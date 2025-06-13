@@ -2,13 +2,12 @@ import AddFeedButton from "@/components/layout/AddFeedButton";
 import FeedNavigation from "@/components/layout/FeedNavigation";
 import LeftTopNavigation from "@/components/layout/LeftTopNavigation";
 import RefreshAllFeedsButton from "@/components/layout/RefreshAllFeedsButton";
-import { Button } from "@/components/ui/button";
+import UserAccountButton from "@/components/layout/UserAccountButton";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/toaster";
 import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
 import { cn } from "@/lib/utils";
-import { MenuIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 import Link from "next/link";
@@ -49,18 +48,13 @@ export default async function RootLayout({
         )}
       >
         <div className="w-full bg-black text-white">
-          <div className="mx-auto flex max-w-screen-xl justify-between gap-4 px-4 py-2">
+          <div className="mx-auto flex max-w-screen-xl items-center justify-between gap-4 px-4 py-2">
             <Typography variant="h1">
               <Link href="/">Briefing Officer</Link>
             </Typography>
-
-            <Button
-              className="my-auto bg-black md:hidden"
-              variant="outline"
-              size="icon"
-            >
-              <MenuIcon className="h-6 w-6" />
-            </Button>
+            <div>
+              <UserAccountButton />
+            </div>
           </div>
         </div>
         <div className="m-2 mx-auto mt-4 flex max-w-screen-xl flex-col gap-4 p-4 md:flex-row xl:p-0">
