@@ -1,15 +1,13 @@
-import AddFeedButton from "@/components/layout/AddFeedButton";
-import FeedNavigation from "@/components/layout/FeedNavigation";
-import LeftTopNavigation from "@/components/layout/LeftTopNavigation";
-import RefreshAllFeedsButton from "@/components/layout/RefreshAllFeedsButton";
+import LeftNavigation from "@/components/layout/LeftNavigation";
 import UserAccountButton from "@/components/layout/UserAccountButton";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/toaster";
 import Typography from "@/components/ui/typography";
-import prisma from "@/lib/prismaClient";
+import { auth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
+import { headers } from "next/headers";
 import Link from "next/link";
 import "../app/globals.css";
 
@@ -28,15 +26,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const feeds = await prisma.feed.findMany({
-    include: {
-      _count: {
-        select: {
-          articles: { where: { readAt: null } },
-        },
-      },
-    },
-    orderBy: { title: "asc" },
+  const session = await auth.api.getSession({
+    headers: await headers(),
   });
 
   return (
@@ -57,28 +48,18 @@ export default async function RootLayout({
             </div>
           </div>
         </div>
+
         <div className="m-2 mx-auto mt-4 flex max-w-screen-xl flex-col gap-4 p-4 md:flex-row xl:p-0">
-          <div className="flex flex-col gap-4">
-            <nav className="flex flex-row flex-wrap justify-evenly gap-2 md:flex-col md:flex-nowrap">
-              <LeftTopNavigation />
-
-              <Separator />
-
-              <FeedNavigation feeds={feeds} />
-            </nav>
-
-            <Separator className="md:hidden" orientation="vertical" />
-
-            <div className="flex flex-row justify-center gap-2 px-2">
-              <AddFeedButton />
-              <RefreshAllFeedsButton />
-            </div>
-          </div>
-
-          <Separator className="h-auto py-4" orientation="vertical" />
+          {session && (
+            <>
+              <LeftNavigation />
+              <Separator className="h-auto py-4" orientation="vertical" />
+            </>
+          )}
 
           <main className="grow">{children}</main>
         </div>
+
         <Toaster />
       </body>
     </html>
