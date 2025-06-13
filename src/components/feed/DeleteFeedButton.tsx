@@ -23,7 +23,7 @@ const DeleteFeedButton = ({ feed }: DeleteFeedButtonProps) => {
     <>
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button
               onClick={() => setIsDeleteFeedDialogOpen(true)}
               variant="outline"

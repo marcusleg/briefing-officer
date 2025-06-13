@@ -23,7 +23,7 @@ const EditFeedButton = ({ feed }: EditFeedButtonProps) => {
     <>
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button
               onClick={() => setIsEditFeedDialogOpen(true)}
               variant="outline"
