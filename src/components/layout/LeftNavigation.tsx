@@ -1,3 +1,4 @@
+import UserNavigation from "@/components/layout/UserNavigation";
 import { Separator } from "@/components/ui/separator";
 import prisma from "@/lib/prismaClient";
 import AddFeedButton from "./AddFeedButton";
@@ -33,6 +34,10 @@ const LeftNavigation = async () => {
         <AddFeedButton />
         <RefreshAllFeedsButton />
       </div>
+
+      <Separator />
+
+      <UserNavigation />
     </div>
   );
 };
