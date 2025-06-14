@@ -1,25 +1,25 @@
-import SignInForm from "@/components/user/SignInForm";
+import SignUpForm from "@/components/user/SignUpForm";
 import Link from "next/link";
 
-export default function SignInPage() {
+export default function SignUpPage() {
   return (
     <div className="mx-auto max-w-sm space-y-8">
       <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold">Sign In</h1>
+        <h1 className="text-2xl font-bold">Sign Up</h1>
         <p className="text-gray-500">
-          Enter your credentials to access your account
+          Enter your details to create your account
         </p>
       </div>
 
-      <SignInForm />
+      <SignUpForm />
 
       <p className="text-center text-sm text-gray-500">
-        Don&apos;t have an account?{" "}
+        Already have an account?{" "}
         <Link
-          href="/sign-up"
+          href="/sign-in"
           className="font-medium text-blue-600 hover:underline"
         >
-          Sign up
+          Sign in
         </Link>
       </p>
     </div>
