@@ -1,24 +1,30 @@
 "use server";
 
 import prisma from "@/lib/prismaClient";
+import { getUserId } from "@/lib/repository/userRepository";
 
 export const getNumberOfReadLaterArticles = async () => {
+  const userId = await getUserId();
   return prisma.article.count({
     where: {
       readLater: true,
+      userId,
     },
   });
 };
 
 export const getNumberOfUnreadArticles = async () => {
+  const userId = await getUserId();
   return prisma.article.count({
     where: {
       readAt: null,
+      userId,
     },
   });
 };
 
 export const getUnreadArticlesPerFeed = async () => {
+  const userId = await getUserId();
   const feedWithUnreadArticleCount = await prisma.feed.findMany({
     include: {
       _count: {
@@ -27,6 +33,7 @@ export const getUnreadArticlesPerFeed = async () => {
         },
       },
     },
+    where: { userId },
   });
 
   return feedWithUnreadArticleCount.map((feed) => {
@@ -57,6 +64,8 @@ const getLast7Days = () => {
 };
 
 export const getWeeklyArticleCountPerFeed = async () => {
+  const userId = await getUserId();
+
   const last7Days = getLast7Days();
 
   const numberOfArticlesLast7Days = await Promise.all(
@@ -70,6 +79,7 @@ export const getWeeklyArticleCountPerFeed = async () => {
             gte: new Date(dateRange.from),
             lt: new Date(dateRange.to),
           },
+          userId,
         },
       }),
     ),
@@ -84,6 +94,8 @@ export const getWeeklyArticleCountPerFeed = async () => {
 };
 
 export const getWeeklyArticlesRead = async () => {
+  const userId = await getUserId();
+
   const last7Days = getLast7Days();
 
   const numberOfArticlesReadLast7Days = await Promise.all(
@@ -97,6 +109,7 @@ export const getWeeklyArticlesRead = async () => {
             gte: new Date(dateRange.from),
             lt: new Date(dateRange.to),
           },
+          userId,
         },
       }),
     ),
