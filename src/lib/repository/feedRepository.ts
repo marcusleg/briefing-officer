@@ -1,6 +1,7 @@
 "use server";
 
 import { generateAiLead } from "@/lib/ai";
+import { auth } from "@/lib/auth";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { FeedSchema } from "@/lib/repository/feedSchema";
@@ -8,6 +9,7 @@ import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
 import { Article, Feed } from "@prisma/client";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 export const createFeed = async (feed: FeedSchema) => {
@@ -18,11 +20,19 @@ export const createFeed = async (feed: FeedSchema) => {
     throw new Error("Invalid feed");
   }
 
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    throw new Error("Not authenticated");
+  }
+
   const createdFeed = await prisma.feed.create({
     data: {
       ...feed,
       title: feed.title || parsedFeed.title,
       lastFetched: new Date(0),
+      userId: session?.user.id,
     },
   });
 
@@ -119,6 +129,7 @@ export const refreshFeed = async (feedId: number) => {
       data: {
         ...item,
         feedId: feed.id,
+        userId: feed.userId,
       },
     }),
   );
