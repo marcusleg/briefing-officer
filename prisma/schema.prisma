@@ -22,6 +22,8 @@ model Feed {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
   articles               Article[]
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Article {
@@ -40,6 +42,8 @@ model Article {
   feed            Feed            @relation(fields: [feedId], references: [id], onDelete: Cascade)
   aiTexts         ArticleAiTexts?
   scrape          ArticleScrape?
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ArticleAiTexts {
@@ -71,6 +75,8 @@ model User {
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
+  feeds         Feed[]
+  articles      Article[]
 
   @@unique([email])
   @@map("user")
