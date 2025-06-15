@@ -1,9 +1,17 @@
 import ArticleList from "@/components/article/ArticleList";
 import Typography from "@/components/ui/typography";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
+import { headers } from "next/headers";
 
-const getReadHistory = () => {
-  return prisma.article.findMany({
+const ReadHistoryPage = async () => {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    return null;
+  }
+
+  const articles = await prisma.article.findMany({
     include: {
       aiTexts: true,
       feed: true,
@@ -13,16 +21,13 @@ const getReadHistory = () => {
       readAt: {
         not: null,
       },
+      userId: session.user.id,
     },
     orderBy: {
       readAt: "desc",
     },
     take: 50,
   });
-};
-
-const ReadHistoryPage = async () => {
-  const articles = await getReadHistory();
 
   return (
     <div className="flex flex-col gap-4">

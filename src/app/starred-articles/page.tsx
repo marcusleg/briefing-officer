@@ -1,9 +1,17 @@
 import ArticleList from "@/components/article/ArticleList";
 import Typography from "@/components/ui/typography";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
+import { headers } from "next/headers";
 
-const getStarredArticles = () => {
-  return prisma.article.findMany({
+const StarredArticlesPage = async () => {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    return null;
+  }
+
+  const articles = await prisma.article.findMany({
     include: {
       aiTexts: true,
       feed: true,
@@ -11,15 +19,12 @@ const getStarredArticles = () => {
     },
     where: {
       starred: true,
+      userId: session.user.id,
     },
     orderBy: {
       publicationDate: "desc",
     },
   });
-};
-
-const StarredArticlesPage = async () => {
-  const articles = await getStarredArticles();
 
   return (
     <div className="flex flex-col gap-4">
