@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -30,6 +31,7 @@ const SignInForm = () => {
   const router = useRouter();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -41,18 +43,20 @@ const SignInForm = () => {
 
   const submitHandler = async (values: FormData) => {
     setSubmitting(true);
-    try {
-      await authClient.signIn.email({
-        email: values.email,
-        password: values.password,
-      });
-    } catch (error) {
+
+    const result = await authClient.signIn.email({
+      email: values.email,
+      password: values.password,
+    });
+
+    if (result.error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Invalid username or password",
+        title: "Sign-In Error",
+        description: result.error.message,
       });
     }
+
     setSubmitting(false);
 
     router.push("/");
@@ -101,6 +105,12 @@ const SignInForm = () => {
           )}
         </Button>
       </form>
+      {error && (
+        <Alert>
+          <AlertTitle>Sign-in failed</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
     </Form>
   );
 };
