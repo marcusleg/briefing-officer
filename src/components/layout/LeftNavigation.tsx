@@ -1,13 +1,24 @@
 import UserNavigation from "@/components/layout/UserNavigation";
 import { Separator } from "@/components/ui/separator";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
+import { headers } from "next/headers";
 import AddFeedButton from "./AddFeedButton";
 import FeedNavigation from "./FeedNavigation";
 import LeftTopNavigation from "./LeftTopNavigation";
 import RefreshAllFeedsButton from "./RefreshAllFeedsButton";
 
 const LeftNavigation = async () => {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    return null;
+  }
+
   const feeds = await prisma.feed.findMany({
+    where: {
+      userId: session.user.id,
+    },
     include: {
       _count: {
         select: {
