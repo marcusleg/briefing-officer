@@ -13,13 +13,17 @@ import {
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
-import { CircleCheckBigIcon, CircleIcon } from "lucide-react";
+import { CircleCheckBigIcon, CircleIcon, LoaderCircle } from "lucide-react";
+import { useState } from "react";
 
 const ToggleReadButton = ({ article }: { article: Article }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleMarkAsRead = async () => {
+    setIsSubmitting(true);
     await markArticleAsRead(article.id);
+    setIsSubmitting(false);
 
     toast({
       title: "Article marked as read",
@@ -41,32 +45,38 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
     await unmarkArticleAsRead(article.id);
   };
 
-  if (article.readAt !== null) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="sm" variant="outline" onClick={handleMarkAsUnread}>
-              <CircleCheckBigIcon className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Mark as unread</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-
-  return (
+  const renderTooltipButton = (
+    Icon: React.ComponentType<{ className?: string }>,
+    onClick: () => void,
+    tooltipText: string,
+  ) => (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button size="sm" variant="outline" onClick={handleMarkAsRead}>
-            <CircleIcon className="h-4 w-4" />
+          <Button
+            disabled={isSubmitting}
+            size="sm"
+            variant="outline"
+            onClick={onClick}
+          >
+            {isSubmitting ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <Icon className="h-4 w-4" />
+            )}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Mark as read</TooltipContent>
+        <TooltipContent>{tooltipText}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+
+  const isRead = article.readAt !== null;
+
+  return renderTooltipButton(
+    isRead ? CircleCheckBigIcon : CircleIcon,
+    isRead ? handleMarkAsUnread : handleMarkAsRead,
+    isRead ? "Mark as unread" : "Mark as read",
   );
 };
 
