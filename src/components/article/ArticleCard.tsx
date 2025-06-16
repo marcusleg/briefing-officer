@@ -81,15 +81,10 @@ const ArticleCard = (props: ArticleCardProps) => {
       ref={cardRef}
     >
       <CardHeader>
-        <CardTitle className="flex items-end gap-4">
+        <CardTitle className="flex flex-col gap-4">
           <Link href={props.article.link} referrerPolicy="no-referrer">
             {props.article.title}
           </Link>
-          {props.article.scrape?.author && (
-            <div className="text-sm text-gray-500">
-              by {props.article.scrape.author}
-            </div>
-          )}
         </CardTitle>
 
         <div className="flex flex-row gap-2 align-middle text-sm text-muted-foreground">
