@@ -60,6 +60,7 @@ const SignInForm = () => {
     setSubmitting(false);
 
     router.push("/");
+    router.refresh();
   };
 
   return (

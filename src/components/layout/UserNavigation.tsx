@@ -11,6 +11,7 @@ const UserNavigation = () => {
   const handleSignOut = () => {
     authClient.signOut();
     router.push("/sign-in");
+    router.refresh();
   };
 
   return (
