@@ -1,12 +1,12 @@
+import { FeedsForLeftNavigation } from "@/components/layout/LeftNavigation";
 import LeftNavigationLink from "@/components/layout/LeftNavigationLink";
 import { Badge } from "@/components/ui/badge";
-import { Prisma } from "@prisma/client";
 import { NewspaperIcon } from "lucide-react";
 
 interface FeedNavigationProps {}
 
 interface FeedNavigationProps {
-  feeds: Prisma.FeedGetPayload<{ include: { _count: true } }>[];
+  feeds: FeedsForLeftNavigation;
 }
 
 const FeedNavigation = ({ feeds }: FeedNavigationProps) => {

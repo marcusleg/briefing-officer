@@ -8,17 +8,8 @@ import FeedNavigation from "./FeedNavigation";
 import LeftTopNavigation from "./LeftTopNavigation";
 import RefreshAllFeedsButton from "./RefreshAllFeedsButton";
 
-const LeftNavigation = async () => {
-  const session = await auth.api.getSession({ headers: await headers() });
-
-  if (!session) {
-    return null;
-  }
-
-  const feeds = await prisma.feed.findMany({
-    where: {
-      userId: session.user.id,
-    },
+async function getFeedsForLeftNavigation() {
+  return prisma.feed.findMany({
     include: {
       _count: {
         select: {
@@ -28,6 +19,20 @@ const LeftNavigation = async () => {
     },
     orderBy: { title: "asc" },
   });
+}
+type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
+export type FeedsForLeftNavigation = ThenArg<
+  ReturnType<typeof getFeedsForLeftNavigation>
+>;
+
+const LeftNavigation = async () => {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    return null;
+  }
+
+  const feeds = await getFeedsForLeftNavigation();
 
   return (
     <div className="flex flex-col gap-4">

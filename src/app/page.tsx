@@ -24,6 +24,7 @@ const Home = async () => {
       aiTexts: true,
       feed: true,
       scrape: true,
+      user: true,
     },
     where: {
       readAt: null,
