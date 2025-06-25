@@ -2,10 +2,10 @@
 
 AI summaries for your favorite news feeds.
 
-## Prerequisites
+> [!WARNING] This software is currently in the prototype stage. Bugs and
+> unexpected breaking changes may occur without prior notice.
 
-- An OpenAI API-compatible Large Language Model (LLM) or LLM Proxy (e.g.
-  [LiteLLM](https://github.com/BerriAI/litellm))
+![Screenshot of Briefing Officer](./screenshot.png)
 
 ## Getting Started
 
@@ -17,16 +17,6 @@ docker run -it --rm \
   -p 3000:3000 \
   ghcr.io/marcusleg/briefing-officer:unstable
 ```
-
-## Dependency documentation
-
-To learn more about dependencies, take a look at the following resources:
-
-- [Next.js](https://nextjs.org/docs)
-- [Prisma ORM](https://www.prisma.io/docs/orm)
-- [Tailwind CSS](https://tailwindcss.com/docs/installation)
-- [shadcn/ui](https://ui.shadcn.com/docs)
-- [Lucide Icons](https://lucide.dev/icons/)
 
 ## Architecture Decisions
 
