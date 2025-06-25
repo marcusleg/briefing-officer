@@ -2,8 +2,11 @@
 
 AI summaries for your favorite news feeds.
 
-> [!WARNING] This software is currently in the prototype stage. Bugs and
-> unexpected breaking changes may occur without prior notice.
+<!-- prettier-ignore-start -->
+> [!WARNING] 
+> This software is currently in the prototype stage. Bugs and unexpected 
+> breaking changes may occur without prior notice.
+<!-- prettier-ignore-end -->
 
 ![Screenshot of Briefing Officer](./screenshot.png)
 
