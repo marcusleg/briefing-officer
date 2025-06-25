@@ -3,7 +3,7 @@ on: push
 
 jobs:
   format-check:
-    runs-on: runner-set-marcusleg-briefing-officer
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -18,7 +18,7 @@ jobs:
         run: npm run format:check
 
   lint:
-    runs-on: runner-set-marcusleg-briefing-officer
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -33,7 +33,7 @@ jobs:
         run: npm run lint
 
   build:
-    runs-on: runner-set-marcusleg-briefing-officer
+    runs-on: ubuntu-latest
 
     env:
       DATABASE_URL: file:/tmp/database.sqlite
