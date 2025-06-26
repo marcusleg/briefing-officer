@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@ai-sdk/azure": "^2.0.0-canary.21",
-    "@ai-sdk/react": "^2.0.0-alpha.11",
+    "@ai-sdk/react": "^2.0.0-canary.23",
     "@hookform/resolvers": "^3.9.0",
     "@mozilla/readability": "^0.6.0",
     "@prisma/client": "^6.9.0",
