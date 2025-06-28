@@ -62,7 +62,6 @@ const NumberOfNewArticlesLast7DaysChart = ({
               fill="hsl(var(--chart-1))"
               strokeWidth={2}
               radius={8}
-              activeIndex={2}
               activeBar={({ ...props }) => {
                 return (
                   <Rectangle
