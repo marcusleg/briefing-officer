@@ -4,15 +4,15 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
     "build": "next build",
     "build:container": "podman build -t ghcr.io/marcusleg/briefing-officer:local .",
+    "dev": "next dev --turbopack",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
-    "prisma:migrate-dev": "DATABASE_URL=file:../data/database.sqlite prisma migrate dev"
+    "prisma:migrate-dev": "DATABASE_URL=file:../data/database.sqlite prisma migrate dev",
+    "start": "next start"
   },
   "dependencies": {
     "@ai-sdk/azure": "^2.0.0-canary.21",
