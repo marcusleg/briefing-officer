@@ -70,14 +70,15 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: "npm run build && npm run start",
-  //   env: {
-  //     DATABASE_URL: "file:/tmp/briefing-officer-test.sqlite",
-  //     NODE_ENV: "test",
-  //     PORT: "4000",
-  //   },
-  //   url: "http://localhost:4000",
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  webServer: process.env.CI
+    ? {
+        command: "npm run start",
+        env: {
+          DATABASE_URL: "file:/tmp/briefing-officer-test.sqlite",
+          NODE_ENV: "test",
+        },
+        url: "http://localhost:3000",
+        reuseExistingServer: !process.env.CI,
+      }
+    : undefined,
 });
