@@ -1,3 +1,4 @@
+import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 
 const environment = process.env.NODE_ENV;
@@ -6,6 +7,8 @@ export const POST = async () => {
   if (!["development", "test"].includes(environment)) {
     return new Response("", { status: 404 });
   }
+
+  logger.debug({}, "Clearing database...");
 
   try {
     await Promise.all([
@@ -19,15 +22,13 @@ export const POST = async () => {
       prisma.verification.deleteMany(),
     ]);
   } catch (error) {
-    console.error(error);
-    return Response.json(
-      { message: "Failed to clear the database." },
-      { status: 500 },
-    );
+    let message = "Failed to clear the database.";
+    logger.error({ error }, message);
+    return Response.json({ message }, { status: 500 });
   }
 
-  return Response.json(
-    { message: "Database cleared successfully." },
-    { status: 200 },
-  );
+  const message = "Database cleared successfully.";
+  logger.info("Database cleared successfully.");
+
+  return Response.json({ message }, { status: 200 });
 };
