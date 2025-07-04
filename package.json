@@ -12,7 +12,9 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate-dev": "DATABASE_URL=file:../data/database.sqlite prisma migrate dev",
-    "start": "next start"
+    "start": "next start",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@ai-sdk/azure": "^2.0.0-canary.21",
@@ -53,6 +55,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@playwright/test": "^1.53.2",
     "@types/node": "22.15.29",
     "@types/react": "19.1.7",
     "@types/react-dom": "19.1.6",
