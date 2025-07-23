@@ -17,6 +17,7 @@
   "dependencies": {
     "@ai-sdk/azure": "^2.0.0-beta.11",
     "@ai-sdk/react": "^2.0.0-beta.25",
+    "@ai-sdk/rsc": "^1.0.0-beta.25",
     "@hookform/resolvers": "^3.9.0",
     "@mozilla/readability": "^0.6.0",
     "@prisma/client": "^6.11.1",
