@@ -49,7 +49,6 @@ model Article {
 model ArticleAiTexts {
   articleId Int      @id
   article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  summary   String?
   lead      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
