@@ -2,7 +2,7 @@
 
 import { streamAiLead } from "@/lib/ai";
 import { readStreamableValue } from "@ai-sdk/rsc";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const maxDuration = 30;
 
@@ -11,10 +11,17 @@ interface AiLeadStreamProps {
 }
 
 const AiLeadStream = ({ articleId }: AiLeadStreamProps) => {
+  console.log(`Rendering AlLeadStream for Article ID ${articleId}`);
+  const initialized = useRef(false);
   const [generation, setGeneration] = useState<string>("");
 
   useEffect(() => {
+    if (initialized.current) return; // Prevent multiple streams
+
     const streamLead = async () => {
+      initialized.current = true;
+      setGeneration(""); // Reset state
+
       const { output } = await streamAiLead(articleId);
 
       for await (const delta of readStreamableValue(output)) {
