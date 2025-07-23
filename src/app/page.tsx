@@ -53,7 +53,16 @@ const Home = async () => {
 
       <Typography variant="h2">Unread articles from your feeds</Typography>
 
-      <ArticleList articles={articles} />
+      {articles.length > 0 ? (
+        <ArticleList articles={articles} />
+      ) : (
+        <Typography
+          variant="p"
+          className="my-8 text-center text-lg text-muted-foreground"
+        >
+          There are no unread articles.
+        </Typography>
+      )}
     </div>
   );
 };
