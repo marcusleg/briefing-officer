@@ -13,7 +13,6 @@ const ReadHistoryPage = async () => {
 
   const articles = await prisma.article.findMany({
     include: {
-      aiTexts: true,
       feed: true,
       scrape: true,
     },

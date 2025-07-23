@@ -1,12 +1,9 @@
 "use server";
 
-import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
-import { scrapeArticle } from "@/lib/scraper";
 import { createAzure } from "@ai-sdk/azure";
 import { createStreamableValue } from "@ai-sdk/rsc";
-import { generateText, streamText } from "ai";
-import { revalidatePath } from "next/cache";
+import { streamText } from "ai";
 
 const azureOpenAi = createAzure({
   apiKey: process.env.AZURE_OPENAI_API_KEY,
@@ -50,64 +47,28 @@ ${articleScrape.textContent}`,
   return { output: stream.value };
 };
 
-interface GenerateAiLeadOptions {
-  forceGeneration: boolean;
-}
-
-const defaultGenerateAiLeadOptions: GenerateAiLeadOptions = {
-  forceGeneration: false,
-};
-
-export const generateAiLead = async (
-  articleId: number,
-  options?: GenerateAiLeadOptions,
-) => {
-  const mergedOptions = { ...defaultGenerateAiLeadOptions, ...options };
-
-  if (!mergedOptions.forceGeneration) {
-    const articleAiTexts = await prisma.articleAiTexts.findUnique({
-      where: { articleId: articleId },
-    });
-
-    if (articleAiTexts?.lead) {
-      return articleAiTexts;
-    }
-  }
-
+export const streamAiLead = async (articleId: number) => {
   const article = await prisma.article.findUniqueOrThrow({
+    include: { scrape: true },
     where: { id: articleId },
   });
-  const scrape = await scrapeArticle(article.id, article.link);
 
-  const lead = await generateText({
-    model: azureOpenAi("gpt-4.1-nano"),
-    prompt: `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Begin directly with the content of the lead, without any introductory phrases.\n\n${article.title}\n\n${scrape.textContent}`,
-  });
+  const stream = createStreamableValue("");
 
-  const newLead = prisma.articleAiTexts.upsert({
-    where: { articleId: articleId },
-    create: {
-      articleId: articleId,
-      lead: lead.text,
-    },
-    update: {
-      articleId: articleId,
-      lead: lead.text,
-    },
-  });
+  void (async () => {
+    const { textStream } = streamText({
+      model: azureOpenAi("gpt-4.1-nano"),
+      prompt: `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Begin directly with the content of the lead, without any introductory phrases.\n\n${article.title}\n\n${article.scrape?.textContent}`,
+    });
 
-  logger.info(
-    {
-      articleId,
-      articleTitle: article.title,
-      feedId: article.feedId,
-    },
-    "Generated AI lead for article.",
-  );
+    for await (const delta of textStream) {
+      stream.update(delta);
+    }
 
-  revalidatePath(`/feed/${article.feedId}`);
+    stream.done();
+  })();
 
-  return newLead;
+  return { output: stream.value };
 };
 
 // const generateAiTags = () => {
