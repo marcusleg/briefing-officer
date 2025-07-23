@@ -52,7 +52,7 @@ const SignInForm = () => {
     if (result.error) {
       toast({
         variant: "destructive",
-        title: "Sign-In Error",
+        title: "Sign In Error",
         description: result.error.message,
       });
     }
@@ -102,7 +102,7 @@ const SignInForm = () => {
           {submitting ? (
             <LoaderCircle className="h-4 w-4 animate-spin" />
           ) : (
-            "Login"
+            "Sign in"
           )}
         </Button>
       </form>
