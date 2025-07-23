@@ -22,6 +22,7 @@ import { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useInView } from "react-intersection-observer";
 import readingTime from "reading-time";
 
 interface ArticleCardProps {
@@ -35,6 +36,9 @@ interface ArticleCardProps {
 
 const ArticleCard = (props: ArticleCardProps) => {
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const { ref: inViewRef, inView } = useInView({
+    triggerOnce: true,
+  });
 
   useEffect(() => {
     if (!props.selected || !cardRef.current) {
@@ -104,9 +108,9 @@ const ArticleCard = (props: ArticleCardProps) => {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent ref={inViewRef}>
         <Typography className="text-pretty text-justify text-sm" variant="p">
-          <AiLeadStream articleId={props.article.id} />
+          {inView && <AiLeadStream articleId={props.article.id} />}
         </Typography>
       </CardContent>
 
