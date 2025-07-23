@@ -4,7 +4,8 @@ import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { scrapeArticle } from "@/lib/scraper";
 import { createAzure } from "@ai-sdk/azure";
-import { generateText } from "ai";
+import { createStreamableValue } from "@ai-sdk/rsc";
+import { generateText, streamText } from "ai";
 import { revalidatePath } from "next/cache";
 
 const azureOpenAi = createAzure({
@@ -51,6 +52,29 @@ export const generateAiSummary = async (articleId: number) => {
       summary: summary.text,
     },
   });
+};
+
+export const streamAiSummary = async (articleId: number) => {
+  const articleScrape = await prisma.articleScrape.findUniqueOrThrow({
+    where: { articleId: articleId },
+  });
+
+  const stream = createStreamableValue("");
+
+  void (async () => {
+    const { textStream } = streamText({
+      model: azureOpenAi("gpt-4.1-nano"),
+      prompt: `Write a summary of the following article. Leave the headline as is. Format your response in Markdown.\n\n${articleScrape.textContent}`,
+    });
+
+    for await (const delta of textStream) {
+      stream.update(delta);
+    }
+
+    stream.done();
+  })();
+
+  return { output: stream.value };
 };
 
 interface GenerateAiLeadOptions {
