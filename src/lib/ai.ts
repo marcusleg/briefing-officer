@@ -58,7 +58,9 @@ export const streamAiLead = async (articleId: number) => {
   void (async () => {
     const { textStream } = streamText({
       model: azureOpenAi("gpt-4.1-nano"),
-      prompt: `Analyze the following news article and create a short, factual lead that provides an overview of what the article is about and why it is worth reading. The text should be continuous, objective, concise and no longer than 80 words. Begin directly with the content of the lead, without any introductory phrases.\n\n${article.title}\n\n${article.scrape?.textContent}`,
+      prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
+${article.title}\n\n${article.scrape?.textContent}`,
+      maxOutputTokens: 120,
     });
 
     for await (const delta of textStream) {
