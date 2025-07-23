@@ -10,6 +10,9 @@ const azureOpenAi = createAzure({
   resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
 });
 
+const systemPrompt =
+  "You are an expert at summarizing articles for professionals who want to quickly understand core content, key facts, and main arguments.";
+
 export const streamAiSummary = async (articleId: number) => {
   const articleScrape = await prisma.articleScrape.findUniqueOrThrow({
     where: { articleId: articleId },
@@ -20,6 +23,7 @@ export const streamAiSummary = async (articleId: number) => {
   void (async () => {
     const { textStream } = streamText({
       model: azureOpenAi("gpt-4.1-nano"),
+      system: systemPrompt,
       prompt: `Write a summary in the following structure and **format your response in Markdown**:
 
 - The original article title should be a level 1 heading (\`#\`).
@@ -58,6 +62,7 @@ export const streamAiLead = async (articleId: number) => {
   void (async () => {
     const { textStream } = streamText({
       model: azureOpenAi("gpt-4.1-nano"),
+      system: systemPrompt,
       prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
 ${article.title}\n\n${article.scrape?.textContent}`,
       maxOutputTokens: 120,
