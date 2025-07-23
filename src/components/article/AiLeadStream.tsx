@@ -11,7 +11,6 @@ interface AiLeadStreamProps {
 }
 
 const AiLeadStream = ({ articleId }: AiLeadStreamProps) => {
-  console.log(`Rendering AlLeadStream for Article ID ${articleId}`);
   const initialized = useRef(false);
   const [generation, setGeneration] = useState<string>("");
 
