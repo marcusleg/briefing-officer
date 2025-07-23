@@ -13,47 +13,6 @@ const azureOpenAi = createAzure({
   resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
 });
 
-export const generateAiSummary = async (articleId: number) => {
-  const articleSummary = await prisma.articleAiTexts.findUnique({
-    where: { articleId: articleId },
-  });
-
-  if (articleSummary?.summary) {
-    return articleSummary;
-  }
-
-  const article = await prisma.article.findUniqueOrThrow({
-    where: { id: articleId },
-  });
-  const scrape = await scrapeArticle(article.id, article.link);
-
-  const summary = await generateText({
-    model: azureOpenAi("gpt-4.1-nano"),
-    prompt: `Write a summary of the following article. Leave the headline as is. Format your response in Markdown. \n\n${article.title}\n\n${scrape.textContent}`,
-  });
-
-  logger.info(
-    {
-      articleId,
-      articleTitle: article.title,
-      feedId: article.feedId,
-    },
-    "Generated AI summary for article.",
-  );
-
-  return prisma.articleAiTexts.upsert({
-    where: { articleId: articleId },
-    create: {
-      articleId: articleId,
-      summary: summary.text,
-    },
-    update: {
-      articleId: articleId,
-      summary: summary.text,
-    },
-  });
-};
-
 export const streamAiSummary = async (articleId: number) => {
   const articleScrape = await prisma.articleScrape.findUniqueOrThrow({
     where: { articleId: articleId },
