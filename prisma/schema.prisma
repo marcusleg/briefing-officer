@@ -27,31 +27,22 @@ model Feed {
 }
 
 model Article {
-  id              Int             @id @default(autoincrement())
+  id              Int            @id @default(autoincrement())
   title           String
   publicationDate DateTime
   description     String?
   content         String?
-  link            String          @unique
+  link            String         @unique
   readAt          DateTime?
-  readLater       Boolean         @default(false)
-  starred         Boolean         @default(false)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  readLater       Boolean        @default(false)
+  starred         Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   feedId          Int
-  feed            Feed            @relation(fields: [feedId], references: [id], onDelete: Cascade)
-  aiTexts         ArticleAiTexts?
+  feed            Feed           @relation(fields: [feedId], references: [id], onDelete: Cascade)
   scrape          ArticleScrape?
   userId          String
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model ArticleAiTexts {
-  articleId Int      @id
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  lead      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ArticleScrape {

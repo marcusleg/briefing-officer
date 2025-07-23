@@ -6,28 +6,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { generateAiLead } from "@/lib/ai";
 import { scrapeArticle } from "@/lib/scraper";
 import { Prisma } from "@prisma/client";
-import {
-  EllipsisVerticalIcon,
-  SparklesIcon,
-  SquareCodeIcon,
-} from "lucide-react";
+import { EllipsisVerticalIcon, SquareCodeIcon } from "lucide-react";
 
 interface AdditionArticleActionsButtonProps {
   article: Prisma.ArticleGetPayload<{
-    include: { aiTexts: true; feed: true; scrape: true };
+    include: { feed: true; scrape: true };
   }>;
 }
 
 const AdditionArticleActionsButton = ({
   article,
 }: AdditionArticleActionsButtonProps) => {
-  const handleGenerateAiLead = async () => {
-    await generateAiLead(article.id, { forceGeneration: true });
-  };
-
   const handleScrapeArticle = async () => {
     await scrapeArticle(article.id, article.link, { forceScrape: true });
   };
@@ -41,10 +32,6 @@ const AdditionArticleActionsButton = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuLabel>Debug</DropdownMenuLabel>
-        <DropdownMenuItem onClick={handleGenerateAiLead}>
-          <SparklesIcon className="mr-2 h-4 w-4" />
-          <span>(Re)generate AI lead</span>
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleScrapeArticle}>
           <SquareCodeIcon className="mr-2 h-4 w-4" />
           <span>(Re)scrape article</span>

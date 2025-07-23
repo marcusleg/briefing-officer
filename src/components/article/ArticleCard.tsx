@@ -1,5 +1,6 @@
 "use client";
 
+import AiLeadStream from "@/components/article/AiLeadStream";
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
 import { ReadingTimeBadge } from "@/components/article/ReadingTimeBadge";
 import { WordCountBadge } from "@/components/article/WordCountBadge";
@@ -25,7 +26,7 @@ import readingTime from "reading-time";
 
 interface ArticleCardProps {
   article: Prisma.ArticleGetPayload<{
-    include: { aiTexts: true; feed: true; scrape: true };
+    include: { feed: true; scrape: true };
   }>;
   className?: string;
   onClick?: () => void;
@@ -105,9 +106,7 @@ const ArticleCard = (props: ArticleCardProps) => {
 
       <CardContent>
         <Typography className="text-pretty text-justify text-sm" variant="p">
-          {props.article.aiTexts?.lead
-            ? props.article.aiTexts.lead
-            : props.article.description}
+          <AiLeadStream articleId={props.article.id} />
         </Typography>
       </CardContent>
 

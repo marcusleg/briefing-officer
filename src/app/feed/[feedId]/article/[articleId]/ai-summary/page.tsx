@@ -12,7 +12,6 @@ const AiSummary = async (props0: {
 
   const article = await prisma.article.findUniqueOrThrow({
     include: {
-      aiTexts: true,
       feed: true,
       scrape: true,
     },
