@@ -31,7 +31,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@types/jsdom": "^21.1.7",
     "ai": "^5.0.0-canary.24",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "better-auth": "^1.2.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
