@@ -4,7 +4,7 @@ import Typography from "@/components/ui/typography";
 import { streamAiSummary } from "@/lib/ai";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Markdown from "markdown-to-jsx";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const maxDuration = 30;
 
@@ -13,10 +13,16 @@ interface AiSummaryStreamProps {
 }
 
 const AiSummaryStream = ({ articleId }: AiSummaryStreamProps) => {
+  const initialized = useRef(false);
   const [generation, setGeneration] = useState<string>("");
 
   useEffect(() => {
+    if (initialized.current) return; // Prevent multiple streams
+
     const streamSummary = async () => {
+      initialized.current = true;
+      setGeneration(""); // Reset state
+
       const { output } = await streamAiSummary(articleId);
 
       for await (const delta of readStreamableValue(output)) {
