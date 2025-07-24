@@ -11,12 +11,13 @@ import {
   getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
 import { headers } from "next/headers";
+import { unauthorized } from "next/navigation";
 
 const Home = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) {
-    return null;
+    unauthorized();
   }
 
   const articles = await prisma.article.findMany({

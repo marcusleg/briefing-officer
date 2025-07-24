@@ -3,12 +3,13 @@ import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
+import { unauthorized } from "next/navigation";
 
 const ReadLaterPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) {
-    return null;
+    unauthorized();
   }
 
   const articles = await prisma.article.findMany({

@@ -9,6 +9,7 @@ import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
+import { notFound, unauthorized } from "next/navigation";
 
 const Feed = async (props: {
   params: Promise<{ feedId: string }>;
@@ -20,14 +21,17 @@ const Feed = async (props: {
   const showSearchParam = searchParams["show"] || "unread";
 
   const session = await auth.api.getSession({ headers: await headers() });
-
   if (!session) {
-    return null;
+    unauthorized();
   }
 
-  const feed = await prisma.feed.findUniqueOrThrow({
+  const feed = await prisma.feed.findUnique({
     where: { id: feedId, userId: session.user.id },
   });
+  if (!feed) {
+    notFound();
+  }
+
   const articles = await prisma.article.findMany({
     include: {
       feed: true,
