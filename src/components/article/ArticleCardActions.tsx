@@ -1,6 +1,5 @@
 "use client";
 
-import AdditionArticleActionsButton from "@/components/article/AdditionArticleActionsButton";
 import AiSummaryButton from "@/components/article/AiSummaryButton";
 import ToggleReadButton from "@/components/article/ToggleReadButton";
 import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
@@ -49,7 +48,5 @@ export const ArticleCardActions = (props: ArticleCardActionsProps) => (
     <ToggleStarredButton article={props.article} />
 
     <Separator className="mx-1 h-auto py-4" orientation="vertical" />
-
-    <AdditionArticleActionsButton article={props.article} />
   </div>
 );
