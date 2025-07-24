@@ -6,7 +6,9 @@ import MarkAsReadButton from "@/components/feed/MarkAsReadButton";
 import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
 import Typography from "@/components/ui/typography";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
+import { headers } from "next/headers";
 
 const Feed = async (props: {
   params: Promise<{ feedId: string }>;
@@ -17,8 +19,14 @@ const Feed = async (props: {
   const feedId = parseInt(params.feedId);
   const showSearchParam = searchParams["show"] || "unread";
 
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    return null;
+  }
+
   const feed = await prisma.feed.findUniqueOrThrow({
-    where: { id: feedId },
+    where: { id: feedId, userId: session.user.id },
   });
   const articles = await prisma.article.findMany({
     include: {
