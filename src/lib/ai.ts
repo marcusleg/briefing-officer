@@ -77,7 +77,3 @@ ${article.title}\n\n${article.scrape?.textContent}`,
 
   return { output: stream.value };
 };
-
-// const generateAiTags = () => {
-//   // Prompt: Please generate a list of most relevant tags for the following news article that can help categorize and improve the discoverability of this article. The tags should cover specific topics, people, places, events, and any other relevant keywords. Make sure they are concise and relevant to the content provided. Provide the tags as a comma-separated list only, with no additional text.
-// };
