@@ -60,3 +60,12 @@ jobs:
         run: npx prisma generate && npx prisma db push
       - name: Run Build
         run: npm run build
+
+  render-helm-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Render Helm Chart
+        uses: WyriHaximus/github-action-helm3@v3
+        with:
+          exec: helm template briefing-officer helm-chart

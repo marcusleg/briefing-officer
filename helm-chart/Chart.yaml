@@ -1,0 +1,9 @@
+apiVersion: v2
+name: briefing-officer
+description: AI summaries for your favorite news feeds.
+
+type: application
+
+version: 0.3.0
+
+appVersion: "0.3.0"

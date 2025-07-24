@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "briefing-officer.fullname" . }}-cronjob
+spec:
+  schedule: '*/15 * * * *'
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: {{ .Chart.Name }}-cronjob
+              image: docker.io/curlimages/curl:8.15.0
+              args:
+                - --request
+                - POST
+                - --header
+                - "X-API-KEY: hardcoded-api-keys-are-a-terrible-idea"
+                - http://{{ include "briefing-officer.fullname" . }}/api/cron
+          restartPolicy: Never
