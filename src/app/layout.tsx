@@ -1,13 +1,9 @@
 import LeftNavigation from "@/components/layout/LeftNavigation";
-import { Separator } from "@/components/ui/separator";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
-import Typography from "@/components/ui/typography";
-import { auth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
-import { headers } from "next/headers";
-import Link from "next/link";
 import "../app/globals.css";
 
 export const metadata: Metadata = {
@@ -25,10 +21,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
   return (
     <html lang="en">
       <body
@@ -37,26 +29,16 @@ export default async function RootLayout({
           fontSans.variable,
         )}
       >
-        <div className="w-full bg-black text-white">
-          <div className="mx-auto max-w-screen-xl px-4 py-2">
-            <Typography variant="h1">
-              <Link href="/">Briefing Officer</Link>
-            </Typography>
-          </div>
-        </div>
+        <SidebarProvider>
+          <LeftNavigation />
 
-        <div className="m-2 mx-auto mt-4 flex max-w-screen-xl flex-col gap-4 p-4 md:flex-row xl:p-0">
-          {session && (
-            <>
-              <LeftNavigation />
-              <Separator className="h-auto py-4" orientation="vertical" />
-            </>
-          )}
+          <main>
+            <SidebarTrigger />
+            {children}
+          </main>
 
-          <main className="grow">{children}</main>
-        </div>
-
-        <Toaster richColors />
+          <Toaster richColors />
+        </SidebarProvider>
       </body>
     </html>
   );

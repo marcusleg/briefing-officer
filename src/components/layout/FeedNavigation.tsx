@@ -1,29 +1,53 @@
-import { FeedsForLeftNavigation } from "@/components/layout/LeftNavigation";
-import LeftNavigationLink from "@/components/layout/LeftNavigationLink";
-import { Badge } from "@/components/ui/badge";
+import AddFeedButton from "@/components/layout/AddFeedButton";
+import AppSidebarMenuButton from "@/components/layout/AppSidebarMenuButton";
+import RefreshAllFeedsButton from "@/components/layout/RefreshAllFeedsButton";
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenuBadge,
+  SidebarMenuItem,
+  SidebarSeparator,
+} from "@/components/ui/sidebar";
+import prisma from "@/lib/prismaClient";
 import { NewspaperIcon } from "lucide-react";
 
-interface FeedNavigationProps {}
+const FeedNavigation = async () => {
+  const feeds = await prisma.feed.findMany({
+    include: {
+      _count: {
+        select: {
+          articles: { where: { readAt: null } },
+        },
+      },
+    },
+    orderBy: { title: "asc" },
+  });
 
-interface FeedNavigationProps {
-  feeds: FeedsForLeftNavigation;
-}
-
-const FeedNavigation = ({ feeds }: FeedNavigationProps) => {
   return (
-    <>
-      {feeds.map((feed) => (
-        <LeftNavigationLink key={feed.id} href={`/feed/${feed.id}`}>
-          <NewspaperIcon className="mr-2 h-4 w-4" />
-          <div className="mr-2 truncate">{feed.title}</div>
-          {feed._count.articles !== 0 && (
-            <Badge className="ml-auto" variant="secondary">
-              {feed._count.articles}
-            </Badge>
-          )}
-        </LeftNavigationLink>
-      ))}
-    </>
+    <SidebarGroup>
+      <SidebarGroupLabel>Feeds</SidebarGroupLabel>
+      <SidebarGroupContent>
+        {feeds.map((feed) => (
+          <SidebarMenuItem key={feed.id}>
+            <AppSidebarMenuButton href={`/feed/${feed.id}`}>
+              <NewspaperIcon />
+              <span className="truncate">{feed.title}</span>
+            </AppSidebarMenuButton>
+            {feed._count.articles > 0 && (
+              <SidebarMenuBadge>{feed._count.articles}</SidebarMenuBadge>
+            )}
+          </SidebarMenuItem>
+        ))}
+        <SidebarSeparator />
+        <SidebarMenuItem>
+          <AddFeedButton />
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <RefreshAllFeedsButton />
+        </SidebarMenuItem>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 };
 

@@ -1,28 +1,23 @@
-"use client";
+import UserDropdownMenu from "@/components/layout/UserDropdownMenu";
+import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
-import { authClient } from "@/lib/auth-client";
-import { LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { Button } from "../ui/button";
+const UserNavigation = async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-const UserNavigation = () => {
-  const router = useRouter();
-
-  const handleSignOut = () => {
-    authClient.signOut();
-    router.push("/sign-in");
-    router.refresh();
-  };
+  if (!session) {
+    return null;
+  }
 
   return (
-    <Button
-      className="max-w-52 justify-start font-bold"
-      onClick={() => handleSignOut()}
-      size="sm"
-      variant="ghost"
-    >
-      <LogOut className="mr-2 h-4 w-4" /> Sign Out
-    </Button>
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <UserDropdownMenu userName={session?.user.name} />
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 };
 
