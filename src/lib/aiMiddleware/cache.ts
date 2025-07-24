@@ -3,40 +3,32 @@ import type {
   LanguageModelV2StreamPart,
 } from "@ai-sdk/provider";
 import { simulateReadableStream } from "ai";
+import QuickLRU from "quick-lru";
 
-// TODO this cache has no size limit or time-to-live. Fix that!
-const cache = new Map<string, any>();
+const sevenDaysInMilliseconds = 1000 * 60 * 60 * 24 * 7;
+const cache = new QuickLRU<string, string>({
+  maxSize: 1000,
+  maxAge: sevenDaysInMilliseconds,
+});
 
 export const cacheMiddleware: LanguageModelV2Middleware = {
-  wrapGenerate: async ({ doGenerate, params }) => {
-    const cacheKey = JSON.stringify(params);
-
-    if (cache.has(cacheKey)) {
-      return cache.get(cacheKey);
-    }
-
-    const result = await doGenerate();
-
-    cache.set(cacheKey, result);
-
-    return result;
-  },
   wrapStream: async ({ doStream, params }) => {
     const cacheKey = JSON.stringify(params);
-    console.log(cacheKey);
 
     if (cache.has(cacheKey)) {
-      const bla: LanguageModelV2StreamPart[] = [
-        { type: "text-start", id: "0" },
-        { type: "text-delta", id: "0", delta: cache.get(cacheKey) },
-        { type: "text-end", id: "0" },
+      const id = "0";
+
+      const chunks: LanguageModelV2StreamPart[] = [
+        { type: "text-start", id },
+        { type: "text-delta", id, delta: cache.get(cacheKey)!! },
+        { type: "text-end", id },
       ];
 
       return {
         stream: simulateReadableStream({
           initialDelayInMs: null,
           chunkDelayInMs: null,
-          chunks: bla,
+          chunks,
         }),
       };
     }
@@ -74,7 +66,6 @@ export const cacheMiddleware: LanguageModelV2Middleware = {
         cache.set(cacheKey, generatedText);
       },
     });
-    cache.set(cacheKey, result);
 
     return {
       stream: result.stream.pipeThrough(transformStream),
