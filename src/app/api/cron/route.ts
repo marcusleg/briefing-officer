@@ -3,9 +3,13 @@ import logger from "@/lib/logger";
 import { deleteArticlesOlderThanXDays } from "@/lib/repository/articleRepository";
 import { refreshFeeds } from "@/lib/repository/feedRepository";
 
-const apiKey = "hardcoded-api-keys-are-a-terrible-idea"; // TODO
+const apiKey = process.env.CRON_API_TOKEN;
 
 export const POST = async (request: Request) => {
+  if (!apiKey) {
+    return new Response("Cronjob API Token is not set.", { status: 500 });
+  }
+
   if (request.headers.get("X-API-KEY") !== apiKey) {
     return new Response("", { status: 401 });
   }
