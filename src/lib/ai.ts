@@ -11,7 +11,7 @@ const azureOpenAi = createAzure({
   resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
 });
 
-const wrappedModel = wrapLanguageModel({
+const wrappedLanguageModel = wrapLanguageModel({
   model: azureOpenAi("gpt-4.1-nano"),
   middleware: [cacheMiddleware],
 });
@@ -28,7 +28,7 @@ export const streamAiSummary = async (articleId: number) => {
 
   void (async () => {
     const { textStream } = streamText({
-      model: wrappedModel,
+      model: wrappedLanguageModel,
       system: systemPrompt,
       prompt: `Write a summary in the following structure and **format your response in Markdown**:
 
@@ -67,7 +67,7 @@ export const streamAiLead = async (articleId: number) => {
 
   void (async () => {
     const { textStream } = streamText({
-      model: wrappedModel,
+      model: wrappedLanguageModel,
       system: systemPrompt,
       prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
 ${article.title}\n\n${article.scrape?.textContent}`,
