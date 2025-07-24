@@ -1,13 +1,19 @@
 "use server";
 
+import { cacheMiddleware } from "@/lib/aiMiddleware/cache";
 import prisma from "@/lib/prismaClient";
 import { createAzure } from "@ai-sdk/azure";
 import { createStreamableValue } from "@ai-sdk/rsc";
-import { streamText } from "ai";
+import { streamText, wrapLanguageModel } from "ai";
 
 const azureOpenAi = createAzure({
   apiKey: process.env.AZURE_OPENAI_API_KEY,
   resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
+});
+
+const wrappedModel = wrapLanguageModel({
+  model: azureOpenAi("gpt-4.1-nano"),
+  middleware: [cacheMiddleware],
 });
 
 const systemPrompt =
@@ -22,7 +28,7 @@ export const streamAiSummary = async (articleId: number) => {
 
   void (async () => {
     const { textStream } = streamText({
-      model: azureOpenAi("gpt-4.1-nano"),
+      model: wrappedModel,
       system: systemPrompt,
       prompt: `Write a summary in the following structure and **format your response in Markdown**:
 
@@ -61,7 +67,7 @@ export const streamAiLead = async (articleId: number) => {
 
   void (async () => {
     const { textStream } = streamText({
-      model: azureOpenAi("gpt-4.1-nano"),
+      model: wrappedModel,
       system: systemPrompt,
       prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
 ${article.title}\n\n${article.scrape?.textContent}`,
