@@ -17,6 +17,9 @@ docker run -it --rm \
   -e DATABASE_URL=file:../data/database.sqlite \
   -e AZURE_OPENAI_RESOURCE_NAME=oai-example-dev-001 \
   -e AZURE_OPENAI_API_KEY=lorem-ipsum \
+  -e BETTER_AUTH_SECRET=something-random \
+  -e BETTER_AUTH_URL=http://localhost:3000 \
+  -e CRON_API_TOKEN=something-else-random \
   -p 3000:3000 \
   ghcr.io/marcusleg/briefing-officer:unstable
 ```
