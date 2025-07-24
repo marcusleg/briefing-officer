@@ -1,14 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { refreshFeeds } from "@/lib/repository/feedRepository";
-import { LoaderCircle, RotateCw } from "lucide-react";
+import { LoaderCircleIcon, RotateCwIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -37,27 +31,14 @@ const RefreshAllFeedsButton = () => {
   };
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            disabled={refreshing}
-            onClick={handleClick}
-            size="icon"
-            variant="outline"
-          >
-            {refreshing ? (
-              <LoaderCircle className="h-4 w-4 animate-spin" />
-            ) : (
-              <RotateCw className="h-4 w-4" />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top">
-          <p>Refresh all feeds</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <SidebarMenuButton onClick={handleClick} disabled={refreshing}>
+      {refreshing ? (
+        <LoaderCircleIcon className="h-4 w-4 animate-spin" />
+      ) : (
+        <RotateCwIcon className="h-4 w-4" />
+      )}
+      <span className="truncate">Refresh All Feeds</span>
+    </SidebarMenuButton>
   );
 };
 

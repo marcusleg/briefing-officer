@@ -1,7 +1,6 @@
 "use client";
 
 import FeedForm from "@/components/feed/FeedForm";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,13 +9,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Plus } from "lucide-react";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
+import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
 const AddFeedButton = () => {
@@ -24,20 +18,12 @@ const AddFeedButton = () => {
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <DialogTrigger asChild>
-              <Button size="icon" variant="outline">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p>Add feed</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <DialogTrigger asChild>
+        <SidebarMenuButton>
+          <PlusIcon />
+          <span className="truncate">Add Feed</span>
+        </SidebarMenuButton>
+      </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
