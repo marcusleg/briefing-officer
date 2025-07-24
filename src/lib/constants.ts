@@ -1,0 +1,1 @@
+export const ARTICLE_RETENTION_DAYS = 365;

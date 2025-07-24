@@ -1,6 +1,6 @@
 "use server";
 
-import { ARTICLE_RENTENTION_DAYS } from "@/app/api/cron/route";
+import { ARTICLE_RETENTION_DAYS } from "@/lib/constants";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { Readability } from "@mozilla/readability";
@@ -100,7 +100,7 @@ export const scrapeFeed = async (feed: Feed) => {
   });
 
   const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - ARTICLE_RENTENTION_DAYS);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - ARTICLE_RETENTION_DAYS);
 
   return validFeedItems.filter((item) => item.publicationDate >= thirtyDaysAgo);
 };
