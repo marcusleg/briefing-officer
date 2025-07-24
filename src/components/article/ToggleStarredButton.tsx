@@ -11,6 +11,7 @@ import {
 } from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
 import { StarIcon } from "lucide-react";
+import { toast } from "sonner";
 
 interface ToggleStarredButtonProps {
   article: Article;
@@ -19,10 +20,36 @@ interface ToggleStarredButtonProps {
 const ToggleStarredButton = ({ article }: ToggleStarredButtonProps) => {
   const handleStarClick = async () => {
     await markArticleAsStarred(article.id);
+
+    toast("Article Starred", {
+      description: (
+        <>
+          <span className="font-semibold italic">{article.title}</span> has been
+          add to the Read Later list..
+        </>
+      ),
+      action: {
+        label: "Undo",
+        onClick: async () => await unmarkArticleAsStarred(article.id),
+      },
+    });
   };
 
   const handleUnstarClick = async () => {
     await unmarkArticleAsStarred(article.id);
+
+    toast("Article Unstarred", {
+      description: (
+        <>
+          <span className="font-semibold italic">{article.title}</span> has been
+          removed from the Read Later list..
+        </>
+      ),
+      action: {
+        label: "Undo",
+        onClick: async () => await markArticleAsStarred(article.id),
+      },
+    });
   };
 
   if (article.starred) {
