@@ -1,0 +1,53 @@
+image:
+  repository: ghcr.io/marcusleg/briefing-officer
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  #   - name: my-gateway
+  #     namespace: default
+  #     sectionName: http
+  hostnames: []
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 512Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
