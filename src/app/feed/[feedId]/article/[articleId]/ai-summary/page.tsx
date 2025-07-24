@@ -5,7 +5,7 @@ import { ArticleCardActions } from "@/components/article/ArticleCardActions";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
-import { notFound, unauthorized } from "next/navigation";
+import { notFound } from "next/navigation";
 
 const AiSummary = async (props0: {
   params: Promise<{ feedId: string; articleId: string }>;
@@ -15,7 +15,7 @@ const AiSummary = async (props0: {
 
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
-    unauthorized();
+    return null;
   }
 
   const article = await prisma.article.findUnique({
