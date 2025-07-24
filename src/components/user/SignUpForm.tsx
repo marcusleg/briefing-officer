@@ -51,11 +51,23 @@ const SignUpForm = () => {
   const submitHandler = async (values: FormData) => {
     setSubmitting(true);
     try {
-      await authClient.signUp.email({
+      const result = await authClient.signUp.email({
         name: values.name,
         email: values.email,
         password: values.password,
       });
+
+      if (result.error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error.message,
+        });
+
+        setSubmitting(false);
+
+        return;
+      }
     } catch (error) {
       toast({
         variant: "destructive",
@@ -65,7 +77,12 @@ const SignUpForm = () => {
     }
     setSubmitting(false);
 
-    router.push("/sign-in"); // TODO display a success message
+    router.push("/sign-in");
+
+    toast({
+      title: "Account created",
+      description: "You can now sign in with your new account.",
+    });
   };
 
   return (
