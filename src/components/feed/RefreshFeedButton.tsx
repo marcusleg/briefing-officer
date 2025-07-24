@@ -1,10 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { refreshFeed } from "@/lib/repository/feedRepository";
 import { LoaderCircle, RotateCw } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface RefreshFeedButtonProps {
   feedId: number;
@@ -13,25 +13,18 @@ interface RefreshFeedButtonProps {
 const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
   const [refreshInProgress, setRefreshInProgress] = useState(false);
 
-  const { toast } = useToast();
-
   const handleCLick = async () => {
     setRefreshInProgress(true);
     try {
       await refreshFeed(feedId);
     } catch (error) {
-      toast({
-        title: "An error occurred refreshing this feed.",
+      toast.error("An error occurred refreshing this feed.", {
         description: "Please check the server logs to learn more.",
-        variant: "destructive",
       });
     }
     setRefreshInProgress(false);
 
-    toast({
-      title: "Your feed has been refreshed.",
-      description: "The latest articles are now available.",
-    });
+    toast.message("Your feed has been refreshed.");
   };
 
   return (

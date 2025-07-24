@@ -11,13 +11,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -29,7 +29,6 @@ type FormData = z.infer<typeof formSchema>;
 
 const SignInForm = () => {
   const router = useRouter();
-  const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -50,12 +49,16 @@ const SignInForm = () => {
     });
 
     if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Sign-In Error",
+      toast.error("Sign-In Error", {
         description: result.error.message,
       });
+
+      setSubmitting(false);
+
+      return;
     }
+
+    toast.success("Sign-In Successful");
 
     setSubmitting(false);
 

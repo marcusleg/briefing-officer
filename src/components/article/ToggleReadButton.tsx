@@ -1,13 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { ToastAction } from "@/components/ui/toast";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
 import {
   markArticleAsRead,
   unmarkArticleAsRead,
@@ -15,29 +13,27 @@ import {
 import { Article } from "@prisma/client";
 import { CircleCheckBigIcon, CircleIcon, LoaderCircle } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const ToggleReadButton = ({ article }: { article: Article }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
 
   const handleMarkAsRead = async () => {
     setIsSubmitting(true);
     await markArticleAsRead(article.id);
     setIsSubmitting(false);
 
-    toast({
-      title: "Article marked as read",
+    toast("Article marked as read", {
       description: (
         <>
           <span className="font-semibold italic">{article.title}</span> has been
           marked as read.
         </>
       ),
-      action: (
-        <ToastAction altText={"Undo"} onClick={handleMarkAsUnread}>
-          Undo
-        </ToastAction>
-      ),
+      action: {
+        label: "Undo",
+        onClick: () => handleMarkAsUnread(),
+      },
     });
   };
 

@@ -1,6 +1,6 @@
 import LeftNavigation from "@/components/layout/LeftNavigation";
 import { Separator } from "@/components/ui/separator";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -56,7 +56,7 @@ export default async function RootLayout({
           <main className="grow">{children}</main>
         </div>
 
-        <Toaster />
+        <Toaster richColors />
       </body>
     </html>
   );

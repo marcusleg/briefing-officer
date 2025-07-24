@@ -1,36 +1,31 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ToastAction } from "@/components/ui/toast";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
 import { refreshFeeds } from "@/lib/repository/feedRepository";
 import { LoaderCircle, RotateCw } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const RefreshAllFeedsButton = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const { toast } = useToast();
 
   const handleClick = async () => {
     setRefreshing(true);
     try {
       await refreshFeeds();
     } catch (error) {
-      toast({
-        title: "An error occurred refreshing your feeds.",
+      toast.error("An error occurred refreshing your feeds.", {
         description: "Please check the server logs to find out more.",
-        variant: "destructive",
-        action: (
-          <ToastAction altText="Try again" onClick={handleClick}>
-            Try again
-          </ToastAction>
-        ),
+        action: {
+          label: "Try again",
+          onClick: () => handleClick(),
+        },
       });
 
       setRefreshing(false);
@@ -38,10 +33,7 @@ const RefreshAllFeedsButton = () => {
     }
     setRefreshing(false);
 
-    toast({
-      title: "All feeds refreshed",
-      description: "The latest articles for all your feeds are now available.",
-    });
+    toast.message("All feeds refreshed");
   };
 
   return (

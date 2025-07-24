@@ -10,13 +10,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z
@@ -35,7 +35,6 @@ type FormData = z.infer<typeof formSchema>;
 
 const SignUpForm = () => {
   const router = useRouter();
-  const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<FormData>({
@@ -58,29 +57,24 @@ const SignUpForm = () => {
       });
 
       if (result.error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.error.message,
-        });
+        toast.error(result.error.message);
 
         setSubmitting(false);
 
         return;
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create account",
-      });
+      toast.error("Failed to create account");
+
+      setSubmitting(false);
+
+      return;
     }
     setSubmitting(false);
 
     router.push("/sign-in");
 
-    toast({
-      title: "Account created",
+    toast.success("Account created", {
       description: "You can now sign in with your new account.",
     });
   };
