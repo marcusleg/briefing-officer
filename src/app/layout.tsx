@@ -32,7 +32,7 @@ export default async function RootLayout({
         <SidebarProvider>
           <LeftNavigation />
 
-          <main className="p-4">{children}</main>
+          <main className="container p-4">{children}</main>
 
           <Toaster richColors />
         </SidebarProvider>

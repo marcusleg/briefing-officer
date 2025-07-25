@@ -37,7 +37,9 @@ const ReadHistoryPage = async () => {
 
       <h2 className="text-3xl font-bold tracking-tight">Read History</h2>
 
-      <ArticleList articles={articles} />
+      <div className="flex flex-col gap-4">
+        <ArticleList articles={articles} />
+      </div>
     </div>
   );
 };

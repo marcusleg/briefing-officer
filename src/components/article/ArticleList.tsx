@@ -41,7 +41,7 @@ const ArticleList = ({ articles }: ArticleListProps) => {
   });
 
   return (
-    <div className="flex max-w-4xl flex-col space-y-6">
+    <div className="mx-auto flex max-w-4xl flex-col space-y-6">
       {articles.map((article, index) => (
         <ArticleCard
           key={article.id}
