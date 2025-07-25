@@ -1,6 +1,5 @@
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/layout/TopNavigation";
-import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
@@ -33,7 +32,7 @@ const ReadHistoryPage = async () => {
     <div className="flex flex-col gap-4">
       <TopNavigation page="Read History" />
 
-      <Typography variant="h2">Read History</Typography>
+      <h2 className="text-3xl font-bold tracking-tight">Read History</h2>
 
       <ArticleList articles={articles} />
     </div>

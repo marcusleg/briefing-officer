@@ -66,7 +66,9 @@ const Home = async () => {
         />
       </div>
 
-      <Typography variant="h2">Unread articles from your feeds</Typography>
+      <h2 className="text-3xl font-bold tracking-tight">
+        Unread articles from your feeds
+      </h2>
 
       {articles.length > 0 ? (
         <ArticleList articles={articles} />

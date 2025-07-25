@@ -30,7 +30,7 @@ const StarredArticlesPage = async () => {
     <div className="flex flex-col gap-4">
       <TopNavigation page="Read History" />
 
-      <Typography variant="h2">Starred Articles</Typography>
+      <h2 className="text-3xl font-bold tracking-tight">Starred Articles</h2>
 
       {articles.length > 0 ? (
         <ArticleList articles={articles} />
