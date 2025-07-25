@@ -6,6 +6,8 @@ import MarkAsReadButton from "@/components/feed/MarkAsReadButton";
 import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
 import TopNavigation from "@/components/layout/TopNavigation";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
@@ -55,7 +57,14 @@ const Feed = async (props: FeedProps) => {
       />
 
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">{feed.title}</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold tracking-tight">{feed.title}</h2>
+          <Badge variant="secondary" className="text-sm">
+            {articles.length} articles
+          </Badge>
+        </div>
+
+        <Separator />
 
         <div className="my-4 flex flex-row flex-wrap items-center gap-2">
           <FeedFilterButton />
