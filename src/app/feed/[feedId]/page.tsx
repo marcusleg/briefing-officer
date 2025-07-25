@@ -55,7 +55,8 @@ const Feed = async (props: FeedProps) => {
       />
 
       <div>
-        <Typography variant="h2">{feed.title}</Typography>
+        <h2 className="text-3xl font-bold tracking-tight">{feed.title}</h2>
+
         <div className="my-4 flex flex-row flex-wrap items-center gap-2">
           <FeedFilterButton />
           <RefreshFeedButton feedId={feedId} />

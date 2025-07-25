@@ -30,7 +30,7 @@ const ReadLaterPage = async () => {
     <div className="flex flex-col gap-4">
       <TopNavigation page="Read Later" />
 
-      <Typography variant="h2">Read Later</Typography>
+      <h2 className="text-3xl font-bold tracking-tight">Read Later</h2>
 
       {articles.length > 0 ? (
         <ArticleList articles={articles} />
