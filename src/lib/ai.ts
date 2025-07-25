@@ -32,15 +32,14 @@ export const streamAiSummary = async (articleId: number) => {
       system: systemPrompt,
       prompt: `Write a summary in the following structure and **format your response in Markdown**:
 
-- The original article title should be a level 1 heading (\`#\`).
-- Directly under the title, write a single paragraph containing a highly condensed description of the article's contents.
-  Omit this paragraph if your full summary is only slightly longer than this condensed description.
-- The following sections should each use level 2 headings (\`##\`) with the respective content underneath:
-    - Key Points (as a bullet list; use "Key Facts" for factual articles or "Key Takeaways" for opinion pieces)
-    - Summary
-      It must be shorter than the original article, but should not omit important, relevant, or interesting information. Focus on a high information density while maintaining clear, readable language. Include all major points, arguments, or findings that are most relevant to understanding the article as a whole. Do not simply copy text verbatim—paraphrase and condense where appropriate.
-    - Why the Full Article Might Be Worth Reading
-      Only include this section if the full article offers additional detail, nuance, or unique value that is not fully captured in your summary. If the summary sufficiently covers all key content, you may omit this section.
+- Key Points (as a bullet list; use "Key Facts" for factual articles or "Key Takeaways" for opinion pieces)
+  Highlight one keywords or key term per bullet point in bold.
+- Summary
+  It must be shorter than the original article, but should not omit important, relevant, or interesting information. Focus on a high information density while maintaining clear, readable language. Include all major points, arguments, or findings that are most relevant to understanding the article as a whole. Do not simply copy text verbatim — paraphrase and condense where appropriate.
+- Why the Full Article Is Worth Reading
+  Only include this section if the full article offers additional detail, nuance, or unique value that is not fully captured in your summary. If the summary sufficiently covers all key content, you may omit this section.
+
+ Each should use a level 3 headings (\`###\`) with the respective content underneath:
 
 Below is the article:
 

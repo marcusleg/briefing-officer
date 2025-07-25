@@ -1,5 +1,5 @@
 import LeftNavigation from "@/components/layout/LeftNavigation";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -32,10 +32,7 @@ export default async function RootLayout({
         <SidebarProvider>
           <LeftNavigation />
 
-          <main>
-            <SidebarTrigger />
-            {children}
-          </main>
+          <main className="p-4">{children}</main>
 
           <Toaster richColors />
         </SidebarProvider>

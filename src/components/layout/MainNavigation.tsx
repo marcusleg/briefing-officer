@@ -1,3 +1,5 @@
+"use server";
+
 import AppSidebarMenuButton from "@/components/layout/AppSidebarMenuButton";
 import {
   SidebarGroup,
