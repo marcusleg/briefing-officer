@@ -71,16 +71,18 @@ const Feed = async (props: FeedProps) => {
           </time>
         </div>
 
-        {articles.length > 0 ? (
-          <ArticleList articles={articles} />
-        ) : (
-          <Typography
-            variant="p"
-            className="my-8 text-center text-lg text-muted-foreground"
-          >
-            There are no {showSearchParam === "unread" && "unread"} articles.
-          </Typography>
-        )}
+        <div className="flex flex-col gap-4">
+          {articles.length > 0 ? (
+            <ArticleList articles={articles} />
+          ) : (
+            <Typography
+              variant="p"
+              className="my-8 text-center text-lg text-muted-foreground"
+            >
+              There are no {showSearchParam === "unread" && "unread"} articles.
+            </Typography>
+          )}
+        </div>
       </div>
     </div>
   );
