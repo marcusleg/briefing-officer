@@ -1,3 +1,5 @@
+"use server";
+
 import AddFeedButton from "@/components/layout/AddFeedButton";
 import AppSidebarMenuButton from "@/components/layout/AppSidebarMenuButton";
 import RefreshAllFeedsButton from "@/components/layout/RefreshAllFeedsButton";

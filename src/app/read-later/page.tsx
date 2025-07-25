@@ -1,4 +1,5 @@
 import ArticleList from "@/components/article/ArticleList";
+import TopNavigation from "@/components/layout/TopNavigation";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
@@ -27,6 +28,8 @@ const ReadLaterPage = async () => {
 
   return (
     <div className="flex flex-col gap-4">
+      <TopNavigation page="Read Later" />
+
       <Typography variant="h2">Read Later</Typography>
 
       {articles.length > 0 ? (
