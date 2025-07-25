@@ -1,17 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
-import { CircleCheckBigIcon, CircleIcon, LoaderCircle } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -38,41 +32,41 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
   };
 
   const handleMarkAsUnread = async () => {
+    setIsSubmitting(true);
     await unmarkArticleAsRead(article.id);
-  };
+    setIsSubmitting(false);
 
-  const renderTooltipButton = (
-    Icon: React.ComponentType<{ className?: string }>,
-    onClick: () => void,
-    tooltipText: string,
-  ) => (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            disabled={isSubmitting}
-            size="sm"
-            variant="outline"
-            onClick={onClick}
-          >
-            {isSubmitting ? (
-              <LoaderCircle className="h-4 w-4 animate-spin" />
-            ) : (
-              <Icon className="h-4 w-4" />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{tooltipText}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
+    toast("Article marked as unread", {
+      description: (
+        <>
+          <span className="font-semibold italic">{article.title}</span> has been
+          marked as read.
+        </>
+      ),
+      action: {
+        label: "Undo",
+        onClick: () => handleMarkAsRead(),
+      },
+    });
+  };
 
   const isRead = article.readAt !== null;
 
-  return renderTooltipButton(
-    isRead ? CircleCheckBigIcon : CircleIcon,
-    isRead ? handleMarkAsUnread : handleMarkAsRead,
-    isRead ? "Mark as unread" : "Mark as read",
+  return (
+    <Button
+      className="text-xs"
+      disabled={isSubmitting}
+      onClick={isRead ? handleMarkAsUnread : handleMarkAsRead}
+      size="sm"
+      variant="ghost"
+    >
+      {isRead ? (
+        <EyeOffIcon className="mr-1 h-4 w-4" />
+      ) : (
+        <EyeIcon className="mr-1 h-4 w-4" />
+      )}
+      {isRead ? "Mark Unread" : "Mark Read"}
+    </Button>
   );
 };
 

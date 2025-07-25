@@ -2,24 +2,23 @@
 
 import AiLeadStream from "@/components/article/AiLeadStream";
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
-import { ReadingTimeBadge } from "@/components/article/ReadingTimeBadge";
-import { WordCountBadge } from "@/components/article/WordCountBadge";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import Typography from "@/components/ui/typography";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
-import Link from "next/link";
+import {
+  CalendarIcon,
+  ClockIcon,
+  FileTextIcon,
+  GlobeIcon,
+  UserIcon,
+} from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useInView } from "react-intersection-observer";
@@ -79,44 +78,67 @@ const ArticleCard = (props: ArticleCardProps) => {
   return (
     <Card
       className={cn(
+        "cursor-pointer transition-shadow duration-200 hover:shadow-lg",
         props.article.readAt !== null ? "opacity-65" : "",
         props.className,
       )}
       onClick={props.onClick}
       ref={cardRef}
     >
-      <CardHeader>
-        <CardTitle className="flex flex-col gap-4">
-          <Link href={props.article.link} referrerPolicy="no-referrer">
-            {props.article.title}
-          </Link>
-        </CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h2 className="mb-3 text-xl font-semibold leading-tight transition-colors hover:text-primary">
+              {props.article.title}
+            </h2>
 
-        <div className="flex flex-row gap-2 align-middle text-sm text-muted-foreground">
-          <div>
-            <Link href={`/feed/${props.article.feedId}`}>
-              {props.article.feed.title}
-            </Link>
-            , <IntlRelativeTime date={props.article.publicationDate} />
+            {/* Source, Author and Time */}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1 font-medium">
+                <GlobeIcon className="h-4 w-4" />
+                <span>{props.article.feed.title}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <UserIcon className="h-4 w-4" />
+                <span>{props.article.scrape?.author}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CalendarIcon className="h-4 w-4" />
+                <span>
+                  <IntlRelativeTime date={props.article.publicationDate} />
+                </span>
+              </div>
+            </div>
           </div>
-          {articleReadingTime && (
-            <>
-              <ReadingTimeBadge minutes={articleReadingTime.minutes} />
-              <WordCountBadge words={articleReadingTime.words} />
-            </>
-          )}
         </div>
       </CardHeader>
 
-      <CardContent ref={inViewRef}>
-        <Typography className="text-pretty text-justify text-sm" variant="p">
+      <CardContent className="pt-0" ref={inViewRef}>
+        {/* Article Summary */}
+        <p className="mb-4 leading-relaxed">
           {inView && <AiLeadStream articleId={props.article.id} />}
-        </Typography>
-      </CardContent>
+        </p>
 
-      <CardFooter>
+        {/* Metadata Badges */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {articleReadingTime && (
+            <>
+              <Badge variant="outline" className="text-xs">
+                <ClockIcon className="mr-1 h-3 w-3" />
+                {articleReadingTime.text}
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                <FileTextIcon className="mr-1 h-3 w-3" />
+                {articleReadingTime.words} words
+              </Badge>
+            </>
+          )}
+        </div>
+
+        <Separator />
+
         <ArticleCardActions article={props.article} />
-      </CardFooter>
+      </CardContent>
     </Card>
   );
 };

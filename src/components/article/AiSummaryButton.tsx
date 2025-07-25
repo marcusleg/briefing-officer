@@ -13,12 +13,13 @@ const AiSummaryButton = ({ feedId, articleId, size }: AiSummaryButtonProps) => {
   return (
     <Link
       className={buttonVariants({
-        size: size ? size : "default",
-        variant: "outline",
+        className: "text-xs",
+        size: "sm",
+        variant: "ghost",
       })}
       href={`/feed/${feedId}/article/${articleId}/ai-summary`}
     >
-      <Sparkles className="mr-2 h-4 w-4" />
+      <Sparkles className="mr-1 h-4 w-4" />
       AI Summary
     </Link>
   );

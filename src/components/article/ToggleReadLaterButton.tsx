@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   markArticleAsReadLater,
   unmarkArticleAsReadLater,
 } from "@/lib/repository/articleRepository";
@@ -52,36 +46,23 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
     });
   };
 
-  if (article.readLater) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={handleRemoveFromReadLaterClick}
-              size="sm"
-              variant="outline"
-            >
-              <BookmarkIcon className="h-4 w-4" fill="black" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Remove from Read Later</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button onClick={handleReadLaterClick} size="sm" variant="outline">
-            <BookmarkIcon className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Read Later</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={
+        article.readLater
+          ? handleRemoveFromReadLaterClick
+          : handleReadLaterClick
+      }
+      className="text-xs"
+    >
+      <BookmarkIcon
+        className="mr-1 h-4 w-4"
+        fill={article.readLater ? "black" : "transparent"}
+      />
+      Read Later
+    </Button>
   );
 };
 
