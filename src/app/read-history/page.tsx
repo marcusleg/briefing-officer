@@ -30,7 +30,10 @@ const ReadHistoryPage = async () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <TopNavigation page="Read History" />
+      <TopNavigation
+        segments={[{ name: "Home", href: "/" }]}
+        page="Read History"
+      />
 
       <h2 className="text-3xl font-bold tracking-tight">Read History</h2>
 

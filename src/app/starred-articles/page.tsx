@@ -28,7 +28,10 @@ const StarredArticlesPage = async () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <TopNavigation page="Read History" />
+      <TopNavigation
+        segments={[{ name: "Home", href: "/" }]}
+        page="Starred Articles"
+      />
 
       <h2 className="text-3xl font-bold tracking-tight">Starred Articles</h2>
 
