@@ -16,16 +16,17 @@ const VisitButton = ({ article, size }: VisitButtonProps) => {
   return (
     <Link
       className={buttonVariants({
-        size: size ? size : "default",
-        variant: "outline",
+        className: "text-xs",
+        size: "sm",
+        variant: "ghost",
       })}
       href={article.link}
       onClick={() => markArticleAsRead(article.id)}
       onAuxClick={() => markArticleAsRead(article.id)}
       referrerPolicy="no-referrer"
     >
-      <ExternalLink className="mr-2 h-4 w-4" />
-      Visit
+      <ExternalLink className="mr-1 h-4 w-4" />
+      Visit Original
     </Link>
   );
 };

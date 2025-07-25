@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   markArticleAsStarred,
   unmarkArticleAsStarred,
 } from "@/lib/repository/articleRepository";
@@ -52,32 +46,19 @@ const ToggleStarredButton = ({ article }: ToggleStarredButtonProps) => {
     });
   };
 
-  if (article.starred) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={handleUnstarClick} size="sm" variant="outline">
-              <StarIcon className="h-4 w-4" fill="black" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Unstar</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button onClick={handleStarClick} size="sm" variant="outline">
-            <StarIcon className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Star</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={article.starred ? handleUnstarClick : handleStarClick}
+      className="text-xs"
+    >
+      <StarIcon
+        className="mr-1 h-4 w-4"
+        fill={article.starred ? "black" : "transparent"}
+      />
+      {article.starred ? "Unstar" : "Star"}
+    </Button>
   );
 };
 
