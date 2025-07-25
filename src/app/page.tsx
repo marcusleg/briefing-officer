@@ -2,11 +2,13 @@ import ArticleList from "@/components/article/ArticleList";
 import NumberOfArticlesReadLast7DaysChart from "@/components/frontpage/NumberOfArticlesReadLast7DaysChart";
 import NumberOfNewArticlesLast7DaysChart from "@/components/frontpage/NumberOfNewArticlesLast7DaysChart";
 import UnreadArticlesChart from "@/components/frontpage/UnreadArticlesChart";
+import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbList,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
@@ -66,9 +68,16 @@ const Home = async () => {
         />
       </div>
 
-      <h2 className="text-3xl font-bold tracking-tight">
-        Unread articles from your feeds
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">
+          Unread articles from your feeds
+        </h2>
+        <Badge variant="secondary" className="text-sm">
+          {articles.length} articles
+        </Badge>
+      </div>
+
+      <Separator />
 
       {articles.length > 0 ? (
         <ArticleList articles={articles} />

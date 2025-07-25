@@ -1,5 +1,7 @@
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/layout/TopNavigation";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
@@ -33,7 +35,14 @@ const StarredArticlesPage = async () => {
         page="Starred Articles"
       />
 
-      <h2 className="text-3xl font-bold tracking-tight">Starred Articles</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Starred Articles</h2>
+        <Badge variant="secondary" className="text-sm">
+          {articles.length} articles
+        </Badge>
+      </div>
+
+      <Separator />
 
       <div className="flex flex-col gap-4">
         {articles.length > 0 ? (
