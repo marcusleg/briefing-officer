@@ -35,16 +35,18 @@ const StarredArticlesPage = async () => {
 
       <h2 className="text-3xl font-bold tracking-tight">Starred Articles</h2>
 
-      {articles.length > 0 ? (
-        <ArticleList articles={articles} />
-      ) : (
-        <Typography
-          variant="p"
-          className="my-8 text-center text-lg text-muted-foreground"
-        >
-          You haven&apos;t starred any articles yet.
-        </Typography>
-      )}
+      <div className="flex flex-col gap-4">
+        {articles.length > 0 ? (
+          <ArticleList articles={articles} />
+        ) : (
+          <Typography
+            variant="p"
+            className="my-8 text-center text-lg text-muted-foreground"
+          >
+            You haven&apos;t starred any articles yet.
+          </Typography>
+        )}
+      </div>
     </div>
   );
 };
