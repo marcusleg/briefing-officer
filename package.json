@@ -44,7 +44,7 @@
     "react-hotkeys-hook": "^5.1.0",
     "react-intersection-observer": "^9.16.0",
     "reading-time": "^1.5.0",
-    "recharts": "^2.15.3",
+    "recharts": "^2.15.4",
     "sonner": "^2.0.6",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
