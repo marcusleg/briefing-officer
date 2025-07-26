@@ -1,5 +1,6 @@
 "use client";
 
+import SkeletonChart from "@/components/frontpage/SkeletonChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
@@ -23,11 +24,22 @@ const pieChartCellColors = [
   "hsl(var(--chart-5))",
 ];
 
+export interface UnreadArticlesChartData {
+  feedTitle: string;
+  unread: number;
+}
+
 interface UnreadArticlesChartProps {
-  chartData: { feedTitle: string; unread: number }[];
+  chartData?: UnreadArticlesChartData[];
 }
 
 const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
+  const chartTitle = "Unread Articles";
+
+  if (!chartData) {
+    return <SkeletonChart title={chartTitle} />;
+  }
+
   const unreadArticlesInTotal = chartData.reduce(
     (acc, feed) => acc + feed.unread,
     0,
@@ -36,7 +48,7 @@ const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Unread articles</CardTitle>
+        <CardTitle>{chartTitle}</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer

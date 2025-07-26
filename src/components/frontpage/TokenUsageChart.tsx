@@ -1,5 +1,6 @@
 "use client";
 
+import SkeletonChart from "@/components/frontpage/SkeletonChart";
 import { CardHeader } from "@/components/ui/card";
 import {
   ChartConfig,
@@ -29,10 +30,16 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 interface TokenUsageChartProps {
-  tokenUsage: TokenUsage[];
+  tokenUsage?: TokenUsage[];
 }
 
 const TokenUsageChart = ({ tokenUsage }: TokenUsageChartProps) => {
+  const chartTitle = "Token Usage";
+
+  if (!tokenUsage) {
+    return <SkeletonChart title={chartTitle} />;
+  }
+
   // TODO display cost per model
   const sumInputTokens = tokenUsage
     .map((entry) => entry.inputTokens)
@@ -54,7 +61,7 @@ const TokenUsageChart = ({ tokenUsage }: TokenUsageChartProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Token Usage</CardTitle>
+        <CardTitle>{chartTitle}</CardTitle>
         <CardDescription>LLM token consumption (stacked)</CardDescription>
       </CardHeader>
       <CardContent>

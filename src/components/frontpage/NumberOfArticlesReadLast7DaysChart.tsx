@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Rectangle, XAxis } from "recharts";
 
+import SkeletonChart from "@/components/frontpage/SkeletonChart";
 import {
   Card,
   CardContent,
@@ -23,13 +24,25 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+export interface NumberOfArticlesReadLast7DaysChartData {
+  date: string;
+  weekday: string;
+  count: number;
+}
+
 interface NumberOfArticlesReadLast7DaysChartProps {
-  chartData: { date: string; weekday: string; count: number }[];
+  chartData?: NumberOfArticlesReadLast7DaysChartData[];
 }
 
 const NumberOfArticlesReadLast7DaysChart = ({
   chartData,
 }: NumberOfArticlesReadLast7DaysChartProps) => {
+  const chartTitle = "Articles read per day";
+
+  if (!chartData) {
+    return <SkeletonChart title={chartTitle} />;
+  }
+
   const dailyAverage = chartData.reduce((acc, day) => acc + day.count, 0) / 7;
 
   const from = chartData[0].date;
@@ -38,7 +51,7 @@ const NumberOfArticlesReadLast7DaysChart = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Articles read per day</CardTitle>
+        <CardTitle>{chartTitle}</CardTitle>
         <CardDescription>
           {from} to {to}
         </CardDescription>

@@ -1,6 +1,5 @@
 import ArticleList from "@/components/article/ArticleList";
 import Dashboard from "@/components/frontpage/Dashboard";
-import { DateRangePicker } from "@/components/layout/DateRangePicker";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
@@ -45,8 +44,6 @@ const Home = async () => {
             <BreadcrumbPage>Home</BreadcrumbPage>
           </BreadcrumbList>
         </Breadcrumb>
-        <div className="grow" />
-        <DateRangePicker />
       </div>
 
       <Dashboard />
