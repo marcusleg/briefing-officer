@@ -15,7 +15,7 @@ export const config = {
   matcher: [
     "/",
     "/read-later",
-    "/read-history",
+    "/history",
     "/starred-articles",
     "/feed/:feedId",
     "/feed/:feedId/article/:articleId/ai-summary",
