@@ -30,22 +30,22 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 interface TokenUsageChartProps {
-  tokenUsage?: TokenUsage[];
+  chartData?: TokenUsage[];
 }
 
-const TokenUsagePerDayChart = ({ tokenUsage }: TokenUsageChartProps) => {
+const TokenUsagePerDayChart = ({ chartData }: TokenUsageChartProps) => {
   const chartTitle = "Token Usage";
   const chartDescription = "LLM token consumption (stacked)";
 
-  if (!tokenUsage) {
+  if (!chartData) {
     return <SkeletonChart title={chartTitle} description={chartDescription} />;
   }
 
   // TODO display cost per model
-  const sumInputTokens = tokenUsage
+  const sumInputTokens = chartData
     .map((entry) => entry.inputTokens)
     .reduce((acc, entry) => acc + entry, 0);
-  const sumOutputTokens = tokenUsage
+  const sumOutputTokens = chartData
     .map((entry) => entry.outputTokens)
     .reduce((acc, entry) => acc + entry, 0);
   const totalCost =
@@ -69,7 +69,7 @@ const TokenUsagePerDayChart = ({ tokenUsage }: TokenUsageChartProps) => {
         <ChartContainer config={chartConfig}>
           <AreaChart
             accessibilityLayer
-            data={tokenUsage}
+            data={chartData}
             margin={{
               left: 12,
               right: 12,

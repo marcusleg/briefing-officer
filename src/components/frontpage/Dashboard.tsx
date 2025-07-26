@@ -10,7 +10,6 @@ import TokenUsagePerDayChart from "@/components/frontpage/TokenUsagePerDayChart"
 import UnreadArticlesPieChart, {
   UnreadArticlesChartData,
 } from "@/components/frontpage/UnreadArticlesPieChart";
-import { DateRangePicker } from "@/components/layout/DateRangePicker";
 import {
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
@@ -19,8 +18,51 @@ import {
 } from "@/lib/repository/statsRepository";
 import { TokenUsage } from "@prisma/client";
 import { useEffect, useState } from "react";
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
+
+export enum DateRangePreset {
+  Last7Days = "Last 7 Days",
+  Last30Days = "Last 30 Days",
+  Last3Months = "Last 3 Months",
+}
+
+interface DateRange {
+  from: Date;
+  to: Date;
+}
+
+const getDateRangeFromPreset = (preset: DateRangePreset): DateRange => {
+  const to = new Date();
+  const from = new Date();
+
+  switch (preset) {
+    case DateRangePreset.Last7Days:
+      from.setDate(to.getDate() - 7);
+      break;
+    case DateRangePreset.Last30Days:
+      from.setDate(to.getDate() - 30);
+      break;
+    case DateRangePreset.Last3Months:
+      from.setMonth(to.getMonth() - 3);
+      break;
+  }
+
+  return { from, to };
+};
 
 const Dashboard = () => {
+  const [selectedRange, setSelectedRange] = useState<DateRangePreset>(
+    DateRangePreset.Last7Days,
+  );
+  const [from, setFrom] = useState<Date>(new Date());
+  const [to, setTo] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const dateRange = getDateRangeFromPreset(selectedRange);
+    setFrom(dateRange.from);
+    setTo(dateRange.to);
+  }, [selectedRange]);
+
   const [unreadArticlesChartData, setUnreadArticlesChartData] =
     useState<UnreadArticlesChartData[]>();
   const [tokenUsageChartData, setTokenUsageChartData] =
@@ -33,23 +75,35 @@ const Dashboard = () => {
   useEffect(() => {
     getUnreadArticlesPerFeed().then((data) => setUnreadArticlesChartData(data));
 
-    getTokenUsageHistory().then((data) => setTokenUsageChartData(data));
+    getTokenUsageHistory(from, to).then((data) => setTokenUsageChartData(data));
 
-    getWeeklyArticleCountPerFeed().then((data) =>
+    getWeeklyArticleCountPerFeed(from, to).then((data) =>
       setNumberOfNewArticlesChartData(data),
     );
 
-    getWeeklyArticlesRead().then((data) =>
+    getWeeklyArticlesRead(from, to).then((data) =>
       setWeeklyArticlesReadChartData(data),
     );
-  });
+  }, [selectedRange, from, to]);
 
   return (
     <>
-      <DateRangePicker />
+      <ToggleGroup
+        type="single"
+        value={selectedRange}
+        variant="outline"
+        onValueChange={(value) => setSelectedRange(value as DateRangePreset)}
+      >
+        {Object.values(DateRangePreset).map((range) => (
+          <ToggleGroupItem key={range} value={range}>
+            {range}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+
       <div className="hidden grid-cols-4 gap-4 lg:visible lg:grid">
         <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
-        <TokenUsagePerDayChart tokenUsage={tokenUsageChartData} />
+        <TokenUsagePerDayChart chartData={tokenUsageChartData} />
         <NewArticlesPerDayChart chartData={numberOfNewArticlesChartData} />
         <ArticlesReadPerDayChart
           chartData={weeklyArticlesReadChartData}

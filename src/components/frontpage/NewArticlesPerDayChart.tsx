@@ -26,7 +26,6 @@ const chartConfig = {
 
 export interface NumberOfArticlesLast7DaysChartData {
   date: string;
-  weekday: string;
   count: number;
 }
 
@@ -44,6 +43,11 @@ const NewArticlesPerDayChart = ({
     return <SkeletonChart title={chartTitle} description={chartDescription} />;
   }
 
+  const dateFormatterShort = new Intl.DateTimeFormat(navigator.language, {
+    day: "2-digit",
+    month: "short",
+  });
+
   const dailyAverage = chartData.reduce((acc, day) => acc + day.count, 0) / 7;
 
   return (
@@ -57,7 +61,10 @@ const NewArticlesPerDayChart = ({
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="weekday"
+              dataKey="date"
+              tickFormatter={(value) =>
+                dateFormatterShort.format(new Date(value))
+              }
               tickLine={false}
               tickMargin={10}
               axisLine={false}

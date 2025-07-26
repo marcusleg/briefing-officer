@@ -44,92 +44,90 @@ export const getUnreadArticlesPerFeed = async () => {
   });
 };
 
-const getLast7Days = () => {
-  const dates = [];
-  const today = new Date();
+const getDaysInDateRange = (from: Date, to: Date) => {
+  if (from > to) {
+    throw new Error("'from' date must be before or equal to 'to' date");
+  }
 
-  for (let i = 0; i < 7; i++) {
-    const from = new Date(today);
-    from.setDate(today.getDate() - 6 + i - 1);
-    const fromFormatted = from.toISOString().split("T")[0];
+  const dates: string[] = [];
+  const current = new Date(from);
 
-    const to = new Date(today);
-    to.setDate(today.getDate() - 6 + i);
-    const toFormatted = to.toISOString().split("T")[0];
-
-    dates.push({ from: fromFormatted, to: toFormatted });
+  while (current <= to) {
+    dates.push(current.toISOString().split("T")[0]);
+    current.setDate(current.getDate() + 1);
   }
 
   return dates;
 };
 
-export const getWeeklyArticleCountPerFeed = async () => {
+export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
   const userId = await getUserId();
 
-  const last7Days = getLast7Days();
+  const dates = getDaysInDateRange(from, to);
 
-  const numberOfArticlesLast7Days = await Promise.all(
-    last7Days.map((dateRange) =>
+  const articlesPerDay = await Promise.all(
+    dates.map((date) =>
       prisma.article.aggregate({
         _count: {
           _all: true,
         },
         where: {
           publicationDate: {
-            gte: new Date(dateRange.from),
-            lt: new Date(dateRange.to),
+            gte: `${date}T00:00:00.000Z`,
+            lte: `${date}T23:59:59.999Z`,
           },
           userId,
         },
       }),
     ),
   );
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  return last7Days.map((dateRange, index) => ({
-    date: dateRange.from.split("T")[0],
-    weekday: weekDays[new Date(dateRange.to).getDay()],
-    count: numberOfArticlesLast7Days[index]._count._all,
+  return dates.map((date, index) => ({
+    date,
+    count: articlesPerDay[index]._count._all,
   }));
 };
 
-export const getWeeklyArticlesRead = async () => {
+export const getWeeklyArticlesRead = async (from: Date, to: Date) => {
   const userId = await getUserId();
 
-  const last7Days = getLast7Days();
+  const dates = getDaysInDateRange(from, to);
 
-  const numberOfArticlesReadLast7Days = await Promise.all(
-    last7Days.map((dateRange) =>
+  const articlesReadPerDay = await Promise.all(
+    dates.map((date) =>
       prisma.article.aggregate({
         _count: {
           _all: true,
         },
         where: {
           readAt: {
-            gte: new Date(dateRange.from),
-            lt: new Date(dateRange.to),
+            gte: `${date}T00:00:00.000Z`,
+            lte: `${date}T23:59:59.999Z`,
           },
           userId,
         },
       }),
     ),
   );
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  return last7Days.map((dateRange, index) => ({
-    date: dateRange.from.split("T")[0],
-    weekday: weekDays[new Date(dateRange.to).getDay()],
-    count: numberOfArticlesReadLast7Days[index]._count._all,
+  return dates.map((date, index) => ({
+    date,
+    count: articlesReadPerDay[index]._count._all,
   }));
 };
 
-export const getTokenUsageHistory = async () => {
+export const getTokenUsageHistory = async (from: Date, to: Date) => {
   const userId = await getUserId();
+
+  const dates = getDaysInDateRange(from, to);
 
   // TODO limit to certain date range
   return prisma.tokenUsage.findMany({
     where: {
       userId,
+      date: {
+        in: dates,
+      },
     },
   });
 };
