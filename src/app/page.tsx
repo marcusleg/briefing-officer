@@ -61,7 +61,7 @@ const Home = async () => {
         </Breadcrumb>
       </div>
 
-      <div className="hidden grid-cols-3 gap-4 lg:visible lg:grid">
+      <div className="hidden grid-cols-4 gap-4 lg:visible lg:grid">
         <UnreadArticlesChart chartData={unreadArticlesChartData} />
         <TokenUsageChart tokenUsage={tokenUsageChartData} />
         <NumberOfNewArticlesLast7DaysChart
