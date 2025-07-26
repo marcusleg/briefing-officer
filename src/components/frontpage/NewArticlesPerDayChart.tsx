@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Rectangle, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import SkeletonChart from "@/components/frontpage/SkeletonChart";
 import {
@@ -58,7 +58,14 @@ const NewArticlesPerDayChart = ({
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
+          <AreaChart
+            accessibilityLayer
+            data={chartData}
+            margin={{
+              left: 12,
+              right: 12,
+            }}
+          >
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="date"
@@ -73,24 +80,15 @@ const NewArticlesPerDayChart = ({
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar
+            <Area
               dataKey="count"
+              type="natural"
               fill="hsl(var(--chart-1))"
-              strokeWidth={2}
-              radius={8}
-              activeBar={({ ...props }) => {
-                return (
-                  <Rectangle
-                    {...props}
-                    fillOpacity={0.8}
-                    stroke={props.payload.fill}
-                    strokeDasharray={4}
-                    strokeDashoffset={4}
-                  />
-                );
-              }}
+              fillOpacity={0.4}
+              stroke="hsl(var(--chart-1))"
+              stackId="a"
             />
-          </BarChart>
+          </AreaChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="text-center text-sm font-medium">
