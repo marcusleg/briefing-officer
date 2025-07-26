@@ -40,8 +40,8 @@ interface UnreadArticlesChartProps {
 }
 
 const UnreadArticlesPieChart = ({ chartData }: UnreadArticlesChartProps) => {
-  const chartTitle = "Unread Articles";
-  const chartDescription = "Number of currently unread articles";
+  const chartTitle = "Articles to Explore";
+  const chartDescription = "Articles you haven’t dismissed or read yet";
 
   if (!chartData) {
     return <SkeletonChart title={chartTitle} description={chartDescription} />;

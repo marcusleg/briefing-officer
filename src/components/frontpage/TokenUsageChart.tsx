@@ -36,7 +36,7 @@ interface TokenUsageChartProps {
 const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
   const chartTitle = "Token Usage";
   const chartDescription =
-    "Daily total of tokens used by your AI Briefing Officer";
+    "Daily total of LLM tokens used by your AI Briefing Officer";
 
   if (!chartData) {
     return <SkeletonChart title={chartTitle} description={chartDescription} />;
