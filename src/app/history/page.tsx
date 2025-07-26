@@ -32,13 +32,10 @@ const ReadHistoryPage = async () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <TopNavigation
-        segments={[{ name: "Home", href: "/" }]}
-        page="Read History"
-      />
+      <TopNavigation segments={[{ name: "Home", href: "/" }]} page="History" />
 
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Read History</h2>
+        <h2 className="text-3xl font-bold tracking-tight">History</h2>
         <Badge variant="secondary" className="text-sm">
           {articles.length} articles
         </Badge>

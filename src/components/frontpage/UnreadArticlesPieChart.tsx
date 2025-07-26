@@ -1,6 +1,13 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import SkeletonChart from "@/components/frontpage/SkeletonChart";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -23,11 +30,23 @@ const pieChartCellColors = [
   "hsl(var(--chart-5))",
 ];
 
-interface UnreadArticlesChartProps {
-  chartData: { feedTitle: string; unread: number }[];
+export interface UnreadArticlesChartData {
+  feedTitle: string;
+  unread: number;
 }
 
-const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
+interface UnreadArticlesChartProps {
+  chartData?: UnreadArticlesChartData[];
+}
+
+const UnreadArticlesPieChart = ({ chartData }: UnreadArticlesChartProps) => {
+  const chartTitle = "Articles to Explore";
+  const chartDescription = "Articles you haven’t dismissed or read yet";
+
+  if (!chartData) {
+    return <SkeletonChart title={chartTitle} description={chartDescription} />;
+  }
+
   const unreadArticlesInTotal = chartData.reduce(
     (acc, feed) => acc + feed.unread,
     0,
@@ -36,7 +55,8 @@ const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Unread articles</CardTitle>
+        <CardTitle>{chartTitle}</CardTitle>
+        <CardDescription>{chartDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer
@@ -83,7 +103,7 @@ const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Articles
+                          Total
                         </tspan>
                       </text>
                     );
@@ -98,4 +118,4 @@ const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
   );
 };
 
-export default UnreadArticlesChart;
+export default UnreadArticlesPieChart;

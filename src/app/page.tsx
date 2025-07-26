@@ -1,7 +1,5 @@
 import ArticleList from "@/components/article/ArticleList";
-import NumberOfArticlesReadLast7DaysChart from "@/components/frontpage/NumberOfArticlesReadLast7DaysChart";
-import NumberOfNewArticlesLast7DaysChart from "@/components/frontpage/NumberOfNewArticlesLast7DaysChart";
-import UnreadArticlesChart from "@/components/frontpage/UnreadArticlesChart";
+import Dashboard from "@/components/frontpage/Dashboard";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
@@ -13,11 +11,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
-import {
-  getUnreadArticlesPerFeed,
-  getWeeklyArticleCountPerFeed,
-  getWeeklyArticlesRead,
-} from "@/lib/repository/statsRepository";
 import { headers } from "next/headers";
 
 const Home = async () => {
@@ -42,11 +35,6 @@ const Home = async () => {
     },
   });
 
-  const unreadArticlesChartData = await getUnreadArticlesPerFeed();
-  const numberOfNewArticlesLast7DaysChartData =
-    await getWeeklyArticleCountPerFeed();
-  const numberOfArticlesReadLast7DaysChartData = await getWeeklyArticlesRead();
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-4">
@@ -58,15 +46,7 @@ const Home = async () => {
         </Breadcrumb>
       </div>
 
-      <div className="hidden grid-cols-3 gap-4 lg:visible lg:grid">
-        <UnreadArticlesChart chartData={unreadArticlesChartData} />
-        <NumberOfNewArticlesLast7DaysChart
-          chartData={numberOfNewArticlesLast7DaysChartData}
-        />
-        <NumberOfArticlesReadLast7DaysChart
-          chartData={numberOfArticlesReadLast7DaysChartData}
-        />
-      </div>
+      <Dashboard />
 
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">
