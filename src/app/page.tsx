@@ -3,6 +3,7 @@ import NumberOfArticlesReadLast7DaysChart from "@/components/frontpage/NumberOfA
 import NumberOfNewArticlesLast7DaysChart from "@/components/frontpage/NumberOfNewArticlesLast7DaysChart";
 import TokenUsageChart from "@/components/frontpage/TokenUsageChart";
 import UnreadArticlesChart from "@/components/frontpage/UnreadArticlesChart";
+import { DateRangePicker } from "@/components/layout/DateRangePicker";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
@@ -59,6 +60,8 @@ const Home = async () => {
             <BreadcrumbPage>Home</BreadcrumbPage>
           </BreadcrumbList>
         </Breadcrumb>
+        <div className="grow" />
+        <DateRangePicker />
       </div>
 
       <div className="hidden grid-cols-4 gap-4 lg:visible lg:grid">
