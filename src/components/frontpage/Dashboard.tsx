@@ -89,6 +89,7 @@ const Dashboard = () => {
   return (
     <>
       <ToggleGroup
+        className="hidden md:visible"
         type="single"
         value={selectedRange}
         variant="outline"
