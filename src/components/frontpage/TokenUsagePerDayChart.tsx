@@ -33,11 +33,12 @@ interface TokenUsageChartProps {
   tokenUsage?: TokenUsage[];
 }
 
-const TokenUsageChart = ({ tokenUsage }: TokenUsageChartProps) => {
+const TokenUsagePerDayChart = ({ tokenUsage }: TokenUsageChartProps) => {
   const chartTitle = "Token Usage";
+  const chartDescription = "LLM token consumption (stacked)";
 
   if (!tokenUsage) {
-    return <SkeletonChart title={chartTitle} />;
+    return <SkeletonChart title={chartTitle} description={chartDescription} />;
   }
 
   // TODO display cost per model
@@ -62,7 +63,7 @@ const TokenUsageChart = ({ tokenUsage }: TokenUsageChartProps) => {
     <Card>
       <CardHeader>
         <CardTitle>{chartTitle}</CardTitle>
-        <CardDescription>LLM token consumption (stacked)</CardDescription>
+        <CardDescription>{chartDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -117,4 +118,4 @@ const TokenUsageChart = ({ tokenUsage }: TokenUsageChartProps) => {
   );
 };
 
-export default TokenUsageChart;
+export default TokenUsagePerDayChart;

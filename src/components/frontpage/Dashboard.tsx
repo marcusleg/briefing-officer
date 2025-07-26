@@ -1,15 +1,15 @@
 "use client";
 
-import NumberOfArticlesReadLast7DaysChart, {
+import ArticlesReadPerDayChart, {
   NumberOfArticlesReadLast7DaysChartData,
-} from "@/components/frontpage/NumberOfArticlesReadLast7DaysChart";
-import NumberOfNewArticlesLast7DaysChart, {
+} from "@/components/frontpage/ArticlesReadPerDayChart";
+import NewArticlesPerDayChart, {
   NumberOfArticlesLast7DaysChartData,
-} from "@/components/frontpage/NumberOfNewArticlesLast7DaysChart";
-import TokenUsageChart from "@/components/frontpage/TokenUsageChart";
-import UnreadArticlesChart, {
+} from "@/components/frontpage/NewArticlesPerDayChart";
+import TokenUsagePerDayChart from "@/components/frontpage/TokenUsagePerDayChart";
+import UnreadArticlesPieChart, {
   UnreadArticlesChartData,
-} from "@/components/frontpage/UnreadArticlesChart";
+} from "@/components/frontpage/UnreadArticlesPieChart";
 import { DateRangePicker } from "@/components/layout/DateRangePicker";
 import {
   getTokenUsageHistory,
@@ -48,14 +48,12 @@ const Dashboard = () => {
     <>
       <DateRangePicker />
       <div className="hidden grid-cols-4 gap-4 lg:visible lg:grid">
-        <UnreadArticlesChart chartData={unreadArticlesChartData} />
-        <TokenUsageChart tokenUsage={tokenUsageChartData} />
-        <NumberOfNewArticlesLast7DaysChart
-          chartData={numberOfNewArticlesChartData}
-        />
-        <NumberOfArticlesReadLast7DaysChart
+        <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
+        <TokenUsagePerDayChart tokenUsage={tokenUsageChartData} />
+        <NewArticlesPerDayChart chartData={numberOfNewArticlesChartData} />
+        <ArticlesReadPerDayChart
           chartData={weeklyArticlesReadChartData}
-        ></NumberOfArticlesReadLast7DaysChart>
+        ></ArticlesReadPerDayChart>
       </div>
     </>
   );

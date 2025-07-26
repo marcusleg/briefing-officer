@@ -24,37 +24,33 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export interface NumberOfArticlesReadLast7DaysChartData {
+export interface NumberOfArticlesLast7DaysChartData {
   date: string;
   weekday: string;
   count: number;
 }
 
-interface NumberOfArticlesReadLast7DaysChartProps {
-  chartData?: NumberOfArticlesReadLast7DaysChartData[];
+interface NumberOfArticlesLast7DaysChartProps {
+  chartData?: NumberOfArticlesLast7DaysChartData[];
 }
 
-const NumberOfArticlesReadLast7DaysChart = ({
+const NewArticlesPerDayChart = ({
   chartData,
-}: NumberOfArticlesReadLast7DaysChartProps) => {
-  const chartTitle = "Articles read per day";
+}: NumberOfArticlesLast7DaysChartProps) => {
+  const chartTitle = "Daily New Articles";
+  const chartDescription = "Number of articles published in your feeds per day";
 
   if (!chartData) {
-    return <SkeletonChart title={chartTitle} />;
+    return <SkeletonChart title={chartTitle} description={chartDescription} />;
   }
 
   const dailyAverage = chartData.reduce((acc, day) => acc + day.count, 0) / 7;
-
-  const from = chartData[0].date;
-  const to = chartData[6].date;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>{chartTitle}</CardTitle>
-        <CardDescription>
-          {from} to {to}
-        </CardDescription>
+        <CardDescription>{chartDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -72,7 +68,7 @@ const NumberOfArticlesReadLast7DaysChart = ({
             />
             <Bar
               dataKey="count"
-              fill="hsl(var(--chart-3))"
+              fill="hsl(var(--chart-1))"
               strokeWidth={2}
               radius={8}
               activeBar={({ ...props }) => {
@@ -97,4 +93,4 @@ const NumberOfArticlesReadLast7DaysChart = ({
   );
 };
 
-export default NumberOfArticlesReadLast7DaysChart;
+export default NewArticlesPerDayChart;

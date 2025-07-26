@@ -1,7 +1,13 @@
 "use client";
 
 import SkeletonChart from "@/components/frontpage/SkeletonChart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -33,11 +39,12 @@ interface UnreadArticlesChartProps {
   chartData?: UnreadArticlesChartData[];
 }
 
-const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
+const UnreadArticlesPieChart = ({ chartData }: UnreadArticlesChartProps) => {
   const chartTitle = "Unread Articles";
+  const chartDescription = "Number of currently unread articles";
 
   if (!chartData) {
-    return <SkeletonChart title={chartTitle} />;
+    return <SkeletonChart title={chartTitle} description={chartDescription} />;
   }
 
   const unreadArticlesInTotal = chartData.reduce(
@@ -49,6 +56,7 @@ const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
     <Card>
       <CardHeader>
         <CardTitle>{chartTitle}</CardTitle>
+        <CardDescription>{chartDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer
@@ -95,7 +103,7 @@ const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Articles
+                          Total
                         </tspan>
                       </text>
                     );
@@ -110,4 +118,4 @@ const UnreadArticlesChart = ({ chartData }: UnreadArticlesChartProps) => {
   );
 };
 
-export default UnreadArticlesChart;
+export default UnreadArticlesPieChart;
