@@ -33,11 +33,12 @@ interface NumberOfArticlesLast7DaysChartProps {
   chartData?: NumberOfArticlesLast7DaysChartData[];
 }
 
-const NewArticlesPerDayChart = ({
+const DailyNewArticlesChart = ({
   chartData,
 }: NumberOfArticlesLast7DaysChartProps) => {
   const chartTitle = "Daily New Articles";
-  const chartDescription = "Number of articles published in your feeds per day";
+  const chartDescription =
+    "Number of new articles that appeared in your feed each day";
 
   if (!chartData) {
     return <SkeletonChart title={chartTitle} description={chartDescription} />;
@@ -98,4 +99,4 @@ const NewArticlesPerDayChart = ({
   );
 };
 
-export default NewArticlesPerDayChart;
+export default DailyNewArticlesChart;

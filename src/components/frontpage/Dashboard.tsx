@@ -1,12 +1,12 @@
 "use client";
 
-import ArticlesReadPerDayChart, {
+import DailyActivityChart, {
   NumberOfArticlesReadLast7DaysChartData,
-} from "@/components/frontpage/ArticlesReadPerDayChart";
-import NewArticlesPerDayChart, {
+} from "@/components/frontpage/DailyActivityChart";
+import DailyNewArticlesChart, {
   NumberOfArticlesLast7DaysChartData,
-} from "@/components/frontpage/NewArticlesPerDayChart";
-import TokenUsagePerDayChart from "@/components/frontpage/TokenUsagePerDayChart";
+} from "@/components/frontpage/DailyNewArticlesChart";
+import TokenUsageChart from "@/components/frontpage/TokenUsageChart";
 import UnreadArticlesPieChart, {
   UnreadArticlesChartData,
 } from "@/components/frontpage/UnreadArticlesPieChart";
@@ -103,11 +103,11 @@ const Dashboard = () => {
 
       <div className="hidden grid-cols-4 gap-4 lg:visible lg:grid">
         <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
-        <TokenUsagePerDayChart chartData={tokenUsageChartData} />
-        <NewArticlesPerDayChart chartData={numberOfNewArticlesChartData} />
-        <ArticlesReadPerDayChart
+        <TokenUsageChart chartData={tokenUsageChartData} />
+        <DailyNewArticlesChart chartData={numberOfNewArticlesChartData} />
+        <DailyActivityChart
           chartData={weeklyArticlesReadChartData}
-        ></ArticlesReadPerDayChart>
+        ></DailyActivityChart>
       </div>
     </>
   );

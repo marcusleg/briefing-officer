@@ -33,11 +33,11 @@ interface NumberOfArticlesReadLast7DaysChartProps {
   chartData?: NumberOfArticlesReadLast7DaysChartData[];
 }
 
-const ArticlesReadPerDayChart = ({
+const DailyActivityChart = ({
   chartData,
 }: NumberOfArticlesReadLast7DaysChartProps) => {
-  const chartTitle = "Daily Reads";
-  const chartDescription = "Number of articles you read per day";
+  const chartTitle = "Your Daily Activity";
+  const chartDescription = "Number of articles you interacted with each day";
 
   if (!chartData) {
     return <SkeletonChart title={chartTitle} description={chartDescription} />;
@@ -98,4 +98,4 @@ const ArticlesReadPerDayChart = ({
   );
 };
 
-export default ArticlesReadPerDayChart;
+export default DailyActivityChart;
