@@ -1,6 +1,7 @@
 "use server";
 
 import { cacheMiddleware } from "@/lib/aiMiddleware/cache";
+import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { createAzure } from "@ai-sdk/azure";
 import { createStreamableValue } from "@ai-sdk/rsc";
@@ -27,7 +28,7 @@ export const streamAiSummary = async (articleId: number) => {
   const stream = createStreamableValue("");
 
   void (async () => {
-    const { textStream } = streamText({
+    const { textStream, totalUsage } = streamText({
       model: wrappedLanguageModel,
       system: systemPrompt,
       prompt: `Write a summary in the following structure and **format your response in Markdown**:
@@ -51,6 +52,15 @@ ${articleScrape.textContent}`,
     }
 
     stream.done();
+
+    logger.info(
+      {
+        articleId,
+        model: wrappedLanguageModel.modelId,
+        tokenUsage: await totalUsage,
+      },
+      "AI summary generated.",
+    );
   })();
 
   return { output: stream.value };
@@ -65,7 +75,7 @@ export const streamAiLead = async (articleId: number) => {
   const stream = createStreamableValue("");
 
   void (async () => {
-    const { textStream } = streamText({
+    const { textStream, totalUsage } = streamText({
       model: wrappedLanguageModel,
       system: systemPrompt,
       prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
@@ -78,6 +88,15 @@ ${article.title}\n\n${article.scrape?.textContent}`,
     }
 
     stream.done();
+
+    logger.info(
+      {
+        articleId,
+        model: wrappedLanguageModel.modelId,
+        tokenUsage: await totalUsage,
+      },
+      "AI summary generated.",
+    );
   })();
 
   return { output: stream.value };
