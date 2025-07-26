@@ -122,3 +122,14 @@ export const getWeeklyArticlesRead = async () => {
     count: numberOfArticlesReadLast7Days[index]._count._all,
   }));
 };
+
+export const getTokenUsageHistory = async () => {
+  const userId = await getUserId();
+
+  // TODO limit to certain date range
+  return prisma.tokenUsage.findMany({
+    where: {
+      userId,
+    },
+  });
+};
