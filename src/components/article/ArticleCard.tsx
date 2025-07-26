@@ -98,10 +98,12 @@ const ArticleCard = (props: ArticleCardProps) => {
                 <GlobeIcon className="h-4 w-4" />
                 <span>{props.article.feed.title}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <UserIcon className="h-4 w-4" />
-                <span>{props.article.scrape?.author}</span>
-              </div>
+              {props.article.scrape?.author && (
+                <div className="flex items-center gap-1">
+                  <UserIcon className="h-4 w-4" />
+                  <span>{props.article.scrape?.author}</span>
+                </div>
+              )}
               <div className="flex items-center gap-1">
                 <CalendarIcon className="h-4 w-4" />
                 <span>
