@@ -55,8 +55,19 @@ model ArticleScrape {
   updatedAt   DateTime @updatedAt
 }
 
+model TokenUsage {
+  userId       String
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date         String
+  model        String
+  inputTokens  Int
+  outputTokens Int
+
+  @@id([userId, date, model])
+}
+
 model User {
-  id            String    @id
+  id            String       @id
   name          String
   email         String
   emailVerified Boolean
@@ -67,6 +78,7 @@ model User {
   accounts      Account[]
   feeds         Feed[]
   articles      Article[]
+  TokenUsage    TokenUsage[]
 
   @@unique([email])
   @@map("user")

@@ -3,6 +3,7 @@
 import { cacheMiddleware } from "@/lib/aiMiddleware/cache";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
+import { getUserId } from "@/lib/repository/userRepository";
 import { createAzure } from "@ai-sdk/azure";
 import { createStreamableValue } from "@ai-sdk/rsc";
 import { streamText, wrapLanguageModel } from "ai";
@@ -21,8 +22,11 @@ const systemPrompt =
   "You are an expert at summarizing articles for professionals who want to quickly understand core content, key facts, and main arguments.";
 
 export const streamAiSummary = async (articleId: number) => {
-  const articleScrape = await prisma.articleScrape.findUniqueOrThrow({
-    where: { articleId: articleId },
+  const userId = await getUserId();
+
+  const article = await prisma.article.findUniqueOrThrow({
+    where: { id: articleId, userId },
+    include: { scrape: true },
   });
 
   const stream = createStreamableValue("");
@@ -44,7 +48,7 @@ export const streamAiSummary = async (articleId: number) => {
 
 Below is the article:
 
-${articleScrape.textContent}`,
+${article.scrape?.textContent}`,
     });
 
     for await (const delta of textStream) {
@@ -53,13 +57,23 @@ ${articleScrape.textContent}`,
 
     stream.done();
 
+    const tokenUsage = await totalUsage;
+
     logger.info(
       {
         articleId,
+        feedId: article.feedId,
         model: wrappedLanguageModel.modelId,
-        tokenUsage: await totalUsage,
+        tokenUsage,
       },
       "AI summary generated.",
+    );
+
+    await trackTokenUsage(
+      userId,
+      wrappedLanguageModel.modelId,
+      tokenUsage.inputTokens ?? 0,
+      tokenUsage.outputTokens ?? 0,
     );
   })();
 
@@ -67,9 +81,11 @@ ${articleScrape.textContent}`,
 };
 
 export const streamAiLead = async (articleId: number) => {
+  const userId = await getUserId();
+
   const article = await prisma.article.findUniqueOrThrow({
     include: { scrape: true },
-    where: { id: articleId },
+    where: { id: articleId, userId },
   });
 
   const stream = createStreamableValue("");
@@ -89,15 +105,55 @@ ${article.title}\n\n${article.scrape?.textContent}`,
 
     stream.done();
 
+    const tokenUsage = await totalUsage;
+
     logger.info(
       {
         articleId,
+        feedId: article.feedId,
         model: wrappedLanguageModel.modelId,
-        tokenUsage: await totalUsage,
+        tokenUsage,
       },
-      "AI summary generated.",
+      "AI lead generated.",
+    );
+
+    await trackTokenUsage(
+      userId,
+      wrappedLanguageModel.modelId,
+      tokenUsage.inputTokens ?? 0,
+      tokenUsage.outputTokens ?? 0,
     );
   })();
 
   return { output: stream.value };
+};
+
+const trackTokenUsage = async (
+  userId: string,
+  model: string,
+  inputTokens: number,
+  outputTokens: number,
+) => {
+  const date = new Date().toISOString().split("T")[0];
+
+  await prisma.tokenUsage.upsert({
+    where: {
+      userId_date_model: {
+        userId,
+        date,
+        model: model,
+      },
+    },
+    create: {
+      userId,
+      date,
+      model: model,
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+    },
+    update: {
+      inputTokens: { increment: inputTokens },
+      outputTokens: { increment: outputTokens },
+    },
+  });
 };
