@@ -39,12 +39,8 @@ export const ArticleCardActions = (props: ArticleCardActionsProps) => (
       />
     )}
 
-    <Separator className="mx-1 h-auto py-4" orientation="vertical" />
-
     <ToggleReadLaterButton article={props.article} />
 
     <ToggleStarredButton article={props.article} />
-
-    <Separator className="mx-1 h-auto py-4" orientation="vertical" />
   </div>
 );
