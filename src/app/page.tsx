@@ -1,13 +1,8 @@
 import ArticleList from "@/components/article/ArticleList";
 import Dashboard from "@/components/frontpage/Dashboard";
+import TopNavigation from "@/components/layout/TopNavigation";
 import { Badge } from "@/components/ui/badge";
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
@@ -38,14 +33,7 @@ const Home = async () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-4">
-        <SidebarTrigger />
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbPage>Home</BreadcrumbPage>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </div>
+      <TopNavigation page="Home" />
 
       <Dashboard />
 
