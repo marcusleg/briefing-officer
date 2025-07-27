@@ -68,7 +68,7 @@ const SignUpForm = () => {
     }
     setSubmitting(false);
 
-    router.push("/sign-in");
+    router.push("/feed");
 
     toast.success("Account created", {
       description: "You can now sign in with your new account.",
