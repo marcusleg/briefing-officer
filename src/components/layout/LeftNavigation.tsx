@@ -12,6 +12,7 @@ import {
 import { auth } from "@/lib/auth";
 import { NewspaperIcon } from "lucide-react";
 import { headers } from "next/headers";
+import Link from "next/link";
 
 const LeftNavigation = async () => {
   const session = await auth.api.getSession({
@@ -25,12 +26,14 @@ const LeftNavigation = async () => {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <NewspaperIcon className="h-4 w-4" />
+        <Link href="/">
+          <div className="flex items-center gap-2 px-2 py-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <NewspaperIcon className="h-4 w-4" />
+            </div>
+            <h1 className="text-sm font-semibold">Briefing Officer</h1>
           </div>
-          <h1 className="text-sm font-semibold">Briefing Officer</h1>
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <MainNavigation />
