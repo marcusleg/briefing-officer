@@ -18,6 +18,7 @@ export const getNumberOfUnreadArticles = async () => {
   return prisma.article.count({
     where: {
       readAt: null,
+      readLater: false,
       userId,
     },
   });
