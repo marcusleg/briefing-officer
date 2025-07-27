@@ -58,16 +58,12 @@ const SignUpForm = () => {
 
       if (result.error) {
         toast.error(result.error.message);
-
         setSubmitting(false);
-
         return;
       }
     } catch (error) {
       toast.error("Failed to create account");
-
       setSubmitting(false);
-
       return;
     }
     setSubmitting(false);
