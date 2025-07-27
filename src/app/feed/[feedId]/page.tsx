@@ -41,6 +41,7 @@ const Feed = async (props: FeedProps) => {
     where: {
       feedId: feedId,
       readAt: showSearchParam === "all" ? undefined : null,
+      readLater: false,
       userId,
     },
     orderBy: { publicationDate: "desc" },

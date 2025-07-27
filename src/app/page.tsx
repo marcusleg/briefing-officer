@@ -28,6 +28,7 @@ const Home = async () => {
     },
     where: {
       readAt: null,
+      readLater: false,
       userId: session.user.id,
     },
     orderBy: {
