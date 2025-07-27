@@ -81,14 +81,16 @@ export const markArticlesOlderThanXDaysAsRead = async (
   const date = new Date();
   date.setDate(date.getDate() - days);
 
-  await prisma.article.updateMany({
-    where: { feedId: feedId, publicationDate: { lte: date } },
+  const { count } = await prisma.article.updateMany({
+    where: { feedId: feedId, publicationDate: { lte: date }, readAt: null },
     data: { readAt: new Date() },
   });
 
   revalidatePath(`/feed/${feedId}`);
   revalidatePath("/");
   revalidatePath("/", "layout");
+
+  return count;
 };
 
 export const unmarkArticleAsRead = async (articleId: number) => {

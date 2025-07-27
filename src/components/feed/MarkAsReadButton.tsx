@@ -10,6 +10,7 @@ import {
 import { markArticlesOlderThanXDaysAsRead } from "@/lib/repository/articleRepository";
 import { BookCheck, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface MarkAllAsReadProps {
   disabled?: boolean;
@@ -20,7 +21,13 @@ const MarkAsReadButton = ({ disabled, feedId }: MarkAllAsReadProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = async (days: number) => {
-    await markArticlesOlderThanXDaysAsRead(feedId, days);
+    try {
+      const count = await markArticlesOlderThanXDaysAsRead(feedId, days);
+
+      toast.message(`${count} articles marked as read.`);
+    } catch (error) {
+      toast.error("An error occurred marking articles as read.");
+    }
   };
 
   return (
