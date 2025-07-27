@@ -27,13 +27,14 @@ const MainNavigation = async () => {
       href: "/feed",
       icon: NewspaperIcon,
       label: "My Feed",
-      badge: numberOfUnreadArticles,
+      badge: numberOfUnreadArticles > 0 ? numberOfUnreadArticles : undefined,
     },
     {
       href: "/feed/read-later",
       icon: BookmarkIcon,
       label: "Read Later",
-      badge: numberOfReadLaterArticles,
+      badge:
+        numberOfReadLaterArticles > 0 ? numberOfReadLaterArticles : undefined,
     },
     { href: "/feed/history", icon: HistoryIcon, label: "History" },
     {
@@ -52,9 +53,7 @@ const MainNavigation = async () => {
               <link.icon />
               <span>{link.label}</span>
             </AppSidebarMenuButton>
-            {link.badge && link.badge > 0 && (
-              <SidebarMenuBadge>{link.badge}</SidebarMenuBadge>
-            )}
+            {link.badge && <SidebarMenuBadge>{link.badge}</SidebarMenuBadge>}
           </SidebarMenuItem>
         ))}
       </SidebarGroupContent>

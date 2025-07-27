@@ -16,7 +16,7 @@ datasource db {
 model Feed {
   id                     Int       @id @default(autoincrement())
   title                  String
-  link                   String    @unique
+  link                   String
   lastFetched            DateTime
   titleFilterExpressions String    @default("")
   createdAt              DateTime  @default(now())
@@ -24,6 +24,8 @@ model Feed {
   articles               Article[]
   userId                 String
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, link])
 }
 
 model Article {
@@ -32,7 +34,7 @@ model Article {
   publicationDate DateTime
   description     String?
   content         String?
-  link            String         @unique
+  link            String
   readAt          DateTime?
   readLater       Boolean        @default(false)
   starred         Boolean        @default(false)
@@ -43,6 +45,8 @@ model Article {
   scrape          ArticleScrape?
   userId          String
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, feedId, link])
 }
 
 model ArticleScrape {
