@@ -11,6 +11,7 @@ export const markArticleAsRead = async (articleId: number) => {
     },
     data: {
       readAt: new Date(),
+      readLater: false,
     },
   });
 
