@@ -12,9 +12,12 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import prisma from "@/lib/prismaClient";
+import { getUserId } from "@/lib/repository/userRepository";
 import { NewspaperIcon } from "lucide-react";
 
 const FeedNavigation = async () => {
+  const userId = await getUserId();
+
   const feeds = await prisma.feed.findMany({
     include: {
       _count: {
@@ -24,6 +27,7 @@ const FeedNavigation = async () => {
       },
     },
     orderBy: { title: "asc" },
+    where: { userId },
   });
 
   return (
