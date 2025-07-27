@@ -9,9 +9,8 @@ import TopNavigation from "@/components/layout/TopNavigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
-import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
-import { headers } from "next/headers";
+import { getUserId } from "@/lib/repository/userRepository";
 import { notFound } from "next/navigation";
 
 interface FeedProps {
@@ -25,13 +24,10 @@ const Feed = async (props: FeedProps) => {
   const feedId = parseInt(params.feedId);
   const showSearchParam = searchParams["show"] || "unread";
 
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return null;
-  }
+  const userId = await getUserId();
 
   const feed = await prisma.feed.findUnique({
-    where: { id: feedId, userId: session.user.id },
+    where: { id: feedId, userId },
   });
   if (!feed) {
     notFound();
@@ -45,6 +41,7 @@ const Feed = async (props: FeedProps) => {
     where: {
       feedId: feedId,
       readAt: showSearchParam === "all" ? undefined : null,
+      userId,
     },
     orderBy: { publicationDate: "desc" },
   });
