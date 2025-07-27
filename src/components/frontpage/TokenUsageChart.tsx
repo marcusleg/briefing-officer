@@ -91,14 +91,37 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
   );
 
   // Calculate totals and cost
-  const sumInputTokens = chartData
-    .map((entry) => entry.inputTokens)
-    .reduce((acc, entry) => acc + entry, 0);
-  const sumOutputTokens = chartData
-    .map((entry) => entry.outputTokens)
-    .reduce((acc, entry) => acc + entry, 0);
-  const totalCost =
-    (sumInputTokens / 1000000) * 0.1 + (sumOutputTokens / 1000000) * 0.4;
+  const tokenPricing = {
+    "gpt-4.1-nano": { inputToken: 0.1 / 1000000, outputToken: 0.4 / 1000000 },
+    "gpt-4.1-mini": { inputToken: 0.15 / 1000000, outputToken: 0.6 / 1000000 },
+  };
+
+  const totalsByModel = chartData.reduce(
+    (acc, entry) => {
+      if (!acc[entry.model]) {
+        acc[entry.model] = { input: 0, output: 0 };
+      }
+      acc[entry.model].input += entry.inputTokens;
+      acc[entry.model].output += entry.outputTokens;
+      return acc;
+    },
+    {} as Record<string, { input: number; output: number }>,
+  );
+
+  const totalCost = Object.entries(totalsByModel).reduce(
+    (cost, [model, tokens]) => {
+      const pricing = tokenPricing[model as keyof typeof tokenPricing];
+      if (pricing) {
+        return (
+          cost +
+          tokens.input * pricing.inputToken +
+          tokens.output * pricing.outputToken
+        );
+      }
+      return cost;
+    },
+    0,
+  );
 
   const dateFormatterShort = new Intl.DateTimeFormat(navigator.language, {
     day: "2-digit",
