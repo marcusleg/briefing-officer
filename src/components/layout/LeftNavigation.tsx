@@ -1,5 +1,6 @@
 "use server";
 
+import AdminNavigation from "@/components/layout/AdminNavigation";
 import FeedNavigation from "@/components/layout/FeedNavigation";
 import MainNavigation from "@/components/layout/MainNavigation";
 import UserNavigation from "@/components/layout/UserNavigation";
@@ -23,6 +24,8 @@ const LeftNavigation = async () => {
     return null;
   }
 
+  const isAdmin = session.user.role === "admin";
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -40,6 +43,7 @@ const LeftNavigation = async () => {
         <FeedNavigation />
       </SidebarContent>
       <SidebarFooter>
+        {isAdmin && <AdminNavigation />}
         <UserNavigation />
       </SidebarFooter>
     </Sidebar>

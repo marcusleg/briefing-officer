@@ -1,3 +1,5 @@
+"use server";
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
 import React from "react";
@@ -12,7 +14,7 @@ import {
 
 interface Segment {
   name: string;
-  href: string;
+  href?: string;
 }
 
 interface TopNavigationProps {
@@ -20,7 +22,7 @@ interface TopNavigationProps {
   page: string;
 }
 
-const TopNavigation = ({ segments, page }: TopNavigationProps) => {
+const TopNavigation = async ({ segments, page }: TopNavigationProps) => {
   return (
     <div className="flex items-center gap-4">
       <SidebarTrigger />
@@ -29,11 +31,15 @@ const TopNavigation = ({ segments, page }: TopNavigationProps) => {
         <BreadcrumbList>
           {segments &&
             segments.map(({ name, href }) => (
-              <React.Fragment key={href}>
+              <React.Fragment key={name}>
                 <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link href={href}>{name}</Link>
-                  </BreadcrumbLink>
+                  {href ? (
+                    <BreadcrumbLink asChild>
+                      <Link href={href}>{name}</Link>
+                    </BreadcrumbLink>
+                  ) : (
+                    name
+                  )}
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
               </React.Fragment>
