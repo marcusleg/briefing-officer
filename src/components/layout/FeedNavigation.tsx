@@ -28,7 +28,7 @@ const FeedNavigation = async () => {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Feeds</SidebarGroupLabel>
+      <SidebarGroupLabel>My Feeds</SidebarGroupLabel>
       <SidebarGroupContent>
         {feeds.map((feed) => (
           <SidebarMenuItem key={feed.id}>

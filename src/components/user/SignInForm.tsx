@@ -62,7 +62,7 @@ const SignInForm = () => {
 
     setSubmitting(false);
 
-    router.push("/");
+    router.push("/feed");
     router.refresh();
   };
 

@@ -13,11 +13,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/",
-    "/read-later",
-    "/history",
-    "/starred-articles",
+    "/feed",
     "/feed/:feedId",
     "/feed/:feedId/article/:articleId/ai-summary",
+    "/feed/read-later",
+    "/feed/history",
+    "/feed/starred-articles",
   ],
 };

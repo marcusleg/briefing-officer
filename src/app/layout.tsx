@@ -1,5 +1,3 @@
-import LeftNavigation from "@/components/layout/LeftNavigation";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -29,13 +27,9 @@ export default async function RootLayout({
           fontSans.variable,
         )}
       >
-        <SidebarProvider>
-          <LeftNavigation />
+        <main className="container p-4">{children}</main>
 
-          <main className="container p-4">{children}</main>
-
-          <Toaster richColors />
-        </SidebarProvider>
+        <Toaster richColors />
       </body>
     </html>
   );

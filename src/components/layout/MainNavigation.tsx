@@ -11,7 +11,12 @@ import {
   getNumberOfReadLaterArticles,
   getNumberOfUnreadArticles,
 } from "@/lib/repository/statsRepository";
-import { BookmarkIcon, HistoryIcon, HouseIcon, StarIcon } from "lucide-react";
+import {
+  BookmarkIcon,
+  HistoryIcon,
+  NewspaperIcon,
+  StarIcon,
+} from "lucide-react";
 
 const MainNavigation = async () => {
   const numberOfUnreadArticles = await getNumberOfUnreadArticles();
@@ -19,19 +24,23 @@ const MainNavigation = async () => {
 
   const links = [
     {
-      href: "/",
-      icon: HouseIcon,
-      label: "Home",
+      href: "/feed",
+      icon: NewspaperIcon,
+      label: "My Feed",
       badge: numberOfUnreadArticles,
     },
     {
-      href: "/read-later",
+      href: "/feed/read-later",
       icon: BookmarkIcon,
       label: "Read Later",
       badge: numberOfReadLaterArticles,
     },
-    { href: "/history", icon: HistoryIcon, label: "History" },
-    { href: "/starred-articles", icon: StarIcon, label: "Starred Articles" },
+    { href: "/feed/history", icon: HistoryIcon, label: "History" },
+    {
+      href: "/feed/starred-articles",
+      icon: StarIcon,
+      label: "Starred Articles",
+    },
   ];
 
   return (
