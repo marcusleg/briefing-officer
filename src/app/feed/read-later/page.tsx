@@ -24,7 +24,7 @@ const ReadLaterPage = async () => {
       userId: session.user.id,
     },
     orderBy: {
-      publicationDate: "asc",
+      publicationDate: "desc",
     },
   });
 
