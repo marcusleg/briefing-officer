@@ -1,3 +1,4 @@
+import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
@@ -31,6 +32,21 @@ export const auth = betterAuth({
           message:
             "Self-registration is disabled. Please ask the administrator to create an account for you.",
         });
+      }
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/sign-up/email") {
+        return;
+      }
+
+      const userCount = await prisma.user.count();
+      if (userCount === 1) {
+        await prisma.user.updateMany({
+          data: {
+            role: "admin",
+          },
+        });
+        logger.info("Assigned 'admin' role to first user.");
       }
     }),
   },
