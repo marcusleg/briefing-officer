@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { auth } from "@/lib/auth";
-import { CheckIcon, ShieldBanIcon, ShieldCheckIcon, XIcon } from "lucide-react";
+import { ShieldBanIcon, ShieldCheckIcon } from "lucide-react";
 import { headers } from "next/headers";
 
 const UserTable = async () => {
@@ -32,7 +32,6 @@ const UserTable = async () => {
           <TableHead className="text-center">Enabled</TableHead>
           <TableHead className="w-[100px]">Name</TableHead>
           <TableHead>Email</TableHead>
-          <TableHead className="text-center">Email Verified</TableHead>
           <TableHead>Role</TableHead>
           <TableHead>Signed up</TableHead>
           <TableHead>Actions</TableHead>
@@ -50,13 +49,6 @@ const UserTable = async () => {
             </TableCell>
             <TableCell>{user.name}</TableCell>
             <TableCell>{user.email}</TableCell>
-            <TableCell className="flex justify-center">
-              {user.emailVerified ? (
-                <CheckIcon className="size-4" />
-              ) : (
-                <XIcon className="size-4" />
-              )}
-            </TableCell>
             <TableCell>{user.role}</TableCell>
             <TableCell>
               <IntlRelativeTime date={user.createdAt} />
