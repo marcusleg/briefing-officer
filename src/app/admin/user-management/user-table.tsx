@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { auth } from "@/lib/auth";
-import { CheckIcon, XIcon } from "lucide-react";
+import { CheckIcon, ShieldBanIcon, ShieldCheckIcon, XIcon } from "lucide-react";
 import { headers } from "next/headers";
 
 const UserTable = async () => {
@@ -29,6 +29,7 @@ const UserTable = async () => {
       <TableCaption>List of registered users.</TableCaption>
       <TableHeader>
         <TableRow>
+          <TableHead className="text-center">Enabled</TableHead>
           <TableHead className="w-[100px]">Name</TableHead>
           <TableHead>Email</TableHead>
           <TableHead className="text-center">Email Verified</TableHead>
@@ -40,13 +41,20 @@ const UserTable = async () => {
       <TableBody>
         {users.map((user) => (
           <TableRow key={user.id}>
+            <TableCell className="flex justify-center">
+              {user.banned ? (
+                <ShieldBanIcon className="size-4 text-red-800" />
+              ) : (
+                <ShieldCheckIcon className="size-4 text-green-800" />
+              )}
+            </TableCell>
             <TableCell>{user.name}</TableCell>
             <TableCell>{user.email}</TableCell>
             <TableCell className="flex justify-center">
               {user.emailVerified ? (
-                <CheckIcon className="h-4 w-4" />
+                <CheckIcon className="size-4" />
               ) : (
-                <XIcon className="h-4 w-4" />
+                <XIcon className="size-4" />
               )}
             </TableCell>
             <TableCell>{user.role}</TableCell>
@@ -54,7 +62,7 @@ const UserTable = async () => {
               <IntlRelativeTime date={user.createdAt} />
             </TableCell>
             <TableCell>
-              <UserTableActions userId={user.id} />
+              <UserTableActions user={user} />
             </TableCell>
           </TableRow>
         ))}

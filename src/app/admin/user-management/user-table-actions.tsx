@@ -2,16 +2,22 @@
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { TrashIcon } from "lucide-react";
+import { User } from "better-auth";
+import { ShieldBanIcon, ShieldCheckIcon, TrashIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface UserListActionsProps {
-  userId: string;
+  user: User;
 }
 
-const UserTableActions = ({ userId }: UserListActionsProps) => {
+const UserTableActions = ({ user }: UserListActionsProps) => {
   const router = useRouter();
+
+  // @ts-ignore the correct type `UserWithRole` cannot be imported
+  const isBanned = user.banned;
+  // @ts-ignore the correct type `UserWithRole` cannot be imported
+  const isAdmin = user.role === "admin";
 
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this user?")) {
@@ -19,7 +25,7 @@ const UserTableActions = ({ userId }: UserListActionsProps) => {
     }
 
     const { data: deletedUser, error } = await authClient.admin.removeUser({
-      userId,
+      userId: user.id,
     });
 
     if (error) {
@@ -38,8 +44,46 @@ const UserTableActions = ({ userId }: UserListActionsProps) => {
     router.refresh();
   };
 
+  const handleToggleBan = async () => {
+    if (isAdmin) {
+      toast.error("Admin accounts cannot be disabled.");
+      return;
+    }
+
+    if (isBanned) {
+      await authClient.admin.unbanUser({ userId: user.id });
+
+      toast.info("User account enabled.", {
+        description: `User with email address ${user.email} has been enabled.`,
+      });
+    } else {
+      await authClient.admin.banUser({
+        userId: user.id,
+        banReason: "Banned via admin panel.",
+      });
+
+      toast.info("User account disabled.", {
+        description: `User with email address ${user.email} has been disabled.`,
+      });
+    }
+
+    router.refresh();
+  };
+
   return (
-    <>
+    <div className="flex space-x-2">
+      <Button
+        variant="secondary"
+        size="icon"
+        className="size-4"
+        onClick={handleToggleBan}
+      >
+        {isBanned ? (
+          <ShieldCheckIcon className="size-4" />
+        ) : (
+          <ShieldBanIcon className="size-4" />
+        )}
+      </Button>
       <Button
         variant="secondary"
         size="icon"
@@ -48,7 +92,7 @@ const UserTableActions = ({ userId }: UserListActionsProps) => {
       >
         <TrashIcon />
       </Button>
-    </>
+    </div>
   );
 };
 
