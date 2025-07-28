@@ -85,7 +85,7 @@ const ArticleCard = (props: ArticleCardProps) => {
       onClick={props.onClick}
       ref={cardRef}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="px-4 pb-3 md:pb-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <h2 className="mb-3 text-xl font-semibold leading-tight transition-colors hover:text-primary">
@@ -115,7 +115,7 @@ const ArticleCard = (props: ArticleCardProps) => {
         </div>
       </CardHeader>
 
-      <CardContent ref={inViewRef}>
+      <CardContent className="px-4 md:pb-6" ref={inViewRef}>
         {/* Article Summary */}
         <p className="mb-4 leading-relaxed">
           {inView && <AiLeadStream articleId={props.article.id} />}

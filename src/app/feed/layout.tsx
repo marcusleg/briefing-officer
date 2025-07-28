@@ -10,7 +10,7 @@ export default async function MyFeedsLayout({
     <SidebarProvider>
       <LeftNavigation />
 
-      <div className="container p-4">{children}</div>
+      <div>{children}</div>
     </SidebarProvider>
   );
 }
