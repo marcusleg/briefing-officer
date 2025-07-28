@@ -2,7 +2,7 @@ import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { APIError, createAuthMiddleware } from "better-auth/api";
+import { createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins";
 
 const isSelfRegistrationEnabled =
@@ -11,29 +11,16 @@ const isSelfRegistrationEnabled =
 export const auth = betterAuth({
   appName: "Briefing Officer",
   database: prismaAdapter(prisma, { provider: "sqlite" }),
-  plugins: [admin()],
+  plugins: [
+    admin({
+      bannedUserMessage:
+        "Your user account is awaiting approval by an administrator.",
+    }),
+  ],
   emailAndPassword: {
     enabled: true,
-    autoSignIn: true,
   },
   hooks: {
-    before: createAuthMiddleware(async (ctx) => {
-      if (isSelfRegistrationEnabled) {
-        return;
-      }
-
-      if (ctx.path !== "/sign-up/email") {
-        return;
-      }
-
-      const userCount = await prisma.user.count();
-      if (userCount > 0) {
-        throw new APIError("FORBIDDEN", {
-          message:
-            "Self-registration is disabled. Please ask the administrator to create an account for you.",
-        });
-      }
-    }),
     after: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== "/sign-up/email") {
         return;
@@ -47,6 +34,22 @@ export const auth = betterAuth({
           },
         });
         logger.info("Assigned 'admin' role to first user.");
+      } else if (userCount > 1) {
+        const user = await prisma.user.update({
+          where: {
+            email: ctx.body.email,
+          },
+          data: {
+            banned: true,
+            banExpires: null,
+            banReason: "Account is awaiting approval by an administrator.",
+          },
+        });
+
+        logger.info(
+          { userId: user.id },
+          "New user account is pending administrator approval.",
+        );
       }
     }),
   },

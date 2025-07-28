@@ -70,8 +70,10 @@ const SignUpForm = () => {
 
     router.push("/feed");
 
-    toast.success("Account created", {
-      description: "You have been signed in automatically.",
+    toast.success("Approval Pending", {
+      description: "Your account is awaiting approval by an administrator..",
+      dismissible: false,
+      duration: 10000,
     });
   };
 
