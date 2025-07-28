@@ -188,7 +188,7 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
         </ChartContainer>
       </CardContent>
       <CardFooter className="text-center text-sm font-medium">
-        Estimated cost for this period: ${totalCost.toFixed(2)}
+        ${totalCost.toFixed(2)} estimated cost for this period
       </CardFooter>
     </Card>
   );
