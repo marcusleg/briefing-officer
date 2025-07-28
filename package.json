@@ -56,7 +56,7 @@
     "zod": "^3.25.75"
   },
   "devDependencies": {
-    "@types/node": "22.15.29",
+    "@types/node": "24.1.0",
     "@types/react": "19.1.7",
     "@types/react-dom": "19.1.6",
     "autoprefixer": "10.4.21",
