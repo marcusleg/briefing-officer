@@ -78,7 +78,7 @@ const ArticleCard = (props: ArticleCardProps) => {
   return (
     <Card
       className={cn(
-        "cursor-pointer transition-shadow duration-200 hover:shadow-lg",
+        "transition-shadow duration-200 hover:shadow-lg",
         props.article.readAt !== null ? "opacity-65" : "",
         props.className,
       )}
