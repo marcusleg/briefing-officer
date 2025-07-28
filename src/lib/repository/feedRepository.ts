@@ -29,7 +29,7 @@ export const createFeed = async (feed: FeedSchema) => {
     },
   });
 
-  revalidatePath("/", "layout");
+  revalidatePath("/feed", "layout");
 
   await refreshFeed(createdFeed.id);
 };
@@ -38,7 +38,7 @@ export const deleteFeed = async (feedId: number) => {
   await prisma.article.deleteMany({ where: { feedId: feedId } });
   await prisma.feed.delete({ where: { id: feedId } });
 
-  revalidatePath("/", "layout");
+  revalidatePath("/feed", "layout");
   redirect("/");
 };
 
@@ -151,7 +151,7 @@ export const refreshFeeds = async () => {
   });
   const results = await Promise.allSettled(promises);
 
-  revalidatePath("/");
+  revalidatePath("/feed");
 
   if (results.filter((result) => result.status === "rejected").length > 0) {
     throw new Error("Failed to refresh one or more feeds.");
@@ -166,7 +166,7 @@ export const updateFeed = async (feedId: number, feed: FeedSchema) => {
     },
   });
 
-  revalidatePath("/", "layout");
+  revalidatePath("/feed", "layout");
 
   await refreshFeed(feedId);
 };

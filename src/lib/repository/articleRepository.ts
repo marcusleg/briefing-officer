@@ -16,8 +16,8 @@ export const markArticleAsRead = async (articleId: number) => {
   });
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
-  revalidatePath("/");
-  revalidatePath("/", "layout");
+  revalidatePath("/feed");
+  revalidatePath("/feed", "layout");
 };
 
 export const markArticleAsReadLater = async (articleId: number) => {
@@ -32,8 +32,8 @@ export const markArticleAsReadLater = async (articleId: number) => {
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/read-later");
-  revalidatePath("/");
-  revalidatePath("/", "layout");
+  revalidatePath("/feed");
+  revalidatePath("/feed", "layout");
 };
 
 export const markArticleAsStarred = async (articleId: number) => {
@@ -48,7 +48,7 @@ export const markArticleAsStarred = async (articleId: number) => {
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/starred-articles");
-  revalidatePath("/");
+  revalidatePath("/feed");
 };
 
 export const deleteArticlesOlderThanXDays = async (days: number) => {
@@ -69,8 +69,8 @@ export const deleteArticlesOlderThanXDays = async (days: number) => {
       "Deleted articles older than X days.",
     );
     revalidatePath("/feed/*");
-    revalidatePath("/");
-    revalidatePath("/", "layout");
+    revalidatePath("/feed");
+    revalidatePath("/feed", "layout");
   }
 };
 
@@ -87,8 +87,8 @@ export const markArticlesOlderThanXDaysAsRead = async (
   });
 
   revalidatePath(`/feed/${feedId}`);
-  revalidatePath("/");
-  revalidatePath("/", "layout");
+  revalidatePath("/feed");
+  revalidatePath("/feed", "layout");
 
   return count;
 };
@@ -104,8 +104,8 @@ export const unmarkArticleAsRead = async (articleId: number) => {
   });
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
-  revalidatePath("/");
-  revalidatePath("/", "layout");
+  revalidatePath("/feed");
+  revalidatePath("/feed", "layout");
 };
 
 export const unmarkArticleAsReadLater = async (articleId: number) => {
@@ -120,8 +120,8 @@ export const unmarkArticleAsReadLater = async (articleId: number) => {
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/read-later");
-  revalidatePath("/");
-  revalidatePath("/", "layout");
+  revalidatePath("/feed");
+  revalidatePath("/feed", "layout");
 };
 
 export const unmarkArticleAsStarred = async (articleId: number) => {
@@ -136,5 +136,5 @@ export const unmarkArticleAsStarred = async (articleId: number) => {
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/starred-articles");
-  revalidatePath("/");
+  revalidatePath("/feed");
 };
