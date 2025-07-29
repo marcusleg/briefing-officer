@@ -10,31 +10,7 @@ import { parseFeed } from "htmlparser2";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
 
-interface ScrapeArticleOptions {
-  forceScrape: boolean;
-}
-
-const defaultScrapeArticleOptions: ScrapeArticleOptions = {
-  forceScrape: false,
-};
-
-export const scrapeArticle = async (
-  articleId: number,
-  articleLink: string,
-  options?: ScrapeArticleOptions,
-) => {
-  const mergedOptions = { ...defaultScrapeArticleOptions, ...options };
-
-  if (!mergedOptions.forceScrape) {
-    const scrape = await prisma.articleScrape.findUnique({
-      where: { articleId: articleId },
-    });
-
-    if (scrape) {
-      return scrape;
-    }
-  }
-
+export const scrapeArticle = async (articleId: number, articleLink: string) => {
   const website = await axios.get(articleLink);
   const cleanBody = DOMPurify.sanitize(website.data);
   const document = new JSDOM(cleanBody);
