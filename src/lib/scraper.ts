@@ -10,19 +10,29 @@ import { parseFeed } from "htmlparser2";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
 
-export const scrapeArticle = async (articleId: number, articleLink: string) => {
+const fetchAndParseArticle = async (articleLink: string) => {
   const website = await axios.get(articleLink);
   const cleanBody = DOMPurify.sanitize(website.data);
   const document = new JSDOM(cleanBody);
-  const parsedArticle = new Readability(document.window.document).parse();
+  return new Readability(document.window.document).parse();
+};
+
+export const scrapeArticle = async (articleId: number, articleLink: string) => {
+  const parsedArticle = await fetchAndParseArticle(articleLink);
 
   if (!parsedArticle) {
     throw new Error("Failed to parse article. Article is null.");
   }
 
   if (!parsedArticle.textContent || !parsedArticle.content) {
-    throw new Error("Failed to parse article content. Content is empty.");
+    throw new Error(`Failed to parse article content. Content is empty."`);
   }
+
+  const articleData = {
+    htmlContent: parsedArticle!.content,
+    textContent: parsedArticle!.textContent,
+    author: parsedArticle!.byline ?? "",
+  };
 
   const scrape = prisma.articleScrape.upsert({
     where: { articleId: articleId },
@@ -30,14 +40,11 @@ export const scrapeArticle = async (articleId: number, articleLink: string) => {
       article: {
         connect: { id: articleId },
       },
-      htmlContent: parsedArticle.content,
-      textContent: parsedArticle.textContent,
-      author: parsedArticle.byline ?? "",
+      ...articleData,
     },
     update: {
-      htmlContent: parsedArticle.content,
-      textContent: parsedArticle.textContent,
-      author: parsedArticle.byline ?? undefined,
+      ...articleData,
+      author: parsedArticle!.byline ?? undefined,
     },
   });
 
