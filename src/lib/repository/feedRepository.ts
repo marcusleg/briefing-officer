@@ -2,7 +2,7 @@
 
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
-import { FeedSchema } from "@/lib/repository/feedSchema";
+import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { getUserId } from "@/lib/repository/userRepository";
 import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
 import { Article, Feed } from "@prisma/client";
@@ -178,4 +178,55 @@ const updateLastFetchedToNow = async (feed: Feed) => {
       lastFetched: new Date(),
     },
   });
+};
+
+export const getUserCategories = async () => {
+  const userId = await getUserId();
+
+  return prisma.feedCategory.findMany({
+    where: { userId },
+    orderBy: { name: "asc" },
+  });
+};
+
+export const createCategory = async (category: CategorySchema) => {
+  const userId = await getUserId();
+
+  await prisma.feedCategory.create({
+    data: {
+      ...category,
+      userId: userId,
+    },
+  });
+
+  revalidatePath("/feed", "layout");
+};
+
+export const updateCategory = async (
+  categoryId: number,
+  category: CategorySchema,
+) => {
+  await prisma.feedCategory.update({
+    where: { id: categoryId },
+    data: {
+      ...category,
+    },
+  });
+
+  revalidatePath("/feed", "layout");
+};
+
+export const deleteCategory = async (categoryId: number) => {
+  // First, update all feeds in this category to have no category
+  await prisma.feed.updateMany({
+    where: { feedCategoryId: categoryId },
+    data: { feedCategoryId: null },
+  });
+
+  // Then delete the category
+  await prisma.feedCategory.delete({
+    where: { id: categoryId },
+  });
+
+  revalidatePath("/feed", "layout");
 };

@@ -14,18 +14,31 @@ datasource db {
 }
 
 model Feed {
-  id                     Int       @id @default(autoincrement())
+  id                     Int           @id @default(autoincrement())
   title                  String
   link                   String
   lastFetched            DateTime
-  titleFilterExpressions String    @default("")
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  titleFilterExpressions String        @default("")
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
   articles               Article[]
   userId                 String
-  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  FeedCategory           FeedCategory? @relation(fields: [feedCategoryId], references: [id])
+  feedCategoryId         Int?
 
   @@unique([userId, link])
+}
+
+model FeedCategory {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  icon      String?
+  feeds     Feed[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Article {
@@ -71,18 +84,19 @@ model TokenUsage {
 }
 
 model User {
-  id            String       @id
-  name          String
-  email         String
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
-  feeds         Feed[]
-  articles      Article[]
-  TokenUsage    TokenUsage[]
+  id             String         @id
+  name           String
+  feedCategories FeedCategory[]
+  email          String
+  emailVerified  Boolean
+  image          String?
+  createdAt      DateTime
+  updatedAt      DateTime
+  sessions       Session[]
+  accounts       Account[]
+  feeds          Feed[]
+  articles       Article[]
+  TokenUsage     TokenUsage[]
 
   role       String?
   banned     Boolean?
