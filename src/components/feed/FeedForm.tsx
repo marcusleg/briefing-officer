@@ -12,12 +12,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { createFeed, updateFeed } from "@/lib/repository/feedRepository";
+import {
+  createFeed,
+  getUserCategories,
+  updateFeed,
+} from "@/lib/repository/feedRepository";
 import { feedSchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Feed } from "@prisma/client";
+import { Feed, FeedCategory } from "@prisma/client";
 import { LoaderCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface FeedFormProps {
@@ -26,18 +30,39 @@ interface FeedFormProps {
 }
 
 const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
+  const [categories, setCategories] = useState<FeedCategory[]>([]);
+
   const form = useForm<FeedSchema>({
     resolver: zodResolver(feedSchema),
     defaultValues: editFeed
-      ? { ...editFeed }
+      ? {
+          title: editFeed.title,
+          link: editFeed.link,
+          titleFilterExpressions: editFeed.titleFilterExpressions,
+          feedCategoryId: editFeed.feedCategoryId ?? undefined,
+        }
       : {
           title: "",
           link: "",
           titleFilterExpressions: "",
+          feedCategoryId: undefined,
         },
   });
 
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const userCategories = await getUserCategories();
+        setCategories(userCategories);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const submitHandler = async (values: FeedSchema) => {
     setSubmitting(true);
@@ -77,6 +102,36 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                 <FormLabel>Feed URL</FormLabel>
                 <FormControl>
                   <Input placeholder="http://example.org/feed.xml" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="feedCategoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <FormControl>
+                  <select
+                    {...field}
+                    value={field.value || ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value ? Number(e.target.value) : undefined,
+                      )
+                    }
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Uncategorized</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
                 </FormControl>
                 <FormMessage />
               </FormItem>

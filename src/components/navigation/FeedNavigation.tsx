@@ -1,25 +1,29 @@
 "use server";
 
+import AddCategoryFormDialogTrigger from "@/components/category/AddCategoryFormDialogTrigger";
 import AddFeedFormDialogTrigger from "@/components/navigation/AddFeedFormDialogTrigger";
 import AppSidebarMenuButton from "@/components/navigation/AppSidebarMenuButton";
 import RefreshAllFeedsButton from "@/components/navigation/RefreshAllFeedsButton";
 import {
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenuBadge,
+  SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
+import { Prisma } from "@prisma/client";
 import { NewspaperIcon, PlusIcon } from "lucide-react";
+import Link from "next/link";
+import React from "react";
 
 const FeedNavigation = async () => {
   const userId = await getUserId();
 
-  const feeds = await prisma.feed.findMany({
+  const uncategorizedFeeds = await prisma.feed.findMany({
     include: {
       _count: {
         select: {
@@ -28,34 +32,88 @@ const FeedNavigation = async () => {
       },
     },
     orderBy: { title: "asc" },
-    where: { userId },
+    where: { userId, feedCategoryId: null },
   });
+
+  const categories = await prisma.feedCategory.findMany({
+    where: { userId },
+    include: {
+      feeds: {
+        include: {
+          _count: {
+            select: {
+              articles: { where: { readAt: null, readLater: false } },
+            },
+          },
+        },
+        orderBy: { title: "asc" },
+      },
+    },
+  });
+
+  const menuItems = (
+    feeds: Prisma.FeedGetPayload<{
+      include: { _count: { select: { articles: true } } };
+    }>[],
+  ) =>
+    feeds.map((feed) => (
+      <SidebarMenuItem key={feed.id}>
+        <AppSidebarMenuButton href={`/feed/${feed.id}`}>
+          <NewspaperIcon />
+          <span className="truncate">{feed.title}</span>
+        </AppSidebarMenuButton>
+        {feed._count.articles > 0 && (
+          <SidebarMenuBadge>{feed._count.articles}</SidebarMenuBadge>
+        )}
+      </SidebarMenuItem>
+    ));
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>My Feeds</SidebarGroupLabel>
-      <AddFeedFormDialogTrigger>
-        <SidebarGroupAction title="Add Feed">
-          <PlusIcon /> <span className="sr-only">Add Feed</span>
-        </SidebarGroupAction>
-      </AddFeedFormDialogTrigger>
+      {uncategorizedFeeds.length > 0 && (
+        <>
+          <SidebarGroupLabel>Uncategorized</SidebarGroupLabel>
+          <SidebarGroupContent>
+            {menuItems(uncategorizedFeeds)}
+          </SidebarGroupContent>
+        </>
+      )}
 
       <SidebarGroupContent>
-        {feeds.map((feed) => (
-          <SidebarMenuItem key={feed.id}>
-            <AppSidebarMenuButton href={`/feed/${feed.id}`}>
-              <NewspaperIcon />
-              <span className="truncate">{feed.title}</span>
-            </AppSidebarMenuButton>
-            {feed._count.articles > 0 && (
-              <SidebarMenuBadge>{feed._count.articles}</SidebarMenuBadge>
-            )}
-          </SidebarMenuItem>
+        {categories.map((category) => (
+          <React.Fragment key={category.id}>
+            <SidebarGroupLabel asChild>
+              <Link href={`/feed/category/${category.id}`}>
+                {category.name}
+              </Link>
+            </SidebarGroupLabel>
+            {menuItems(category.feeds)}
+          </React.Fragment>
         ))}
-        <SidebarSeparator />
+      </SidebarGroupContent>
+
+      <SidebarSeparator />
+
+      <SidebarGroupContent>
         <SidebarMenuItem>
           <RefreshAllFeedsButton />
         </SidebarMenuItem>
+        <SidebarMenuItem>
+          <AddCategoryFormDialogTrigger>
+            <SidebarMenuButton>
+              <PlusIcon />
+              <span className="truncate">Add Category</span>
+            </SidebarMenuButton>
+          </AddCategoryFormDialogTrigger>
+        </SidebarMenuItem>
+        <AddFeedFormDialogTrigger>
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              <PlusIcon />
+              <span className="truncate">Add Feed</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </AddFeedFormDialogTrigger>
       </SidebarGroupContent>
     </SidebarGroup>
   );

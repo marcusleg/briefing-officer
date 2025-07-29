@@ -19,5 +19,14 @@ export const feedSchema = z.object({
         "All title filter expressions must be valid regular expressions.",
     },
   ),
+  feedCategoryId: z.number().optional(),
 });
 export type FeedSchema = z.infer<typeof feedSchema>;
+
+export const categorySchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100, "Name must be less than 100 characters"),
+});
+export type CategorySchema = z.infer<typeof categorySchema>;
