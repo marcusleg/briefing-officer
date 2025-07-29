@@ -41,7 +41,11 @@ export const scrapeArticle = async (
   const parsedArticle = new Readability(document.window.document).parse();
 
   if (!parsedArticle) {
-    throw new Error("Failed to parse article");
+    throw new Error("Failed to parse article. Article is null.");
+  }
+
+  if (!parsedArticle.textContent || !parsedArticle.content) {
+    throw new Error("Failed to parse article content. Content is empty.");
   }
 
   const scrape = prisma.articleScrape.upsert({
@@ -50,13 +54,13 @@ export const scrapeArticle = async (
       article: {
         connect: { id: articleId },
       },
-      htmlContent: parsedArticle.content ?? "",
-      textContent: parsedArticle.textContent ?? "",
+      htmlContent: parsedArticle.content,
+      textContent: parsedArticle.textContent,
       author: parsedArticle.byline ?? "",
     },
     update: {
-      htmlContent: parsedArticle.content ?? undefined,
-      textContent: parsedArticle.textContent ?? undefined,
+      htmlContent: parsedArticle.content,
+      textContent: parsedArticle.textContent,
       author: parsedArticle.byline ?? undefined,
     },
   });
