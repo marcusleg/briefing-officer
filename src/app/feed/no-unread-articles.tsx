@@ -22,7 +22,8 @@ const NoUnreadArticles = async () => {
           <h2 className="mb-2 text-xl font-semibold">All caught up!</h2>
 
           <p className="mb-6 leading-relaxed text-muted-foreground">
-            You've read all your unread articles. Great job staying informed!
+            You&apos;ve read all your unread articles. Great job staying
+            informed!
             {readLaterCount > 0 && (
               <span className="mt-2 block">
                 You have {readLaterCount} article
