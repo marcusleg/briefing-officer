@@ -2,7 +2,7 @@
 
 import AiSummaryStream from "@/components/article/AiSummaryStream";
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
-import TopNavigation from "@/components/layout/TopNavigation";
+import TopNavigation from "@/components/navigation/TopNavigation";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";

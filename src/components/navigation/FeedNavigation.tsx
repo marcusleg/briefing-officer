@@ -1,8 +1,8 @@
 "use server";
 
-import AddFeedButton from "@/components/layout/AddFeedButton";
-import AppSidebarMenuButton from "@/components/layout/AppSidebarMenuButton";
-import RefreshAllFeedsButton from "@/components/layout/RefreshAllFeedsButton";
+import AddFeedButton from "@/components/navigation/AddFeedButton";
+import AppSidebarMenuButton from "@/components/navigation/AppSidebarMenuButton";
+import RefreshAllFeedsButton from "@/components/navigation/RefreshAllFeedsButton";
 import {
   SidebarGroup,
   SidebarGroupContent,

@@ -5,7 +5,7 @@ import FeedFilterButton from "@/components/feed/FeedFilterButton";
 import MarkAsReadButton from "@/components/feed/MarkAsReadButton";
 import RefreshFeedButton from "@/components/feed/RefreshFeedButton";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
-import TopNavigation from "@/components/layout/TopNavigation";
+import TopNavigation from "@/components/navigation/TopNavigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";

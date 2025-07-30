@@ -1,6 +1,6 @@
 "use server";
 
-import UserDropdownMenu from "@/components/layout/UserDropdownMenu";
+import UserDropdownMenu from "@/components/navigation/UserDropdownMenu";
 import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";

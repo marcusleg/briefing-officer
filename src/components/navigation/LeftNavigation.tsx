@@ -1,9 +1,9 @@
 "use server";
 
-import AdminNavigation from "@/components/layout/AdminNavigation";
-import FeedNavigation from "@/components/layout/FeedNavigation";
-import MainNavigation from "@/components/layout/MainNavigation";
-import UserNavigation from "@/components/layout/UserNavigation";
+import AdminNavigation from "@/components/navigation/AdminNavigation";
+import FeedNavigation from "@/components/navigation/FeedNavigation";
+import MainNavigation from "@/components/navigation/MainNavigation";
+import UserNavigation from "@/components/navigation/UserNavigation";
 import {
   Sidebar,
   SidebarContent,

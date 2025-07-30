@@ -5,7 +5,7 @@ import ToggleReadButton from "@/components/article/ToggleReadButton";
 import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
 import ToggleStarredButton from "@/components/article/ToggleStarredButton";
 import VisitButton from "@/components/article/VisitButton";
-import BackButton from "@/components/layout/BackButton";
+import BackButton from "@/components/navigation/BackButton";
 import { Separator } from "@/components/ui/separator";
 import { Prisma } from "@prisma/client";
 
