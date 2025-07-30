@@ -2,7 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
-import SkeletonChart from "@/components/frontpage/SkeletonChart";
+import SkeletonChart from "@/app/feed/skeleton-chart";
 import {
   Card,
   CardContent,
@@ -24,21 +24,20 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export interface NumberOfArticlesLast7DaysChartData {
+export interface NumberOfArticlesReadLast7DaysChartData {
   date: string;
   count: number;
 }
 
-interface NumberOfArticlesLast7DaysChartProps {
-  chartData?: NumberOfArticlesLast7DaysChartData[];
+interface NumberOfArticlesReadLast7DaysChartProps {
+  chartData?: NumberOfArticlesReadLast7DaysChartData[];
 }
 
-const DailyNewArticlesChart = ({
+const DailyActivityChart = ({
   chartData,
-}: NumberOfArticlesLast7DaysChartProps) => {
-  const chartTitle = "Daily New Articles";
-  const chartDescription =
-    "Number of new articles that appeared in your feed each day";
+}: NumberOfArticlesReadLast7DaysChartProps) => {
+  const chartTitle = "Your Daily Activity";
+  const chartDescription = "Number of articles you interacted with each day";
 
   if (!chartData) {
     return <SkeletonChart title={chartTitle} description={chartDescription} />;
@@ -99,4 +98,4 @@ const DailyNewArticlesChart = ({
   );
 };
 
-export default DailyNewArticlesChart;
+export default DailyActivityChart;

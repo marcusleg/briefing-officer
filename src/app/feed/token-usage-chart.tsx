@@ -1,6 +1,6 @@
 "use client";
 
-import SkeletonChart from "@/components/frontpage/SkeletonChart";
+import SkeletonChart from "@/app/feed/skeleton-chart";
 import { CardHeader } from "@/components/ui/card";
 import {
   ChartConfig,
@@ -16,7 +16,7 @@ import {
   CardDescription,
   CardFooter,
   CardTitle,
-} from "../ui/card";
+} from "../../components/ui/card";
 
 // Dynamic chart config will be generated based on available models
 const getChartConfig = (models: string[]): ChartConfig => {

@@ -1,6 +1,6 @@
 "use client";
 
-import SkeletonChart from "@/components/frontpage/SkeletonChart";
+import SkeletonChart from "@/app/feed/skeleton-chart";
 import {
   Card,
   CardContent,

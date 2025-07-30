@@ -1,5 +1,5 @@
+import Dashboard from "@/app/feed/dashboard";
 import ArticleList from "@/components/article/ArticleList";
-import Dashboard from "@/components/frontpage/Dashboard";
 import TopNavigation from "@/components/layout/TopNavigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";

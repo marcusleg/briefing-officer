@@ -2,14 +2,14 @@
 
 import DailyActivityChart, {
   NumberOfArticlesReadLast7DaysChartData,
-} from "@/components/frontpage/DailyActivityChart";
+} from "@/app/feed/daily-activity-chart";
 import DailyNewArticlesChart, {
   NumberOfArticlesLast7DaysChartData,
-} from "@/components/frontpage/DailyNewArticlesChart";
-import TokenUsageChart from "@/components/frontpage/TokenUsageChart";
+} from "@/app/feed/daily-new-articles-chart";
+import TokenUsageChart from "@/app/feed/token-usage-chart";
 import UnreadArticlesPieChart, {
   UnreadArticlesChartData,
-} from "@/components/frontpage/UnreadArticlesPieChart";
+} from "@/app/feed/unread-articles-pie-chart";
 import {
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
@@ -18,7 +18,7 @@ import {
 } from "@/lib/repository/statsRepository";
 import { TokenUsage } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "../../components/ui/toggle-group";
 
 export enum DateRangePreset {
   Last7Days = "Last 7 Days",

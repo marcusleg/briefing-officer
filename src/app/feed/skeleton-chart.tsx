@@ -1,5 +1,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 
 interface SkeletonChartProps {
   title: string;
