@@ -89,7 +89,7 @@ const Dashboard = () => {
   return (
     <>
       <ToggleGroup
-        className="invisible md:visible"
+        className="hidden md:visible"
         type="single"
         value={selectedRange}
         variant="outline"
@@ -102,7 +102,7 @@ const Dashboard = () => {
         ))}
       </ToggleGroup>
 
-      <div className="invisible grid-cols-4 gap-4 md:visible md:grid md:grid-cols-2 lg:grid-cols-4">
+      <div className="hidden grid-cols-4 gap-4 md:visible md:grid md:grid-cols-2 lg:grid-cols-4">
         <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
         <TokenUsageChart chartData={tokenUsageChartData} />
         <DailyNewArticlesChart chartData={numberOfNewArticlesChartData} />
