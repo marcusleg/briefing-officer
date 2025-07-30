@@ -36,7 +36,7 @@ const ReadLaterPage = async () => {
       />
 
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Read Later</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Read Later</h2>
         <Badge variant="secondary" className="text-sm">
           {articles.length} articles
         </Badge>

@@ -117,7 +117,7 @@ const ArticleCard = (props: ArticleCardProps) => {
 
       <CardContent className="px-4 md:pb-6" ref={inViewRef}>
         {/* Article Summary */}
-        <p className="mb-4 text-justify leading-relaxed">
+        <p className="mb-4 text-justify text-sm leading-relaxed">
           {inView && <AiLeadStream articleId={props.article.id} />}
         </p>
 

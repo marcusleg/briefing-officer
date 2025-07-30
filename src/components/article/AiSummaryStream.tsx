@@ -39,28 +39,22 @@ const AiSummaryStream = ({ articleId }: AiSummaryStreamProps) => {
       options={{
         overrides: {
           h1: {
-            component: Typography,
-            props: { variant: "h1" },
+            props: { className: "text-3xl font-bold tracking-tight" },
           },
           h2: {
-            component: Typography,
-            props: { variant: "h2" },
+            props: { className: "text-2xl font-bold tracking-tight" },
           },
           h3: {
-            component: Typography,
-            props: { variant: "h3" },
+            props: { className: "text-xl font-bold tracking-tight" },
           },
           h4: {
-            component: Typography,
-            props: { variant: "h4" },
+            props: { className: "text-lg font-bold tracking-tight" },
           },
           h5: {
-            component: Typography,
-            props: { variant: "h5" },
+            props: { className: "text-base font-bold tracking-tight" },
           },
           h6: {
-            component: Typography,
-            props: { variant: "h6" },
+            props: { className: "text-sm font-bold tracking-tight" },
           },
           ul: {
             component: Typography,

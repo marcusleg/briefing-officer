@@ -3,7 +3,6 @@
 import AiSummaryStream from "@/components/article/AiSummaryStream";
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
 import TopNavigation from "@/components/navigation/TopNavigation";
-import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
@@ -46,7 +45,7 @@ const AiSummary = async (props0: {
       />
 
       <article className="flex flex-col gap-4" data-testid="article">
-        <Typography variant="h2">{article.title}</Typography>
+        <h2 className="text-2xl font-bold tracking-tight">{article.title}</h2>
 
         <ArticleCardActions article={article} hideAiSummary showBackButton />
 
