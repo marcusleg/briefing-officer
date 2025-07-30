@@ -33,7 +33,7 @@ const MyFeeds = async () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <TopNavigation page="My Feed" />
+      <TopNavigation page="All Feeds" />
 
       <Dashboard />
 

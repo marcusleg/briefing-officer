@@ -26,7 +26,7 @@ const MainNavigation = async () => {
     {
       href: "/feed",
       icon: NewspaperIcon,
-      label: "My Feed",
+      label: "All Feeds",
       badge: numberOfUnreadArticles > 0 ? numberOfUnreadArticles : undefined,
     },
     {
