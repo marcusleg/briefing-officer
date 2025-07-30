@@ -1,10 +1,11 @@
 "use server";
 
-import AddFeedButton from "@/components/navigation/AddFeedButton";
+import AddFeedFormDialogTrigger from "@/components/navigation/AddFeedFormDialogTrigger";
 import AppSidebarMenuButton from "@/components/navigation/AppSidebarMenuButton";
 import RefreshAllFeedsButton from "@/components/navigation/RefreshAllFeedsButton";
 import {
   SidebarGroup,
+  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenuBadge,
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
-import { NewspaperIcon } from "lucide-react";
+import { NewspaperIcon, PlusIcon } from "lucide-react";
 
 const FeedNavigation = async () => {
   const userId = await getUserId();
@@ -33,7 +34,12 @@ const FeedNavigation = async () => {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>My Feeds</SidebarGroupLabel>
-      <AddFeedButton />
+      <AddFeedFormDialogTrigger>
+        <SidebarGroupAction title="Add Feed">
+          <PlusIcon /> <span className="sr-only">Add Feed</span>
+        </SidebarGroupAction>
+      </AddFeedFormDialogTrigger>
+
       <SidebarGroupContent>
         {feeds.map((feed) => (
           <SidebarMenuItem key={feed.id}>

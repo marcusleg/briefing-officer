@@ -9,20 +9,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SidebarGroupAction } from "@/components/ui/sidebar";
-import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
-const AddFeedButton = () => {
+interface AddFeedFormTriggerProps {
+  children: React.ReactNode;
+}
+
+const AddFeedFormDialogTrigger = ({ children }: AddFeedFormTriggerProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger asChild>
-        <SidebarGroupAction title="Add Feed">
-          <PlusIcon /> <span className="sr-only">Add Feed</span>
-        </SidebarGroupAction>
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
@@ -37,4 +35,4 @@ const AddFeedButton = () => {
   );
 };
 
-export default AddFeedButton;
+export default AddFeedFormDialogTrigger;
