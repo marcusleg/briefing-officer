@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SidebarMenuButton } from "@/components/ui/sidebar";
+import { SidebarGroupAction } from "@/components/ui/sidebar";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -19,10 +19,9 @@ const AddFeedButton = () => {
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <SidebarMenuButton>
-          <PlusIcon />
-          <span className="truncate">Add Feed</span>
-        </SidebarMenuButton>
+        <SidebarGroupAction title="Add Feed">
+          <PlusIcon /> <span className="sr-only">Add Feed</span>
+        </SidebarGroupAction>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">

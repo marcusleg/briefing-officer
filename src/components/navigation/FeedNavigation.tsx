@@ -33,6 +33,7 @@ const FeedNavigation = async () => {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>My Feeds</SidebarGroupLabel>
+      <AddFeedButton />
       <SidebarGroupContent>
         {feeds.map((feed) => (
           <SidebarMenuItem key={feed.id}>
@@ -46,9 +47,6 @@ const FeedNavigation = async () => {
           </SidebarMenuItem>
         ))}
         <SidebarSeparator />
-        <SidebarMenuItem>
-          <AddFeedButton />
-        </SidebarMenuItem>
         <SidebarMenuItem>
           <RefreshAllFeedsButton />
         </SidebarMenuItem>
