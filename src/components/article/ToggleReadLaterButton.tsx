@@ -18,8 +18,7 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
     toast("Article Added To Read Later", {
       description: (
         <>
-          <span className="font-semibold italic">{article.title}</span> has been
-          add to the Read Later list..
+          <span className="italic">{article.title}</span>
         </>
       ),
       action: {
@@ -35,8 +34,7 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
     toast("Article Removed From Read Later", {
       description: (
         <>
-          <span className="font-semibold italic">{article.title}</span> has been
-          removed from the Read Later list..
+          <span className="italic">{article.title}</span>
         </>
       ),
       action: {

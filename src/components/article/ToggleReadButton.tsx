@@ -20,8 +20,7 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
     toast("Article marked as read", {
       description: (
         <>
-          <span className="font-semibold italic">{article.title}</span> has been
-          marked as read.
+          <span className="italic">{article.title}</span>
         </>
       ),
       action: {
@@ -39,8 +38,7 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
     toast("Article marked as unread", {
       description: (
         <>
-          <span className="font-semibold italic">{article.title}</span> has been
-          marked as read.
+          <span className="italic">{article.title}</span>
         </>
       ),
       action: {
