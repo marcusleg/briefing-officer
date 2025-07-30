@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { UsersIcon } from "lucide-react";
 
-const AdminNavigation = async () => {
+const AdminNavigation = async ({ ...props }) => {
   const links = [
     {
       href: "/admin/user-management",
@@ -19,7 +19,7 @@ const AdminNavigation = async () => {
   ];
 
   return (
-    <SidebarGroup>
+    <SidebarGroup {...props}>
       <SidebarGroupLabel>Administration</SidebarGroupLabel>
       <SidebarGroupContent>
         {links.map((link) => (

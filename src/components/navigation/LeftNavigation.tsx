@@ -41,9 +41,9 @@ const LeftNavigation = async () => {
       <SidebarContent>
         <MainNavigation />
         <FeedNavigation />
+        {isAdmin && <AdminNavigation className="mt-auto" />}
       </SidebarContent>
       <SidebarFooter>
-        {isAdmin && <AdminNavigation />}
         <UserNavigation />
       </SidebarFooter>
     </Sidebar>
