@@ -1,4 +1,5 @@
 import Dashboard from "@/app/feed/dashboard";
+import NoFeedsMessage from "@/app/feed/no-feeds-message";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,13 @@ const MyFeeds = async () => {
 
   if (!session) {
     return null;
+  }
+
+  const feedCount = await prisma.feed.count({
+    where: { userId: session.user.id },
+  });
+  if (feedCount === 0) {
+    return <NoFeedsMessage />;
   }
 
   const articles = await prisma.article.findMany({

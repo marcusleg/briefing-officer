@@ -24,7 +24,7 @@ const AddFeedFormDialogTrigger = ({ children }: AddFeedFormTriggerProps) => {
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add a new feed</DialogTitle>
+          <DialogTitle>Add A New Feed</DialogTitle>
           <DialogDescription>
             Enter a URL of an RSS or Atom feed.
           </DialogDescription>
