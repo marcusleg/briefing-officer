@@ -7,6 +7,7 @@ import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 const AiSummary = async (props0: {
@@ -50,6 +51,10 @@ const AiSummary = async (props0: {
         <ArticleCardActions article={article} hideAiSummary showBackButton />
 
         <AiSummaryStream articleId={article.id} />
+
+        <div className="text-sm text-muted-foreground">
+          Source: <Link href={article.link}>{article.link}</Link>
+        </div>
       </article>
     </div>
   );
