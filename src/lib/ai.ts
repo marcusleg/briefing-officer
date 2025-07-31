@@ -1,20 +1,21 @@
 "use server";
 
 import { cacheMiddleware } from "@/lib/aiMiddleware/cache";
+import { anthropicClaude } from "@/lib/aiModels/antrophic";
+import { azureOpenAiChatGpt } from "@/lib/aiModels/azureOpenai";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
-import { createAzure } from "@ai-sdk/azure";
 import { createStreamableValue } from "@ai-sdk/rsc";
 import { streamText, wrapLanguageModel } from "ai";
 
-const azureOpenAi = createAzure({
-  apiKey: process.env.AZURE_OPENAI_API_KEY,
-  resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
-});
+const baseLanguageModel = await Promise.race([
+  anthropicClaude(),
+  azureOpenAiChatGpt(),
+]);
 
 const wrappedLanguageModel = wrapLanguageModel({
-  model: azureOpenAi("gpt-4.1-nano"),
+  model: baseLanguageModel,
   middleware: [cacheMiddleware],
 });
 
