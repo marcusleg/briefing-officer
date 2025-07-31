@@ -1,3 +1,4 @@
+import NoUnreadArticles from "@/app/feed/[feedId]/no-unread-articles";
 import ArticleList from "@/components/article/ArticleList";
 import DeleteFeedButton from "@/components/feed/DeleteFeedButton";
 import EditFeedButton from "@/components/feed/EditFeedButton";
@@ -8,7 +9,6 @@ import IntlRelativeTime from "@/components/IntlRelativeTime";
 import TopNavigation from "@/components/navigation/TopNavigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import Typography from "@/components/ui/typography";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { notFound } from "next/navigation";
@@ -82,12 +82,7 @@ const Feed = async (props: FeedProps) => {
           {articles.length > 0 ? (
             <ArticleList articles={articles} />
           ) : (
-            <Typography
-              variant="p"
-              className="my-8 text-center text-lg text-muted-foreground"
-            >
-              There are no {showSearchParam === "unread" && "unread"} articles.
-            </Typography>
+            <NoUnreadArticles feed={feed} />
           )}
         </div>
       </div>
