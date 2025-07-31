@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
-import { BookOpen, CheckCircle } from "lucide-react";
+import { BookmarkIcon, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 const NoUnreadArticles = async () => {
@@ -35,8 +35,8 @@ const NoUnreadArticles = async () => {
           {readLaterCount > 0 && (
             <Button asChild className="w-full">
               <Link href="/feed/read-later">
-                <BookOpen className="mr-2 h-4 w-4" />
-                Continue to your Read Later page
+                <BookmarkIcon className="mr-2 h-4 w-4" />
+                Go to Read Later
               </Link>
             </Button>
           )}
