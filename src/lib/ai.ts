@@ -1,7 +1,7 @@
 "use server";
 
 import { cacheMiddleware } from "@/lib/aiMiddleware/cache";
-import { anthropicClaude } from "@/lib/aiModels/antrophic";
+import { anthropicClaude } from "@/lib/aiModels/anthrophic";
 import { azureOpenAiChatGpt } from "@/lib/aiModels/azureOpenai";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
