@@ -9,7 +9,7 @@ import { getUserId } from "@/lib/repository/userRepository";
 import { createStreamableValue } from "@ai-sdk/rsc";
 import { streamText, wrapLanguageModel } from "ai";
 
-const baseLanguageModel = await Promise.race([
+const baseLanguageModel = await Promise.any([
   anthropicClaude(),
   azureOpenAiChatGpt(),
 ]);
