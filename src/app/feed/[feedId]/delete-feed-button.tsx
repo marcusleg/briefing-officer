@@ -1,6 +1,6 @@
 "use client";
 
-import DeleteFeedDialog from "@/components/feed/DeleteFeedDialog";
+import DeleteFeedDialog from "@/app/feed/[feedId]/delete-feed-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
