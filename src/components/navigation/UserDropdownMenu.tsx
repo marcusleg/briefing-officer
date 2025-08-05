@@ -36,8 +36,8 @@ const UserDropdownMenu = ({ userName }: UserDropdownMenuProps) => {
         className="w-[--radix-popper-anchor-width]"
       >
         <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-          <LogOutIcon className="mr-2 h-4 w-4" />
-          Sign out
+          <LogOutIcon />
+          <span>Sign out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
