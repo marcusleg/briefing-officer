@@ -1,6 +1,5 @@
 "use client";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -30,7 +29,6 @@ type FormData = z.infer<typeof formSchema>;
 const SignInForm = () => {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -109,12 +107,6 @@ const SignInForm = () => {
           )}
         </Button>
       </form>
-      {error && (
-        <Alert>
-          <AlertTitle>Sign-in failed</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
     </Form>
   );
 };
