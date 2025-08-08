@@ -97,7 +97,6 @@ export const streamAiLead = async (articleId: number) => {
       system: systemPrompt,
       prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
 ${article.title}\n\n${article.scrape?.textContent}`,
-      maxOutputTokens: 120,
     });
 
     for await (const delta of textStream) {
