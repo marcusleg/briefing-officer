@@ -14,5 +14,5 @@ export const azureOpenAiChatGpt = async () => {
 
   const azureOpenAi = createAzure({ apiKey, resourceName });
 
-  return azureOpenAi("gpt-4.1-nano");
+  return azureOpenAi("gpt-5-nano");
 };
