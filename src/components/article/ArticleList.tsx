@@ -7,7 +7,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 interface ArticleListProps {
   articles: Prisma.ArticleGetPayload<{
-    include: { feed: true; scrape: true };
+    include: { feed: true; lead: true; scrape: true };
   }>[];
 }
 

@@ -16,6 +16,7 @@ const ReadHistoryPage = async () => {
   const articles = await prisma.article.findMany({
     include: {
       feed: true,
+      lead: true,
       scrape: true,
     },
     where: {

@@ -1,6 +1,5 @@
 "use client";
 
-import AiLeadStream from "@/components/article/AiLeadStream";
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
 import { Badge } from "@/components/ui/badge";
@@ -19,14 +18,12 @@ import {
   GlobeIcon,
   UserIcon,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useInView } from "react-intersection-observer";
 import readingTime from "reading-time";
 
 interface ArticleCardProps {
   article: Prisma.ArticleGetPayload<{
-    include: { feed: true; scrape: true };
+    include: { feed: true; lead: true; scrape: true };
   }>;
   className?: string;
   onClick?: () => void;
@@ -34,22 +31,6 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = (props: ArticleCardProps) => {
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const { ref: inViewRef, inView } = useInView({
-    triggerOnce: true,
-  });
-
-  useEffect(() => {
-    if (!props.selected || !cardRef.current) {
-      return;
-    }
-
-    cardRef.current.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
-  }, [props.selected]);
-
   useHotkeys("v", async () => {
     if (!props.selected) {
       return;
@@ -83,7 +64,6 @@ const ArticleCard = (props: ArticleCardProps) => {
         props.className,
       )}
       onClick={props.onClick}
-      ref={cardRef}
     >
       <CardHeader className="px-4 pb-3 md:pb-6">
         <div className="flex items-start justify-between gap-4">
@@ -115,10 +95,10 @@ const ArticleCard = (props: ArticleCardProps) => {
         </div>
       </CardHeader>
 
-      <CardContent className="px-4 md:pb-6" ref={inViewRef}>
+      <CardContent className="px-4 md:pb-6">
         {/* Article Summary */}
         <p className="mb-4 text-justify text-sm leading-relaxed">
-          {inView && <AiLeadStream articleId={props.article.id} />}
+          {props.article.lead ? props.article.lead.text : "AI lead missing"}
         </p>
 
         {/* Metadata Badges */}

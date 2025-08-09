@@ -7,7 +7,7 @@ import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { createStreamableValue } from "@ai-sdk/rsc";
-import { streamText, wrapLanguageModel } from "ai";
+import { generateText, streamText, wrapLanguageModel } from "ai";
 
 const baseLanguageModel = await Promise.any([
   anthropicClaude(),
@@ -83,7 +83,7 @@ ${article.scrape?.textContent}`,
   return { output: stream.value };
 };
 
-export const streamAiLead = async (articleId: number) => {
+export const generateAiLead = async (articleId: number) => {
   const userId = await getUserId();
 
   const article = await prisma.article.findUniqueOrThrow({
@@ -91,44 +91,41 @@ export const streamAiLead = async (articleId: number) => {
     where: { id: articleId, userId },
   });
 
-  const stream = createStreamableValue("");
-
-  void (async () => {
-    const { textStream, totalUsage } = streamText({
-      model: wrappedLanguageModel,
-      system: systemPrompt,
-      prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
+  const lead = await generateText({
+    model: wrappedLanguageModel,
+    system: systemPrompt,
+    prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
 ${article.title}\n\n${article.scrape?.textContent}`,
-    });
+  });
 
-    for await (const delta of textStream) {
-      stream.update(delta);
-    }
+  await prisma.articleLead.upsert({
+    where: { articleId },
+    create: {
+      articleId,
+      text: lead.text,
+    },
+    update: {
+      text: lead.text,
+    },
+  });
 
-    stream.done();
+  await trackTokenUsage(
+    userId,
+    wrappedLanguageModel.modelId,
+    lead.totalUsage.inputTokens ?? 0,
+    lead.totalUsage.outputTokens ?? 0,
+    lead.totalUsage.reasoningTokens ?? 0,
+  );
 
-    const tokenUsage = await totalUsage;
-
-    logger.info(
-      {
-        articleId,
-        feedId: article.feedId,
-        model: wrappedLanguageModel.modelId,
-        tokenUsage,
-      },
-      "AI lead generated.",
-    );
-
-    await trackTokenUsage(
-      userId,
-      wrappedLanguageModel.modelId,
-      tokenUsage.inputTokens ?? 0,
-      tokenUsage.outputTokens ?? 0,
-      tokenUsage.reasoningTokens ?? 0,
-    );
-  })();
-
-  return { output: stream.value };
+  logger.info(
+    {
+      articleId,
+      feedId: article.feedId,
+      model: wrappedLanguageModel.modelId,
+      tokenUsage: lead.totalUsage,
+    },
+    "AI lead generated.",
+  );
 };
 
 const trackTokenUsage = async (

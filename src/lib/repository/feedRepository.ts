@@ -1,5 +1,6 @@
 "use server";
 
+import { generateAiLead } from "@/lib/ai";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
@@ -51,6 +52,15 @@ const processArticle = async (article: Article) => {
     logger.error(
       { article: { id: article.id, title: article.title, link: article.link } },
       "Failed to scrape article.",
+    );
+  }
+
+  try {
+    await generateAiLead(article.id);
+  } catch (error) {
+    logger.error(
+      { article: { id: article.id, title: article.title, link: article.link } },
+      "Failed to generate AI lead.",
     );
   }
 

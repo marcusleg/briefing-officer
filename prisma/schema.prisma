@@ -56,10 +56,19 @@ model Article {
   feedId          Int
   feed            Feed           @relation(fields: [feedId], references: [id], onDelete: Cascade)
   scrape          ArticleScrape?
+  lead            ArticleLead?
   userId          String
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, feedId, link])
+}
+
+model ArticleLead {
+  articleId Int      @id
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ArticleScrape {
