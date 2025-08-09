@@ -2,6 +2,7 @@
 
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
+import { getUserId } from "@/lib/repository/userRepository";
 import { revalidatePath } from "next/cache";
 
 export const markArticleAsRead = async (articleId: number) => {
@@ -87,6 +88,32 @@ export const markArticlesOlderThanXDaysAsRead = async (
   });
 
   revalidatePath(`/feed/${feedId}`);
+  revalidatePath("/feed");
+  revalidatePath("/feed", "layout");
+
+  return count;
+};
+
+export const markCategoryArticlesOlderThanXDaysAsRead = async (
+  categoryId: number,
+  days: number,
+) => {
+  const userId = await getUserId();
+
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+
+  const { count } = await prisma.article.updateMany({
+    where: {
+      publicationDate: { lte: date },
+      readAt: null,
+      userId,
+      feed: { is: { feedCategoryId: categoryId } },
+    },
+    data: { readAt: new Date() },
+  });
+
+  revalidatePath(`/feed/category/${categoryId}`);
   revalidatePath("/feed");
   revalidatePath("/feed", "layout");
 
