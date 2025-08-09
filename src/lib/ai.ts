@@ -40,8 +40,9 @@ export const streamAiSummary = async (articleId: number) => {
 
 - Key Points (as a bullet list; use "Key Facts" for factual articles or "Key Takeaways" for opinion pieces)
   Highlight one keywords or key term per bullet point in bold.
-- Summary
-  It must be shorter than the original article, but should not omit important, relevant, or interesting information. Focus on a high information density while maintaining clear, readable language. Include all major points, arguments, or findings that are most relevant to understanding the article as a whole. Do not simply copy text verbatim — paraphrase and condense where appropriate.
+- Executive Summary
+  Focus on a high information density while maintaining clear, readable language. Include all major points, arguments, or findings that are most relevant to understanding the article as a whole. Do not simply copy text verbatim — paraphrase and condense where appropriate.
+  Use paragraphs with headings to logically organize the information and emphasize key points. For major sections, use level 4 headings (\`####\`). For subsections that provide additional detail or clarification, use level 5 headings (\`#####\`). Feel free to include unstructured paragraphs when appropriate for smooth narrative flow.
 - Why the Full Article Is Worth Reading
   Only include this section if the full article offers additional detail, nuance, or unique value that is not fully captured in your summary. If the summary sufficiently covers all key content, you may omit this section.
 
