@@ -17,12 +17,18 @@ interface MarkAsReadCategoryProps {
   categoryId: number;
 }
 
-const MarkAsReadCategoryButton = ({ disabled, categoryId }: MarkAsReadCategoryProps) => {
+const MarkAsReadCategoryButton = ({
+  disabled,
+  categoryId,
+}: MarkAsReadCategoryProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = async (days: number) => {
     try {
-      const count = await markCategoryArticlesOlderThanXDaysAsRead(categoryId, days);
+      const count = await markCategoryArticlesOlderThanXDaysAsRead(
+        categoryId,
+        days,
+      );
       toast.message(`${count} articles marked as read.`);
     } catch (error) {
       toast.error("An error occurred marking articles as read.");
