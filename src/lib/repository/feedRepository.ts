@@ -144,6 +144,28 @@ export const refreshFeed = async (feedId: number) => {
   );
 };
 
+export const refreshCategoryFeeds = async (categoryId: number) => {
+  const userId = await getUserId();
+
+  const feeds = await prisma.feed.findMany({
+    where: { feedCategoryId: categoryId, userId },
+    select: { id: true },
+  });
+
+  const promises = feeds.map(async (feed) => {
+    await refreshFeed(feed.id);
+    revalidatePath(`/feed/${feed.id}`);
+  });
+  const results = await Promise.allSettled(promises);
+
+  revalidatePath("/feed");
+  revalidatePath(`/feed/category/${categoryId}`);
+
+  if (results.filter((result) => result.status === "rejected").length > 0) {
+    throw new Error("Failed to refresh one or more feeds.");
+  }
+};
+
 export const refreshFeeds = async () => {
   logger.debug("Refreshing all feeds.");
 
