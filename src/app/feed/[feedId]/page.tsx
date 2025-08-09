@@ -13,12 +13,12 @@ import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { notFound } from "next/navigation";
 
-interface FeedProps {
+interface FeedByIdProps {
   params: Promise<{ feedId: string }>;
   searchParams: Promise<{ show: "all" | "unread" }>;
 }
 
-const Feed = async (props: FeedProps) => {
+const FeedById = async (props: FeedByIdProps) => {
   const searchParams = await props.searchParams;
   const params = await props.params;
   const feedId = parseInt(params.feedId);
@@ -54,40 +54,38 @@ const Feed = async (props: FeedProps) => {
         page={feed.title}
       />
 
-      <div>
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">{feed.title}</h2>
-          <Badge variant="secondary" className="text-sm">
-            {articles.length} articles
-          </Badge>
-        </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight">{feed.title}</h2>
+        <Badge variant="secondary" className="text-sm">
+          {articles.length} articles
+        </Badge>
+      </div>
 
-        <Separator />
+      <Separator />
 
-        <div className="my-4 flex flex-row flex-wrap items-center gap-2">
-          <FeedFilterButton />
-          <RefreshFeedButton feedId={feedId} />
-          <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
-          <EditFeedButton feed={feed} />
-          <DeleteFeedButton feed={feed} />
-          <time
-            className="text-sm text-muted-foreground"
-            dateTime={feed.lastFetched.toISOString()}
-          >
-            Last updated <IntlRelativeTime date={feed.lastFetched} />
-          </time>
-        </div>
+      <div className="flex flex-row flex-wrap items-center gap-2">
+        <FeedFilterButton />
+        <RefreshFeedButton feedId={feedId} />
+        <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
+        <EditFeedButton feed={feed} />
+        <DeleteFeedButton feed={feed} />
+        <time
+          className="text-sm text-muted-foreground"
+          dateTime={feed.lastFetched.toISOString()}
+        >
+          Last updated <IntlRelativeTime date={feed.lastFetched} />
+        </time>
+      </div>
 
-        <div className="flex flex-col gap-4">
-          {articles.length > 0 ? (
-            <ArticleList articles={articles} />
-          ) : (
-            <NoUnreadArticles feed={feed} />
-          )}
-        </div>
+      <div className="flex flex-col gap-4">
+        {articles.length > 0 ? (
+          <ArticleList articles={articles} />
+        ) : (
+          <NoUnreadArticles feed={feed} />
+        )}
       </div>
     </div>
   );
 };
 
-export default Feed;
+export default FeedById;
