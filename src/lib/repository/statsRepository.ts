@@ -122,7 +122,6 @@ export const getTokenUsageHistory = async (from: Date, to: Date) => {
 
   const dates = getDaysInDateRange(from, to);
 
-  // TODO limit to certain date range
   return prisma.tokenUsage.findMany({
     where: {
       userId,

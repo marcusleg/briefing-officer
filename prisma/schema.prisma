@@ -73,12 +73,13 @@ model ArticleScrape {
 }
 
 model TokenUsage {
-  userId       String
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date         String
-  model        String
-  inputTokens  Int
-  outputTokens Int
+  userId          String
+  user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date            String
+  model           String
+  inputTokens     Int    @default(0)
+  outputTokens    Int    @default(0)
+  reasoningTokens Int    @default(0)
 
   @@id([userId, date, model])
 }

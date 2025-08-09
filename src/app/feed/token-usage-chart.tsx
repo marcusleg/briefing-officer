@@ -1,7 +1,14 @@
 "use client";
 
 import SkeletonChart from "@/app/feed/skeleton-chart";
-import { CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -10,13 +17,6 @@ import {
 } from "@/components/ui/chart";
 import { TokenUsage } from "@prisma/client";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardTitle,
-} from "../../components/ui/card";
 
 // Dynamic chart config will be generated based on available models
 const getChartConfig = (models: string[]): ChartConfig => {
@@ -42,6 +42,12 @@ const getChartConfig = (models: string[]): ChartConfig => {
     config[`${model}_output`] = {
       label: `${model} Output`,
       color: colors[(index + models.length) % colors.length],
+    };
+
+    // Create reasoning tokens entry for this model
+    config[`${model}_reasoning`] = {
+      label: `${model} Reasoning`,
+      color: colors[(index + 2 * models.length) % colors.length],
     };
   });
 
@@ -77,11 +83,13 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
         // Add model-specific token counts
         existingEntry[`${entry.model}_input`] = entry.inputTokens;
         existingEntry[`${entry.model}_output`] = entry.outputTokens;
+        existingEntry[`${entry.model}_reasoning`] = entry.reasoningTokens;
       } else {
         // Create new entry for this date
         const newEntry: Record<string, any> = { date: entry.date };
         newEntry[`${entry.model}_input`] = entry.inputTokens;
         newEntry[`${entry.model}_output`] = entry.outputTokens;
+        newEntry[`${entry.model}_reasoning`] = entry.reasoningTokens;
         acc.push(newEntry);
       }
 
@@ -181,6 +189,15 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
                 fill={chartConfigForModels[`${model}_output`].color}
                 fillOpacity={0.4}
                 stroke={chartConfigForModels[`${model}_output`].color}
+                stackId="a"
+              />,
+              <Area
+                key={`${model}_reasoning`}
+                dataKey={`${model}_reasoning`}
+                type="natural"
+                fill={chartConfigForModels[`${model}_reasoning`].color}
+                fillOpacity={0.4}
+                stroke={chartConfigForModels[`${model}_reasoning`].color}
                 stackId="a"
               />,
             ])}
