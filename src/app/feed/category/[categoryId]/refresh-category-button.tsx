@@ -28,7 +28,11 @@ const RefreshCategoryButton = ({ categoryId }: RefreshCategoryButtonProps) => {
   };
 
   return (
-    <Button disabled={refreshInProgress} onClick={handleClick} variant="outline">
+    <Button
+      disabled={refreshInProgress}
+      onClick={handleClick}
+      variant="outline"
+    >
       {refreshInProgress ? (
         <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
       ) : (
