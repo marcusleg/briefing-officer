@@ -1,3 +1,5 @@
+import DeleteCategoryButton from "@/app/feed/category/[categoryId]/delete-category-button";
+import EditCategoryButton from "@/app/feed/category/[categoryId]/edit-category-button";
 import NoUnreadArticles from "@/app/feed/no-unread-articles";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
@@ -57,6 +59,11 @@ const FeedCategory = async ({ params }: FeedCategoryProps) => {
       </div>
 
       <Separator />
+
+      <div className="flex flex-row flex-wrap items-center gap-2">
+        <EditCategoryButton category={category} />
+        <DeleteCategoryButton category={category} />
+      </div>
 
       {articles.length > 0 ? (
         <ArticleList articles={articles} />
