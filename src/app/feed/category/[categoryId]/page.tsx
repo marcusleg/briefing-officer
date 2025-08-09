@@ -1,5 +1,6 @@
 import DeleteCategoryButton from "@/app/feed/category/[categoryId]/delete-category-button";
 import EditCategoryButton from "@/app/feed/category/[categoryId]/edit-category-button";
+import RefreshCategoryButton from "@/app/feed/category/[categoryId]/refresh-category-button";
 import NoUnreadArticles from "@/app/feed/no-unread-articles";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
@@ -61,6 +62,7 @@ const FeedCategory = async ({ params }: FeedCategoryProps) => {
       <Separator />
 
       <div className="flex flex-row flex-wrap items-center gap-2">
+        <RefreshCategoryButton categoryId={categoryId} />
         <EditCategoryButton category={category} />
         <DeleteCategoryButton category={category} />
       </div>
