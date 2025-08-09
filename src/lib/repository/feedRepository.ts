@@ -35,8 +35,10 @@ export const createFeed = async (feed: FeedSchema) => {
 };
 
 export const deleteFeed = async (feedId: number) => {
-  await prisma.article.deleteMany({ where: { feedId: feedId } });
-  await prisma.feed.delete({ where: { id: feedId } });
+  const userId = await getUserId();
+
+  await prisma.article.deleteMany({ where: { feedId: feedId, userId } });
+  await prisma.feed.delete({ where: { id: feedId, userId } });
 
   revalidatePath("/feed", "layout");
   redirect("/");
@@ -56,8 +58,10 @@ const processArticle = async (article: Article) => {
 };
 
 export const refreshFeed = async (feedId: number) => {
+  const userId = await getUserId();
+
   const feed = await prisma.feed.findUniqueOrThrow({
-    where: { id: feedId },
+    where: { id: feedId, userId },
   });
 
   logger.debug({ feedId, feedTitle: feed.title }, "Refreshing feed.");
@@ -143,7 +147,12 @@ export const refreshFeed = async (feedId: number) => {
 export const refreshFeeds = async () => {
   logger.debug("Refreshing all feeds.");
 
-  const feeds = await prisma.feed.findMany({ select: { id: true } });
+  const userId = await getUserId();
+
+  const feeds = await prisma.feed.findMany({
+    select: { id: true },
+    where: { userId },
+  });
 
   const promises = feeds.map(async (feed) => {
     await refreshFeed(feed.id);
@@ -159,8 +168,10 @@ export const refreshFeeds = async () => {
 };
 
 export const updateFeed = async (feedId: number, feed: FeedSchema) => {
+  const userId = await getUserId();
+
   await prisma.feed.update({
-    where: { id: feedId },
+    where: { id: feedId, userId },
     data: {
       ...feed,
     },
