@@ -84,11 +84,9 @@ ${article.scrape?.textContent}`,
 };
 
 export const generateAiLead = async (articleId: number) => {
-  const userId = await getUserId();
-
   const article = await prisma.article.findUniqueOrThrow({
     include: { scrape: true },
-    where: { id: articleId, userId },
+    where: { id: articleId },
   });
 
   const lead = await generateText({
@@ -110,7 +108,7 @@ ${article.title}\n\n${article.scrape?.textContent}`,
   });
 
   await trackTokenUsage(
-    userId,
+    article.userId,
     wrappedLanguageModel.modelId,
     lead.totalUsage.inputTokens ?? 0,
     lead.totalUsage.outputTokens ?? 0,
