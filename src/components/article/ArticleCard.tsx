@@ -37,7 +37,7 @@ const ArticleCard = (props: ArticleCardProps) => {
   const [aiLead, setAiLead] = useState(props.article.lead?.text);
 
   useEffect(() => {
-    if (!props.article.lead) {
+    if (!props.article.lead && props.article.scrape?.textContent) {
       generateAiLead(props.article.id).then((lead) => setAiLead(lead));
     }
   }, [props.article]);
@@ -66,6 +66,26 @@ const ArticleCard = (props: ArticleCardProps) => {
   const articleReadingTime = props.article.scrape
     ? readingTime(props.article.scrape.textContent)
     : undefined;
+
+  const description = () => {
+    if (!props.article.scrape?.textContent) {
+      return (
+        <p className="mb-4 text-justify text-sm leading-relaxed">
+          No content available. Visit the original article.
+        </p>
+      );
+    }
+
+    if (!aiLead) {
+      return (
+        <LoaderCircleIcon className="mx-auto my-12 h-8 w-8 animate-spin" />
+      );
+    }
+
+    return (
+      <p className="mb-4 text-justify text-sm leading-relaxed">{aiLead}</p>
+    );
+  };
 
   return (
     <Card
@@ -107,12 +127,7 @@ const ArticleCard = (props: ArticleCardProps) => {
       </CardHeader>
 
       <CardContent className="px-4 md:pb-6">
-        {/* Article Summary */}
-        {aiLead ? (
-          <p className="mb-4 text-justify text-sm leading-relaxed">{aiLead}</p>
-        ) : (
-          <LoaderCircleIcon className="mx-auto my-12 h-8 w-8 animate-spin" />
-        )}
+        {description()}
 
         {/* Metadata Badges */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
