@@ -12,7 +12,8 @@
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
-    "prisma:migrate-dev": "DATABASE_URL=file:../data/database.sqlite prisma migrate dev"
+    "prisma:migrate-dev": "DATABASE_URL=file:../data/database.sqlite prisma migrate dev",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.1",
