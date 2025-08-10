@@ -1,6 +1,5 @@
 "use client";
 
-import Typography from "@/components/ui/typography";
 import { streamAiSummary } from "@/lib/ai";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Markdown from "markdown-to-jsx";
@@ -57,18 +56,14 @@ const AiSummaryStream = ({ articleId }: AiSummaryStreamProps) => {
             props: { className: "text-sm font-bold tracking-tight" },
           },
           ul: {
-            component: Typography,
-            props: { variant: "ul" },
+            props: { className: "ml-6 list-disc [&>li]:mt-2" },
           },
           ol: {
-            component: Typography,
-            props: { variant: "ol" },
+            props: { className: "ml-6 list-decimal [&>li]:mt-2" },
           },
           p: {
-            component: Typography,
             props: {
-              className: "hyphens-auto text-pretty text-justify",
-              variant: "p",
+              className: "hyphens-auto text-pretty text-justify leading-7",
             },
           },
         },
