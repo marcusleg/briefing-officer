@@ -124,6 +124,8 @@ ${article.title}\n\n${article.scrape?.textContent}`,
     },
     "AI lead generated.",
   );
+
+  return lead.text;
 };
 
 const trackTokenUsage = async (

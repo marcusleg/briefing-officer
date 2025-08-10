@@ -5,6 +5,7 @@ import IntlRelativeTime from "@/components/IntlRelativeTime";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { generateAiLead } from "@/lib/ai";
 import {
   markArticleAsRead,
   unmarkArticleAsRead,
@@ -16,8 +17,10 @@ import {
   ClockIcon,
   FileTextIcon,
   GlobeIcon,
+  LoaderCircleIcon,
   UserIcon,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import readingTime from "reading-time";
 
@@ -31,6 +34,14 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = (props: ArticleCardProps) => {
+  const [aiLead, setAiLead] = useState(props.article.lead?.text);
+
+  useEffect(() => {
+    if (!props.article.lead) {
+      generateAiLead(props.article.id).then((lead) => setAiLead(lead));
+    }
+  });
+
   useHotkeys("v", async () => {
     if (!props.selected) {
       return;
@@ -97,9 +108,11 @@ const ArticleCard = (props: ArticleCardProps) => {
 
       <CardContent className="px-4 md:pb-6">
         {/* Article Summary */}
-        <p className="mb-4 text-justify text-sm leading-relaxed">
-          {props.article.lead ? props.article.lead.text : "AI lead missing"}
-        </p>
+        {aiLead ? (
+          <p className="mb-4 text-justify text-sm leading-relaxed">{aiLead}</p>
+        ) : (
+          <LoaderCircleIcon className="mx-auto my-12 h-8 w-8 animate-spin" />
+        )}
 
         {/* Metadata Badges */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
