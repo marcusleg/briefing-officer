@@ -11,6 +11,7 @@ import UnreadArticlesPieChart, {
   UnreadArticlesChartData,
 } from "@/app/feed/unread-articles-pie-chart";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
@@ -57,6 +58,8 @@ const Dashboard = () => {
   const [from, setFrom] = useState<Date>(new Date());
   const [to, setTo] = useState<Date>(new Date());
 
+  const isMobile = useIsMobile();
+
   useEffect(() => {
     const dateRange = getDateRangeFromPreset(selectedRange);
     setFrom(dateRange.from);
@@ -88,19 +91,20 @@ const Dashboard = () => {
 
   return (
     <>
-      <ToggleGroup
-        className="hidden md:visible"
-        type="single"
-        value={selectedRange}
-        variant="outline"
-        onValueChange={(value) => setSelectedRange(value as DateRangePreset)}
-      >
-        {Object.values(DateRangePreset).map((range) => (
-          <ToggleGroupItem key={range} value={range}>
-            {range}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
+      {!isMobile && (
+        <ToggleGroup
+          type="single"
+          value={selectedRange}
+          variant="outline"
+          onValueChange={(value) => setSelectedRange(value as DateRangePreset)}
+        >
+          {Object.values(DateRangePreset).map((range) => (
+            <ToggleGroupItem key={range} value={range}>
+              {range}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      )}
 
       <div className="hidden grid-cols-4 gap-4 md:visible md:grid md:grid-cols-2 lg:grid-cols-4">
         <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
