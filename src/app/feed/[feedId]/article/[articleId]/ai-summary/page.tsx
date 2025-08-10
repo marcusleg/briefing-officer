@@ -3,6 +3,7 @@
 import AiSummaryStream from "@/components/article/AiSummaryStream";
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
 import TopNavigation from "@/components/navigation/TopNavigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
@@ -49,7 +50,17 @@ const AiSummary = async (props0: {
 
         <ArticleCardActions article={article} hideAiSummary showBackButton />
 
-        <AiSummaryStream articleId={article.id} />
+        {article.scrape ? (
+          <AiSummaryStream articleId={article.id} />
+        ) : (
+          <Alert className="mx-auto my-12 max-w-md">
+            <AlertTitle>Summary unavailable</AlertTitle>
+            <AlertDescription>
+              The article content could not be retrieved, so an AI summary
+              cannot be generated.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="text-sm text-muted-foreground">
           Source: <Link href={article.link}>{article.link}</Link>
