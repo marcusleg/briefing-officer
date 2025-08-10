@@ -40,7 +40,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     if (!props.article.lead) {
       generateAiLead(props.article.id).then((lead) => setAiLead(lead));
     }
-  });
+  }, [props.article]);
 
   useHotkeys("v", async () => {
     if (!props.selected) {
