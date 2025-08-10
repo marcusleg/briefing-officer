@@ -40,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      CRON_API_TOKEN: any-value-will-do-at-build-time
       DATABASE_URL: file:/tmp/database.sqlite
       OPENAI_API_KEY=: any-value-will-do-at-build-time
       OPENAI_API_URL=: http://localhost
