@@ -1,6 +1,6 @@
 "use client";
 
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import SkeletonChart from "@/app/feed/skeleton-chart";
 import {
@@ -59,7 +59,7 @@ const DailyNewArticlesChart = ({
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <AreaChart
+          <BarChart
             accessibilityLayer
             data={chartData}
             margin={{
@@ -81,15 +81,12 @@ const DailyNewArticlesChart = ({
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Area
+            <Bar
               dataKey="count"
-              type="natural"
               fill="hsl(var(--chart-1))"
-              fillOpacity={0.4}
-              stroke="hsl(var(--chart-1))"
               stackId="a"
             />
-          </AreaChart>
+          </BarChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="text-center text-sm font-medium">

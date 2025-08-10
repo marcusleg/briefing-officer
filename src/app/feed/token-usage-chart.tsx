@@ -16,7 +16,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { TokenUsage } from "@prisma/client";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 // Dynamic chart config will be generated based on available models
 const getChartConfig = (models: string[]): ChartConfig => {
@@ -147,7 +147,7 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfigForModels}>
-          <AreaChart
+          <BarChart
             accessibilityLayer
             data={processedData}
             margin={{
@@ -173,35 +173,32 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
               }
             />
             {models.flatMap((model) => [
-              <Area
+              <Bar
                 key={`${model}_input`}
                 dataKey={`${model}_input`}
-                type="natural"
                 fill={chartConfigForModels[`${model}_input`].color}
                 fillOpacity={0.4}
                 stroke={chartConfigForModels[`${model}_input`].color}
                 stackId="a"
               />,
-              <Area
+              <Bar
                 key={`${model}_output`}
                 dataKey={`${model}_output`}
-                type="natural"
                 fill={chartConfigForModels[`${model}_output`].color}
                 fillOpacity={0.4}
                 stroke={chartConfigForModels[`${model}_output`].color}
                 stackId="a"
               />,
-              <Area
+              <Bar
                 key={`${model}_reasoning`}
                 dataKey={`${model}_reasoning`}
-                type="natural"
                 fill={chartConfigForModels[`${model}_reasoning`].color}
                 fillOpacity={0.4}
                 stroke={chartConfigForModels[`${model}_reasoning`].color}
                 stackId="a"
               />,
             ])}
-          </AreaChart>
+          </BarChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="text-center text-sm font-medium">
