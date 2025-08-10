@@ -1,5 +1,6 @@
 "use server";
 
+import ThemeModeToggle from "@/components/theme-mode-toggle";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
 import React from "react";
@@ -47,6 +48,10 @@ const TopNavigation = async ({ segments, page }: TopNavigationProps) => {
           <BreadcrumbPage>{page}</BreadcrumbPage>
         </BreadcrumbList>
       </Breadcrumb>
+
+      <div className="grow" />
+
+      <ThemeModeToggle />
     </div>
   );
 };
