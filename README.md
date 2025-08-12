@@ -10,6 +10,20 @@ AI summaries for your favorite news feeds.
 
 ![Screenshot of Briefing Officer](./screenshot.png)
 
+## Features
+
+- News reader with RSS and Atom support.
+- Three types of AI summaries:
+  - Short descriptions that summarize the article instead of just teasing it.
+  - A bullet-point list of the key points and takeaways.
+  - Executive summary, a detailed summary containing all the original
+    information but very condensed.
+- Save articles for later using the "Read Later" and "Star" feature.
+- Support for multiple AI providers (currently Azure OpenAI and Anthropic).
+- Multi-user support.
+- Dark mode.
+- Mobile friendly design.
+
 ## Getting Started
 
 ```
