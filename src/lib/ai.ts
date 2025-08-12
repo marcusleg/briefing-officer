@@ -6,6 +6,7 @@ import { azureOpenAiChatGpt } from "@/lib/aiModels/azureOpenai";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
+import { OpenAIProviderOptions } from "@ai-sdk/openai/internal";
 import { createStreamableValue } from "@ai-sdk/rsc";
 import { generateText, streamText, wrapLanguageModel } from "ai";
 
@@ -36,6 +37,9 @@ export const streamAiSummary = async (articleId: number) => {
     const { textStream, totalUsage } = streamText({
       model: wrappedLanguageModel,
       system: systemPrompt,
+      providerOptions: {
+        openai: { reasoningEffort: "low" } satisfies OpenAIProviderOptions,
+      },
       prompt: `Write a summary in the following structure and **format your response in Markdown**:
 
 - Key Points (as a bullet list; use "Key Facts" for factual articles or "Key Takeaways" for opinion pieces)
