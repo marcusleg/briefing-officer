@@ -74,7 +74,6 @@ model ArticleLead {
 model ArticleScrape {
   articleId   Int      @id
   article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  htmlContent String
   textContent String
   author      String
   createdAt   DateTime @default(now())

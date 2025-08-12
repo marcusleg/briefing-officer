@@ -24,12 +24,11 @@ export const scrapeArticle = async (articleId: number, articleLink: string) => {
     throw new Error("Failed to parse article. Article is null.");
   }
 
-  if (!parsedArticle.textContent || !parsedArticle.content) {
+  if (!parsedArticle.textContent) {
     throw new Error(`Failed to parse article content. Content is empty."`);
   }
 
   const articleData = {
-    htmlContent: parsedArticle!.content,
     textContent: parsedArticle!.textContent,
     author: parsedArticle!.byline ?? "",
   };
