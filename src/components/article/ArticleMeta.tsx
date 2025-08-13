@@ -9,9 +9,7 @@ interface ArticleMetaProps {
 
 const ArticleMeta = (props: ArticleMetaProps) => {
   return (
-    <div
-      className={`flex flex-wrap items-center gap-4 text-sm text-muted-foreground ${props.className ?? ""}`}
-    >
+    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
       <div className="flex items-center gap-1 font-medium">
         <GlobeIcon className="h-4 w-4" />
         <span>{props.feedTitle}</span>
