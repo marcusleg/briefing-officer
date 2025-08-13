@@ -1,7 +1,7 @@
 "use client";
 
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
-import IntlRelativeTime from "@/components/IntlRelativeTime";
+import ArticleMeta from "@/components/article/ArticleMeta";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -12,14 +12,7 @@ import {
 } from "@/lib/repository/articleRepository";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
-import {
-  CalendarIcon,
-  ClockIcon,
-  FileTextIcon,
-  GlobeIcon,
-  LoaderCircleIcon,
-  UserIcon,
-} from "lucide-react";
+import { ClockIcon, FileTextIcon, LoaderCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import readingTime from "reading-time";
@@ -103,25 +96,11 @@ const ArticleCard = (props: ArticleCardProps) => {
               {props.article.title}
             </h2>
 
-            {/* Source, Author and Time */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1 font-medium">
-                <GlobeIcon className="h-4 w-4" />
-                <span>{props.article.feed.title}</span>
-              </div>
-              {props.article.scrape?.author && (
-                <div className="flex items-center gap-1">
-                  <UserIcon className="h-4 w-4" />
-                  <span>{props.article.scrape?.author}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-1">
-                <CalendarIcon className="h-4 w-4" />
-                <span>
-                  <IntlRelativeTime date={props.article.publicationDate} />
-                </span>
-              </div>
-            </div>
+            <ArticleMeta
+              feedTitle={props.article.feed.title}
+              author={props.article.scrape?.author}
+              date={props.article.publicationDate}
+            />
           </div>
         </div>
       </CardHeader>
