@@ -2,6 +2,7 @@
 
 import AiSummaryStream from "@/components/article/AiSummaryStream";
 import { ArticleCardActions } from "@/components/article/ArticleCardActions";
+import ArticleMeta from "@/components/article/ArticleMeta";
 import TopNavigation from "@/components/navigation/TopNavigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { auth } from "@/lib/auth";
@@ -45,10 +46,16 @@ const AiSummary = async (props0: {
         page="AI Summary"
       />
 
+      <ArticleCardActions article={article} hideAiSummary showBackButton />
+
       <article className="flex flex-col gap-4" data-testid="article">
         <h2 className="text-2xl font-bold tracking-tight">{article.title}</h2>
 
-        <ArticleCardActions article={article} hideAiSummary showBackButton />
+        <ArticleMeta
+          feedTitle={article.feed.title}
+          author={article.scrape?.author}
+          date={article.publicationDate}
+        />
 
         {article.scrape ? (
           <AiSummaryStream articleId={article.id} />
