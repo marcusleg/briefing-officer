@@ -10,8 +10,22 @@ import { parseFeed } from "htmlparser2";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
 
+const http = axios.create({
+  timeout: 10000,
+  headers: {
+    "User-Agent":
+      "Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
+    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br, zstd",
+    DNT: "1",
+    "Upgrade-Insecure-Requests": "1",
+    Connection: "keep-alive",
+  },
+});
+
 const fetchAndParseArticle = async (articleLink: string) => {
-  const website = await axios.get(articleLink);
+  const website = await http.get(articleLink);
   const cleanBody = DOMPurify.sanitize(website.data);
   const document = new JSDOM(cleanBody);
   return new Readability(document.window.document).parse();
