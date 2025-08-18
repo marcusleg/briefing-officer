@@ -45,7 +45,7 @@
     "pino": "^9.9.0",
     "pnpm": "^10.14.0",
     "quick-lru": "^7.0.1",
-    "radix-ui": "^1.4.2",
+    "radix-ui": "^1.4.3",
     "react": "19.1.0",
     "react-day-picker": "^9.9.0",
     "react-dom": "19.1.0",
