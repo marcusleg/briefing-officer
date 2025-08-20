@@ -23,6 +23,7 @@ const ArticleSearch = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           className="pr-10"
+          autoFocus={false}
         />
         <Button
           size="sm"
