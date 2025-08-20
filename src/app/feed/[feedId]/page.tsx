@@ -53,18 +53,22 @@ const FeedById = async (props: FeedByIdProps) => {
         page={feed.title}
       />
 
-      <FeedTitle
-        title={feed.title}
-        articleCount={articles.length}
-        lastUpdated={feed.lastFetched}
-      />
+      <div className="flex flex-col gap-2 xl:flex-row">
+        <FeedTitle
+          title={feed.title}
+          articleCount={articles.length}
+          lastUpdated={feed.lastFetched}
+        />
 
-      <div className="flex flex-row flex-wrap items-center gap-2">
-        <FeedFilterButton />
-        <RefreshFeedButton feedId={feedId} />
-        <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
-        <EditFeedButton feed={feed} />
-        <DeleteFeedButton feed={feed} />
+        <div className="grow" />
+
+        <div className="flex flex-row flex-wrap items-center gap-2">
+          <FeedFilterButton />
+          <RefreshFeedButton feedId={feedId} />
+          <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
+          <EditFeedButton feed={feed} />
+          <DeleteFeedButton feed={feed} />
+        </div>
       </div>
 
       <div className="flex flex-col gap-4">
