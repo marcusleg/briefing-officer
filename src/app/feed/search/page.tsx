@@ -1,5 +1,6 @@
 "use server";
 
+import FeedTitle from "@/app/feed/feed-title";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
 import prisma from "@/lib/prismaClient";
@@ -14,23 +15,27 @@ const ArticleSearchResultsPage = async ({
 
   const userId = await getUserId();
 
+  const where = {
+    AND: [
+      { userId: { equals: userId } },
+      {
+        OR: [
+          { title: { contains: query } },
+          { scrape: { textContent: { contains: query } } },
+        ],
+      },
+    ],
+  };
+
+  const articleCount = await prisma.article.count({ where });
+
   const articles = await prisma.article.findMany({
     include: {
       feed: true,
       lead: true,
       scrape: true,
     },
-    where: {
-      AND: [
-        { userId: { equals: userId } },
-        {
-          OR: [
-            { title: { contains: query } },
-            { scrape: { textContent: { contains: query } } },
-          ],
-        },
-      ],
-    },
+    where,
     take: 20,
     orderBy: {
       publicationDate: "desc",
@@ -44,7 +49,7 @@ const ArticleSearchResultsPage = async ({
         page="Search Results"
       />
 
-      <h2 className="text-2xl font-bold tracking-tight">Search Results</h2>
+      <FeedTitle title="Search Results" articleCount={articleCount} />
 
       <ArticleList articles={articles} />
     </div>
