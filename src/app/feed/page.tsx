@@ -2,6 +2,7 @@ import Dashboard from "@/app/feed/dashboard";
 import FeedTitle from "@/app/feed/feed-title";
 import NoFeedsMessage from "@/app/feed/no-feeds-message";
 import NoUnreadArticles from "@/app/feed/no-unread-articles";
+import RefreshAllFeedsButton from "@/app/feed/refresh-all-feeds-button";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
 import { Separator } from "@/components/ui/separator";
@@ -52,12 +53,18 @@ const MyFeeds = async () => {
 
       <Dashboard />
 
-      <div>
+      <div className="flex flex-col items-center gap-2 xl:flex-row">
         <FeedTitle
-          title="Unread articles from your feeds"
+          title="Your Latest Reads"
           articleCount={articles.length}
           lastUpdated={lastFetched}
         />
+
+        <div className="grow" />
+
+        <div>
+          <RefreshAllFeedsButton />
+        </div>
       </div>
 
       <Separator />

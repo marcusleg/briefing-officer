@@ -3,7 +3,6 @@
 import AddCategoryFormDialogTrigger from "@/components/category/AddCategoryFormDialogTrigger";
 import AddFeedFormDialogTrigger from "@/components/navigation/AddFeedFormDialogTrigger";
 import AppSidebarMenuButton from "@/components/navigation/AppSidebarMenuButton";
-import RefreshAllFeedsButton from "@/components/navigation/RefreshAllFeedsButton";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -95,9 +94,6 @@ const FeedNavigation = async () => {
       <SidebarSeparator />
 
       <SidebarGroupContent>
-        <SidebarMenuItem>
-          <RefreshAllFeedsButton />
-        </SidebarMenuItem>
         <SidebarMenuItem>
           <AddCategoryFormDialogTrigger>
             <SidebarMenuButton>

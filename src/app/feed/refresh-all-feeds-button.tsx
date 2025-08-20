@@ -1,16 +1,16 @@
 "use client";
 
-import { SidebarMenuButton } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { refreshFeeds } from "@/lib/repository/feedRepository";
 import { LoaderCircleIcon, RotateCwIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 const RefreshAllFeedsButton = () => {
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshInProgress, setRefreshInProgress] = useState(false);
 
   const handleClick = async () => {
-    setRefreshing(true);
+    setRefreshInProgress(true);
     try {
       await refreshFeeds();
     } catch (error) {
@@ -22,23 +22,27 @@ const RefreshAllFeedsButton = () => {
         },
       });
 
-      setRefreshing(false);
+      setRefreshInProgress(false);
       return;
     }
-    setRefreshing(false);
+    setRefreshInProgress(false);
 
     toast.message("All feeds refreshed");
   };
 
   return (
-    <SidebarMenuButton onClick={handleClick} disabled={refreshing}>
-      {refreshing ? (
+    <Button
+      disabled={refreshInProgress}
+      onClick={handleClick}
+      variant="outline"
+    >
+      {refreshInProgress ? (
         <LoaderCircleIcon className="h-4 w-4 animate-spin" />
       ) : (
         <RotateCwIcon className="h-4 w-4" />
       )}
-      <span className="truncate">Refresh All Feeds</span>
-    </SidebarMenuButton>
+      <span className="truncate">Refresh</span>
+    </Button>
   );
 };
 
