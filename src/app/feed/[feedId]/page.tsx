@@ -54,13 +54,11 @@ const FeedById = async (props: FeedByIdProps) => {
         page={feed.title}
       />
 
-      <div>
-        <FeedTitle
-          title={feed.title}
-          articleCount={articles.length}
-          lastUpdated={feed.lastFetched}
-        />
-      </div>
+      <FeedTitle
+        title={feed.title}
+        articleCount={articles.length}
+        lastUpdated={feed.lastFetched}
+      />
 
       <Separator />
 

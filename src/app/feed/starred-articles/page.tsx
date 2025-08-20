@@ -36,11 +36,7 @@ const StarredArticlesPage = async () => {
         page="Starred Articles"
       />
 
-      <div className="flex items-center justify-between">
-        <div>
-          <FeedTitle title="Starred Articles" articleCount={articles.length} />
-        </div>
-      </div>
+      <FeedTitle title="Starred Articles" articleCount={articles.length} />
 
       <Separator />
 

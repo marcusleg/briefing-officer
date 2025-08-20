@@ -36,9 +36,7 @@ const ReadLaterPage = async () => {
         page="Read Later"
       />
 
-      <div>
-        <FeedTitle title="Read Later" articleCount={articles.length} />
-      </div>
+      <FeedTitle title="Read Later" articleCount={articles.length} />
 
       <Separator />
 

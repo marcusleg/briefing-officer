@@ -38,11 +38,7 @@ const ReadHistoryPage = async () => {
         page="History"
       />
 
-      <div className="flex items-center justify-between">
-        <div>
-          <FeedTitle title="History" articleCount={articles.length} />
-        </div>
-      </div>
+      <FeedTitle title="History" articleCount={articles.length} />
 
       <Separator />
 
