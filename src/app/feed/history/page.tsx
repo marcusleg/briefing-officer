@@ -1,10 +1,10 @@
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
+import FeedTitle from "../feed-title";
 
 const ReadHistoryPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -39,10 +39,9 @@ const ReadHistoryPage = async () => {
       />
 
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">History</h2>
-        <Badge variant="secondary" className="text-sm">
-          {articles.length} articles
-        </Badge>
+        <div>
+          <FeedTitle title="History" articleCount={articles.length} />
+        </div>
       </div>
 
       <Separator />

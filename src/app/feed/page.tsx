@@ -1,9 +1,9 @@
 import Dashboard from "@/app/feed/dashboard";
+import FeedTitle from "@/app/feed/feed-title";
 import NoFeedsMessage from "@/app/feed/no-feeds-message";
 import NoUnreadArticles from "@/app/feed/no-unread-articles";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
@@ -46,13 +46,11 @@ const MyFeeds = async () => {
 
       <Dashboard />
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">
-          Unread articles from your feeds
-        </h2>
-        <Badge variant="secondary" className="text-sm">
-          {articles.length} articles
-        </Badge>
+      <div>
+        <FeedTitle
+          title="Unread articles from your feeds"
+          articleCount={articles.length}
+        />
       </div>
 
       <Separator />

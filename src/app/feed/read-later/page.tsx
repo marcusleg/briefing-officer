@@ -1,6 +1,6 @@
+import FeedTitle from "@/app/feed/feed-title";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
@@ -36,11 +36,8 @@ const ReadLaterPage = async () => {
         page="Read Later"
       />
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Read Later</h2>
-        <Badge variant="secondary" className="text-sm">
-          {articles.length} articles
-        </Badge>
+      <div>
+        <FeedTitle title="Read Later" articleCount={articles.length} />
       </div>
 
       <Separator />

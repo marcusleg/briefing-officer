@@ -6,6 +6,7 @@ import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
+import FeedTitle from "../feed-title";
 
 const StarredArticlesPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -37,10 +38,9 @@ const StarredArticlesPage = async () => {
       />
 
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Starred Articles</h2>
-        <Badge variant="secondary" className="text-sm">
-          {articles.length} articles
-        </Badge>
+        <div>
+          <FeedTitle title="Starred Articles" articleCount={articles.length} />
+        </div>
       </div>
 
       <Separator />

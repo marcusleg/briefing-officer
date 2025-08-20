@@ -4,10 +4,10 @@ import FeedFilterButton from "@/app/feed/[feedId]/feed-filter-button";
 import MarkAsReadButton from "@/app/feed/[feedId]/mark-as-read-button";
 import NoUnreadArticles from "@/app/feed/[feedId]/no-unread-articles";
 import RefreshFeedButton from "@/app/feed/[feedId]/refresh-feed-button";
+import FeedTitle from "@/app/feed/feed-title";
 import ArticleList from "@/components/article/ArticleList";
 import IntlRelativeTime from "@/components/IntlRelativeTime";
 import TopNavigation from "@/components/navigation/TopNavigation";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -55,11 +55,8 @@ const FeedById = async (props: FeedByIdProps) => {
         page={feed.title}
       />
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">{feed.title}</h2>
-        <Badge variant="secondary" className="text-sm">
-          {articles.length} articles
-        </Badge>
+      <div>
+        <FeedTitle title={feed.title} articleCount={articles.length} />
       </div>
 
       <Separator />
