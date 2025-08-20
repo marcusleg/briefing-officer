@@ -5,7 +5,6 @@ import NoUnreadArticles from "@/app/feed/no-unread-articles";
 import RefreshAllFeedsButton from "@/app/feed/refresh-all-feeds-button";
 import ArticleList from "@/components/article/article-list";
 import TopNavigation from "@/components/navigation/top-navigation";
-import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
@@ -66,8 +65,6 @@ const MyFeeds = async () => {
           <RefreshAllFeedsButton />
         </div>
       </div>
-
-      <Separator />
 
       {articles.length > 0 ? (
         <ArticleList articles={articles} />

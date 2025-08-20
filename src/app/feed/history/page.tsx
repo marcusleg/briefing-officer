@@ -1,6 +1,5 @@
 import ArticleList from "@/components/article/article-list";
 import TopNavigation from "@/components/navigation/top-navigation";
-import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
@@ -39,8 +38,6 @@ const ReadHistoryPage = async () => {
       />
 
       <FeedTitle title="History" articleCount={articles.length} />
-
-      <Separator />
 
       <div className="flex flex-col gap-4">
         <ArticleList articles={articles} />
