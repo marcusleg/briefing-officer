@@ -106,7 +106,7 @@ const Dashboard = () => {
         </ToggleGroup>
       )}
 
-      <div className="hidden grid-cols-4 gap-4 md:visible md:grid md:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto hidden max-w-7xl grid-cols-4 gap-4 md:visible md:grid md:grid-cols-2 lg:grid-cols-4">
         <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
         <TokenUsageChart chartData={tokenUsageChartData} />
         <DailyNewArticlesChart chartData={numberOfNewArticlesChartData} />
