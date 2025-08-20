@@ -1,13 +1,26 @@
+import IntlRelativeTime from "@/components/IntlRelativeTime";
+
 interface FeedTitleProps {
   title: string;
   articleCount: number;
+  lastUpdated?: Date;
 }
 
-const FeedTitle = ({ title, articleCount }: FeedTitleProps) => {
+const FeedTitle = ({ title, articleCount, lastUpdated }: FeedTitleProps) => {
   return (
     <>
       <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-      <p className="text-sm text-muted-foreground">{articleCount} articles</p>
+      <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+        <span>{articleCount} articles</span>
+        {lastUpdated && (
+          <>
+            <span>•</span>
+            <span>
+              Last updated <IntlRelativeTime date={lastUpdated} />
+            </span>
+          </>
+        )}
+      </div>
     </>
   );
 };

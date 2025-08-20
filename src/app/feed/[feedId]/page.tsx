@@ -6,7 +6,6 @@ import NoUnreadArticles from "@/app/feed/[feedId]/no-unread-articles";
 import RefreshFeedButton from "@/app/feed/[feedId]/refresh-feed-button";
 import FeedTitle from "@/app/feed/feed-title";
 import ArticleList from "@/components/article/ArticleList";
-import IntlRelativeTime from "@/components/IntlRelativeTime";
 import TopNavigation from "@/components/navigation/TopNavigation";
 import { Separator } from "@/components/ui/separator";
 import prisma from "@/lib/prismaClient";
@@ -56,7 +55,11 @@ const FeedById = async (props: FeedByIdProps) => {
       />
 
       <div>
-        <FeedTitle title={feed.title} articleCount={articles.length} />
+        <FeedTitle
+          title={feed.title}
+          articleCount={articles.length}
+          lastUpdated={feed.lastFetched}
+        />
       </div>
 
       <Separator />
@@ -67,12 +70,6 @@ const FeedById = async (props: FeedByIdProps) => {
         <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
         <EditFeedButton feed={feed} />
         <DeleteFeedButton feed={feed} />
-        <time
-          className="text-sm text-muted-foreground"
-          dateTime={feed.lastFetched.toISOString()}
-        >
-          Last updated <IntlRelativeTime date={feed.lastFetched} />
-        </time>
       </div>
 
       <div className="flex flex-col gap-4">
