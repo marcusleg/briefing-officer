@@ -46,9 +46,9 @@ const AiSummary = async (props0: {
         page="AI Summary"
       />
 
-      <ArticleCardActions article={article} hideAiSummary showBackButton />
+      <article className="mx-auto flex max-w-4xl flex-col gap-4">
+        <ArticleCardActions article={article} hideAiSummary showBackButton />
 
-      <article className="flex flex-col gap-4" data-testid="article">
         <h2 className="text-2xl font-bold tracking-tight">{article.title}</h2>
 
         <ArticleMeta
