@@ -1,4 +1,4 @@
-import AddFeedFormDialogTrigger from "@/components/navigation/AddFeedFormDialogTrigger";
+import AddFeedFormDialogTrigger from "@/components/navigation/add-feed-form-dialog-trigger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Rss } from "lucide-react";

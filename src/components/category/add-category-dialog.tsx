@@ -1,6 +1,6 @@
 "use client";
 
-import CategoryForm from "@/components/category/CategoryForm";
+import CategoryForm from "@/components/category/category-form";
 import {
   Dialog,
   DialogContent,

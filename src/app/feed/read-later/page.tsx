@@ -1,6 +1,6 @@
 import FeedTitle from "@/app/feed/feed-title";
-import ArticleList from "@/components/article/ArticleList";
-import TopNavigation from "@/components/navigation/TopNavigation";
+import ArticleList from "@/components/article/article-list";
+import TopNavigation from "@/components/navigation/top-navigation";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";

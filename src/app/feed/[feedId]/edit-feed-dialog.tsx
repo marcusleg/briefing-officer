@@ -1,6 +1,6 @@
 "use client";
 
-import FeedForm from "@/components/feed/FeedForm";
+import FeedForm from "@/components/feed/feed-form";
 import {
   Dialog,
   DialogContent,

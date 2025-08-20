@@ -1,10 +1,10 @@
 "use server";
 
-import AdminNavigation from "@/components/navigation/AdminNavigation";
+import AdminNavigation from "@/components/navigation/admin-navigation";
 import ArticleSearch from "@/components/navigation/article-search";
-import FeedNavigation from "@/components/navigation/FeedNavigation";
-import MainNavigation from "@/components/navigation/MainNavigation";
-import UserNavigation from "@/components/navigation/UserNavigation";
+import FeedNavigation from "@/components/navigation/feed-navigation";
+import MainNavigation from "@/components/navigation/main-navigation";
+import UserNavigation from "@/components/navigation/user-navigation";
 import {
   Sidebar,
   SidebarContent,

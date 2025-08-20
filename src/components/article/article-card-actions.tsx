@@ -1,11 +1,11 @@
 "use client";
 
-import AiSummaryButton from "@/components/article/AiSummaryButton";
-import ToggleReadButton from "@/components/article/ToggleReadButton";
-import ToggleReadLaterButton from "@/components/article/ToggleReadLaterButton";
-import ToggleStarredButton from "@/components/article/ToggleStarredButton";
-import VisitButton from "@/components/article/VisitButton";
-import BackButton from "@/components/navigation/BackButton";
+import AiSummaryButton from "@/components/article/ai-summary-button";
+import ToggleReadButton from "@/components/article/toggle-read-button";
+import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
+import ToggleStarredButton from "@/components/article/toggle-starred-button";
+import VisitButton from "@/components/article/visit-button";
+import BackButton from "@/components/navigation/back-button";
 import { Separator } from "@/components/ui/separator";
 import { Prisma } from "@prisma/client";
 

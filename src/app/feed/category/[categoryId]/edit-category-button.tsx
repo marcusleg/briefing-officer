@@ -1,6 +1,6 @@
 "use client";
 
-import AddCategoryDialog from "@/components/category/AddCategoryDialog";
+import AddCategoryDialog from "@/components/category/add-category-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,

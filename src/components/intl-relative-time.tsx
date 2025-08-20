@@ -1,6 +1,6 @@
 "use client";
 
-import IntlDateTime from "@/components/IntlDateTime";
+import IntlDateTime from "@/components/intl-date-time";
 import {
   Tooltip,
   TooltipContent,

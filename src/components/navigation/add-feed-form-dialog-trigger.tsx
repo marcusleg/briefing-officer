@@ -1,6 +1,6 @@
 "use client";
 
-import CategoryForm from "@/components/category/CategoryForm";
+import FeedForm from "@/components/feed/feed-form";
 import {
   Dialog,
   DialogContent,
@@ -11,13 +11,11 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 
-interface AddCategoryFormDialogTriggerProps {
+interface AddFeedFormTriggerProps {
   children: React.ReactNode;
 }
 
-const AddCategoryFormDialogTrigger = ({
-  children,
-}: AddCategoryFormDialogTriggerProps) => {
+const AddFeedFormDialogTrigger = ({ children }: AddFeedFormTriggerProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
@@ -26,15 +24,15 @@ const AddCategoryFormDialogTrigger = ({
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add a new category</DialogTitle>
+          <DialogTitle>Add A New Feed</DialogTitle>
           <DialogDescription>
-            Create a category to organize your feeds.
+            Enter a URL of an RSS or Atom feed.
           </DialogDescription>
         </DialogHeader>
-        <CategoryForm onSubmitComplete={() => setDialogOpen(false)} />
+        <FeedForm onSubmitComplete={() => setDialogOpen(false)} />
       </DialogContent>
     </Dialog>
   );
 };
 
-export default AddCategoryFormDialogTrigger;
+export default AddFeedFormDialogTrigger;

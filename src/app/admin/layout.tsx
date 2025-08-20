@@ -1,4 +1,4 @@
-import LeftNavigation from "@/components/navigation/LeftNavigation";
+import LeftNavigation from "@/components/navigation/left-navigation";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function MyFeedsLayout({

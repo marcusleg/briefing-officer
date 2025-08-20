@@ -1,7 +1,7 @@
 "use server";
 
 import UserTableActions from "@/app/admin/user-management/user-table-actions";
-import IntlRelativeTime from "@/components/IntlRelativeTime";
+import IntlRelativeTime from "@/components/intl-relative-time";
 import {
   Table,
   TableBody,

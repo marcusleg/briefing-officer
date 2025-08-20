@@ -1,5 +1,5 @@
 import UserTable from "@/app/admin/user-management/user-table";
-import TopNavigation from "@/components/navigation/TopNavigation";
+import TopNavigation from "@/components/navigation/top-navigation";
 
 const AdminPage = async () => {
   return (

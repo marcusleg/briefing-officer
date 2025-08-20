@@ -4,8 +4,8 @@ import MarkAsReadCategoryButton from "@/app/feed/category/[categoryId]/mark-as-r
 import RefreshCategoryButton from "@/app/feed/category/[categoryId]/refresh-category-button";
 import FeedTitle from "@/app/feed/feed-title";
 import NoUnreadArticles from "@/app/feed/no-unread-articles";
-import ArticleList from "@/components/article/ArticleList";
-import TopNavigation from "@/components/navigation/TopNavigation";
+import ArticleList from "@/components/article/article-list";
+import TopNavigation from "@/components/navigation/top-navigation";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { notFound } from "next/navigation";

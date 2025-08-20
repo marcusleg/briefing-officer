@@ -1,8 +1,8 @@
 "use server";
 
-import AddCategoryFormDialogTrigger from "@/components/category/AddCategoryFormDialogTrigger";
-import AddFeedFormDialogTrigger from "@/components/navigation/AddFeedFormDialogTrigger";
-import AppSidebarMenuButton from "@/components/navigation/AppSidebarMenuButton";
+import AddCategoryFormDialogTrigger from "@/components/category/add-category-form-dialog-trigger";
+import AddFeedFormDialogTrigger from "@/components/navigation/add-feed-form-dialog-trigger";
+import AppSidebarMenuButton from "@/components/navigation/app-sidebar-menu-button";
 import {
   SidebarGroup,
   SidebarGroupContent,

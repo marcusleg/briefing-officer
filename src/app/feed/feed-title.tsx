@@ -1,4 +1,4 @@
-import IntlRelativeTime from "@/components/IntlRelativeTime";
+import IntlRelativeTime from "@/components/intl-relative-time";
 
 interface FeedTitleProps {
   title: string;

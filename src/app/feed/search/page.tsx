@@ -1,8 +1,8 @@
 "use server";
 
 import FeedTitle from "@/app/feed/feed-title";
-import ArticleList from "@/components/article/ArticleList";
-import TopNavigation from "@/components/navigation/TopNavigation";
+import ArticleList from "@/components/article/article-list";
+import TopNavigation from "@/components/navigation/top-navigation";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 

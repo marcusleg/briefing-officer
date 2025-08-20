@@ -1,7 +1,7 @@
 "use client";
 
-import { ArticleCardActions } from "@/components/article/ArticleCardActions";
-import ArticleMeta from "@/components/article/ArticleMeta";
+import { ArticleCardActions } from "@/components/article/article-card-actions";
+import ArticleMeta from "@/components/article/article-meta";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";

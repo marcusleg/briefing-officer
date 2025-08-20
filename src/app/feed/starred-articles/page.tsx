@@ -1,5 +1,5 @@
-import ArticleList from "@/components/article/ArticleList";
-import TopNavigation from "@/components/navigation/TopNavigation";
+import ArticleList from "@/components/article/article-list";
+import TopNavigation from "@/components/navigation/top-navigation";
 import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";

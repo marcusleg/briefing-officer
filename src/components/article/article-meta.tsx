@@ -1,4 +1,4 @@
-import IntlRelativeTime from "@/components/IntlRelativeTime";
+import IntlRelativeTime from "@/components/intl-relative-time";
 import { CalendarIcon, GlobeIcon, UserIcon } from "lucide-react";
 
 interface ArticleMetaProps {
