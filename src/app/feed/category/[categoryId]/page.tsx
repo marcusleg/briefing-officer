@@ -2,11 +2,10 @@ import DeleteCategoryButton from "@/app/feed/category/[categoryId]/delete-catego
 import EditCategoryButton from "@/app/feed/category/[categoryId]/edit-category-button";
 import MarkAsReadCategoryButton from "@/app/feed/category/[categoryId]/mark-as-read-button";
 import RefreshCategoryButton from "@/app/feed/category/[categoryId]/refresh-category-button";
+import FeedTitle from "@/app/feed/feed-title";
 import NoUnreadArticles from "@/app/feed/no-unread-articles";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { notFound } from "next/navigation";
@@ -52,25 +51,23 @@ const FeedCategory = async ({ params }: FeedCategoryProps) => {
     <div className="flex flex-col gap-4">
       <TopNavigation page="All Feeds" />
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">
-          Unread articles in {category.name}
-        </h2>
-        <Badge variant="secondary" className="text-sm">
-          {articles.length} articles
-        </Badge>
-      </div>
-
-      <Separator />
-
-      <div className="flex flex-row flex-wrap items-center gap-2">
-        <RefreshCategoryButton categoryId={categoryId} />
-        <MarkAsReadCategoryButton
-          disabled={articles.length === 0}
-          categoryId={categoryId}
+      <div className="flex flex-col gap-2 xl:flex-row">
+        <FeedTitle
+          title={`Unread articles in ${category.name}`}
+          articleCount={articles.length}
         />
-        <EditCategoryButton category={category} />
-        <DeleteCategoryButton category={category} />
+
+        <div className="grow" />
+
+        <div className="flex flex-row flex-wrap items-center gap-2">
+          <RefreshCategoryButton categoryId={categoryId} />
+          <MarkAsReadCategoryButton
+            disabled={articles.length === 0}
+            categoryId={categoryId}
+          />
+          <EditCategoryButton category={category} />
+          <DeleteCategoryButton category={category} />
+        </div>
       </div>
 
       {articles.length > 0 ? (
