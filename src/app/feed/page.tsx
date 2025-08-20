@@ -23,6 +23,12 @@ const MyFeeds = async () => {
     return <NoFeedsMessage />;
   }
 
+  const { lastFetched } = await prisma.feed.findFirstOrThrow({
+    select: { lastFetched: true },
+    where: { userId: session.user.id },
+    orderBy: { lastFetched: "desc" },
+  });
+
   const articles = await prisma.article.findMany({
     include: {
       feed: true,
@@ -50,6 +56,7 @@ const MyFeeds = async () => {
         <FeedTitle
           title="Unread articles from your feeds"
           articleCount={articles.length}
+          lastUpdated={lastFetched}
         />
       </div>
 
