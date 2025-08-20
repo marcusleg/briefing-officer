@@ -100,6 +100,10 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
 
   // Calculate totals and cost
   const tokenPricing = {
+    "claude-sonnet-4-20250514": {
+      inputToken: 3 / 1000000,
+      outputToken: 15 / 1000000,
+    },
     "gpt-4.1-nano": { inputToken: 0.1 / 1000000, outputToken: 0.4 / 1000000 },
     "gpt-4.1-mini": { inputToken: 0.15 / 1000000, outputToken: 0.6 / 1000000 },
   };

@@ -13,5 +13,5 @@ export const anthropicClaude = async () => {
 
   const anthropic = createAnthropic({ apiKey });
 
-  return anthropic("claude-opus-4-20250514");
+  return anthropic("claude-sonnet-4-20250514");
 };
