@@ -1,6 +1,7 @@
 "use server";
 
 import AdminNavigation from "@/components/navigation/AdminNavigation";
+import ArticleSearch from "@/components/navigation/article-search";
 import FeedNavigation from "@/components/navigation/FeedNavigation";
 import MainNavigation from "@/components/navigation/MainNavigation";
 import UserNavigation from "@/components/navigation/UserNavigation";
@@ -8,6 +9,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
@@ -38,7 +40,12 @@ const LeftNavigation = async () => {
           </div>
         </Link>
       </SidebarHeader>
+
       <SidebarContent>
+        <SidebarGroup>
+          <ArticleSearch />
+        </SidebarGroup>
+
         <MainNavigation />
         <FeedNavigation />
         {isAdmin && <AdminNavigation className="mt-auto" />}
