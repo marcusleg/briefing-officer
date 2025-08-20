@@ -3,6 +3,7 @@
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
 import prisma from "@/lib/prismaClient";
+import { getUserId } from "@/lib/repository/userRepository";
 
 const ArticleSearchResultsPage = async ({
   searchParams,
@@ -11,6 +12,8 @@ const ArticleSearchResultsPage = async ({
 }) => {
   const query = (await searchParams).q;
 
+  const userId = await getUserId();
+
   const articles = await prisma.article.findMany({
     include: {
       feed: true,
@@ -18,9 +21,14 @@ const ArticleSearchResultsPage = async ({
       scrape: true,
     },
     where: {
-      OR: [
-        { title: { contains: query } },
-        { scrape: { textContent: { contains: query } } },
+      AND: [
+        { userId: { equals: userId } },
+        {
+          OR: [
+            { title: { contains: query } },
+            { scrape: { textContent: { contains: query } } },
+          ],
+        },
       ],
     },
     take: 20,
