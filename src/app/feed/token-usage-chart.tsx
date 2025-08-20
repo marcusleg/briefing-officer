@@ -106,6 +106,7 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
     },
     "gpt-4.1-nano": { inputToken: 0.1 / 1000000, outputToken: 0.4 / 1000000 },
     "gpt-4.1-mini": { inputToken: 0.15 / 1000000, outputToken: 0.6 / 1000000 },
+    "gpt-5-nano": { inputToken: 0.05 / 1000000, outputToken: 0.4 / 1000000 },
   };
 
   const totalsByModel = chartData.reduce(
