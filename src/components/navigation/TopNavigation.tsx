@@ -25,7 +25,7 @@ interface TopNavigationProps {
 
 const TopNavigation = async ({ segments, page }: TopNavigationProps) => {
   return (
-    <div className="flex w-full items-center gap-4">
+    <div className="flex w-full items-center gap-4 border-b-2">
       <SidebarTrigger />
 
       <Breadcrumb>

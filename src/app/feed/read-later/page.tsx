@@ -1,7 +1,6 @@
 import FeedTitle from "@/app/feed/feed-title";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
-import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
@@ -37,8 +36,6 @@ const ReadLaterPage = async () => {
       />
 
       <FeedTitle title="Read Later" articleCount={articles.length} />
-
-      <Separator />
 
       {articles.length > 0 ? (
         <ArticleList articles={articles} />

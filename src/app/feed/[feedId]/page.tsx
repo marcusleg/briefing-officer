@@ -7,7 +7,6 @@ import RefreshFeedButton from "@/app/feed/[feedId]/refresh-feed-button";
 import FeedTitle from "@/app/feed/feed-title";
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
-import { Separator } from "@/components/ui/separator";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { notFound } from "next/navigation";
@@ -59,8 +58,6 @@ const FeedById = async (props: FeedByIdProps) => {
         articleCount={articles.length}
         lastUpdated={feed.lastFetched}
       />
-
-      <Separator />
 
       <div className="flex flex-row flex-wrap items-center gap-2">
         <FeedFilterButton />
