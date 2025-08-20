@@ -1,6 +1,5 @@
 import ArticleList from "@/components/article/ArticleList";
 import TopNavigation from "@/components/navigation/TopNavigation";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
 import { auth } from "@/lib/auth";
