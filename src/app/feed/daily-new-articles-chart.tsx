@@ -27,6 +27,8 @@ const getChartConfigForFeeds = (feeds: string[]): ChartConfig => {
     "var(--chart-4)",
     "var(--chart-5)",
     "var(--chart-6)",
+    "var(--chart-7)",
+    "var(--chart-8)",
   ];
   const config: Record<string, { label: string; color: string }> = {};
   feeds.forEach((feed, i) => {
@@ -35,7 +37,10 @@ const getChartConfigForFeeds = (feeds: string[]): ChartConfig => {
   return config;
 };
 
-export type NumberOfArticlesLast7DaysChartData = Record<string, number | string>;
+export type NumberOfArticlesLast7DaysChartData = Record<
+  string,
+  number | string
+>;
 
 interface NumberOfArticlesLast7DaysChartProps {
   chartData?: NumberOfArticlesLast7DaysChartData[];

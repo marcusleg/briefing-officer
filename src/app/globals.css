@@ -108,6 +108,9 @@
     --chart-3: var(--color-lime-700);
     --chart-4: var(--color-indigo-700);
     --chart-5: var(--color-pink-700);
+    --chart-6: var(--color-yellow-700);
+    --chart-7: var(--color-blue-700);
+    --chart-8: var(--color-purple-700);
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -143,6 +146,9 @@
     --chart-3: var(--color-pink-600);
     --chart-4: var(--color-cyan-600);
     --chart-5: var(--color-lime-600);
+    --chart-6: var(--color-yellow-600);
+    --chart-7: var(--color-blue-600);
+    --chart-8: var(--color-purple-600);
     --sidebar-background: 0 0% 6%;
     --sidebar-foreground: 0 0% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
