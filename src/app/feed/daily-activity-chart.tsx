@@ -80,7 +80,7 @@ const DailyActivityChart = ({
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="count" fill="hsl(var(--chart-1))" stackId="a" />
+            <Bar dataKey="count" fill="var(--chart-1)" stackId="a" />
           </BarChart>
         </ChartContainer>
       </CardContent>
