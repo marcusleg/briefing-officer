@@ -93,10 +93,11 @@ const Dashboard = () => {
     <>
       {!isMobile && (
         <ToggleGroup
+          className="mx-auto"
+          onValueChange={(value) => setSelectedRange(value as DateRangePreset)}
           type="single"
           value={selectedRange}
           variant="outline"
-          onValueChange={(value) => setSelectedRange(value as DateRangePreset)}
         >
           {Object.values(DateRangePreset).map((range) => (
             <ToggleGroupItem key={range} value={range}>
