@@ -49,7 +49,10 @@ const FeedCategory = async ({ params }: FeedCategoryProps) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <TopNavigation page="All Feeds" />
+      <TopNavigation
+        segments={[{ name: "Feeds", href: "/feed" }]}
+        page={category.name}
+      />
 
       <div className="flex flex-col gap-2 xl:flex-row">
         <FeedTitle
