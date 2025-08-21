@@ -184,24 +184,18 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
                 key={`${model}_input`}
                 dataKey={`${model}_input`}
                 fill={chartConfigForModels[`${model}_input`].color}
-                fillOpacity={0.4}
-                stroke={chartConfigForModels[`${model}_input`].color}
                 stackId="a"
               />,
               <Bar
                 key={`${model}_output`}
                 dataKey={`${model}_output`}
                 fill={chartConfigForModels[`${model}_output`].color}
-                fillOpacity={0.4}
-                stroke={chartConfigForModels[`${model}_output`].color}
                 stackId="a"
               />,
               <Bar
                 key={`${model}_reasoning`}
                 dataKey={`${model}_reasoning`}
                 fill={chartConfigForModels[`${model}_reasoning`].color}
-                fillOpacity={0.4}
-                stroke={chartConfigForModels[`${model}_reasoning`].color}
                 stackId="a"
               />,
             ])}
