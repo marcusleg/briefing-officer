@@ -18,16 +18,24 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-const chartConfig = {
-  count: {
-    label: "Articles",
-  },
-} satisfies ChartConfig;
+// Build dynamic chart config for feeds
+const getChartConfigForFeeds = (feeds: string[]): ChartConfig => {
+  const colors = [
+    "var(--chart-1)",
+    "var(--chart-2)",
+    "var(--chart-3)",
+    "var(--chart-4)",
+    "var(--chart-5)",
+    "var(--chart-6)",
+  ];
+  const config: Record<string, { label: string; color: string }> = {};
+  feeds.forEach((feed, i) => {
+    config[feed] = { label: feed, color: colors[i % colors.length] };
+  });
+  return config;
+};
 
-export interface NumberOfArticlesLast7DaysChartData {
-  date: string;
-  count: number;
-}
+export type NumberOfArticlesLast7DaysChartData = Record<string, number | string>;
 
 interface NumberOfArticlesLast7DaysChartProps {
   chartData?: NumberOfArticlesLast7DaysChartData[];
@@ -52,7 +60,29 @@ const DailyNewArticlesChart = ({
     dateStyle: "full",
   });
 
-  const dailyAverage = chartData.reduce((acc, day) => acc + day.count, 0) / 7;
+  // Determine all feed keys dynamically (exclude the 'date' field)
+  const feedKeys = Array.from(
+    chartData.reduce((set, item) => {
+      Object.keys(item).forEach((k) => {
+        if (k !== "date") set.add(k);
+      });
+      return set;
+    }, new Set<string>()),
+  );
+
+  const chartConfigForFeeds = getChartConfigForFeeds(feedKeys);
+
+  // Compute average total articles per day across all feeds
+  const totalAcrossDays = chartData.reduce((sum, day) => {
+    const dayTotal = feedKeys.reduce((s, k) => {
+      const v = day[k];
+      return s + (typeof v === "number" ? v : 0);
+    }, 0);
+    return sum + dayTotal;
+  }, 0);
+  const dailyAverage = chartData.length
+    ? totalAcrossDays / chartData.length
+    : 0;
 
   return (
     <Card>
@@ -61,7 +91,7 @@ const DailyNewArticlesChart = ({
         <CardDescription>{chartDescription}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfigForFeeds}>
           <BarChart
             accessibilityLayer
             data={chartData}
@@ -82,12 +112,20 @@ const DailyNewArticlesChart = ({
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent />}
+              content={<ChartTooltipContent indicator="dot" />}
               labelFormatter={(value) =>
                 dateFormatterLong.format(new Date(value))
               }
             />
-            <Bar dataKey="count" fill="var(--chart-1)" stackId="a" />
+            {feedKeys.map((key) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={chartConfigForFeeds[key]?.color}
+                stroke={chartConfigForFeeds[key]?.color}
+                stackId="a"
+              />
+            ))}
           </BarChart>
         </ChartContainer>
       </CardContent>

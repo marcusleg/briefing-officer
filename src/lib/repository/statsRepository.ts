@@ -66,12 +66,19 @@ export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
 
   const dates = getDaysInDateRange(from, to);
 
-  const articlesPerDay = await Promise.all(
-    dates.map((date) =>
-      prisma.article.aggregate({
-        _count: {
-          _all: true,
-        },
+  // Fetch feeds once to map feedId -> title
+  const feeds = await prisma.feed.findMany({
+    where: { userId },
+    select: { id: true, title: true },
+  });
+  const feedTitleById = new Map(feeds.map((f) => [f.id, f.title]));
+
+  // For each date, group articles by feed and count
+  const perDayPerFeed = await Promise.all(
+    dates.map(async (date) => {
+      const groups = await prisma.article.groupBy({
+        by: ["feedId"],
+        _count: { _all: true },
         where: {
           publicationDate: {
             gte: `${date}T00:00:00.000Z`,
@@ -79,14 +86,20 @@ export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
           },
           userId,
         },
-      }),
-    ),
+      });
+
+      const entry: Record<string, string> = { date };
+      groups.forEach((g: any) => {
+        const title = feedTitleById.get(g.feedId);
+        if (title) {
+          entry[title] = g._count._all;
+        }
+      });
+      return entry;
+    }),
   );
 
-  return dates.map((date, index) => ({
-    date,
-    count: articlesPerDay[index]._count._all,
-  }));
+  return perDayPerFeed;
 };
 
 export const getWeeklyArticlesRead = async (from: Date, to: Date) => {
