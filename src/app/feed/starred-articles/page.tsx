@@ -43,7 +43,7 @@ const StarredArticlesPage = async () => {
         ) : (
           <Typography
             variant="p"
-            className="my-8 text-center text-lg text-muted-foreground"
+            className="text-muted-foreground my-8 text-center text-lg"
           >
             You haven&apos;t starred any articles yet.
           </Typography>

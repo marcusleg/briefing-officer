@@ -26,7 +26,7 @@ const NoUnreadArticles = async ({ feed }: NoUnreadArticlesProps) => {
 
           <h2 className="mb-2 text-xl font-semibold">All caught up!</h2>
 
-          <p className="mb-6 leading-relaxed text-muted-foreground">
+          <p className="text-muted-foreground mb-6 leading-relaxed">
             You&apos;ve read all {feed.title} articles. Great job staying
             informed!
             {globalUnreadCount > 0 && (
@@ -46,7 +46,7 @@ const NoUnreadArticles = async ({ feed }: NoUnreadArticlesProps) => {
             </Button>
           )}
 
-          <p className="mt-4 text-xs text-muted-foreground">
+          <p className="text-muted-foreground mt-4 text-xs">
             New articles will appear here as this feed updates
           </p>
         </CardContent>

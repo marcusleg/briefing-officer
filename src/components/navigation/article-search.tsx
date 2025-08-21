@@ -29,7 +29,7 @@ const ArticleSearch = () => {
           size="sm"
           variant="ghost"
           onClick={handleSubmit}
-          className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0 hover:bg-muted"
+          className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 p-0"
         >
           <Search className="h-4 w-4" />
         </Button>

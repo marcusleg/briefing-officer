@@ -33,7 +33,7 @@ const UserDropdownMenu = ({ userName }: UserDropdownMenuProps) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         side="top"
-        className="w-[--radix-popper-anchor-width]"
+        className="w-(--radix-popper-anchor-width)"
       >
         <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
           <LogOutIcon />

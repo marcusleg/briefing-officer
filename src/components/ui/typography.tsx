@@ -94,9 +94,7 @@ const Typography = ({ children, className, variant }: TypographyProps) => {
   }
 
   return (
-    <p className={cn("leading-7 [&:not(:first-child)]:mt-6", className)}>
-      {children}
-    </p>
+    <p className={cn("leading-7 not-first:mt-6", className)}>{children}</p>
   );
 };
 

@@ -69,7 +69,7 @@ const AiSummary = async (props0: {
           </Alert>
         )}
 
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           Source: <Link href={article.link}>{article.link}</Link>
         </div>
       </article>

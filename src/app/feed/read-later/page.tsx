@@ -42,7 +42,7 @@ const ReadLaterPage = async () => {
       ) : (
         <Typography
           variant="p"
-          className="my-8 text-center text-lg text-muted-foreground"
+          className="text-muted-foreground my-8 text-center text-lg"
         >
           Congratulations! Your read later list is empty.
         </Typography>
