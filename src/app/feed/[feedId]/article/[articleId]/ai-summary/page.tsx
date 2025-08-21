@@ -40,7 +40,7 @@ const AiSummary = async (props0: {
     <div className="m-2 flex flex-col gap-2">
       <TopNavigation
         segments={[
-          { name: "My Feed", href: "/feed" },
+          { name: "Feeds", href: "/feed" },
           { name: article.feed.title, href: `/feed/${article.feed.id}` },
         ]}
         page="AI Summary"

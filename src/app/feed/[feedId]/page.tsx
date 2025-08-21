@@ -49,7 +49,7 @@ const FeedById = async (props: FeedByIdProps) => {
   return (
     <div className="flex flex-col gap-4">
       <TopNavigation
-        segments={[{ name: "My Feed", href: "/feed" }]}
+        segments={[{ name: "Feeds", href: "/feed" }]}
         page={feed.title}
       />
 

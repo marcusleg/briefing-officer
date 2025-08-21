@@ -31,7 +31,7 @@ const ReadLaterPage = async () => {
   return (
     <div className="flex flex-col gap-4">
       <TopNavigation
-        segments={[{ name: "My Feed", href: "/feed" }]}
+        segments={[{ name: "Feeds", href: "/feed" }]}
         page="Read Later"
       />
 
