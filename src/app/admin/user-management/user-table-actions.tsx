@@ -73,9 +73,10 @@ const UserTableActions = ({ user }: UserListActionsProps) => {
   return (
     <div className="flex space-x-2">
       <Button
+        title={isBanned ? "Enable User" : "Disable User"}
         variant="secondary"
         size="icon"
-        className="size-4"
+        className="size-4 cursor-pointer"
         onClick={handleToggleBan}
       >
         {isBanned ? (
@@ -84,10 +85,12 @@ const UserTableActions = ({ user }: UserListActionsProps) => {
           <ShieldBanIcon className="size-4" />
         )}
       </Button>
+
       <Button
+        title="Delete User"
         variant="secondary"
         size="icon"
-        className="size-4"
+        className="size-4 cursor-pointer"
         onClick={handleDelete}
       >
         <TrashIcon />
