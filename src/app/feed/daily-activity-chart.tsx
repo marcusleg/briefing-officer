@@ -47,6 +47,9 @@ const DailyActivityChart = ({
     day: "2-digit",
     month: "short",
   });
+  const dateFormatterLong = new Intl.DateTimeFormat(navigator.language, {
+    dateStyle: "full",
+  });
 
   const dailyAverage = chartData.reduce((acc, day) => acc + day.count, 0) / 7;
 
@@ -78,7 +81,10 @@ const DailyActivityChart = ({
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={<ChartTooltipContent />}
+              labelFormatter={(value) =>
+                dateFormatterLong.format(new Date(value))
+              }
             />
             <Bar dataKey="count" fill="var(--chart-1)" stackId="a" />
           </BarChart>
