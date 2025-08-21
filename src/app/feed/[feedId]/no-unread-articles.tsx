@@ -20,8 +20,8 @@ const NoUnreadArticles = async ({ feed }: NoUnreadArticlesProps) => {
     <div className="flex min-h-[400px] items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardContent className="flex flex-col items-center p-8 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-950">
+            <CheckCircle className="h-8 w-8 text-lime-600" />
           </div>
 
           <h2 className="mb-2 text-xl font-semibold">All caught up!</h2>
