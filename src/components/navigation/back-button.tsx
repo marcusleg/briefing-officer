@@ -8,7 +8,12 @@ const BackButton = () => {
   const router = useRouter();
 
   return (
-    <Button variant="ghost" size="sm" onClick={router.back} className="text-xs">
+    <Button
+      className="cursor-pointer text-xs"
+      onClick={router.back}
+      size="sm"
+      variant="ghost"
+    >
       <ArrowLeftIcon className="mr-1 h-4 w-4" />
       Back
     </Button>

@@ -24,7 +24,11 @@ const DeleteCategoryButton = ({ category }: DeleteCategoryButtonProps) => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={() => setIsDialogOpen(true)} variant="outline">
+            <Button
+              className="cursor-pointer"
+              onClick={() => setIsDialogOpen(true)}
+              variant="outline"
+            >
               <Trash className="h-4 w-4" />
             </Button>
           </TooltipTrigger>

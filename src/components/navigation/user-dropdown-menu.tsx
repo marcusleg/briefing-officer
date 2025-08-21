@@ -26,7 +26,7 @@ const UserDropdownMenu = ({ userName }: UserDropdownMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <SidebarMenuButton>
+        <SidebarMenuButton className="cursor-pointer">
           <User2Icon /> {userName}
           <ChevronUpIcon className="ml-auto" />
         </SidebarMenuButton>

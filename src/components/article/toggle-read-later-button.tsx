@@ -53,7 +53,7 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
           ? handleRemoveFromReadLaterClick
           : handleReadLaterClick
       }
-      className="text-xs"
+      className="cursor-pointer text-xs"
     >
       <BookmarkIcon
         className="mr-1 h-4 w-4"

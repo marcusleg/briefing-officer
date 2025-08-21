@@ -26,10 +26,10 @@ const ArticleSearch = () => {
           autoFocus={false}
         />
         <Button
+          className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 cursor-pointer p-0"
           size="sm"
           variant="ghost"
           onClick={handleSubmit}
-          className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 p-0"
         >
           <Search className="h-4 w-4" />
         </Button>

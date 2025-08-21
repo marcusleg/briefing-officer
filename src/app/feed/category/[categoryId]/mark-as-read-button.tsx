@@ -38,7 +38,11 @@ const MarkAsReadCategoryButton = ({
   return (
     <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
       <DropdownMenuTrigger asChild disabled={disabled}>
-        <Button disabled={disabled} variant="outline">
+        <Button
+          className="cursor-pointer"
+          disabled={disabled}
+          variant="outline"
+        >
           <BookCheck className="mr-2 h-4 w-4" />
           Mark as read
           {isOpen ? (

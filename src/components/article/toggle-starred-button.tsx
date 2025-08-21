@@ -49,7 +49,7 @@ const ToggleStarredButton = ({ article }: ToggleStarredButtonProps) => {
       variant="ghost"
       size="sm"
       onClick={article.starred ? handleUnstarClick : handleStarClick}
-      className="text-xs"
+      className="cursor-pointer text-xs"
     >
       <StarIcon
         className="mr-1 h-4 w-4"

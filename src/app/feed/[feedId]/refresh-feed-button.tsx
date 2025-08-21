@@ -29,6 +29,7 @@ const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
 
   return (
     <Button
+      className="cursor-pointer"
       disabled={refreshInProgress}
       onClick={handleCLick}
       variant="outline"

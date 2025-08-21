@@ -25,6 +25,7 @@ const EditFeedButton = ({ feed }: EditFeedButtonProps) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
+              className="cursor-pointer"
               onClick={() => setIsEditFeedDialogOpen(true)}
               variant="outline"
             >

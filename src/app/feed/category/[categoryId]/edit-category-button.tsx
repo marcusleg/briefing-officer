@@ -24,7 +24,11 @@ const EditCategoryButton = ({ category }: EditCategoryButtonProps) => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={() => setIsDialogOpen(true)} variant="outline">
+            <Button
+              className="cursor-pointer"
+              onClick={() => setIsDialogOpen(true)}
+              variant="outline"
+            >
               <Pencil className="h-4 w-4" />
             </Button>
           </TooltipTrigger>

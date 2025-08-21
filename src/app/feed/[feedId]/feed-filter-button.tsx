@@ -23,7 +23,7 @@ const FeedFilterButton = () => {
   return (
     <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">
+        <Button className="cursor-pointer" variant="outline">
           <Filter className="mr-2 h-4 w-4" />
           Filter
           {isOpen ? (

@@ -25,6 +25,7 @@ const DeleteFeedButton = ({ feed }: DeleteFeedButtonProps) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
+              className="cursor-pointer"
               onClick={() => setIsDeleteFeedDialogOpen(true)}
               variant="outline"
             >

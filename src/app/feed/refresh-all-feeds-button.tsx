@@ -32,6 +32,7 @@ const RefreshAllFeedsButton = () => {
 
   return (
     <Button
+      className="cursor-pointer"
       disabled={refreshInProgress}
       onClick={handleClick}
       variant="outline"

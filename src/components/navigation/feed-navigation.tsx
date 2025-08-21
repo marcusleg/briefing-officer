@@ -96,7 +96,7 @@ const FeedNavigation = async () => {
       <SidebarGroupContent>
         <SidebarMenuItem>
           <AddCategoryFormDialogTrigger>
-            <SidebarMenuButton>
+            <SidebarMenuButton className="cursor-pointer">
               <PlusIcon />
               <span className="truncate">Add Category</span>
             </SidebarMenuButton>
@@ -104,7 +104,7 @@ const FeedNavigation = async () => {
         </SidebarMenuItem>
         <AddFeedFormDialogTrigger>
           <SidebarMenuItem>
-            <SidebarMenuButton>
+            <SidebarMenuButton className="cursor-pointer">
               <PlusIcon />
               <span className="truncate">Add Feed</span>
             </SidebarMenuButton>

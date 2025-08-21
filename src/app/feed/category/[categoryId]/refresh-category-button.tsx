@@ -29,6 +29,7 @@ const RefreshCategoryButton = ({ categoryId }: RefreshCategoryButtonProps) => {
 
   return (
     <Button
+      className="cursor-pointer"
       disabled={refreshInProgress}
       onClick={handleClick}
       variant="outline"
