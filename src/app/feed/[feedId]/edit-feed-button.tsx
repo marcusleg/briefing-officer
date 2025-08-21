@@ -1,6 +1,7 @@
 "use client";
 
 import EditFeedDialog from "@/app/feed/[feedId]/edit-feed-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -10,7 +11,6 @@ import {
 import { Feed } from "@prisma/client";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
-import { Button } from "../../../components/ui/button";
 
 interface EditFeedButtonProps {
   feed: Feed;
