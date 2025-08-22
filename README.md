@@ -29,7 +29,7 @@ docker run -it --rm \
   -e BETTER_AUTH_URL=http://localhost:3000 \
   -e CRON_API_TOKEN=something-else-random \
   -p 3000:3000 \
-  ghcr.io/marcusleg/briefing-officer:unstable
+  ghcr.io/marcusleg/briefing-officer
 ```
 
 ## Architecture Decisions
