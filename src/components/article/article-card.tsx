@@ -14,7 +14,6 @@ import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
-import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 import { LoaderCircleIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -99,15 +98,17 @@ const ArticleCard = (props: ArticleCardProps) => {
     return <p className={className}>{aiLead}</p>;
   };
 
+  let className = "transition-all duration-200 hover:scale-101 hover:shadow-lg";
+  if (props.selected) {
+    className +=
+      " border-foreground scale-101 border shadow-lg transition-all duration-200";
+  }
+  if (props.article.readAt !== null) {
+    className += " opacity-65";
+  }
+
   return (
-    <Card
-      className={cn(
-        "transition-all duration-200 hover:scale-101 hover:shadow-lg",
-        props.article.readAt !== null ? "opacity-65" : "",
-        props.className,
-      )}
-      onClick={props.onClick}
-    >
+    <Card className={className} onClick={props.onClick}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">

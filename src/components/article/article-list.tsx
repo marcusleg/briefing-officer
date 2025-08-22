@@ -45,11 +45,6 @@ const ArticleList = ({ articles }: ArticleListProps) => {
       {articles.map((article, index) => (
         <ArticleCard
           key={article.id}
-          className={
-            index == selectedArticle
-              ? "border-foreground scale-101 border shadow-lg transition-all duration-200"
-              : undefined
-          }
           article={article}
           onClick={() => setSelectedArticle(index)}
           selected={index === selectedArticle}
