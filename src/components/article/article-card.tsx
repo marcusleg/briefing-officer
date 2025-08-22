@@ -3,8 +3,12 @@
 import { ArticleCardActions } from "@/components/article/article-card-actions";
 import ArticleMeta from "@/components/article/article-meta";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { generateAiLead } from "@/lib/ai";
 import {
   markArticleAsRead,
@@ -61,9 +65,11 @@ const ArticleCard = (props: ArticleCardProps) => {
     : undefined;
 
   const description = () => {
+    const className = "mb-3 text-justify text-sm leading-relaxed";
+
     if (!props.article.scrape?.textContent) {
       return (
-        <p className="mb-4 text-justify text-sm leading-relaxed">
+        <p className={className}>
           No content available. Visit the original article.
         </p>
       );
@@ -75,9 +81,7 @@ const ArticleCard = (props: ArticleCardProps) => {
       );
     }
 
-    return (
-      <p className="mb-4 text-justify text-sm leading-relaxed">{aiLead}</p>
-    );
+    return <p className={className}>{aiLead}</p>;
   };
 
   return (
@@ -89,7 +93,7 @@ const ArticleCard = (props: ArticleCardProps) => {
       )}
       onClick={props.onClick}
     >
-      <CardHeader className="px-4 pb-3 md:pb-6">
+      <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <h2 className="hover:text-primary mb-3 text-xl leading-tight font-semibold transition-colors">
@@ -105,11 +109,10 @@ const ArticleCard = (props: ArticleCardProps) => {
         </div>
       </CardHeader>
 
-      <CardContent className="px-4 md:pb-6">
+      <CardContent>
         {description()}
 
-        {/* Metadata Badges */}
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-4">
           {articleReadingTime && (
             <>
               <Badge variant="outline" className="text-xs">
@@ -123,11 +126,11 @@ const ArticleCard = (props: ArticleCardProps) => {
             </>
           )}
         </div>
-
-        <Separator />
-
-        <ArticleCardActions article={props.article} />
       </CardContent>
+
+      <CardFooter>
+        <ArticleCardActions article={props.article} />
+      </CardFooter>
     </Card>
   );
 };
