@@ -2,7 +2,6 @@
 
 import { ArticleCardActions } from "@/components/article/article-card-actions";
 import ArticleMeta from "@/components/article/article-meta";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -80,7 +79,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     : undefined;
 
   const description = () => {
-    const className = "mb-3 text-justify text-sm leading-relaxed";
+    const className = "text-justify text-sm leading-relaxed";
 
     if (!props.article.scrape?.textContent) {
       return (
@@ -124,26 +123,25 @@ const ArticleCard = (props: ArticleCardProps) => {
         </div>
       </CardHeader>
 
-      <CardContent>
-        {description()}
-
-        <div className="flex flex-wrap items-center gap-4">
-          {articleReadingTime && (
-            <>
-              <Badge variant="outline" className="text-xs">
-                <ClockIcon className="mr-1 h-3 w-3" />
-                {articleReadingTime.text}
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                <FileTextIcon className="mr-1 h-3 w-3" />
-                {articleReadingTime.words} words
-              </Badge>
-            </>
-          )}
-        </div>
-      </CardContent>
+      <CardContent>{description()}</CardContent>
 
       <CardFooter>
+        {articleReadingTime && (
+          <div className="text-muted-foreground flex items-center gap-4 text-xs">
+            <span className="flex items-center gap-1">
+              <ClockIcon className="mr-1 h-3 w-3" />
+              {articleReadingTime.text}
+            </span>
+
+            <span className="flex items-center gap-1">
+              <FileTextIcon className="mr-1 h-3 w-3" />
+              {articleReadingTime.words} words
+            </span>
+          </div>
+        )}
+
+        <div className="grow" />
+
         <ArticleCardActions article={props.article} />
       </CardFooter>
     </Card>

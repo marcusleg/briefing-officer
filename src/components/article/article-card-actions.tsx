@@ -18,7 +18,7 @@ interface ArticleCardActionsProps {
 }
 
 export const ArticleCardActions = (props: ArticleCardActionsProps) => (
-  <div className="flex flex-wrap items-center gap-2">
+  <div className="flex flex-wrap items-center">
     {props.showBackButton && (
       <>
         <BackButton />
