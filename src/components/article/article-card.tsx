@@ -9,6 +9,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { generateAiLead } from "@/lib/ai";
 import {
   markArticleAsRead,
@@ -32,6 +33,7 @@ interface ArticleCardProps {
 
 const ArticleCard = (props: ArticleCardProps) => {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [aiLead, setAiLead] = useState(props.article.lead?.text);
 
   useEffect(() => {
@@ -127,7 +129,7 @@ const ArticleCard = (props: ArticleCardProps) => {
 
       <CardContent>{description()}</CardContent>
 
-      <CardFooter>
+      <CardFooter className="flex flex-col gap-2 md:flex-row">
         {articleReadingTime && (
           <ArticleReadingTime
             text={articleReadingTime.text}
@@ -135,7 +137,7 @@ const ArticleCard = (props: ArticleCardProps) => {
           />
         )}
 
-        <div className="grow" />
+        {!isMobile && <div className="grow" />}
 
         <ArticleCardActions article={props.article} />
       </CardFooter>
