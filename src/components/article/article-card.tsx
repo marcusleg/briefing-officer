@@ -2,6 +2,7 @@
 
 import { ArticleCardActions } from "@/components/article/article-card-actions";
 import ArticleMeta from "@/components/article/article-meta";
+import ArticleReadingTime from "@/components/article/article-reading-time";
 import {
   Card,
   CardContent,
@@ -15,7 +16,7 @@ import {
 } from "@/lib/repository/articleRepository";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
-import { ClockIcon, FileTextIcon, LoaderCircleIcon } from "lucide-react";
+import { LoaderCircleIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -127,17 +128,10 @@ const ArticleCard = (props: ArticleCardProps) => {
 
       <CardFooter>
         {articleReadingTime && (
-          <div className="text-muted-foreground flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1">
-              <ClockIcon className="mr-1 h-3 w-3" />
-              {articleReadingTime.text}
-            </span>
-
-            <span className="flex items-center gap-1">
-              <FileTextIcon className="mr-1 h-3 w-3" />
-              {articleReadingTime.words} words
-            </span>
-          </div>
+          <ArticleReadingTime
+            text={articleReadingTime.text}
+            words={articleReadingTime.words}
+          />
         )}
 
         <div className="grow" />
