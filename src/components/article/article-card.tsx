@@ -41,36 +41,39 @@ const ArticleCard = (props: ArticleCardProps) => {
     }
   }, [props.article]);
 
-  useHotkeys("s", async () => {
-    if (!props.selected) {
-      return;
+  const createHotkeyHandler = (handler: () => Promise<void> | void) => () => {
+    if (props.selected) {
+      handler();
     }
+  };
 
-    router.push(
-      `/feed/${props.article.feed}/article/${props.article.id}/ai-summary`,
-    );
-  });
+  useHotkeys(
+    "s",
+    createHotkeyHandler(() => {
+      router.push(
+        `/feed/${props.article.feed}/article/${props.article.id}/ai-summary`,
+      );
+    }),
+  );
 
-  useHotkeys("v", async () => {
-    if (!props.selected) {
-      return;
-    }
-
-    window.open(props.article.link, "_blank");
-    await markArticleAsRead(props.article.id);
-  });
-
-  useHotkeys("m", async () => {
-    if (!props.selected) {
-      return;
-    }
-
-    if (props.article.readAt !== null) {
-      await unmarkArticleAsRead(props.article.id);
-    } else {
+  useHotkeys(
+    "v",
+    createHotkeyHandler(async () => {
+      window.open(props.article.link, "_blank");
       await markArticleAsRead(props.article.id);
-    }
-  });
+    }),
+  );
+
+  useHotkeys(
+    "m",
+    createHotkeyHandler(async () => {
+      if (props.article.readAt !== null) {
+        await unmarkArticleAsRead(props.article.id);
+      } else {
+        await markArticleAsRead(props.article.id);
+      }
+    }),
+  );
 
   const articleReadingTime = props.article.scrape
     ? readingTime(props.article.scrape.textContent)
