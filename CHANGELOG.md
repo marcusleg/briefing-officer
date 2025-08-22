@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/marcusleg/briefing-officer/compare/v0.1.1...v0.2.0) (2025-08-22)
+
+
+### Features
+
+* add keyboard shortcut for AI summary navigation in `ArticleCard` ([dd3cc54](https://github.com/marcusleg/briefing-officer/commit/dd3cc542e58b1c519cf2ec11650d6697f058e265))
+* redesign `ArticleCard` reading time badges and action buttons ([57e0642](https://github.com/marcusleg/briefing-officer/commit/57e064288a1ad413242bbe247de68ddc774e7700))
+
+
+### Bug Fixes
+
+* improve `ArticleCard` layout for mobile devices ([e001776](https://github.com/marcusleg/briefing-officer/commit/e00177624ed898dda2d534af0becf17296437273))
+* set width in `Dashboard` to avoid horizontal content jump ([cf7d0d1](https://github.com/marcusleg/briefing-officer/commit/cf7d0d159f5507416db4fb414cb2880f1cab00f2))
+
 ## [0.1.1](https://github.com/marcusleg/briefing-officer/compare/briefing-officer-v0.1.0...briefing-officer-v0.1.1) (2025-08-22)
 
 
