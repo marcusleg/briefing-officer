@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 import { ClockIcon, FileTextIcon, LoaderCircleIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import readingTime from "reading-time";
@@ -31,6 +32,7 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = (props: ArticleCardProps) => {
+  const router = useRouter();
   const [aiLead, setAiLead] = useState(props.article.lead?.text);
 
   useEffect(() => {
@@ -38,6 +40,16 @@ const ArticleCard = (props: ArticleCardProps) => {
       generateAiLead(props.article.id).then((lead) => setAiLead(lead));
     }
   }, [props.article]);
+
+  useHotkeys("s", async () => {
+    if (!props.selected) {
+      return;
+    }
+
+    router.push(
+      `/feed/${props.article.feed}/article/${props.article.id}/ai-summary`,
+    );
+  });
 
   useHotkeys("v", async () => {
     if (!props.selected) {
