@@ -3,11 +3,11 @@
 import AddCategoryFormDialogTrigger from "@/components/category/add-category-form-dialog-trigger";
 import AddFeedFormDialogTrigger from "@/components/navigation/add-feed-form-dialog-trigger";
 import AppSidebarMenuButton from "@/components/navigation/app-sidebar-menu-button";
+import { Badge } from "@/components/ui/badge";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
@@ -59,11 +59,11 @@ const FeedNavigation = async () => {
       <SidebarMenuItem key={feed.id}>
         <AppSidebarMenuButton href={`/feed/${feed.id}`}>
           <NewspaperIcon />
-          <span className="truncate">{feed.title}</span>
+          <span className="grow truncate">{feed.title}</span>
+          {feed._count.articles > 0 && (
+            <Badge variant="secondary">{feed._count.articles}</Badge>
+          )}
         </AppSidebarMenuButton>
-        {feed._count.articles > 0 && (
-          <SidebarMenuBadge>{feed._count.articles}</SidebarMenuBadge>
-        )}
       </SidebarMenuItem>
     ));
 
