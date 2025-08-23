@@ -29,7 +29,7 @@ const EditCategoryButton = ({ category }: EditCategoryButtonProps) => {
               onClick={() => setIsDialogOpen(true)}
               variant="outline"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="size-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Edit Category</TooltipContent>

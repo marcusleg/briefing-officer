@@ -24,12 +24,12 @@ const FeedFilterButton = () => {
     <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
       <DropdownMenuTrigger asChild>
         <Button className="cursor-pointer" variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
+          <Filter className="mr-2 size-4" />
           Filter
           {isOpen ? (
-            <ChevronDownIcon className="ml-2 h-4 w-4 rotate-180 transition-transform" />
+            <ChevronDownIcon className="ml-2 size-4 rotate-180 transition-transform" />
           ) : (
-            <ChevronDownIcon className="ml-2 h-4 w-4 transition-transform" />
+            <ChevronDownIcon className="ml-2 size-4 transition-transform" />
           )}
         </Button>
       </DropdownMenuTrigger>

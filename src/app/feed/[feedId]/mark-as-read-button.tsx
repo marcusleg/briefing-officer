@@ -38,12 +38,12 @@ const MarkAsReadButton = ({ disabled, feedId }: MarkAllAsReadProps) => {
           disabled={disabled}
           variant="outline"
         >
-          <BookCheck className="mr-2 h-4 w-4" />
+          <BookCheck className="mr-2 size-4" />
           Mark as read
           {isOpen ? (
-            <ChevronDownIcon className="ml-2 h-4 w-4 rotate-180 transition-transform" />
+            <ChevronDownIcon className="ml-2 size-4 rotate-180 transition-transform" />
           ) : (
-            <ChevronDownIcon className="ml-2 h-4 w-4 transition-transform" />
+            <ChevronDownIcon className="ml-2 size-4 transition-transform" />
           )}
         </Button>
       </DropdownMenuTrigger>

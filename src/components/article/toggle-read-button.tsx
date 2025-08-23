@@ -59,9 +59,9 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
       variant="ghost"
     >
       {isRead ? (
-        <EyeOffIcon className="mr-1 h-4 w-4" />
+        <EyeOffIcon className="mr-1 size-4" />
       ) : (
-        <EyeIcon className="mr-1 h-4 w-4" />
+        <EyeIcon className="mr-1 size-4" />
       )}
       {isRead ? "Mark Unread" : "Mark Read"}
     </Button>

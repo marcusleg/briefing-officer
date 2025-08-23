@@ -38,9 +38,9 @@ const RefreshAllFeedsButton = () => {
       variant="outline"
     >
       {refreshInProgress ? (
-        <LoaderCircleIcon className="h-4 w-4 animate-spin" />
+        <LoaderCircleIcon className="size-4 animate-spin" />
       ) : (
-        <RotateCwIcon className="h-4 w-4" />
+        <RotateCwIcon className="size-4" />
       )}
       <span className="truncate">Refresh</span>
     </Button>

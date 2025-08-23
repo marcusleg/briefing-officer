@@ -56,7 +56,7 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
       className="cursor-pointer text-xs"
     >
       <BookmarkIcon
-        className="mr-1 h-4 w-4"
+        className="mr-1 size-4"
         fill={article.readLater ? "black" : "transparent"}
       />
       Read Later

@@ -14,7 +14,7 @@ const BackButton = () => {
       size="sm"
       variant="ghost"
     >
-      <ArrowLeftIcon className="mr-1 h-4 w-4" />
+      <ArrowLeftIcon className="mr-1 size-4" />
       Back
     </Button>
   );

@@ -25,7 +25,7 @@ const VisitButton = ({ article, size }: VisitButtonProps) => {
       onAuxClick={() => markArticleAsRead(article.id)}
       referrerPolicy="no-referrer"
     >
-      <ExternalLink className="mr-1 h-4 w-4" />
+      <ExternalLink className="mr-1 size-4" />
       Visit Original
     </Link>
   );

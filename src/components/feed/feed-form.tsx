@@ -164,7 +164,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
             </DialogClose>
             <Button disabled={submitting} type="submit">
               {submitting ? (
-                <LoaderCircle className="h-4 w-4 animate-spin" />
+                <LoaderCircle className="size-4 animate-spin" />
               ) : (
                 submitButtonText
               )}

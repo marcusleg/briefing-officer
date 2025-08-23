@@ -21,7 +21,7 @@ const NoUnreadArticles = async ({ feed }: NoUnreadArticlesProps) => {
       <Card className="w-full max-w-md">
         <CardContent className="flex flex-col items-center p-8 text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-950">
-            <CheckCircle className="h-8 w-8 text-lime-600" />
+            <CheckCircle className="size-8 text-lime-600" />
           </div>
 
           <h2 className="mb-2 text-xl font-semibold">All caught up!</h2>
@@ -40,7 +40,7 @@ const NoUnreadArticles = async ({ feed }: NoUnreadArticlesProps) => {
           {globalUnreadCount > 0 && (
             <Button asChild className="w-full">
               <Link href="/feed">
-                <NewspaperIcon className="mr-2 h-4 w-4" />
+                <NewspaperIcon className="mr-2 size-4" />
                 Go to All Feeds
               </Link>
             </Button>

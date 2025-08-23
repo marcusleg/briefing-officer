@@ -11,17 +11,17 @@ const ArticleMeta = (props: ArticleMetaProps) => {
   return (
     <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-sm">
       <div className="flex items-center gap-1 font-medium">
-        <GlobeIcon className="h-4 w-4" />
+        <GlobeIcon className="size-4" />
         <span>{props.feedTitle}</span>
       </div>
       {props.author && (
         <div className="flex items-center gap-1">
-          <UserIcon className="h-4 w-4" />
+          <UserIcon className="size-4" />
           <span>{props.author}</span>
         </div>
       )}
       <div className="flex items-center gap-1">
-        <CalendarIcon className="h-4 w-4" />
+        <CalendarIcon className="size-4" />
         <span>
           <IntlRelativeTime date={props.date} />
         </span>

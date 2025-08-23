@@ -8,7 +8,7 @@ const NoFeedsMessage = () => (
     <Card className="w-full max-w-md">
       <CardContent className="flex flex-col items-center p-8 text-center">
         <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-          <Rss className="text-muted-foreground h-8 w-8" />
+          <Rss className="text-muted-foreground size-8" />
         </div>
 
         <h2 className="mb-2 text-xl font-semibold">No feeds added yet</h2>
@@ -20,7 +20,7 @@ const NoFeedsMessage = () => (
 
         <AddFeedFormDialogTrigger>
           <Button className="w-full">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 size-4" />
             Add Your First Feed
           </Button>
         </AddFeedFormDialogTrigger>

@@ -92,9 +92,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     }
 
     if (!aiLead) {
-      return (
-        <LoaderCircleIcon className="mx-auto my-12 h-8 w-8 animate-spin" />
-      );
+      return <LoaderCircleIcon className="mx-auto my-12 size-8 animate-spin" />;
     }
 
     return <p className={className}>{aiLead}</p>;

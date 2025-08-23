@@ -35,9 +35,9 @@ const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
       variant="outline"
     >
       {refreshInProgress ? (
-        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+        <LoaderCircle className="mr-2 size-4 animate-spin" />
       ) : (
-        <RotateCw className="mr-2 h-4 w-4" />
+        <RotateCw className="mr-2 size-4" />
       )}
       Refresh
     </Button>
