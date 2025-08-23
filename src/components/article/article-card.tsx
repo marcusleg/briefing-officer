@@ -1,6 +1,6 @@
 "use client";
 
-import { ArticleCardActions } from "@/components/article/article-card-actions";
+import ArticleCardActions from "@/components/article/article-card-actions";
 import ArticleMeta from "@/components/article/article-meta";
 import ArticleReadingTime from "@/components/article/article-reading-time";
 import {

@@ -1,7 +1,7 @@
 "use server";
 
 import AiSummaryStream from "@/components/article/ai-summary-stream";
-import { ArticleCardActions } from "@/components/article/article-card-actions";
+import ArticleCardActions from "@/components/article/article-card-actions";
 import ArticleMeta from "@/components/article/article-meta";
 import TopNavigation from "@/components/navigation/top-navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

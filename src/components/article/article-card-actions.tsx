@@ -17,8 +17,8 @@ interface ArticleCardActionsProps {
   showBackButton?: boolean;
 }
 
-export const ArticleCardActions = (props: ArticleCardActionsProps) => (
-  <div className="flex flex-wrap items-center">
+const ArticleCardActions = (props: ArticleCardActionsProps) => (
+  <div className="grid w-full grid-cols-2 justify-items-start gap-y-1 md:flex md:w-auto md:grid-cols-none">
     {props.showBackButton && (
       <>
         <BackButton />
@@ -44,3 +44,5 @@ export const ArticleCardActions = (props: ArticleCardActionsProps) => (
     <ToggleStarredButton article={props.article} />
   </div>
 );
+
+export default ArticleCardActions;
