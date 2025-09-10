@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/marcusleg/briefing-officer/compare/v0.2.0...v0.3.0) (2025-09-10)
+
+
+### Features
+
+* display `ArticleCardActions` as a grid on small screens ([07be19b](https://github.com/marcusleg/briefing-officer/commit/07be19b944a79ee8b13199e62ced4d77e77925da))
+
+
+### Bug Fixes
+
+* improve sidebar item design for feeds with long titles ([847057a](https://github.com/marcusleg/briefing-officer/commit/847057aa238cbac5b2476ef81628a71bd5ffa0dd))
+
 ## [0.2.0](https://github.com/marcusleg/briefing-officer/compare/v0.1.1...v0.2.0) (2025-08-22)
 
 
