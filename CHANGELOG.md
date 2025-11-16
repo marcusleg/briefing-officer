@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/marcusleg/briefing-officer/compare/v0.3.0...v0.3.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* prevent text overflow in article titles with `break-all` ([3c878c3](https://github.com/marcusleg/briefing-officer/commit/3c878c3cf45d6bc7c689c83834b9d6f6a16a2480))
+
 ## [0.3.0](https://github.com/marcusleg/briefing-officer/compare/v0.2.0...v0.3.0) (2025-09-10)
 
 
