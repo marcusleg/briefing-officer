@@ -1,0 +1,26 @@
+name: Publish Helm Chart
+on:
+  tags:
+    - "v*"
+
+jobs:
+  publish-helm-chart:
+    name: Publish Helm Chart
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ github.token }}
+
+      - name: Package and Push Helm Chart
+        run: |
+          helm package helm-chart/
+          helm push briefing-officer-*.tgz oci://ghcr.io/${{ github.repository }}/charts/
