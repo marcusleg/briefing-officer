@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0](https://github.com/marcusleg/briefing-officer/compare/v0.3.0...v0.4.0) (2025-12-07)
+
+
+### Features
+
+* add liveness and readiness probes ([82309ef](https://github.com/marcusleg/briefing-officer/commit/82309efe814ed6432ffe6e909fbb16aa5f3e525b))
+* Helm chart for application deployment ([b508970](https://github.com/marcusleg/briefing-officer/commit/b5089701f9048135962ce5fea393d2ec5a431b04))
+
+
+### Bug Fixes
+
+* improve word breaking in article titles ([3980866](https://github.com/marcusleg/briefing-officer/commit/39808664c7740811da60359d1cc30656c9d251e8))
+* improve word breaking in article titles ([6b93ba2](https://github.com/marcusleg/briefing-officer/commit/6b93ba2d879d157325d70a812d58019a47a57ce0))
+* prevent text overflow in article titles with `break-all` ([3c878c3](https://github.com/marcusleg/briefing-officer/commit/3c878c3cf45d6bc7c689c83834b9d6f6a16a2480))
+
 ## [0.3.0](https://github.com/marcusleg/briefing-officer/compare/v0.2.0...v0.3.0) (2025-09-10)
 
 
