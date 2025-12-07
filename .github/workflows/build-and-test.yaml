@@ -68,4 +68,4 @@ jobs:
       - name: Render Helm Chart
         uses: WyriHaximus/github-action-helm3@v3
         with:
-          exec: helm template briefing-officer helm-chart
+          exec: helm template briefing-officer helm-chart --set httpRoute.enabled=true
