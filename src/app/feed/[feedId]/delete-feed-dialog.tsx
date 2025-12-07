@@ -45,10 +45,14 @@ const DeleteFeedDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deletionInProgress}>
+          <AlertDialogCancel
+            className="w-24 cursor-pointer"
+            disabled={deletionInProgress}
+          >
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
+            className="w-24 cursor-pointer"
             disabled={deletionInProgress}
             onClick={handleDelete}
           >

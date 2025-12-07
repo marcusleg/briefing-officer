@@ -160,9 +160,15 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
 
           <div className="flex flex-row justify-end gap-2">
             <DialogClose asChild>
-              <Button variant="secondary">Cancel</Button>
+              <Button className="w-24 cursor-pointer" variant="secondary">
+                Cancel
+              </Button>
             </DialogClose>
-            <Button disabled={submitting} type="submit">
+            <Button
+              className="w-24 cursor-pointer"
+              disabled={submitting}
+              type="submit"
+            >
               {submitting ? (
                 <LoaderCircle className="size-4 animate-spin" />
               ) : (
