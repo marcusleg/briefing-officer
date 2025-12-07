@@ -51,11 +51,11 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/health/liveness
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/health/readiness
               port: http
           {{- with .Values.resources }}
           resources:

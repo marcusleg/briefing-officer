@@ -20,4 +20,15 @@ spec:
       backendRefs:
         - name: {{ include "briefing-officer.fullname" . }}
           port: {{ .Values.service.port }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/health
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /
+            statusCode: 302
 {{- end }}
