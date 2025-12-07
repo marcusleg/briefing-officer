@@ -20,7 +20,7 @@ AI summaries for your favorite news feeds.
 
 ## Getting Started
 
-```
+```bash
 docker run -it --rm \
   -e DATABASE_URL=file:/data/database.sqlite \
   -e AZURE_OPENAI_RESOURCE_NAME=oai-example-dev-001 \
