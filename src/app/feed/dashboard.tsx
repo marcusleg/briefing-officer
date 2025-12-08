@@ -55,9 +55,16 @@ const Dashboard = () => {
   const [selectedRange, setSelectedRange] = useState<DateRangePreset>(
     DateRangePreset.Last7Days,
   );
-  const dateRange = getDateRangeFromPreset(selectedRange);
+  const [from, setFrom] = useState<Date>(new Date());
+  const [to, setTo] = useState<Date>(new Date());
 
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const dateRange = getDateRangeFromPreset(selectedRange);
+    setFrom(dateRange.from);
+    setTo(dateRange.to);
+  }, [selectedRange]);
 
   const [unreadArticlesChartData, setUnreadArticlesChartData] =
     useState<UnreadArticlesChartData[]>();
@@ -71,18 +78,16 @@ const Dashboard = () => {
   useEffect(() => {
     getUnreadArticlesPerFeed().then((data) => setUnreadArticlesChartData(data));
 
-    getTokenUsageHistory(dateRange.from, dateRange.to).then((data) =>
-      setTokenUsageChartData(data),
-    );
+    getTokenUsageHistory(from, to).then((data) => setTokenUsageChartData(data));
 
-    getWeeklyArticleCountPerFeed(dateRange.from, dateRange.to).then((data) =>
+    getWeeklyArticleCountPerFeed(from, to).then((data) =>
       setNumberOfNewArticlesChartData(data),
     );
 
-    getWeeklyArticlesRead(dateRange.from, dateRange.to).then((data) =>
+    getWeeklyArticlesRead(from, to).then((data) =>
       setWeeklyArticlesReadChartData(data),
     );
-  }, [dateRange.from, dateRange.to, selectedRange]);
+  }, [selectedRange, from, to]);
 
   return (
     <>
