@@ -1,36 +1,40 @@
 import AddFeedFormDialogTrigger from "@/components/navigation/add-feed-form-dialog-trigger";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Rss } from "lucide-react";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { PlusIcon, RssIcon } from "lucide-react";
 
 const NoFeedsMessage = () => (
-  <div className="mx-auto flex min-h-[400px] items-center justify-center p-6">
-    <Card className="w-full max-w-md">
-      <CardContent className="flex flex-col items-center p-8 text-center">
-        <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-          <Rss className="text-muted-foreground size-8" />
-        </div>
+  <Empty>
+    <EmptyHeader>
+      <EmptyMedia variant="icon">
+        <RssIcon />
+      </EmptyMedia>
+      <EmptyTitle>No feeds added yet</EmptyTitle>
+      <EmptyDescription>
+        Get started by adding your first RSS feed to stay updated with your
+        favorite news sources and blogs.
+      </EmptyDescription>
+    </EmptyHeader>
+    <EmptyContent>
+      <AddFeedFormDialogTrigger>
+        <Button className="cursor-pointer" variant="outline">
+          <PlusIcon />
+          Add Your First Feed
+        </Button>
+      </AddFeedFormDialogTrigger>
 
-        <h2 className="mb-2 text-xl font-semibold">No feeds added yet</h2>
-
-        <p className="text-muted-foreground mb-6 leading-relaxed">
-          Get started by adding your first RSS feed to stay updated with your
-          favorite news sources and blogs.
-        </p>
-
-        <AddFeedFormDialogTrigger>
-          <Button className="w-full">
-            <Plus className="mr-2 size-4" />
-            Add Your First Feed
-          </Button>
-        </AddFeedFormDialogTrigger>
-
-        <p className="text-muted-foreground mt-4 text-xs">
-          You can add feeds from news sites, blogs, and other RSS sources
-        </p>
-      </CardContent>
-    </Card>
-  </div>
+      <p className="text-muted-foreground text-xs">
+        You can add feeds from news sites, blogs, and other RSS sources
+      </p>
+    </EmptyContent>
+  </Empty>
 );
 
 export default NoFeedsMessage;

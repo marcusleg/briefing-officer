@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { Feed } from "@prisma/client";
@@ -17,41 +24,38 @@ const NoUnreadArticles = async ({ feed }: NoUnreadArticlesProps) => {
   });
 
   return (
-    <div className="flex min-h-[400px] items-center justify-center p-6">
-      <Card className="w-full max-w-md">
-        <CardContent className="flex flex-col items-center p-8 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-950">
-            <CheckCircle className="size-8 text-lime-600" />
-          </div>
-
-          <h2 className="mb-2 text-xl font-semibold">All caught up!</h2>
-
-          <p className="text-muted-foreground mb-6 leading-relaxed">
-            You&apos;ve read all {feed.title} articles. Great job staying
-            informed!
-            {globalUnreadCount > 0 && (
-              <span className="mt-2 block">
-                You have {globalUnreadCount} unread article
-                {globalUnreadCount !== 1 ? "s" : ""} in your other feeds.
-              </span>
-            )}
-          </p>
-
-          {globalUnreadCount > 0 && (
-            <Button asChild className="w-full">
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <CheckCircle />
+        </EmptyMedia>
+        <EmptyTitle>All caught up!</EmptyTitle>
+        <EmptyDescription>
+          You&apos;ve read all {feed.title} articles. Great job staying
+          informed!
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        {globalUnreadCount > 0 && (
+          <>
+            <span className="block">
+              You have {globalUnreadCount} unread article
+              {globalUnreadCount !== 1 ? "s" : ""} in your other feeds.
+            </span>
+            <Button asChild variant="outline">
               <Link href="/feed">
-                <NewspaperIcon className="mr-2 size-4" />
+                <NewspaperIcon />
                 Go to All Feeds
               </Link>
             </Button>
-          )}
+          </>
+        )}
 
-          <p className="text-muted-foreground mt-4 text-xs">
-            New articles will appear here as this feed updates
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        <p className="text-muted-foreground text-xs">
+          New articles will appear here as this feed updates
+        </p>
+      </EmptyContent>
+    </Empty>
   );
 };
 
