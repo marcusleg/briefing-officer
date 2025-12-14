@@ -18,7 +18,7 @@ interface IntlRelativeTimeProps {
 }
 
 const IntlRelativeTime = ({ date }: IntlRelativeTimeProps) => {
-  const [currentDateTime, setCurrentDateTime] = useState(Date.now());
+  const [currentDateTime, setCurrentDateTime] = useState(() => Date.now());
 
   useEffect(() => {
     const interval = setInterval(() => {
