@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/marcusleg/briefing-officer/compare/v0.4.0...v0.5.0) (2025-12-14)
+
+
+### Features
+
+* new empty page designs using shadcn's `Empty` component ([fb367d0](https://github.com/marcusleg/briefing-officer/commit/fb367d0901433e3d5fab50dfa23e97770e5b8d41))
+
+
+### Chores
+
+* update NextJS to version 16.0.10
+
 ## [0.4.0](https://github.com/marcusleg/briefing-officer/compare/v0.3.0...v0.4.0) (2025-12-07)
 
 
