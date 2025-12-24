@@ -37,22 +37,26 @@ export const auth = betterAuth({
         });
         logger.info("Assigned 'admin' role to first user.");
       } else if (userCount > 1 && !isSelfRegistrationEnabled) {
-        const user = await prisma.user.update({
-          where: {
-            email: ctx.body.email,
-          },
-          data: {
-            banned: true,
-            banExpires: null,
-            banReason: "Account is awaiting approval by an administrator.",
-          },
-        });
-
-        logger.info(
-          { userId: user.id },
-          "New user account is pending administrator approval.",
-        );
+        await disableUserAccountUntilAdminApproval(ctx.body.email);
       }
     }),
   },
 });
+
+const disableUserAccountUntilAdminApproval = async (email: string) => {
+  const user = await prisma.user.update({
+    where: {
+      email,
+    },
+    data: {
+      banned: true,
+      banExpires: null,
+      banReason: "Account is awaiting approval by an administrator.",
+    },
+  });
+
+  logger.info(
+    { userId: user.id },
+    "New user account is pending administrator approval.",
+  );
+};
