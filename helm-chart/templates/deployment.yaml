@@ -36,6 +36,10 @@ spec:
           env:
             - name: DATABASE_URL
               value: file:/data/database.sqlite
+            - name: BASE_URL
+              value: {{ first .Values.httpRoute.hostnames | default "http://localhost:3000" }}
+            - name: AUTH_SECRET
+              value: {{ randAlphaNum 64 }}
           envFrom:
             - secretRef:
                 name: {{ include "briefing-officer.fullname" . }}
