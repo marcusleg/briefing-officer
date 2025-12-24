@@ -10,6 +10,8 @@ const isSelfRegistrationEnabled =
 
 export const auth = betterAuth({
   appName: "Briefing Officer",
+  baseURL: process.env.BASE_URL,
+  secret: process.env.AUTH_SECRET,
   database: prismaAdapter(prisma, { provider: "sqlite" }),
   plugins: [
     admin({

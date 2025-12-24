@@ -55,5 +55,5 @@ One provider must be configured.
 
 | Environment Variable | Description                                  |
 | -------------------- | -------------------------------------------- |
-| `BETTER_AUTH_SECRET` | Secret value used for encryption and hashing |
-| `BETTER_AUTH_URL`    | Base URL of Briefing Officer.                |
+| `AUTH_SECRET`        | Secret value used for encryption and hashing |
+| `BASE_URL`           | Base URL of Briefing Officer.                |
