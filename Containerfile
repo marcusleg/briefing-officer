@@ -15,6 +15,7 @@ RUN npm ci
 RUN npx prisma generate
 RUN npx prisma db push
 RUN npm run build
+RUN npm prune --omit=dev
 
 
 FROM docker.io/library/node:24.2.0-slim
@@ -27,7 +28,5 @@ COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/public /app/public
 COPY --from=build /app/prisma /app/prisma
 COPY --from=build /app/package*.json .
-
-RUN npm prune --omit=dev
 
 CMD npx prisma migrate deploy && npm run start
