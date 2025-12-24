@@ -53,7 +53,8 @@ One provider must be configured.
 
 ### Authentication
 
-| Environment Variable | Description                                  |
-| -------------------- | -------------------------------------------- |
-| `AUTH_SECRET`        | Secret value used for encryption and hashing |
-| `BASE_URL`           | Base URL of Briefing Officer.                |
+| Environment Variable             | Description                                  | Default |
+| -------------------------------- | -------------------------------------------- | ------- |
+| `AUTH_SECRET`                    | Secret value used for encryption and hashing |         |
+| `AUTH_SELF_REGISTRATION_ENABLED` | Allow anyone to create a new account         | `false` |
+| `BASE_URL`                       | Base URL of Briefing Officer.                |         |

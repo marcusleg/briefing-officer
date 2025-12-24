@@ -6,7 +6,7 @@ import { createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins";
 
 const isSelfRegistrationEnabled =
-  process.env.SELF_REGISTRATION_ENABLED === "true" || false;
+  process.env.AUTH_SELF_REGISTRATION_ENABLED === "true" || false;
 
 export const auth = betterAuth({
   appName: "Briefing Officer",
@@ -36,7 +36,7 @@ export const auth = betterAuth({
           },
         });
         logger.info("Assigned 'admin' role to first user.");
-      } else if (userCount > 1) {
+      } else if (userCount > 1 && !isSelfRegistrationEnabled) {
         const user = await prisma.user.update({
           where: {
             email: ctx.body.email,
