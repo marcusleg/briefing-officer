@@ -31,3 +31,29 @@ docker run -it --rm \
   -p 3000:3000 \
   ghcr.io/marcusleg/briefing-officer
 ```
+
+## Configuration
+
+### Application
+
+| Environment Variable | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `DATABASE_URL`       | URL to the SQLite database.                      |
+| `CRON_API_TOKEN`     | Token required to call the `/api/cron` endpoint. |
+
+### AI Providers
+
+One provider must be configured.
+
+| Environment Variable         | Description                 |
+| ---------------------------- | --------------------------- |
+| `AZURE_OPENAI_RESOURCE_NAME` | Azure OpenAI resource name. |
+| `AZURE_OPENAI_API_KEY`       | Azure OpenAI API key.       |
+| `ANTHROPIC_API_KEY`          | Anthropic API key.          |
+
+### Authentication
+
+| Environment Variable | Description                                  |
+| -------------------- | -------------------------------------------- |
+| `BETTER_AUTH_SECRET` | Secret value used for encryption and hashing |
+| `BETTER_AUTH_URL`    | Base URL of Briefing Officer.                |
