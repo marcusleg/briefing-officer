@@ -3,7 +3,7 @@ import prisma from "@/lib/prismaClient";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { createAuthMiddleware } from "better-auth/api";
-import { admin } from "better-auth/plugins";
+import { admin, genericOAuth } from "better-auth/plugins";
 
 const isSelfRegistrationEnabled =
   process.env.AUTH_SELF_REGISTRATION_ENABLED === "true" || false;
@@ -13,10 +13,28 @@ export const auth = betterAuth({
   baseURL: process.env.BASE_URL,
   secret: process.env.AUTH_SECRET,
   database: prismaAdapter(prisma, { provider: "sqlite" }),
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["generic"],
+    },
+  },
   plugins: [
     admin({
       bannedUserMessage:
         "Your user account is awaiting approval by an administrator.",
+    }),
+    genericOAuth({
+      config: [
+        {
+          providerId: "generic",
+          clientId: process.env.AUTH_GENERIC_OAUTH_CLIENT_ID || "",
+          clientSecret: process.env.AUTH_GENERIC_OAUTH_CLIENT_SECRET,
+          discoveryUrl: process.env.AUTH_GENERIC_OAUTH_DISCOVERY_URL,
+          scopes: ["profile", "email"],
+          pkce: process.env.AUTH_GENERIC_OAUTH_PKCE_ENABLED === "true" || false,
+        },
+      ],
     }),
   ],
   emailAndPassword: {

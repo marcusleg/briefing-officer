@@ -53,8 +53,14 @@ One provider must be configured.
 
 ### Authentication
 
-| Environment Variable             | Description                                  | Default |
-| -------------------------------- | -------------------------------------------- | ------- |
-| `AUTH_SECRET`                    | Secret value used for encryption and hashing |         |
-| `AUTH_SELF_REGISTRATION_ENABLED` | Allow anyone to create a new account         | `false` |
-| `BASE_URL`                       | Base URL of Briefing Officer.                |         |
+| Environment Variable                           | Description                                  | Default          |
+| ---------------------------------------------- | -------------------------------------------- | ---------------- |
+| `AUTH_SECRET`                                  | Secret value used for encryption and hashing |                  |
+| `AUTH_SELF_REGISTRATION_ENABLED`               | Allow anyone to create a new account         | `false`          |
+| `BASE_URL`                                     | Base URL of Briefing Officer.                |                  |
+| `NEXT_PUBLIC_AUTH_GENERIC_OAUTH_ENABLE`        | Enable generic OAuth provider                | `false`          |
+| `NEXT_PUBLIC_AUTH_GENERIC_OAUTH_PROVIDER_NAME` | OAuth provider name                          | `Single Sign-On` |
+| `AUTH_GENERIC_OAUTH_CLIENT_ID`                 | OAuth client ID                              |                  |
+| `AUTH_GENERIC_OAUTH_CLIENT_SECRET`             | OAuth client secret                          |                  |
+| `AUTH_GENERIC_OAUTH_DISCOVERY_URL`             | OAuth discovery URL                          |                  |
+| `AUTH_GENERIC_OAUTH_PKCE_ENABLED`              | Enable PKCE for OAuth flow                   | `false`          |

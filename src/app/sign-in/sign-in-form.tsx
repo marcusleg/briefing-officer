@@ -27,6 +27,12 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const SignInForm = () => {
+  const isGenericOAuthEnabled =
+    process.env.NEXT_PUBLIC_AUTH_GENERIC_OAUTH_ENABLE == "true";
+  const genericOAuthProviderName =
+    process.env.NEXT_PUBLIC_AUTH_GENERIC_OAUTH_PROVIDER_NAME ||
+    "Single Sign-On";
+
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
@@ -38,7 +44,7 @@ const SignInForm = () => {
     },
   });
 
-  const submitHandler = async (values: FormData) => {
+  const submitSignInFormHandler = async (values: FormData) => {
     setSubmitting(true);
 
     const result = await authClient.signIn.email({
@@ -64,9 +70,19 @@ const SignInForm = () => {
     router.refresh();
   };
 
+  const handleGenericOAuthSignIn = async () => {
+    await authClient.signIn.oauth2({
+      providerId: "generic",
+      callbackURL: "/feed",
+    });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(submitHandler)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(submitSignInFormHandler)}
+        className="space-y-4"
+      >
         <FormField
           control={form.control}
           name="email"
@@ -99,7 +115,11 @@ const SignInForm = () => {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={submitting}>
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={submitting}
+        >
           {submitting ? (
             <LoaderCircle className="size-4 animate-spin" />
           ) : (
@@ -107,6 +127,15 @@ const SignInForm = () => {
           )}
         </Button>
       </form>
+
+      {isGenericOAuthEnabled && (
+        <Button
+          className="w-full cursor-pointer"
+          onClick={handleGenericOAuthSignIn}
+        >
+          Login with {genericOAuthProviderName}
+        </Button>
+      )}
     </Form>
   );
 };
