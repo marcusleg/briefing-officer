@@ -30,18 +30,26 @@ export const auth = betterAuth({
 
       const userCount = await prisma.user.count();
       if (userCount === 1) {
-        await prisma.user.updateMany({
-          data: {
-            role: "admin",
-          },
-        });
-        logger.info("Assigned 'admin' role to first user.");
+        await grantAdminRole(ctx.body.email);
       } else if (userCount > 1 && !isSelfRegistrationEnabled) {
         await disableUserAccountUntilAdminApproval(ctx.body.email);
       }
     }),
   },
 });
+
+const grantAdminRole = async (email: string) => {
+  await prisma.user.updateMany({
+    where: {
+      email,
+    },
+    data: {
+      role: "admin",
+    },
+  });
+
+  logger.info("Assigned 'admin' role to first user.");
+};
 
 const disableUserAccountUntilAdminApproval = async (email: string) => {
   const user = await prisma.user.update({
