@@ -13,7 +13,9 @@
     "lint": "eslint .",
     "prisma:generate": "prisma generate",
     "prisma:migrate-dev": "DATABASE_URL=file:../data/database.sqlite prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.56",
@@ -85,6 +87,7 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.15",
     "@types/node": "24.9.1",
     "@types/react": "19.2.7",
