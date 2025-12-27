@@ -64,6 +64,10 @@ jobs:
         credentials:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          DATABASE_URL: file:/tmp/briefing-officer-test.sqlite
+          NODE_ENV: test
+          AUTH_SECRET: something-long-and-random-and-long
         ports:
           - 3000:3000
         options:
