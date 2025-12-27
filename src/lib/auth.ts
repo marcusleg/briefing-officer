@@ -39,6 +39,7 @@ export const auth = betterAuth({
   ],
   emailAndPassword: {
     enabled: true,
+    autoSignIn: false,
   },
   hooks: {
     after: createAuthMiddleware(async (ctx) => {

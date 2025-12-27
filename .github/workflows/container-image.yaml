@@ -80,8 +80,14 @@ jobs:
         run: npm ci
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: file:/tmp/briefing-officer-test.sqlite
       - name: Run Playwright tests
         run: npx playwright test
+        env:
+          DATABASE_URL: file:/tmp/briefing-officer-test.sqlite
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
