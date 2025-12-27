@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.6.0](https://github.com/marcusleg/briefing-officer/compare/v0.5.0...v0.6.0) (2025-12-27)
+
+
+### Features
+
+* add support for Single-Sign On OAuth provider ([e09aa26](https://github.com/marcusleg/briefing-officer/commit/e09aa26ddd8b359548cc8d9d57417df8fa6a91a1))
+
+
+### Bug Fixes
+
+* add `BASE_URL` and `AUTH_SECRET` environment variables to deployment template ([00bd088](https://github.com/marcusleg/briefing-officer/commit/00bd0888f0b1d1bdfd577b2fccea75a5520ab108))
+* sort users by name in ascending order ([08053ff](https://github.com/marcusleg/briefing-officer/commit/08053ff6ab7b9969598000c244ad12f7c11fc2c4))
+* wire up `AUTH_SELF_REGISTRATION_ENABLED` environment variable to enabling self-registration ([90eb5e6](https://github.com/marcusleg/briefing-officer/commit/90eb5e6a036783e60bff570c74c238f84e6d17dd))
+
+
+### Reverts
+
+* verify regular users cannot see the User Management link in the sidebar ([5659d8d](https://github.com/marcusleg/briefing-officer/commit/5659d8d0f01b845e78f5bfde1bd6f9a901126d6d))
+
 ## [0.5.0](https://github.com/marcusleg/briefing-officer/compare/v0.4.0...v0.5.0) (2025-12-14)
 
 
