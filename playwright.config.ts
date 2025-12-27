@@ -69,18 +69,20 @@ export default defineConfig({
     // },
   ],
 
-  webServer: process.env.CI
-    ? {
-        command: "npm run start",
-        env: {
-          DATABASE_URL: "file:/tmp/briefing-officer-test.sqlite",
-          NODE_ENV: "test",
-          AUTH_SECRET: generateRandomAlphanumeric(32),
-        },
-        url: "http://localhost:3000",
-        reuseExistingServer: !process.env.CI,
-      }
-    : undefined,
+  webServer:
+    process.env.CI &&
+    process.env.GITHUB_WORKFLOW !== "Build and Push Container Image"
+      ? {
+          command: "npm run start",
+          env: {
+            DATABASE_URL: "file:/tmp/briefing-officer-test.sqlite",
+            NODE_ENV: "test",
+            AUTH_SECRET: generateRandomAlphanumeric(32),
+          },
+          url: "http://localhost:3000",
+          reuseExistingServer: !process.env.CI,
+        }
+      : undefined,
 });
 
 function generateRandomAlphanumeric(length: number): string {
