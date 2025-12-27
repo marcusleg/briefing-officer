@@ -19,7 +19,7 @@ const UserTable = async () => {
   const { users, total } = await auth.api.listUsers({
     query: {
       sortBy: "name",
-      sortDirection: "desc",
+      sortDirection: "asc",
     },
     headers: await headers(),
   });
