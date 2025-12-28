@@ -49,5 +49,22 @@ test("add category via modal", async ({ page }) => {
 });
 
 test("add feed via modal", async ({ page }) => {
-  // TODO
+  const feedTitle = faker.lorem.words({ min: 1, max: 3 });
+
+  await page.locator("id=left-navigation").getByText("Add Feed").click();
+  await expect(page.locator("h2", { hasText: "Add a new feed" })).toBeVisible();
+
+  await page.getByLabel("Title", { exact: true }).fill(feedTitle);
+  await page
+    .getByLabel("Feed URL")
+    .fill("https://lorem-rss.herokuapp.com/feed?length=1");
+  await page.getByRole("button", { name: "Create" }).click();
+
+  await expect(
+    page.locator("h2", { hasText: "Add a new feed" }),
+  ).not.toBeVisible();
+
+  await expect(
+    page.locator("id=left-navigation").getByText(feedTitle),
+  ).toBeVisible();
 });
