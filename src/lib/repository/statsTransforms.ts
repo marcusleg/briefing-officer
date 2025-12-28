@@ -1,4 +1,4 @@
-import { TokenUsage } from "@prisma/client";
+import { TokenUsage } from "@/generated/prisma/client";
 
 export type ArticlesPerFeedRow = Record<string, string | number>;
 

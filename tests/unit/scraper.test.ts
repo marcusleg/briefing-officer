@@ -26,8 +26,8 @@ vi.mock("@/lib/logger", () => ({
 }));
 vi.mock("@/lib/ai/services/leadService", () => ({ generateAiLead: vi.fn() }));
 
+import type { Feed } from "@/generated/prisma/client";
 import { scrapeFeed } from "@/lib/scraper";
-import type { Feed } from "@prisma/client";
 import { parseFeed } from "htmlparser2";
 
 const makeFeed = (link = "https://example.com/feed.xml"): Feed =>

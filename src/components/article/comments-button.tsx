@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Article } from "@prisma/client";
+import { Article } from "@/generated/prisma/client";
 import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 

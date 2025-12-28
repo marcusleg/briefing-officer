@@ -5,11 +5,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Article } from "@/generated/prisma/client";
 import {
   markArticleAsReadLater,
   unmarkArticleAsReadLater,
 } from "@/lib/repository/articleRepository";
-import { Article } from "@prisma/client";
 import { BookmarkIcon } from "lucide-react";
 import { toast } from "sonner";
 

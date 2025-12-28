@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Article } from "@/generated/prisma/client";
 import { markArticleAsRead } from "@/lib/repository/articleRepository";
-import { Article } from "@prisma/client";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import React from "react";

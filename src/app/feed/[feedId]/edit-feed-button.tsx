@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Feed } from "@prisma/client";
+import { Feed } from "@/generated/prisma/client";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 

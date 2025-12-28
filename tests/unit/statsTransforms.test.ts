@@ -1,10 +1,10 @@
+import { TokenUsage } from "@/generated/prisma/client";
 import {
   computeDailyAverage,
   shapeArticlesPerFeedPerDay,
   shapeTokenUsage,
   type ArticlesPerFeedRow,
 } from "@/lib/repository/statsTransforms";
-import { TokenUsage } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
 const tu = (

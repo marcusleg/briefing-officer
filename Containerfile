@@ -28,6 +28,7 @@ COPY --from=build /app/.next /app/.next
 COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/public /app/public
 COPY --from=build /app/prisma /app/prisma
+COPY --from=build /app/prisma.config.ts /app/prisma.config.ts
 COPY --from=build /app/package*.json .
 
 CMD npx prisma migrate deploy && npm run start

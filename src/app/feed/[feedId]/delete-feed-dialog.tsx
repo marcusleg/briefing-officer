@@ -10,8 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Feed } from "@/generated/prisma/client";
 import { deleteFeed } from "@/lib/repository/feedRepository";
-import { Feed } from "@prisma/client";
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 

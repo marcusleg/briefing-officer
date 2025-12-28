@@ -6,7 +6,7 @@ import ToggleReadButton from "@/components/article/toggle-read-button";
 import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
 import ToggleStarredButton from "@/components/article/toggle-starred-button";
 import VisitButton from "@/components/article/visit-button";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { ClockIcon } from "lucide-react";
 
 interface ArticleCardActionsProps {

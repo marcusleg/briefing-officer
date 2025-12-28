@@ -10,9 +10,9 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
-import { Prisma } from "@prisma/client";
 import { NewspaperIcon, PauseIcon } from "lucide-react";
 import Link from "next/link";
 import React from "react";

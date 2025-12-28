@@ -1,5 +1,6 @@
 "use server";
 
+import { Article, Feed } from "@/generated/prisma/client";
 import { generateAiLead } from "@/lib/ai/services/leadService";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
@@ -7,7 +8,6 @@ import { filterFeedItemsByTitle } from "@/lib/repository/feedFilter";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { getUserId } from "@/lib/repository/userRepository";
 import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
-import { Article, Feed } from "@prisma/client";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";

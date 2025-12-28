@@ -11,13 +11,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { FeedCategory } from "@/generated/prisma/client";
 import {
   createCategory,
   updateCategory,
 } from "@/lib/repository/feedRepository";
 import { categorySchema, CategorySchema } from "@/lib/repository/feedSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FeedCategory } from "@prisma/client";
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";

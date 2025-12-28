@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Feed, FeedCategory } from "@/generated/prisma/client";
 import {
   createFeed,
   getUserCategories,
@@ -20,7 +21,6 @@ import {
 } from "@/lib/repository/feedRepository";
 import { feedSchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Feed, FeedCategory } from "@prisma/client";
 import { LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";

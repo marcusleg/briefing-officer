@@ -1,10 +1,10 @@
 "use server";
 
+import { Article, Feed } from "@/generated/prisma/client";
 import { ARTICLE_RETENTION_DAYS } from "@/lib/constants";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { Readability } from "@mozilla/readability";
-import { Article, Feed } from "@prisma/client";
 import axios from "axios";
 import { parseFeed } from "htmlparser2";
 import DOMPurify from "isomorphic-dompurify";

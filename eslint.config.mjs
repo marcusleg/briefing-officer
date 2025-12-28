@@ -8,6 +8,9 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig([
   {
+    ignores: ["src/generated/**"],
+  },
+  {
     extends: [...nextCoreWebVitals],
   },
 ]);
