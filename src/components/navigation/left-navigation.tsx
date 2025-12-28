@@ -29,7 +29,7 @@ const LeftNavigation = async () => {
   const isAdmin = session.user.role === "admin";
 
   return (
-    <Sidebar id="left-navigation">
+    <Sidebar>
       <SidebarHeader>
         <Link href="/">
           <div className="flex items-center gap-2 px-2 py-4">

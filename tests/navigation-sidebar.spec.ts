@@ -20,11 +20,13 @@ test.beforeEach(async ({ page }) => {
   },
 ].forEach(({ linkText, expectedUrl }) => {
   test(`clicking ${linkText} navigates to correct page`, async ({ page }) => {
-    await page.locator("id=left-navigation").getByText(linkText).click();
+    await page.getByRole("navigation").getByText(linkText).click();
 
     await expect(page).toHaveURL(expectedUrl);
 
-    await expect(page.locator("h2", { hasText: linkText })).toBeVisible();
+    await expect(
+      page.getByRole("main").getByRole("heading", { name: linkText }),
+    ).toBeVisible();
   });
 });
 
@@ -45,7 +47,7 @@ test("journey: add new feed category", async ({ page }) => {
   await expect(page.getByRole("dialog")).toBeHidden();
 
   await expect(
-    page.locator("id=left-navigation").getByText(categoryName),
+    page.getByRole("navigation").getByText(categoryName),
   ).toBeVisible();
 });
 

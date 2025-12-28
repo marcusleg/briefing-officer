@@ -34,7 +34,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="p-4">{children}</main>
+          <div className="p-4">{children}</div>
 
           <Toaster richColors />
         </ThemeProvider>
