@@ -63,7 +63,7 @@ jobs:
       - name: Run Build
         run: npm run build
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-artifact
           path: .next/
@@ -96,7 +96,7 @@ jobs:
         run: npx playwright test
         env:
           DATABASE_URL: file:/tmp/briefing-officer-test.sqlite
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
