@@ -5,7 +5,8 @@ import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { createStreamableValue } from "@ai-sdk/rsc";
-import { generateText, streamText } from "ai";
+import { streamText } from "ai";
+import { trackTokenUsage } from "./tokenUsageService";
 
 const model = await getFirstConfiguredLanguageModel();
 
@@ -74,82 +75,4 @@ ${article.scrape?.textContent}`,
   })();
 
   return { output: stream.value };
-};
-
-export const generateAiLead = async (articleId: number) => {
-  const article = await prisma.article.findUniqueOrThrow({
-    include: { scrape: true },
-    where: { id: articleId },
-  });
-
-  const lead = await generateText({
-    model,
-    system: systemPrompt,
-    prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
-${article.title}\n\n${article.scrape?.textContent}`,
-  });
-
-  await prisma.articleLead.upsert({
-    where: { articleId },
-    create: {
-      articleId,
-      text: lead.text,
-    },
-    update: {
-      text: lead.text,
-    },
-  });
-
-  await trackTokenUsage(
-    article.userId,
-    model.modelId,
-    lead.totalUsage.inputTokens ?? 0,
-    lead.totalUsage.outputTokens ?? 0,
-    lead.totalUsage.reasoningTokens ?? 0,
-  );
-
-  logger.info(
-    {
-      articleId,
-      feedId: article.feedId,
-      model: model.modelId,
-      tokenUsage: lead.totalUsage,
-    },
-    "AI lead generated.",
-  );
-
-  return lead.text;
-};
-
-const trackTokenUsage = async (
-  userId: string,
-  model: string,
-  inputTokens: number,
-  outputTokens: number,
-  reasoningTokens: number,
-) => {
-  const date = new Date().toISOString().split("T")[0];
-
-  await prisma.tokenUsage.upsert({
-    where: {
-      userId_date_model: {
-        userId,
-        date,
-        model: model,
-      },
-    },
-    create: {
-      userId,
-      date,
-      model: model,
-      inputTokens: inputTokens,
-      outputTokens: outputTokens,
-      reasoningTokens: reasoningTokens,
-    },
-    update: {
-      inputTokens: { increment: inputTokens },
-      outputTokens: { increment: outputTokens },
-      reasoningTokens: { increment: reasoningTokens },
-    },
-  });
 };
