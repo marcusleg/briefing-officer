@@ -1,5 +1,6 @@
 "use server";
 
+import { buildLeadPrompt, systemPrompt } from "@/lib/ai/prompts";
 import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
@@ -7,9 +8,6 @@ import { generateText } from "ai";
 import { trackTokenUsage } from "./tokenUsageService";
 
 const model = await getFirstConfiguredLanguageModel();
-
-const systemPrompt =
-  "You are an expert at summarizing articles for professionals who want to quickly understand core content, key facts, and main arguments.";
 
 export const generateAiLead = async (articleId: number) => {
   const article = await prisma.article.findUniqueOrThrow({
@@ -20,8 +18,7 @@ export const generateAiLead = async (articleId: number) => {
   const lead = await generateText({
     model,
     system: systemPrompt,
-    prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
-${article.title}\n\n${article.scrape?.textContent}`,
+    prompt: buildLeadPrompt(article.title, article.scrape?.textContent ?? ""),
   });
 
   await prisma.articleLead.upsert({
