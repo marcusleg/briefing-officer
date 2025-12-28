@@ -61,7 +61,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
       }
     };
 
-    fetchCategories();
+    void fetchCategories();
   }, []);
 
   const submitHandler = async (values: FeedSchema) => {
@@ -143,7 +143,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
             name="titleFilterExpressions"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title Filter Expressions</FormLabel>
+                <FormLabel>Filter Expressions for Article Titles</FormLabel>
                 <FormControl>
                   <Textarea
                     className="resize-none"
