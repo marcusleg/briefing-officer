@@ -15,10 +15,10 @@ import { expect, test } from "./fixtures";
     expectedUrl: "/feed/starred-articles",
   },
 ].forEach(({ linkText, expectedUrl }) => {
-  test(`navigation item ${linkText}`, async ({ page }) => {
+  test(`clicking ${linkText} navigates to correct page`, async ({ page }) => {
     await page.goto("/feed");
 
-    await page.getByText(linkText).click();
+    await page.locator("id=left-navigation").getByText(linkText).click();
 
     await expect(page).toHaveURL(expectedUrl);
 
