@@ -10,7 +10,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { generateAiLead } from "@/lib/ai";
+import { generateAiLead } from "@/lib/ai/services/leadService";
 import {
   markArticleAsRead,
   unmarkArticleAsRead,

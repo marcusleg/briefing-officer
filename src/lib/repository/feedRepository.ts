@@ -1,6 +1,6 @@
 "use server";
 
-import { generateAiLead } from "@/lib/ai";
+import { generateAiLead } from "@/lib/ai/services/leadService";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";

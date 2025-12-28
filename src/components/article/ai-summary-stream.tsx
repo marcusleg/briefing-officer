@@ -1,6 +1,6 @@
 "use client";
 
-import { streamAiSummary } from "@/lib/ai";
+import { streamAiSummary } from "@/lib/ai/services/summaryService";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Markdown from "markdown-to-jsx";
 import { useEffect, useRef, useState } from "react";
