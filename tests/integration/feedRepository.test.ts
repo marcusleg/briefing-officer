@@ -1,5 +1,5 @@
+import type { Feed } from "@/generated/prisma/client";
 import prisma from "@/lib/prismaClient";
-import type { Feed } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCategory, createFeed, createUser } from "../helpers/factories";
 

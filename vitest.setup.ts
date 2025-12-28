@@ -36,7 +36,7 @@ vi.mock("@/lib/logger", () => ({
 //    error is a clear "schema push failed", not a downstream "no such table".
 beforeAll(() => {
   try {
-    execSync("npx prisma db push --skip-generate --accept-data-loss", {
+    execSync("npx prisma db push --accept-data-loss", {
       env: process.env,
       stdio: "pipe",
     });

@@ -1,8 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { hashPassword } from "better-auth/crypto";
 import { randomUUID } from "crypto";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaBetterSqlite3({
+  url: process.env.DATABASE_URL,
+});
+const prisma = new PrismaClient({ adapter });
 
 const LOREM_WORDS = [
   "lorem",

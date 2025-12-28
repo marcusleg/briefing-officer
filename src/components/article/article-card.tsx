@@ -9,12 +9,12 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { Prisma } from "@/generated/prisma/client";
 import { generateAiLead } from "@/lib/ai/services/leadService";
 import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
-import { Prisma } from "@prisma/client";
 import { LoaderCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

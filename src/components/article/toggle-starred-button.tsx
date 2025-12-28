@@ -5,11 +5,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Article } from "@/generated/prisma/client";
 import {
   markArticleAsStarred,
   unmarkArticleAsStarred,
 } from "@/lib/repository/articleRepository";
-import { Article } from "@prisma/client";
 import { StarIcon } from "lucide-react";
 import { toast } from "sonner";
 

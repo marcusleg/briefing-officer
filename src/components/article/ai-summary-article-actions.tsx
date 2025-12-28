@@ -1,7 +1,7 @@
 "use client";
 
 import ArticleCardActions from "@/components/article/article-card-actions";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { useRouter } from "next/navigation";
 import readingTime from "reading-time";
 

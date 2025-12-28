@@ -1,10 +1,10 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Article } from "@/generated/prisma/client";
 import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
-import { Article } from "@prisma/client";
 import { ArchiveRestoreIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";

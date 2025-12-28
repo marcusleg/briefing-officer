@@ -1,2 +1,3 @@
 CHANGELOG.md
 helm-chart/*
+src/generated/

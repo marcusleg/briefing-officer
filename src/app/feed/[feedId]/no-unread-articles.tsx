@@ -7,9 +7,9 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Feed } from "@/generated/prisma/client";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
-import { Feed } from "@prisma/client";
 import { CheckCircle, NewspaperIcon } from "lucide-react";
 import Link from "next/link";
 
