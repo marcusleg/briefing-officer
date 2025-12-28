@@ -29,13 +29,12 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
 
     <ToggleReadButton article={props.article} />
 
-    <VisitButton article={props.article} size="sm" />
+    <VisitButton article={props.article} />
 
     {!props.hideAiSummary && (
       <AiSummaryButton
         feedId={props.article.feedId}
         articleId={props.article.id}
-        size="sm"
       />
     )}
 
