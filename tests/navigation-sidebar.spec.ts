@@ -54,6 +54,8 @@ test("journey: add new feed category", async ({ page }) => {
 test("journey: add new feed without category or filter expressions", async ({
   page,
 }) => {
+  test.skip(!!process.env.CI, "LLMs are not yet mocked in CI.");
+
   const feedTitle = faker.lorem.words({ min: 1, max: 3 });
 
   await page.locator("id=left-navigation").getByText("Add Feed").click();
