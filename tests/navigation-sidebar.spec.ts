@@ -1,6 +1,10 @@
 import { faker } from "@faker-js/faker";
 import { expect, test } from "./fixtures";
 
+test.beforeEach(async ({ page }) => {
+  await page.goto("/feed");
+});
+
 [
   {
     linkText: "Read Later",
@@ -16,8 +20,6 @@ import { expect, test } from "./fixtures";
   },
 ].forEach(({ linkText, expectedUrl }) => {
   test(`clicking ${linkText} navigates to correct page`, async ({ page }) => {
-    await page.goto("/feed");
-
     await page.locator("id=left-navigation").getByText(linkText).click();
 
     await expect(page).toHaveURL(expectedUrl);
@@ -28,8 +30,6 @@ import { expect, test } from "./fixtures";
 
 test("add category via modal", async ({ page }) => {
   const categoryName = faker.lorem.word();
-
-  await page.goto("/feed");
 
   await page.getByText("Add Category").click();
   await expect(
