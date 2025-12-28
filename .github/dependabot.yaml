@@ -9,6 +9,10 @@ updates:
         patterns:
           - "ai"
           - "@ai-sdk/*"
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
