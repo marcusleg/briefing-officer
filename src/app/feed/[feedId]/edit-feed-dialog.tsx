@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Feed } from "@prisma/client";
+import { Feed } from "../../../../prisma/generated/prisma/client";
 
 interface RenameFeedMenuItemProps {
   feed: Feed;

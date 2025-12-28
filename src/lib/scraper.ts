@@ -4,11 +4,11 @@ import { ARTICLE_RETENTION_DAYS } from "@/lib/constants";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { Readability } from "@mozilla/readability";
-import { Article, Feed } from "@prisma/client";
 import axios from "axios";
 import { parseFeed } from "htmlparser2";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
+import { Article, Feed } from "../../prisma/generated/prisma/client";
 
 const http = axios.create({
   timeout: 10000,

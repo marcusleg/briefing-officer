@@ -8,9 +8,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Feed } from "@prisma/client";
 import { Trash } from "lucide-react";
 import { useState } from "react";
+import { Feed } from "../../../../prisma/generated/prisma/client";
 
 interface DeleteFeedButtonProps {
   feed: Feed;

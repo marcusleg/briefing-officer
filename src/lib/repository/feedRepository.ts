@@ -6,10 +6,10 @@ import prisma from "@/lib/prismaClient";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { getUserId } from "@/lib/repository/userRepository";
 import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
-import { Article, Feed } from "@prisma/client";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Article, Feed } from "../../../prisma/generated/prisma/client";
 
 export const createFeed = async (feed: FeedSchema) => {
   const fetchedFeed = await fetch(feed.link).then((res) => res.text());

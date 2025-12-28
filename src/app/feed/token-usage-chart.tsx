@@ -15,8 +15,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { TokenUsage } from "@prisma/client";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { TokenUsage } from "../../../prisma/generated/prisma/client";
 
 // Dynamic chart config will be generated based on available models
 const getChartConfig = (models: string[]): ChartConfig => {
@@ -128,8 +128,8 @@ const TokenUsageChart = ({ chartData }: TokenUsageChartProps) => {
       const pricing = tokenPricing[model as keyof typeof tokenPricing];
       if (pricing) {
         return (
-          cost +
-          tokens.input * pricing.inputToken +
+          cost + // @ts-ignore
+          tokens.input * pricing.inputToken + // @ts-ignore
           tokens.output * pricing.outputToken
         );
       }

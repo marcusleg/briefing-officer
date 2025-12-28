@@ -19,10 +19,10 @@ import {
 } from "@/lib/repository/feedRepository";
 import { feedSchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Feed, FeedCategory } from "@prisma/client";
 import { LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Feed, FeedCategory } from "../../../prisma/generated/prisma/client";
 
 interface FeedFormProps {
   editFeed?: Feed;

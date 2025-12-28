@@ -3,9 +3,9 @@ import {
   markArticleAsReadLater,
   unmarkArticleAsReadLater,
 } from "@/lib/repository/articleRepository";
-import { Article } from "@prisma/client";
 import { BookmarkIcon } from "lucide-react";
 import { toast } from "sonner";
+import { Article } from "../../../prisma/generated/prisma/client";
 
 interface ToggleReadLaterButtonProps {
   article: Article;

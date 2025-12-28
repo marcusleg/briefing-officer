@@ -4,10 +4,10 @@ import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
-import { Article } from "@prisma/client";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Article } from "../../../prisma/generated/prisma/client";
 
 const ToggleReadButton = ({ article }: { article: Article }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);

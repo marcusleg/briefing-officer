@@ -1,15 +1,13 @@
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
 interface AiSummaryButtonProps {
   feedId: number;
   articleId: number;
-  size?: React.ComponentProps<typeof Button>["size"];
 }
 
-const AiSummaryButton = ({ feedId, articleId, size }: AiSummaryButtonProps) => {
+const AiSummaryButton = ({ feedId, articleId }: AiSummaryButtonProps) => {
   return (
     <Link
       className={buttonVariants({
