@@ -8,9 +8,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { FeedCategory } from "@prisma/client";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
+import { FeedCategory } from "../../../../../prisma/generated/prisma/client";
 
 interface EditCategoryButtonProps {
   category: FeedCategory;

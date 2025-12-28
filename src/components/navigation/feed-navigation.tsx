@@ -14,10 +14,10 @@ import {
 } from "@/components/ui/sidebar";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
-import { Prisma } from "@prisma/client";
 import { NewspaperIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { Prisma } from "../../../prisma/generated/prisma/client";
 
 const FeedNavigation = async () => {
   const userId = await getUserId();

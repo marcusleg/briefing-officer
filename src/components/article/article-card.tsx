@@ -15,12 +15,12 @@ import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
-import { Prisma } from "@prisma/client";
 import { LoaderCircleIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import readingTime from "reading-time";
+import { Prisma } from "../../../prisma/generated/prisma/client";
 
 interface ArticleCardProps {
   article: Prisma.ArticleGetPayload<{

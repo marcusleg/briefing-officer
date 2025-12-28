@@ -18,8 +18,8 @@ import {
   getWeeklyArticleCountPerFeed,
   getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
-import { TokenUsage } from "@prisma/client";
 import { useEffect, useState } from "react";
+import { TokenUsage } from "../../../prisma/generated/prisma/client";
 
 export enum DateRangePreset {
   Last7Days = "Last 7 Days",

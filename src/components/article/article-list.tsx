@@ -1,9 +1,9 @@
 "use client";
 
 import ArticleCard from "@/components/article/article-card";
-import { Prisma } from "@prisma/client";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { Prisma } from "../../../prisma/generated/prisma/client";
 
 interface ArticleListProps {
   articles: Prisma.ArticleGetPayload<{

@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FeedCategory } from "@prisma/client";
+import { FeedCategory } from "../../../prisma/generated/prisma/client";
 
 interface AddCategoryDialogProps {
   editCategory?: FeedCategory;

@@ -7,7 +7,7 @@ import ToggleStarredButton from "@/components/article/toggle-starred-button";
 import VisitButton from "@/components/article/visit-button";
 import BackButton from "@/components/navigation/back-button";
 import { Separator } from "@/components/ui/separator";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../../prisma/generated/prisma/client";
 
 interface ArticleCardActionsProps {
   article: Prisma.ArticleGetPayload<{

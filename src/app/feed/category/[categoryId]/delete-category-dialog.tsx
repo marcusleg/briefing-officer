@@ -11,10 +11,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { deleteCategory } from "@/lib/repository/feedRepository";
-import { FeedCategory } from "@prisma/client";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FeedCategory } from "../../../../../prisma/generated/prisma/client";
 
 interface DeleteCategoryDialogProps {
   category: FeedCategory;

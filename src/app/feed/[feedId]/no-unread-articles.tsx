@@ -9,9 +9,9 @@ import {
 } from "@/components/ui/empty";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
-import { Feed } from "@prisma/client";
 import { CheckCircle, NewspaperIcon } from "lucide-react";
 import Link from "next/link";
+import { Feed } from "../../../../prisma/generated/prisma/client";
 
 interface NoUnreadArticlesProps {
   feed: Feed;

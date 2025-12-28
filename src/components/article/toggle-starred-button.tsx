@@ -3,9 +3,9 @@ import {
   markArticleAsStarred,
   unmarkArticleAsStarred,
 } from "@/lib/repository/articleRepository";
-import { Article } from "@prisma/client";
 import { StarIcon } from "lucide-react";
 import { toast } from "sonner";
+import { Article } from "../../../prisma/generated/prisma/client";
 
 interface ToggleStarredButtonProps {
   article: Article;

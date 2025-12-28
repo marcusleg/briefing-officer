@@ -11,9 +11,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { deleteFeed } from "@/lib/repository/feedRepository";
-import { Feed } from "@prisma/client";
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
+import { Feed } from "../../../../prisma/generated/prisma/client";
 
 interface DeleteFeedDialogProps {
   feed: Feed;
