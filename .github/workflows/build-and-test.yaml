@@ -40,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      AUTH_SECRET: any-value-will-do-at-build-time1
       AZURE_OPENAI_API_KEY: 0123456789abcdef
       AZURE_OPENAI_MODEL: gpt-0-pico
       AZURE_OPENAI_RESOURCE_NAME: oai-example-dev-001
