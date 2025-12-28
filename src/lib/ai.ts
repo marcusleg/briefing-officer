@@ -1,23 +1,13 @@
 "use server";
 
-import { cacheMiddleware } from "@/lib/aiMiddleware/cache";
-import { anthropicClaude } from "@/lib/aiModels/anthrophic";
-import { azureOpenAiChatGpt } from "@/lib/aiModels/azureOpenai";
+import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { createStreamableValue } from "@ai-sdk/rsc";
-import { generateText, streamText, wrapLanguageModel } from "ai";
+import { generateText, streamText } from "ai";
 
-const baseLanguageModel = await Promise.any([
-  anthropicClaude(),
-  azureOpenAiChatGpt(),
-]);
-
-const wrappedLanguageModel = wrapLanguageModel({
-  model: baseLanguageModel,
-  middleware: [cacheMiddleware],
-});
+const model = await getFirstConfiguredLanguageModel();
 
 const systemPrompt =
   "You are an expert at summarizing articles for professionals who want to quickly understand core content, key facts, and main arguments.";
@@ -34,7 +24,7 @@ export const streamAiSummary = async (articleId: number) => {
 
   void (async () => {
     const { textStream, totalUsage } = streamText({
-      model: wrappedLanguageModel,
+      model,
       system: systemPrompt,
       providerOptions: {
         openai: { reasoningEffort: "low" },
@@ -68,7 +58,7 @@ ${article.scrape?.textContent}`,
       {
         articleId,
         feedId: article.feedId,
-        model: wrappedLanguageModel.modelId,
+        model: model.modelId,
         tokenUsage,
       },
       "AI summary generated.",
@@ -76,7 +66,7 @@ ${article.scrape?.textContent}`,
 
     await trackTokenUsage(
       userId,
-      wrappedLanguageModel.modelId,
+      model.modelId,
       tokenUsage.inputTokens ?? 0,
       tokenUsage.outputTokens ?? 0,
       tokenUsage.reasoningTokens ?? 0,
@@ -93,7 +83,7 @@ export const generateAiLead = async (articleId: number) => {
   });
 
   const lead = await generateText({
-    model: wrappedLanguageModel,
+    model,
     system: systemPrompt,
     prompt: `Write a single, continuous lead that is factual, objective, and provides an overview of what the article is about and why it is worth reading. The lead must be **no longer than 80 words**. Do not add any introduction, headings, or repeated information.
 ${article.title}\n\n${article.scrape?.textContent}`,
@@ -112,7 +102,7 @@ ${article.title}\n\n${article.scrape?.textContent}`,
 
   await trackTokenUsage(
     article.userId,
-    wrappedLanguageModel.modelId,
+    model.modelId,
     lead.totalUsage.inputTokens ?? 0,
     lead.totalUsage.outputTokens ?? 0,
     lead.totalUsage.reasoningTokens ?? 0,
@@ -122,7 +112,7 @@ ${article.title}\n\n${article.scrape?.textContent}`,
     {
       articleId,
       feedId: article.feedId,
-      model: wrappedLanguageModel.modelId,
+      model: model.modelId,
       tokenUsage: lead.totalUsage,
     },
     "AI lead generated.",
