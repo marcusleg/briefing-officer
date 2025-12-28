@@ -47,9 +47,11 @@ One provider must be configured.
 
 | Environment Variable         | Description                 |
 | ---------------------------- | --------------------------- |
-| `AZURE_OPENAI_RESOURCE_NAME` | Azure OpenAI resource name. |
 | `AZURE_OPENAI_API_KEY`       | Azure OpenAI API key.       |
+| `AZURE_OPENAI_MODEL`         | Azure OpenAI model name.    |
+| `AZURE_OPENAI_RESOURCE_NAME` | Azure OpenAI resource name. |
 | `ANTHROPIC_API_KEY`          | Anthropic API key.          |
+| `ANTHROPIC_MODEL`            | Anthropic model name.       |
 
 ### Authentication
 
