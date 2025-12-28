@@ -1,4 +1,6 @@
+import { faker } from "@faker-js/faker";
 import { expect, test } from "./fixtures";
+
 [
   {
     linkText: "Read Later",
@@ -22,4 +24,30 @@ import { expect, test } from "./fixtures";
 
     await expect(page.locator("h2", { hasText: linkText })).toBeVisible();
   });
+});
+
+test("add category via modal", async ({ page }) => {
+  const categoryName = faker.lorem.word();
+
+  await page.goto("/feed");
+
+  await page.getByText("Add Category").click();
+  await expect(
+    page.locator("h2", { hasText: "Add a new category" }),
+  ).toBeVisible();
+
+  await page.getByLabel("Name").fill(categoryName);
+  await page.getByRole("button", { name: "Create" }).click();
+
+  await expect(
+    page.locator("h2", { hasText: "Add a new category" }),
+  ).not.toBeVisible();
+
+  await expect(
+    page.locator("id=left-navigation").getByText(categoryName),
+  ).toBeVisible();
+});
+
+test("add feed via modal", async ({ page }) => {
+  // TODO
 });
