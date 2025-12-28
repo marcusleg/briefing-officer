@@ -28,7 +28,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("add category via modal", async ({ page }) => {
+test("journey: add new feed category", async ({ page }) => {
   const categoryName = faker.lorem.word();
 
   await page.getByText("Add Category").click();
@@ -48,7 +48,9 @@ test("add category via modal", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("add feed via modal", async ({ page }) => {
+test("journey: add new feed without category or filter expressions", async ({
+  page,
+}) => {
   const feedTitle = faker.lorem.words({ min: 1, max: 3 });
 
   await page.locator("id=left-navigation").getByText("Add Feed").click();
