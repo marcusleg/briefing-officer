@@ -20,8 +20,8 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.9",
     "@ai-sdk/azure": "^3.0.7",
-    "@ai-sdk/react": "^3.0.19",
-    "@ai-sdk/rsc": "^2.0.19",
+    "@ai-sdk/react": "^3.0.20",
+    "@ai-sdk/rsc": "^2.0.20",
     "@hookform/resolvers": "^5.2.2",
     "@mozilla/readability": "^0.6.0",
     "@prisma/client": "^6.18.0",
