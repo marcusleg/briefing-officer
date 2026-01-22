@@ -18,10 +18,10 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.17",
-    "@ai-sdk/azure": "^3.0.13",
-    "@ai-sdk/react": "^3.0.44",
-    "@ai-sdk/rsc": "^2.0.42",
+    "@ai-sdk/anthropic": "^3.0.18",
+    "@ai-sdk/azure": "^3.0.14",
+    "@ai-sdk/react": "^3.0.47",
+    "@ai-sdk/rsc": "^2.0.45",
     "@hookform/resolvers": "^5.2.2",
     "@mozilla/readability": "^0.6.0",
     "@prisma/client": "^6.18.0",
