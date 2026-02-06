@@ -13,7 +13,8 @@ AI summaries for your favorite news feeds.
   - Executive summary, a detailed summary containing all the original
     information but very condensed.
 - Save articles for later using the "Read Later" and "Star" feature.
-- Support for multiple AI providers (currently Azure OpenAI and Anthropic).
+- Support for multiple AI providers (OpenAI, Azure OpenAI, Anthropic, and any
+  OpenAI-compatible API).
 - Multi-user support.
 - Dark mode.
 - Mobile friendly design.
@@ -45,13 +46,16 @@ docker run -it --rm \
 
 One provider must be configured.
 
-| Environment Variable         | Description                 |
-| ---------------------------- | --------------------------- |
-| `AZURE_OPENAI_API_KEY`       | Azure OpenAI API key.       |
-| `AZURE_OPENAI_MODEL`         | Azure OpenAI model name.    |
-| `AZURE_OPENAI_RESOURCE_NAME` | Azure OpenAI resource name. |
-| `ANTHROPIC_API_KEY`          | Anthropic API key.          |
-| `ANTHROPIC_MODEL`            | Anthropic model name.       |
+| Environment Variable         | Description                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| `AZURE_OPENAI_API_KEY`       | Azure OpenAI API key.                                                                            |
+| `AZURE_OPENAI_MODEL`         | Azure OpenAI model name.                                                                         |
+| `AZURE_OPENAI_RESOURCE_NAME` | Azure OpenAI resource name.                                                                      |
+| `ANTHROPIC_API_KEY`          | Anthropic API key.                                                                               |
+| `ANTHROPIC_MODEL`            | Anthropic model name.                                                                            |
+| `OPENAI_BASE_URL`            | Optional base URL for OpenAI-compatible API. Defaults to `https://api.openai.com/v1` if not set. |
+| `OPENAI_API_KEY`             | API key for OpenAI or OpenAI-compatible provider.                                                |
+| `OPENAI_MODEL`               | Model name for OpenAI or OpenAI-compatible provider.                                             |
 
 ### Authentication
 
