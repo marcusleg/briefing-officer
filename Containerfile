@@ -1,4 +1,4 @@
-FROM docker.io/library/node:24.2.0 AS build
+FROM docker.io/library/node:24.13.0 AS build
 WORKDIR /app
 
 COPY . /app
@@ -19,7 +19,7 @@ RUN npm run build
 RUN npm prune --omit=dev
 
 
-FROM docker.io/library/node:24.2.0-slim
+FROM docker.io/library/node:24.13.0-slim
 WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y openssl
