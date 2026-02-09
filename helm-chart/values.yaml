@@ -34,6 +34,20 @@ httpRoute:
   #     sectionName: http
   hostnames: []
 
+networkPolicy:
+  enabled: false
+  extraIngressRules:
+#    - from:
+#        - namespaceSelector:
+#            matchExpressions:
+#              - key: name
+#                operator: In
+#                values:
+#                  - my-gateway-or-ingress-namespace
+#      ports:
+#        - protocol: TCP
+#          port: 3000
+
 persistence:
   enabled: true
   size: 1Gi

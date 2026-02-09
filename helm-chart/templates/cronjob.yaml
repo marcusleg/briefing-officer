@@ -8,6 +8,10 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          labels:
+            {{- include "briefing-officer.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: cronjob
         spec:
           containers:
             - name: {{ .Chart.Name }}-cronjob
