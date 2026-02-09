@@ -11,6 +11,7 @@ spec:
   selector:
     matchLabels:
       {{- include "briefing-officer.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: app
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,6 +20,7 @@ spec:
       {{- end }}
       labels:
         {{- include "briefing-officer.labels" . | nindent 8 }}
+        app.kubernetes.io/component: app
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
