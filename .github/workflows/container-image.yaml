@@ -54,6 +54,20 @@ jobs:
         run: |
           echo "${{ toJSON(steps.push.outputs) }}"
 
+  image-scan:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: "ghcr.io/${{ github.repository }}:unstable"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
   test:
     needs: build-and-push
     timeout-minutes: 60
