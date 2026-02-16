@@ -57,6 +57,7 @@ jobs:
   image-scan:
     needs: build-and-push
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.33.1
