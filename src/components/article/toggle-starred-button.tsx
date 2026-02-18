@@ -52,10 +52,9 @@ const ToggleStarredButton = ({ article }: ToggleStarredButtonProps) => {
       className="cursor-pointer text-xs"
     >
       <StarIcon
-        className="mr-1 size-4"
-        fill={article.starred ? "black" : "transparent"}
+        className={`mr-1 size-4 ${article.starred ? "fill-black dark:fill-white" : "fill-transparent"}`}
       />
-      {article.starred ? "Unstar" : "Star"}
+      {article.starred ? "Starred" : "Star"}
     </Button>
   );
 };
