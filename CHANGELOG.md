@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.6.0](https://github.com/marcusleg/briefing-officer/compare/v0.5.0...v0.6.0) (2026-02-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* model name is now configurable and must be set as environment variable
+
+### Features
+
+* add network policy to Helm Chafrt ([41b6ce4](https://github.com/marcusleg/briefing-officer/commit/41b6ce4bd8040cb7c0a436edfcfdb83821a73c65))
+* add support for OpenAI and OpenAI-compatible providers ([873c647](https://github.com/marcusleg/briefing-officer/commit/873c6471c1fa9df16e594d77c5a2c05763029f11))
+* add support for Single-Sign On OAuth provider ([e09aa26](https://github.com/marcusleg/briefing-officer/commit/e09aa26ddd8b359548cc8d9d57417df8fa6a91a1))
+* model name is now configurable and must be set as environment variable ([6331e05](https://github.com/marcusleg/briefing-officer/commit/6331e0539d7b119b23f45e0e6f5b58bd977ba2a0))
+
+
+### Bug Fixes
+
+* adaptive color for "Read Later" button based on light or dark mode ([960cfd6](https://github.com/marcusleg/briefing-officer/commit/960cfd6ce27ba6fb1356df6ed2bd52ecfae7993b))
+* adaptive color for "Star" button based on light or dark mode ([98b5864](https://github.com/marcusleg/briefing-officer/commit/98b5864a63c600f73e19da62cb7e557376813f9d))
+* add `BASE_URL` and `AUTH_SECRET` environment variables to deployment template ([00bd088](https://github.com/marcusleg/briefing-officer/commit/00bd0888f0b1d1bdfd577b2fccea75a5520ab108))
+* sort users by name in ascending order ([08053ff](https://github.com/marcusleg/briefing-officer/commit/08053ff6ab7b9969598000c244ad12f7c11fc2c4))
+* wire up `AUTH_SELF_REGISTRATION_ENABLED` environment variable to enabling self-registration ([90eb5e6](https://github.com/marcusleg/briefing-officer/commit/90eb5e6a036783e60bff570c74c238f84e6d17dd))
+
+
+### Reverts
+
+* verify regular users cannot see the User Management link in the sidebar ([5659d8d](https://github.com/marcusleg/briefing-officer/commit/5659d8d0f01b845e78f5bfde1bd6f9a901126d6d))
+
 ## [0.5.0](https://github.com/marcusleg/briefing-officer/compare/v0.4.0...v0.5.0) (2025-12-14)
 
 
