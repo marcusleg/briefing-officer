@@ -25,9 +25,6 @@ export const streamAiSummary = async (articleId: number) => {
     const { textStream, totalUsage } = streamText({
       model,
       system: systemPrompt,
-      providerOptions: {
-        openai: { reasoningEffort: "low" },
-      },
       prompt: buildSummaryPrompt(article.scrape?.textContent ?? ""),
     });
 
