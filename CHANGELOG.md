@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/marcusleg/briefing-officer/compare/v0.6.0...v0.6.1) (2026-03-17)
+
+
+### Bug Fixes
+
+* prevent mobile sidebar from auto-focusing on open ([c2b8a62](https://github.com/marcusleg/briefing-officer/commit/c2b8a6234047a4233a1b069618ed71ca5209d719))
+
 ## [0.6.0](https://github.com/marcusleg/briefing-officer/compare/v0.5.0...v0.6.0) (2026-02-18)
 
 
