@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/marcusleg/briefing-officer/compare/v0.6.0...v0.6.1) (2026-04-01)
+
+
+### Bug Fixes
+
+* exclude read-later articles from mark-as-read bulk updates ([a8f7b60](https://github.com/marcusleg/briefing-officer/commit/a8f7b60d36a8362b3344cfb36df4144bd31e1634))
+* prevent mobile sidebar from auto-focusing on open ([c2b8a62](https://github.com/marcusleg/briefing-officer/commit/c2b8a6234047a4233a1b069618ed71ca5209d719))
+
 ## [0.6.0](https://github.com/marcusleg/briefing-officer/compare/v0.5.0...v0.6.0) (2026-02-18)
 
 
