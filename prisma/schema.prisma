@@ -19,6 +19,7 @@ model Feed {
   link                   String
   lastFetched            DateTime
   titleFilterExpressions String        @default("")
+  enabled                Boolean       @default(true)
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
   articles               Article[]
