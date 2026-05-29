@@ -3,6 +3,7 @@
 import { generateAiLead } from "@/lib/ai/services/leadService";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
+import { filterFeedItemsByTitle } from "@/lib/repository/feedFilter";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { getUserId } from "@/lib/repository/userRepository";
 import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
@@ -76,47 +77,10 @@ export const refreshFeed = async (feedId: number) => {
 
   const feedItems = await scrapeFeed(feed);
 
-  const titleFilterExpressions = feed.titleFilterExpressions
-    .split("\n")
-    .filter((regex) => regex !== "");
-  const filteredFeedItems = feedItems.filter((item) => {
-    let regex: RegExp;
-    return !titleFilterExpressions.some((regexString) => {
-      try {
-        regex = new RegExp(regexString);
-      } catch (error) {
-        logger.warn(
-          {
-            article: {
-              title: item.title,
-              link: item.link,
-              publicationDate: item.publicationDate,
-            },
-            titleFilterExpression: regexString,
-          },
-          "Invalid title filter expression.",
-        );
-        return false; // ignore invalid regex
-      }
-      const test = regex.test(item.title);
-
-      if (test) {
-        logger.debug(
-          {
-            article: {
-              title: item.title,
-              link: item.link,
-              publicationDate: item.publicationDate,
-            },
-            matchedTitleFilterExpression: regexString,
-          },
-          "Filtered out article because of title filter.",
-        );
-      }
-
-      return test;
-    });
-  });
+  const filteredFeedItems = filterFeedItemsByTitle(
+    feedItems,
+    feed.titleFilterExpressions,
+  );
 
   const createArticlePromises = filteredFeedItems.map((item) =>
     prisma.article.create({
