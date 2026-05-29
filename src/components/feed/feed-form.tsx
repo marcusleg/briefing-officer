@@ -85,6 +85,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                 <FormLabel>Title</FormLabel>
                 <FormControl>
                   <Input
+                    disabled={submitting}
                     placeholder="leave empty for auto-detection"
                     {...field}
                   />
@@ -101,7 +102,11 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
               <FormItem>
                 <FormLabel>Feed URL</FormLabel>
                 <FormControl>
-                  <Input placeholder="http://example.org/feed.xml" {...field} />
+                  <Input
+                    disabled={submitting}
+                    placeholder="http://example.org/feed.xml"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -117,6 +122,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                 <FormControl>
                   <select
                     {...field}
+                    disabled={submitting}
                     value={field.value || ""}
                     onChange={(e) =>
                       field.onChange(
@@ -147,6 +153,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                 <FormControl>
                   <Textarea
                     className="resize-none"
+                    disabled={submitting}
                     placeholder={`^(Advertisement: |Sponsored: ).+$
 ^.*NSFW.*$`}
                     rows={5}
@@ -160,7 +167,11 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
 
           <div className="flex flex-row justify-end gap-2">
             <DialogClose asChild>
-              <Button className="w-24 cursor-pointer" variant="secondary">
+              <Button
+                className="w-24 cursor-pointer"
+                disabled={submitting}
+                variant="secondary"
+              >
                 Cancel
               </Button>
             </DialogClose>
