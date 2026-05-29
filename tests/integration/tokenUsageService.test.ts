@@ -1,5 +1,5 @@
-import prisma from "@/lib/prismaClient";
 import { trackTokenUsage } from "@/lib/ai/services/tokenUsageService";
+import prisma from "@/lib/prismaClient";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createUser } from "../helpers/factories";
 

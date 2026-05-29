@@ -4,7 +4,9 @@ import { createArticle, createFeed, createUser } from "../helpers/factories";
 
 // Mock the AI registry's top-level model and the `ai` SDK BEFORE importing the service.
 vi.mock("@/lib/ai/registry", () => ({
-  getFirstConfiguredLanguageModel: vi.fn(async () => ({ modelId: "test-model" })),
+  getFirstConfiguredLanguageModel: vi.fn(async () => ({
+    modelId: "test-model",
+  })),
 }));
 vi.mock("ai", () => ({
   generateText: vi.fn(async () => ({
@@ -30,10 +32,14 @@ describe("generateAiLead", () => {
     const result = await generateAiLead(article.id);
 
     expect(result).toBe("Generated lead.");
-    const lead = await prisma.articleLead.findUniqueOrThrow({ where: { articleId: article.id } });
+    const lead = await prisma.articleLead.findUniqueOrThrow({
+      where: { articleId: article.id },
+    });
     expect(lead.text).toBe("Generated lead.");
 
-    const usage = await prisma.tokenUsage.findFirstOrThrow({ where: { userId } });
+    const usage = await prisma.tokenUsage.findFirstOrThrow({
+      where: { userId },
+    });
     expect(usage.inputTokens).toBe(7);
     expect(usage.outputTokens).toBe(3);
   });

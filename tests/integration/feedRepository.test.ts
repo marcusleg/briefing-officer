@@ -15,8 +15,6 @@ vi.mock("@/lib/ai/services/leadService", () => ({
   generateAiLead: vi.fn(),
 }));
 
-import { getUserId } from "@/lib/repository/userRepository";
-import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
 import { generateAiLead } from "@/lib/ai/services/leadService";
 import {
   createCategory as createCategoryAction,
@@ -30,6 +28,8 @@ import {
   updateCategory,
   updateFeed,
 } from "@/lib/repository/feedRepository";
+import { getUserId } from "@/lib/repository/userRepository";
+import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
 
 let userId: string;
 
@@ -60,8 +60,12 @@ describe("feedRepository.refreshFeed", () => {
     await refreshFeed(feed.id);
 
     expect(await prisma.article.count({ where: { feedId: feed.id } })).toBe(2);
-    const refreshed = await prisma.feed.findUniqueOrThrow({ where: { id: feed.id } });
-    expect(refreshed.lastFetched.getTime()).toBeGreaterThan(new Date(0).getTime());
+    const refreshed = await prisma.feed.findUniqueOrThrow({
+      where: { id: feed.id },
+    });
+    expect(refreshed.lastFetched.getTime()).toBeGreaterThan(
+      new Date(0).getTime(),
+    );
   });
 
   it("does not create articles whose title matches a filter expression", async () => {
@@ -73,23 +77,37 @@ describe("feedRepository.refreshFeed", () => {
 
     await refreshFeed(feed.id);
 
-    const titles = (await prisma.article.findMany({ where: { feedId: feed.id } })).map((a) => a.title);
+    const titles = (
+      await prisma.article.findMany({ where: { feedId: feed.id } })
+    ).map((a) => a.title);
     expect(titles).toEqual(["Breaking"]);
   });
 });
 
 describe("feedRepository.refreshFeeds", () => {
   it("refreshes only enabled feeds", async () => {
-    const enabled = await createFeed({ userId, enabled: true, link: "https://example.com/on.xml" });
-    const disabled = await createFeed({ userId, enabled: false, link: "https://example.com/off.xml" });
+    const enabled = await createFeed({
+      userId,
+      enabled: true,
+      link: "https://example.com/on.xml",
+    });
+    const disabled = await createFeed({
+      userId,
+      enabled: false,
+      link: "https://example.com/off.xml",
+    });
     vi.mocked(scrapeFeed).mockImplementation(async (feed: Feed) => [
       feedItem(`Item for ${feed.id}`, `https://example.com/item-${feed.id}`),
     ]);
 
     await refreshFeeds();
 
-    expect(await prisma.article.count({ where: { feedId: enabled.id } })).toBe(1);
-    expect(await prisma.article.count({ where: { feedId: disabled.id } })).toBe(0);
+    expect(await prisma.article.count({ where: { feedId: enabled.id } })).toBe(
+      1,
+    );
+    expect(await prisma.article.count({ where: { feedId: disabled.id } })).toBe(
+      0,
+    );
   });
 });
 
@@ -128,7 +146,9 @@ describe("feedRepository.updateFeed", () => {
       enabled: false,
     });
 
-    const updated = await prisma.feed.findUniqueOrThrow({ where: { id: feed.id } });
+    const updated = await prisma.feed.findUniqueOrThrow({
+      where: { id: feed.id },
+    });
     expect(updated.title).toBe("New");
     expect(updated.enabled).toBe(false);
   });
@@ -166,7 +186,9 @@ describe("feedRepository categories", () => {
   it("updates a category name", async () => {
     const category = await createCategory({ userId, name: "Old" });
     await updateCategory(category.id, { name: "Renamed" });
-    const updated = await prisma.feedCategory.findUniqueOrThrow({ where: { id: category.id } });
+    const updated = await prisma.feedCategory.findUniqueOrThrow({
+      where: { id: category.id },
+    });
     expect(updated.name).toBe("Renamed");
   });
 
@@ -176,8 +198,12 @@ describe("feedRepository categories", () => {
 
     await deleteCategory(category.id);
 
-    expect(await prisma.feedCategory.count({ where: { id: category.id } })).toBe(0);
-    const stillThere = await prisma.feed.findUniqueOrThrow({ where: { id: feed.id } });
+    expect(
+      await prisma.feedCategory.count({ where: { id: category.id } }),
+    ).toBe(0);
+    const stillThere = await prisma.feed.findUniqueOrThrow({
+      where: { id: feed.id },
+    });
     expect(stillThere.feedCategoryId).toBeNull();
   });
 });
@@ -204,13 +230,22 @@ describe("feedRepository.refreshCategoryFeeds", () => {
       link: "https://example.com/no-cat.xml",
     });
     vi.mocked(scrapeFeed).mockImplementation(async (feed: Feed) => [
-      feedItem(`Item for ${feed.id}`, `https://example.com/cat-item-${feed.id}`),
+      feedItem(
+        `Item for ${feed.id}`,
+        `https://example.com/cat-item-${feed.id}`,
+      ),
     ]);
 
     await refreshCategoryFeeds(category.id);
 
-    expect(await prisma.article.count({ where: { feedId: inCategoryEnabled.id } })).toBe(1);
-    expect(await prisma.article.count({ where: { feedId: inCategoryDisabled.id } })).toBe(0);
-    expect(await prisma.article.count({ where: { feedId: outOfCategory.id } })).toBe(0);
+    expect(
+      await prisma.article.count({ where: { feedId: inCategoryEnabled.id } }),
+    ).toBe(1);
+    expect(
+      await prisma.article.count({ where: { feedId: inCategoryDisabled.id } }),
+    ).toBe(0);
+    expect(
+      await prisma.article.count({ where: { feedId: outOfCategory.id } }),
+    ).toBe(0);
   });
 });
