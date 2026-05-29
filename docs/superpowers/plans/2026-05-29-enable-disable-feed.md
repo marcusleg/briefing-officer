@@ -379,7 +379,9 @@ git commit -m "feat: show disabled feeds as paused in sidebar"
 
 ---
 
-## Task 7: End-to-end test for enable/disable
+## Task 7: End-to-end test for enable/disable — SKIPPED
+
+> **Decision (2026-05-29):** Skipped by user choice during execution. The originally-planned test was fragile for this environment: (1) Playwright's `webServer` only auto-starts in CI, so there is no local server; (2) creating a feed from a live RSS URL needs network access and triggers the article scrape + AI-summary pipeline (requires a configured AI provider); (3) the icon-only "Edit Feed" button has no accessible name (its label comes from a Radix `Tooltip` via `aria-describedby`, not the accessible name), so `getByRole("button", { name: "Edit Feed" })` would not match. The feature is instead covered by per-task spec + code-quality reviews and by Task 8's typecheck/lint/build plus the manual smoke checklist. The original test sketch is retained below for reference only.
 
 **Files:**
 - Create: `tests/feed-enable-disable.spec.ts`
@@ -451,10 +453,7 @@ git commit -m "test: e2e for enabling and disabling a feed"
 Run: `npx tsc --noEmit && npm run lint && npm run build`
 Expected: all PASS.
 
-- [ ] **Step 2: Run the full e2e suite**
-
-Run: `npm run test:e2e`
-Expected: all tests PASS (existing + new).
+- [ ] **Step 2: Run the full e2e suite** — SKIPPED (no new e2e added; see Task 7). The pre-existing suite requires a running server and is unchanged by this work.
 
 - [ ] **Step 3: Manual smoke check (optional but recommended)**
 
