@@ -63,6 +63,7 @@ const FeedNavigation = async () => {
             className={`grow truncate ${feed.enabled ? "" : "text-muted-foreground"}`}
           >
             {feed.title}
+            {!feed.enabled && <span className="sr-only"> (paused)</span>}
           </span>
           {feed._count.articles > 0 && (
             <Badge variant="secondary">{feed._count.articles}</Badge>
