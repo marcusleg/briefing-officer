@@ -3,13 +3,13 @@ import {
   getNumberOfUnreadArticles,
   getUnreadArticlesPerFeed,
 } from "@/lib/repository/statsRepository";
+import { getUserId } from "@/lib/repository/userRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createArticle, createFeed, createUser } from "../helpers/factories";
 
 vi.mock("@/lib/repository/userRepository", () => ({
   getUserId: vi.fn(),
 }));
-import { getUserId } from "@/lib/repository/userRepository";
 
 let userId: string;
 let feedId: number;

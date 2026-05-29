@@ -1,6 +1,11 @@
 import prisma from "@/lib/prismaClient";
 import { describe, expect, it } from "vitest";
-import { createArticle, createCategory, createFeed, createUser } from "../helpers/factories";
+import {
+  createArticle,
+  createCategory,
+  createFeed,
+  createUser,
+} from "../helpers/factories";
 
 describe("factories", () => {
   it("creates a user with sensible defaults", async () => {

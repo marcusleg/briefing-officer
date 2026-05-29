@@ -1,35 +1,59 @@
 # Testing Strategy Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> superpowers:subagent-driven-development (recommended) or
+> superpowers:executing-plans to implement this plan task-by-task. Steps use
+> checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Stand up a Vitest-based unit + integration test layer (real SQLite for repositories, mocked external/runtime boundaries) that gives refactoring confidence, and gate merges on it in CI.
+**Goal:** Stand up a Vitest-based unit + integration test layer (real SQLite for
+repositories, mocked external/runtime boundaries) that gives refactoring
+confidence, and gate merges on it in CI.
 
-**Architecture:** Two layers under one Vitest runner. Layer 1 is pure-logic unit tests (zod schemas, title filter, prompt builders, `cn`). Layer 2 is integration tests that run repositories and AI services against a real per-worker temp-file SQLite database, with `next/cache`, `next/navigation`, and the logger mocked globally, and per-test mocks for auth (`getUserId`), the scraper, the AI registry/SDK, and global `fetch`. Schema is applied to each worker's DB once via `prisma db push`; every test starts from a clean DB via a `resetDb()` helper.
+**Architecture:** Two layers under one Vitest runner. Layer 1 is pure-logic unit
+tests (zod schemas, title filter, prompt builders, `cn`). Layer 2 is integration
+tests that run repositories and AI services against a real per-worker temp-file
+SQLite database, with `next/cache`, `next/navigation`, and the logger mocked
+globally, and per-test mocks for auth (`getUserId`), the scraper, the AI
+registry/SDK, and global `fetch`. Schema is applied to each worker's DB once via
+`prisma db push`; every test starts from a clean DB via a `resetDb()` helper.
 
-**Tech Stack:** Vitest, `@vitest/coverage-v8`, Prisma (SQLite), Next.js 16 Server Actions, TypeScript (ESM), existing Playwright (untouched).
+**Tech Stack:** Vitest, `@vitest/coverage-v8`, Prisma (SQLite), Next.js 16
+Server Actions, TypeScript (ESM), existing Playwright (untouched).
 
 ---
 
 ## File Structure
 
 **Created:**
-- `vitest.config.ts` — Vitest configuration (node env, `@/` alias, setup file, coverage).
-- `vitest.setup.ts` — global test bootstrap: sets test `DATABASE_URL`, pushes schema once per worker, registers always-on mocks (`next/cache`, `next/navigation`, logger), resets the DB before each test.
+
+- `vitest.config.ts` — Vitest configuration (node env, `@/` alias, setup file,
+  coverage).
+- `vitest.setup.ts` — global test bootstrap: sets test `DATABASE_URL`, pushes
+  schema once per worker, registers always-on mocks (`next/cache`,
+  `next/navigation`, logger), resets the DB before each test.
 - `tests/helpers/db.ts` — `resetDb()` table-clearing helper.
-- `tests/helpers/factories.ts` — typed row factories (`createUser`, `createCategory`, `createFeed`, `createArticle`).
-- `src/lib/repository/feedFilter.ts` — pure title-filter helper extracted from `refreshFeed`.
-- `tests/unit/*.test.ts` — unit tests (sanity, feedSchema, feedFilter, prompts, utils).
-- `tests/integration/*.test.ts` — integration tests (smoke, feedRepository, articleRepository, statsRepository, tokenUsageService, leadService).
+- `tests/helpers/factories.ts` — typed row factories (`createUser`,
+  `createCategory`, `createFeed`, `createArticle`).
+- `src/lib/repository/feedFilter.ts` — pure title-filter helper extracted from
+  `refreshFeed`.
+- `tests/unit/*.test.ts` — unit tests (sanity, feedSchema, feedFilter, prompts,
+  utils).
+- `tests/integration/*.test.ts` — integration tests (smoke, feedRepository,
+  articleRepository, statsRepository, tokenUsageService, leadService).
 
 **Modified:**
+
 - `package.json` — add devDeps + `test`, `test:watch`, `test:coverage` scripts.
 - `.gitignore` — ignore `/.tmp`.
-- `src/lib/repository/feedRepository.ts` — use the extracted `filterFeedItemsByTitle`.
+- `src/lib/repository/feedRepository.ts` — use the extracted
+  `filterFeedItemsByTitle`.
 - `playwright.config.ts` — point `testDir` at `tests/e2e`.
 - `.github/workflows/build-and-test.yaml` — add a `test` job.
 
 **Moved:**
-- `tests/frontpage.spec.ts`, `tests/navigation-sidebar.spec.ts`, `tests/fixtures.ts` → `tests/e2e/` (content unchanged).
+
+- `tests/frontpage.spec.ts`, `tests/navigation-sidebar.spec.ts`,
+  `tests/fixtures.ts` → `tests/e2e/` (content unchanged).
 
 ---
 
@@ -38,6 +62,7 @@
 ### Task 1: Install Vitest and prove the toolchain
 
 **Files:**
+
 - Modify: `package.json`
 - Create: `vitest.config.ts`
 - Create: `tests/unit/sanity.test.ts`
@@ -45,14 +70,17 @@
 - [ ] **Step 1: Install dev dependencies**
 
 Run:
+
 ```bash
 npm install -D vitest@^3 @vitest/coverage-v8@^3
 ```
+
 Expected: both packages added to `devDependencies`, no errors.
 
 - [ ] **Step 2: Create the Vitest config**
 
 Create `vitest.config.ts`:
+
 ```ts
 import { resolve } from "path";
 import { defineConfig } from "vitest/config";
@@ -78,11 +106,14 @@ export default defineConfig({
 });
 ```
 
-Note: `setupFiles` references `./vitest.setup.ts`, created in Task 5. Until then the sanity test below does not depend on it doing anything — create a temporary empty setup file so the config resolves.
+Note: `setupFiles` references `./vitest.setup.ts`, created in Task 5. Until then
+the sanity test below does not depend on it doing anything — create a temporary
+empty setup file so the config resolves.
 
 - [ ] **Step 3: Create a temporary empty setup file**
 
 Create `vitest.setup.ts` with a single line (replaced fully in Task 5):
+
 ```ts
 // Replaced in Task 5 with DB bootstrap + global mocks.
 export {};
@@ -91,6 +122,7 @@ export {};
 - [ ] **Step 4: Write a trivial passing test**
 
 Create `tests/unit/sanity.test.ts`:
+
 ```ts
 import { describe, expect, it } from "vitest";
 
@@ -104,6 +136,7 @@ describe("sanity", () => {
 - [ ] **Step 5: Add scripts to package.json**
 
 In `package.json`, add to `"scripts"` (leave `test:e2e` as-is):
+
 ```json
 "test": "vitest run",
 "test:watch": "vitest",
@@ -112,8 +145,7 @@ In `package.json`, add to `"scripts"` (leave `test:e2e` as-is):
 
 - [ ] **Step 6: Run the test**
 
-Run: `npm run test`
-Expected: PASS — 1 passed (`tests/unit/sanity.test.ts`).
+Run: `npm run test` Expected: PASS — 1 passed (`tests/unit/sanity.test.ts`).
 
 - [ ] **Step 7: Commit**
 
@@ -129,12 +161,14 @@ git commit -m "test: add vitest toolchain with sanity test"
 ### Task 2: Unit-test the zod schemas
 
 **Files:**
+
 - Create: `tests/unit/feedSchema.test.ts`
 - Reference (do not modify): `src/lib/repository/feedSchema.ts`
 
 - [ ] **Step 1: Write the failing tests**
 
 Create `tests/unit/feedSchema.test.ts`:
+
 ```ts
 import { categorySchema, feedSchema } from "@/lib/repository/feedSchema";
 import { describe, expect, it } from "vitest";
@@ -192,8 +226,8 @@ describe("categorySchema", () => {
 
 - [ ] **Step 2: Run to verify it passes**
 
-Run: `npm run test -- tests/unit/feedSchema.test.ts`
-Expected: PASS — all 7 tests pass (the schema already exists; these characterize current behavior).
+Run: `npm run test -- tests/unit/feedSchema.test.ts` Expected: PASS — all 7
+tests pass (the schema already exists; these characterize current behavior).
 
 - [ ] **Step 3: Commit**
 
@@ -204,9 +238,13 @@ git commit -m "test: cover feed and category zod schemas"
 
 ### Task 3: Extract and unit-test the title filter
 
-The article title-filter logic currently lives inline in `feedRepository.refreshFeed`. Extract it to a pure, testable helper. The helper drops the inline `logger.warn`/`logger.debug` calls (they are diagnostics, not behavior); invalid regex lines are still ignored exactly as before.
+The article title-filter logic currently lives inline in
+`feedRepository.refreshFeed`. Extract it to a pure, testable helper. The helper
+drops the inline `logger.warn`/`logger.debug` calls (they are diagnostics, not
+behavior); invalid regex lines are still ignored exactly as before.
 
 **Files:**
+
 - Create: `src/lib/repository/feedFilter.ts`
 - Create: `tests/unit/feedFilter.test.ts`
 - Modify: `src/lib/repository/feedRepository.ts`
@@ -214,6 +252,7 @@ The article title-filter logic currently lives inline in `feedRepository.refresh
 - [ ] **Step 1: Write the failing test**
 
 Create `tests/unit/feedFilter.test.ts`:
+
 ```ts
 import { filterFeedItemsByTitle } from "@/lib/repository/feedFilter";
 import { describe, expect, it } from "vitest";
@@ -248,12 +287,13 @@ describe("filterFeedItemsByTitle", () => {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `npm run test -- tests/unit/feedFilter.test.ts`
-Expected: FAIL — cannot import `filterFeedItemsByTitle` (module does not exist).
+Run: `npm run test -- tests/unit/feedFilter.test.ts` Expected: FAIL — cannot
+import `filterFeedItemsByTitle` (module does not exist).
 
 - [ ] **Step 3: Create the helper**
 
 Create `src/lib/repository/feedFilter.ts`:
+
 ```ts
 export const filterFeedItemsByTitle = <T extends { title: string }>(
   items: T[],
@@ -279,74 +319,77 @@ export const filterFeedItemsByTitle = <T extends { title: string }>(
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `npm run test -- tests/unit/feedFilter.test.ts`
-Expected: PASS — 4 tests.
+Run: `npm run test -- tests/unit/feedFilter.test.ts` Expected: PASS — 4 tests.
 
 - [ ] **Step 5: Use the helper in feedRepository**
 
 In `src/lib/repository/feedRepository.ts`:
 
 Add the import near the other `@/lib/repository` imports:
+
 ```ts
 import { filterFeedItemsByTitle } from "@/lib/repository/feedFilter";
 ```
 
 In `refreshFeed`, replace this block:
+
 ```ts
-  const titleFilterExpressions = feed.titleFilterExpressions
-    .split("\n")
-    .filter((regex) => regex !== "");
-  const filteredFeedItems = feedItems.filter((item) => {
-    let regex: RegExp;
-    return !titleFilterExpressions.some((regexString) => {
-      try {
-        regex = new RegExp(regexString);
-      } catch (error) {
-        logger.warn(
-          {
-            article: {
-              title: item.title,
-              link: item.link,
-              publicationDate: item.publicationDate,
-            },
-            titleFilterExpression: regexString,
+const titleFilterExpressions = feed.titleFilterExpressions
+  .split("\n")
+  .filter((regex) => regex !== "");
+const filteredFeedItems = feedItems.filter((item) => {
+  let regex: RegExp;
+  return !titleFilterExpressions.some((regexString) => {
+    try {
+      regex = new RegExp(regexString);
+    } catch (error) {
+      logger.warn(
+        {
+          article: {
+            title: item.title,
+            link: item.link,
+            publicationDate: item.publicationDate,
           },
-          "Invalid title filter expression.",
-        );
-        return false; // ignore invalid regex
-      }
-      const test = regex.test(item.title);
+          titleFilterExpression: regexString,
+        },
+        "Invalid title filter expression.",
+      );
+      return false; // ignore invalid regex
+    }
+    const test = regex.test(item.title);
 
-      if (test) {
-        logger.debug(
-          {
-            article: {
-              title: item.title,
-              link: item.link,
-              publicationDate: item.publicationDate,
-            },
-            matchedTitleFilterExpression: regexString,
+    if (test) {
+      logger.debug(
+        {
+          article: {
+            title: item.title,
+            link: item.link,
+            publicationDate: item.publicationDate,
           },
-          "Filtered out article because of title filter.",
-        );
-      }
+          matchedTitleFilterExpression: regexString,
+        },
+        "Filtered out article because of title filter.",
+      );
+    }
 
-      return test;
-    });
+    return test;
   });
+});
 ```
+
 with:
+
 ```ts
-  const filteredFeedItems = filterFeedItemsByTitle(
-    feedItems,
-    feed.titleFilterExpressions,
-  );
+const filteredFeedItems = filterFeedItemsByTitle(
+  feedItems,
+  feed.titleFilterExpressions,
+);
 ```
 
 - [ ] **Step 6: Verify nothing else broke**
 
-Run: `npm run lint && npx tsc --noEmit`
-Expected: no errors. (`logger` is still imported and used elsewhere in the file, so its import stays.)
+Run: `npm run lint && npx tsc --noEmit` Expected: no errors. (`logger` is still
+imported and used elsewhere in the file, so its import stays.)
 
 - [ ] **Step 7: Commit**
 
@@ -358,12 +401,14 @@ git commit -m "refactor: extract title filter into pure helper and test it"
 ### Task 4: Unit-test prompt builders and `cn`
 
 **Files:**
+
 - Create: `tests/unit/prompts.test.ts`
 - Create: `tests/unit/utils.test.ts`
 
 - [ ] **Step 1: Write the prompt builder tests**
 
 Create `tests/unit/prompts.test.ts`:
+
 ```ts
 import { buildLeadPrompt, buildSummaryPrompt } from "@/lib/ai/prompts";
 import { describe, expect, it } from "vitest";
@@ -389,6 +434,7 @@ describe("buildSummaryPrompt", () => {
 - [ ] **Step 2: Write the `cn` test**
 
 Create `tests/unit/utils.test.ts`:
+
 ```ts
 import { cn } from "@/lib/utils";
 import { describe, expect, it } from "vitest";
@@ -422,9 +468,13 @@ git commit -m "test: cover prompt builders and cn helper"
 
 ### Task 5: Build the integration test harness
 
-This replaces the placeholder `vitest.setup.ts`. The setup file must set `DATABASE_URL` to an **absolute** `file:` path **before** anything imports the Prisma singleton, push the schema once per worker, register the always-on mocks, and reset the DB before each test.
+This replaces the placeholder `vitest.setup.ts`. The setup file must set
+`DATABASE_URL` to an **absolute** `file:` path **before** anything imports the
+Prisma singleton, push the schema once per worker, register the always-on mocks,
+and reset the DB before each test.
 
 **Files:**
+
 - Modify: `.gitignore`
 - Modify: `vitest.setup.ts` (replace placeholder from Task 1)
 - Create: `tests/helpers/db.ts`
@@ -433,6 +483,7 @@ This replaces the placeholder `vitest.setup.ts`. The setup file must set `DATABA
 - [ ] **Step 1: Ignore the temp DB directory**
 
 In `.gitignore`, under the `# testing` section, add:
+
 ```
 /.tmp
 ```
@@ -440,6 +491,7 @@ In `.gitignore`, under the `# testing` section, add:
 - [ ] **Step 2: Create the resetDb helper**
 
 Create `tests/helpers/db.ts`:
+
 ```ts
 import prisma from "@/lib/prismaClient";
 
@@ -464,6 +516,7 @@ export const resetDb = async () => {
 - [ ] **Step 3: Replace vitest.setup.ts with the real bootstrap**
 
 Replace the entire contents of `vitest.setup.ts` with:
+
 ```ts
 import { execSync } from "child_process";
 import { mkdirSync } from "fs";
@@ -517,11 +570,14 @@ afterEach(() => {
 });
 ```
 
-Note on the dynamic `import("./tests/helpers/db")`: importing lazily inside `beforeEach` guarantees `DATABASE_URL` (set synchronously at the top of this file) is already in place before the Prisma singleton is constructed.
+Note on the dynamic `import("./tests/helpers/db")`: importing lazily inside
+`beforeEach` guarantees `DATABASE_URL` (set synchronously at the top of this
+file) is already in place before the Prisma singleton is constructed.
 
 - [ ] **Step 4: Write the smoke integration test**
 
 Create `tests/integration/smoke.test.ts`:
+
 ```ts
 import prisma from "@/lib/prismaClient";
 import { describe, expect, it } from "vitest";
@@ -550,16 +606,19 @@ describe("integration harness", () => {
 - [ ] **Step 5: Ensure the Prisma client is generated, then run**
 
 Run:
+
 ```bash
 npx prisma generate
 npm run test -- tests/integration/smoke.test.ts
 ```
-Expected: PASS — 2 tests. The second test proving isolation: the first test sees 0 users even though the second writes one (order-independent because `resetDb` runs before each).
+
+Expected: PASS — 2 tests. The second test proving isolation: the first test sees
+0 users even though the second writes one (order-independent because `resetDb`
+runs before each).
 
 - [ ] **Step 6: Run the whole suite to confirm nothing regressed**
 
-Run: `npm run test`
-Expected: PASS — all unit + integration tests green.
+Run: `npm run test` Expected: PASS — all unit + integration tests green.
 
 - [ ] **Step 7: Commit**
 
@@ -571,16 +630,23 @@ git commit -m "test: add integration harness with per-worker sqlite and global m
 ### Task 6: Add typed row factories
 
 **Files:**
+
 - Create: `tests/helpers/factories.ts`
 - Create: `tests/integration/factories.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
 Create `tests/integration/factories.test.ts`:
+
 ```ts
 import prisma from "@/lib/prismaClient";
 import { describe, expect, it } from "vitest";
-import { createArticle, createCategory, createFeed, createUser } from "../helpers/factories";
+import {
+  createArticle,
+  createCategory,
+  createFeed,
+  createUser,
+} from "../helpers/factories";
 
 describe("factories", () => {
   it("creates a user with sensible defaults", async () => {
@@ -613,17 +679,20 @@ describe("factories", () => {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `npm run test -- tests/integration/factories.test.ts`
-Expected: FAIL — cannot import from `../helpers/factories`.
+Run: `npm run test -- tests/integration/factories.test.ts` Expected: FAIL —
+cannot import from `../helpers/factories`.
 
 - [ ] **Step 3: Create the factories**
 
 Create `tests/helpers/factories.ts`:
+
 ```ts
 import prisma from "@/lib/prismaClient";
 import { randomUUID } from "crypto";
 
-export const createUser = (overrides: Partial<{ id: string; name: string; email: string }> = {}) => {
+export const createUser = (
+  overrides: Partial<{ id: string; name: string; email: string }> = {},
+) => {
   const id = overrides.id ?? randomUUID();
   return prisma.user.create({
     data: {
@@ -637,7 +706,10 @@ export const createUser = (overrides: Partial<{ id: string; name: string; email:
   });
 };
 
-export const createCategory = (overrides: { userId: string; name?: string }) => {
+export const createCategory = (overrides: {
+  userId: string;
+  name?: string;
+}) => {
   return prisma.feedCategory.create({
     data: {
       userId: overrides.userId,
@@ -694,8 +766,8 @@ export const createArticle = (overrides: {
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `npm run test -- tests/integration/factories.test.ts`
-Expected: PASS — 4 tests.
+Run: `npm run test -- tests/integration/factories.test.ts` Expected: PASS — 4
+tests.
 
 - [ ] **Step 5: Commit**
 
@@ -706,14 +778,18 @@ git commit -m "test: add typed row factories for integration tests"
 
 ### Task 7: Integration-test articleRepository
 
-`articleRepository` only depends on Prisma, `getUserId`, `next/cache`, and the logger. `next/cache` and the logger are already mocked globally; mock `getUserId` per file.
+`articleRepository` only depends on Prisma, `getUserId`, `next/cache`, and the
+logger. `next/cache` and the logger are already mocked globally; mock
+`getUserId` per file.
 
 **Files:**
+
 - Create: `tests/integration/articleRepository.test.ts`
 
 - [ ] **Step 1: Write the failing tests**
 
 Create `tests/integration/articleRepository.test.ts`:
+
 ```ts
 import prisma from "@/lib/prismaClient";
 import {
@@ -747,7 +823,9 @@ describe("articleRepository", () => {
 
     await markArticleAsRead(article.id);
 
-    const updated = await prisma.article.findUniqueOrThrow({ where: { id: article.id } });
+    const updated = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
     expect(updated.readAt).not.toBeNull();
     expect(updated.readLater).toBe(false);
   });
@@ -757,7 +835,9 @@ describe("articleRepository", () => {
 
     await markArticleAsReadLater(article.id);
 
-    const updated = await prisma.article.findUniqueOrThrow({ where: { id: article.id } });
+    const updated = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
     expect(updated.readLater).toBe(true);
   });
 
@@ -765,10 +845,16 @@ describe("articleRepository", () => {
     const article = await createArticle({ userId, feedId });
 
     await markArticleAsStarred(article.id);
-    expect((await prisma.article.findUniqueOrThrow({ where: { id: article.id } })).starred).toBe(true);
+    expect(
+      (await prisma.article.findUniqueOrThrow({ where: { id: article.id } }))
+        .starred,
+    ).toBe(true);
 
     await unmarkArticleAsStarred(article.id);
-    expect((await prisma.article.findUniqueOrThrow({ where: { id: article.id } })).starred).toBe(false);
+    expect(
+      (await prisma.article.findUniqueOrThrow({ where: { id: article.id } }))
+        .starred,
+    ).toBe(false);
   });
 
   it("enforces the unique (userId, feedId, link) constraint", async () => {
@@ -782,8 +868,8 @@ describe("articleRepository", () => {
 
 - [ ] **Step 2: Run to verify it passes**
 
-Run: `npm run test -- tests/integration/articleRepository.test.ts`
-Expected: PASS — 4 tests.
+Run: `npm run test -- tests/integration/articleRepository.test.ts` Expected:
+PASS — 4 tests.
 
 - [ ] **Step 3: Commit**
 
@@ -794,14 +880,21 @@ git commit -m "test: cover articleRepository against real sqlite"
 
 ### Task 8: Integration-test feedRepository
 
-`feedRepository` pulls in many boundaries: `getUserId`, the scraper (`scrapeFeed`, `scrapeArticle`), `generateAiLead`, `next/navigation` `redirect`, and global `fetch` (in `createFeed`). Mock all of them. Importing `@/lib/repository/feedRepository` transitively imports `leadService`, which runs `await getFirstConfiguredLanguageModel()` at module top-level — so the `@/lib/ai/services/leadService` mock below is required, not optional.
+`feedRepository` pulls in many boundaries: `getUserId`, the scraper
+(`scrapeFeed`, `scrapeArticle`), `generateAiLead`, `next/navigation` `redirect`,
+and global `fetch` (in `createFeed`). Mock all of them. Importing
+`@/lib/repository/feedRepository` transitively imports `leadService`, which runs
+`await getFirstConfiguredLanguageModel()` at module top-level — so the
+`@/lib/ai/services/leadService` mock below is required, not optional.
 
 **Files:**
+
 - Create: `tests/integration/feedRepository.test.ts`
 
 - [ ] **Step 1: Write the failing tests for refresh + enabled filtering**
 
 Create `tests/integration/feedRepository.test.ts`:
+
 ```ts
 import prisma from "@/lib/prismaClient";
 import type { Feed } from "@prisma/client";
@@ -860,8 +953,12 @@ describe("feedRepository.refreshFeed", () => {
     await refreshFeed(feed.id);
 
     expect(await prisma.article.count({ where: { feedId: feed.id } })).toBe(2);
-    const refreshed = await prisma.feed.findUniqueOrThrow({ where: { id: feed.id } });
-    expect(refreshed.lastFetched.getTime()).toBeGreaterThan(new Date(0).getTime());
+    const refreshed = await prisma.feed.findUniqueOrThrow({
+      where: { id: feed.id },
+    });
+    expect(refreshed.lastFetched.getTime()).toBeGreaterThan(
+      new Date(0).getTime(),
+    );
   });
 
   it("does not create articles whose title matches a filter expression", async () => {
@@ -873,35 +970,50 @@ describe("feedRepository.refreshFeed", () => {
 
     await refreshFeed(feed.id);
 
-    const titles = (await prisma.article.findMany({ where: { feedId: feed.id } })).map((a) => a.title);
+    const titles = (
+      await prisma.article.findMany({ where: { feedId: feed.id } })
+    ).map((a) => a.title);
     expect(titles).toEqual(["Breaking"]);
   });
 });
 
 describe("feedRepository.refreshFeeds", () => {
   it("refreshes only enabled feeds", async () => {
-    const enabled = await createFeed({ userId, enabled: true, link: "https://example.com/on.xml" });
-    const disabled = await createFeed({ userId, enabled: false, link: "https://example.com/off.xml" });
+    const enabled = await createFeed({
+      userId,
+      enabled: true,
+      link: "https://example.com/on.xml",
+    });
+    const disabled = await createFeed({
+      userId,
+      enabled: false,
+      link: "https://example.com/off.xml",
+    });
     vi.mocked(scrapeFeed).mockImplementation(async (feed: Feed) => [
       feedItem(`Item for ${feed.id}`, `https://example.com/item-${feed.id}`),
     ]);
 
     await refreshFeeds();
 
-    expect(await prisma.article.count({ where: { feedId: enabled.id } })).toBe(1);
-    expect(await prisma.article.count({ where: { feedId: disabled.id } })).toBe(0);
+    expect(await prisma.article.count({ where: { feedId: enabled.id } })).toBe(
+      1,
+    );
+    expect(await prisma.article.count({ where: { feedId: disabled.id } })).toBe(
+      0,
+    );
   });
 });
 ```
 
 - [ ] **Step 2: Run to verify it passes**
 
-Run: `npm run test -- tests/integration/feedRepository.test.ts`
-Expected: PASS — 3 tests.
+Run: `npm run test -- tests/integration/feedRepository.test.ts` Expected: PASS —
+3 tests.
 
 - [ ] **Step 3: Add CRUD tests (createFeed, updateFeed, deleteFeed cascade)**
 
 Append to `tests/integration/feedRepository.test.ts`:
+
 ```ts
 describe("feedRepository.createFeed", () => {
   it("fetches+parses the feed link, creates the row, then refreshes", async () => {
@@ -938,7 +1050,9 @@ describe("feedRepository.updateFeed", () => {
       enabled: false,
     });
 
-    const updated = await prisma.feed.findUniqueOrThrow({ where: { id: feed.id } });
+    const updated = await prisma.feed.findUniqueOrThrow({
+      where: { id: feed.id },
+    });
     expect(updated.title).toBe("New");
     expect(updated.enabled).toBe(false);
   });
@@ -965,11 +1079,14 @@ describe("feedRepository.deleteFeed", () => {
 });
 ```
 
-Note: `deleteFeed` calls `redirect("/")`, which is mocked globally in `vitest.setup.ts` (a no-op), so it will not throw.
+Note: `deleteFeed` calls `redirect("/")`, which is mocked globally in
+`vitest.setup.ts` (a no-op), so it will not throw.
 
 - [ ] **Step 4: Add category CRUD tests**
 
-Append to `tests/integration/feedRepository.test.ts` (extend the existing import line from `@/lib/repository/feedRepository` to also import these):
+Append to `tests/integration/feedRepository.test.ts` (extend the existing import
+line from `@/lib/repository/feedRepository` to also import these):
+
 ```ts
 import {
   createCategory as createCategoryAction,
@@ -990,7 +1107,9 @@ describe("feedRepository categories", () => {
   it("updates a category name", async () => {
     const category = await createCategory({ userId, name: "Old" });
     await updateCategory(category.id, { name: "Renamed" });
-    const updated = await prisma.feedCategory.findUniqueOrThrow({ where: { id: category.id } });
+    const updated = await prisma.feedCategory.findUniqueOrThrow({
+      where: { id: category.id },
+    });
     expect(updated.name).toBe("Renamed");
   });
 
@@ -1000,8 +1119,12 @@ describe("feedRepository categories", () => {
 
     await deleteCategory(category.id);
 
-    expect(await prisma.feedCategory.count({ where: { id: category.id } })).toBe(0);
-    const stillThere = await prisma.feed.findUniqueOrThrow({ where: { id: feed.id } });
+    expect(
+      await prisma.feedCategory.count({ where: { id: category.id } }),
+    ).toBe(0);
+    const stillThere = await prisma.feed.findUniqueOrThrow({
+      where: { id: feed.id },
+    });
     expect(stillThere.feedCategoryId).toBeNull();
   });
 });
@@ -1009,8 +1132,8 @@ describe("feedRepository categories", () => {
 
 - [ ] **Step 5: Run the full feedRepository file**
 
-Run: `npm run test -- tests/integration/feedRepository.test.ts`
-Expected: PASS — all tests across the four `describe` groups.
+Run: `npm run test -- tests/integration/feedRepository.test.ts` Expected: PASS —
+all tests across the four `describe` groups.
 
 - [ ] **Step 6: Commit**
 
@@ -1022,11 +1145,13 @@ git commit -m "test: cover feedRepository (refresh, enabled filtering, CRUD, cat
 ### Task 9: Integration-test statsRepository
 
 **Files:**
+
 - Create: `tests/integration/statsRepository.test.ts`
 
 - [ ] **Step 1: Write the failing tests**
 
 Create `tests/integration/statsRepository.test.ts`:
+
 ```ts
 import {
   getNumberOfReadLaterArticles,
@@ -1079,8 +1204,8 @@ describe("statsRepository counts", () => {
 
 - [ ] **Step 2: Run to verify it passes**
 
-Run: `npm run test -- tests/integration/statsRepository.test.ts`
-Expected: PASS — 3 tests.
+Run: `npm run test -- tests/integration/statsRepository.test.ts` Expected: PASS
+— 3 tests.
 
 - [ ] **Step 3: Commit**
 
@@ -1091,15 +1216,20 @@ git commit -m "test: cover statsRepository counts against real sqlite"
 
 ### Task 10: Integration-test AI services (tokenUsageService + leadService)
 
-`tokenUsageService` only touches Prisma — test it directly against the DB. `leadService` has a top-level `await getFirstConfiguredLanguageModel()` and calls `generateText` from `ai`; both must be mocked before import. It writes an `ArticleLead` and records token usage.
+`tokenUsageService` only touches Prisma — test it directly against the DB.
+`leadService` has a top-level `await getFirstConfiguredLanguageModel()` and
+calls `generateText` from `ai`; both must be mocked before import. It writes an
+`ArticleLead` and records token usage.
 
 **Files:**
+
 - Create: `tests/integration/tokenUsageService.test.ts`
 - Create: `tests/integration/leadService.test.ts`
 
 - [ ] **Step 1: Write the tokenUsageService test**
 
 Create `tests/integration/tokenUsageService.test.ts`:
+
 ```ts
 import prisma from "@/lib/prismaClient";
 import { trackTokenUsage } from "@/lib/ai/services/tokenUsageService";
@@ -1137,12 +1267,13 @@ describe("trackTokenUsage", () => {
 
 - [ ] **Step 2: Run the tokenUsageService test**
 
-Run: `npm run test -- tests/integration/tokenUsageService.test.ts`
-Expected: PASS — 2 tests.
+Run: `npm run test -- tests/integration/tokenUsageService.test.ts` Expected:
+PASS — 2 tests.
 
 - [ ] **Step 3: Write the leadService test**
 
 Create `tests/integration/leadService.test.ts`:
+
 ```ts
 import prisma from "@/lib/prismaClient";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -1150,7 +1281,9 @@ import { createArticle, createFeed, createUser } from "../helpers/factories";
 
 // Mock the AI registry's top-level model and the `ai` SDK BEFORE importing the service.
 vi.mock("@/lib/ai/registry", () => ({
-  getFirstConfiguredLanguageModel: vi.fn(async () => ({ modelId: "test-model" })),
+  getFirstConfiguredLanguageModel: vi.fn(async () => ({
+    modelId: "test-model",
+  })),
 }));
 vi.mock("ai", () => ({
   generateText: vi.fn(async () => ({
@@ -1176,10 +1309,14 @@ describe("generateAiLead", () => {
     const result = await generateAiLead(article.id);
 
     expect(result).toBe("Generated lead.");
-    const lead = await prisma.articleLead.findUniqueOrThrow({ where: { articleId: article.id } });
+    const lead = await prisma.articleLead.findUniqueOrThrow({
+      where: { articleId: article.id },
+    });
     expect(lead.text).toBe("Generated lead.");
 
-    const usage = await prisma.tokenUsage.findFirstOrThrow({ where: { userId } });
+    const usage = await prisma.tokenUsage.findFirstOrThrow({
+      where: { userId },
+    });
     expect(usage.inputTokens).toBe(7);
     expect(usage.outputTokens).toBe(3);
   });
@@ -1188,8 +1325,8 @@ describe("generateAiLead", () => {
 
 - [ ] **Step 4: Run the leadService test**
 
-Run: `npm run test -- tests/integration/leadService.test.ts`
-Expected: PASS — 1 test.
+Run: `npm run test -- tests/integration/leadService.test.ts` Expected: PASS — 1
+test.
 
 - [ ] **Step 5: Commit**
 
@@ -1204,15 +1341,21 @@ git commit -m "test: cover tokenUsageService and leadService with mocked AI"
 
 ### Task 11: Move Playwright specs under tests/e2e
 
-This keeps Layer-2 integration tests and Playwright e2e specs in separate folders, and stops Playwright from trying to run (or Vitest from picking up) each other's files. The Vitest `include` from Task 1 already only globs `tests/unit` and `tests/integration`, so Vitest will not pick up `tests/e2e`.
+This keeps Layer-2 integration tests and Playwright e2e specs in separate
+folders, and stops Playwright from trying to run (or Vitest from picking up)
+each other's files. The Vitest `include` from Task 1 already only globs
+`tests/unit` and `tests/integration`, so Vitest will not pick up `tests/e2e`.
 
 **Files:**
-- Move: `tests/frontpage.spec.ts`, `tests/navigation-sidebar.spec.ts`, `tests/fixtures.ts` → `tests/e2e/`
+
+- Move: `tests/frontpage.spec.ts`, `tests/navigation-sidebar.spec.ts`,
+  `tests/fixtures.ts` → `tests/e2e/`
 - Modify: `playwright.config.ts`
 
 - [ ] **Step 1: Move the files**
 
 Run:
+
 ```bash
 mkdir -p tests/e2e
 git mv tests/frontpage.spec.ts tests/e2e/frontpage.spec.ts
@@ -1223,25 +1366,32 @@ git mv tests/fixtures.ts tests/e2e/fixtures.ts
 - [ ] **Step 2: Point Playwright at the new directory**
 
 In `playwright.config.ts`, change:
+
 ```ts
   testDir: "./tests",
 ```
+
 to:
+
 ```ts
   testDir: "./tests/e2e",
 ```
 
-- [ ] **Step 3: Verify the relative import inside navigation-sidebar still resolves**
+- [ ] **Step 3: Verify the relative import inside navigation-sidebar still
+      resolves**
 
-`tests/e2e/navigation-sidebar.spec.ts` imports `./fixtures` — `fixtures.ts` moved into the same `tests/e2e/` folder, so the relative path is unchanged. Confirm:
+`tests/e2e/navigation-sidebar.spec.ts` imports `./fixtures` — `fixtures.ts`
+moved into the same `tests/e2e/` folder, so the relative path is unchanged.
+Confirm:
 
-Run: `npx playwright test --list`
-Expected: lists the specs from `tests/e2e/` without import errors. (The e2e tests remain disabled in CI; this only confirms discovery/imports.)
+Run: `npx playwright test --list` Expected: lists the specs from `tests/e2e/`
+without import errors. (The e2e tests remain disabled in CI; this only confirms
+discovery/imports.)
 
 - [ ] **Step 4: Confirm Vitest still ignores e2e**
 
-Run: `npm run test`
-Expected: PASS — Vitest runs only `tests/unit` + `tests/integration`; no `.spec.ts` e2e files are collected.
+Run: `npm run test` Expected: PASS — Vitest runs only `tests/unit` +
+`tests/integration`; no `.spec.ts` e2e files are collected.
 
 - [ ] **Step 5: Commit**
 
@@ -1253,38 +1403,46 @@ git commit -m "test: relocate playwright specs to tests/e2e"
 ### Task 12: Add the CI test job as a merge gate
 
 **Files:**
+
 - Modify: `.github/workflows/build-and-test.yaml`
 
 - [ ] **Step 1: Add the test job**
 
-In `.github/workflows/build-and-test.yaml`, add this job alongside `format-check`, `lint`, and `build` (insert after the `lint` job, before `build`):
-```yaml
-  test:
-    runs-on: ubuntu-latest
+In `.github/workflows/build-and-test.yaml`, add this job alongside
+`format-check`, `lint`, and `build` (insert after the `lint` job, before
+`build`):
 
-    steps:
-      - uses: actions/checkout@v6
-      - name: Use Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24.x"
-          cache: "npm"
-      - name: Install Dependencies
-        run: npm ci
-      - name: Generate Prisma Client
-        run: npx prisma generate
-      - name: Run Unit and Integration Tests
-        run: npm run test
+```yaml
+test:
+  runs-on: ubuntu-latest
+
+  steps:
+    - uses: actions/checkout@v6
+    - name: Use Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: "24.x"
+        cache: "npm"
+    - name: Install Dependencies
+      run: npm ci
+    - name: Generate Prisma Client
+      run: npx prisma generate
+    - name: Run Unit and Integration Tests
+      run: npm run test
 ```
 
-Note: `npm run test` (Vitest) provisions its own per-worker SQLite file via `vitest.setup.ts` and runs `prisma db push`, so no `DATABASE_URL` env or migration step is needed in this job.
+Note: `npm run test` (Vitest) provisions its own per-worker SQLite file via
+`vitest.setup.ts` and runs `prisma db push`, so no `DATABASE_URL` env or
+migration step is needed in this job.
 
 - [ ] **Step 2: Validate the workflow YAML locally**
 
 Run:
+
 ```bash
 npx --yes js-yaml .github/workflows/build-and-test.yaml > /dev/null && echo "YAML OK"
 ```
+
 Expected: prints `YAML OK` (the file parses).
 
 - [ ] **Step 3: Commit and push**
@@ -1298,17 +1456,36 @@ git push
 - [ ] **Step 4: Confirm the job runs green on CI**
 
 After pushing, check the Actions run for this branch:
+
 ```bash
 gh run list --branch feat/enable-disable-feed --limit 1
 gh run watch
 ```
+
 Expected: the `test` job completes successfully.
 
 ---
 
 ## Self-Review Notes
 
-- **Spec coverage:** Layer 1 unit (feedSchema → Task 2; title filter → Task 3; prompts/utils → Task 4). Layer 2 integration harness (Task 5), factories (Task 6), feedRepository incl. enabled-feed filtering + cascade (Task 8), articleRepository incl. unique constraint (Task 7), statsRepository (Task 9), tokenUsageService + leadService with mocked LLM (Task 10). Harness specifics: per-worker temp-file SQLite, `prisma db push`, `resetDb` in `beforeEach`, global mocks for `next/cache`/`next/navigation`/logger, per-test mocks for `getUserId`/scraper/AI/`fetch` (Task 5, applied throughout). Directory layout `tests/unit|integration|helpers|e2e` (Tasks 1–11). Scripts + devDeps (Task 1). `.gitignore` `/.tmp` (Task 5); `/coverage` is already ignored. CI merge gate (Task 12). e2e deferred and relocated, not revived (Task 11).
-- **`summaryService` not directly tested:** it returns a streamable RSC value via `createStreamableValue` and does its DB write in a fire-and-forget async IIFE, which is awkward to assert deterministically; `leadService` covers the same generate→persist→track-usage path synchronously. Documented here as an intentional omission consistent with the spec's "representative coverage, not 100%."
+- **Spec coverage:** Layer 1 unit (feedSchema → Task 2; title filter → Task 3;
+  prompts/utils → Task 4). Layer 2 integration harness (Task 5), factories (Task
+  6), feedRepository incl. enabled-feed filtering + cascade (Task 8),
+  articleRepository incl. unique constraint (Task 7), statsRepository (Task 9),
+  tokenUsageService + leadService with mocked LLM (Task 10). Harness specifics:
+  per-worker temp-file SQLite, `prisma db push`, `resetDb` in `beforeEach`,
+  global mocks for `next/cache`/`next/navigation`/logger, per-test mocks for
+  `getUserId`/scraper/AI/`fetch` (Task 5, applied throughout). Directory layout
+  `tests/unit|integration|helpers|e2e` (Tasks 1–11). Scripts + devDeps (Task 1).
+  `.gitignore` `/.tmp` (Task 5); `/coverage` is already ignored. CI merge gate
+  (Task 12). e2e deferred and relocated, not revived (Task 11).
+- **`summaryService` not directly tested:** it returns a streamable RSC value
+  via `createStreamableValue` and does its DB write in a fire-and-forget async
+  IIFE, which is awkward to assert deterministically; `leadService` covers the
+  same generate→persist→track-usage path synchronously. Documented here as an
+  intentional omission consistent with the spec's "representative coverage, not
+  100%."
 - **`shadow.db`:** untracked file flagged in the spec; not touched by this plan.
-- **Behavior change:** Task 3 drops two diagnostic `logger` calls when extracting the title filter; filtering behavior is unchanged and covered by tests.
+- **Behavior change:** Task 3 drops two diagnostic `logger` calls when
+  extracting the title filter; filtering behavior is unchanged and covered by
+  tests.

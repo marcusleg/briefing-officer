@@ -1,7 +1,9 @@
 import prisma from "@/lib/prismaClient";
 import { randomUUID } from "crypto";
 
-export const createUser = (overrides: Partial<{ id: string; name: string; email: string }> = {}) => {
+export const createUser = (
+  overrides: Partial<{ id: string; name: string; email: string }> = {},
+) => {
   const id = overrides.id ?? randomUUID();
   return prisma.user.create({
     data: {
@@ -15,7 +17,10 @@ export const createUser = (overrides: Partial<{ id: string; name: string; email:
   });
 };
 
-export const createCategory = (overrides: { userId: string; name?: string }) => {
+export const createCategory = (overrides: {
+  userId: string;
+  name?: string;
+}) => {
   return prisma.feedCategory.create({
     data: {
       userId: overrides.userId,

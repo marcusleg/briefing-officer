@@ -1,15 +1,14 @@
 # Testing Strategy — Design
 
-**Date:** 2026-05-29
-**Status:** Approved (design)
+**Date:** 2026-05-29 **Status:** Approved (design)
 
 ## Problem
 
 Test coverage is poor. The Playwright e2e tests have been disabled (the CI
-`e2e-test` job is commented out in `.github/workflows/build-and-test.yaml`) after
-breaking for unknown reasons, and there are no unit or integration tests. There
-is no test runner installed for anything other than Playwright. Nothing in CI
-gates a merge on test results — only `format-check`, `lint`, and `build` run.
+`e2e-test` job is commented out in `.github/workflows/build-and-test.yaml`)
+after breaking for unknown reasons, and there are no unit or integration tests.
+There is no test runner installed for anything other than Playwright. Nothing in
+CI gates a merge on test results — only `format-check`, `lint`, and `build` run.
 
 ## Goal
 
@@ -50,8 +49,8 @@ Fast, no database, no network. Covers:
 - Title-filter logic from `feedRepository.refreshFeed` — the regex-based article
   filtering: matching titles are filtered out, non-matching titles are kept, and
   an invalid regex line is ignored (non-fatal). If practical, this logic is
-  extracted into a small pure helper so it can be unit-tested directly; otherwise
-  it is covered via the integration test for `refreshFeed`.
+  extracted into a small pure helper so it can be unit-tested directly;
+  otherwise it is covered via the integration test for `refreshFeed`.
 - `src/lib/utils.ts` and the prompt builders in `src/lib/ai/prompts.ts`.
 
 ### Layer 2 — Integration tests (real SQLite, mocked boundaries)
@@ -68,21 +67,22 @@ Covers:
   `enabled: false` feeds), and category create/update/delete.
 - `articleRepository` — read / mark-as-read / read-later / star operations and
   the `@@unique([userId, feedId, link])` constraint behavior.
-- `statsRepository` — aggregation queries return correct shapes from seeded data.
+- `statsRepository` — aggregation queries return correct shapes from seeded
+  data.
 - AI services — `tokenUsageService` (persists and accumulates usage rows),
-  `leadService` and `summaryService` (with a mocked LLM, assert correct DB writes
-  and token-usage recording).
+  `leadService` and `summaryService` (with a mocked LLM, assert correct DB
+  writes and token-usage recording).
 
 ## Why repositories need boundary mocks
 
 The repositories are Next.js **Server Actions** (`"use server"`) that mix three
 concerns. The test harness keeps the database real and mocks the rest:
 
-| Concern               | Examples                                                     | In tests        |
-| --------------------- | ------------------------------------------------------------ | --------------- |
-| Database access       | `prisma.feed.create`, `prisma.article.deleteMany`            | **Real SQLite** |
-| Next.js runtime       | `revalidatePath` (`next/cache`), `redirect` (`next/navigation`) | Mocked       |
-| External boundaries   | `getUserId()`, `scrapeFeed`/`scrapeArticle`, `generateAiLead`, global `fetch`, AI SDK | Mocked |
+| Concern             | Examples                                                                              | In tests        |
+| ------------------- | ------------------------------------------------------------------------------------- | --------------- |
+| Database access     | `prisma.feed.create`, `prisma.article.deleteMany`                                     | **Real SQLite** |
+| Next.js runtime     | `revalidatePath` (`next/cache`), `redirect` (`next/navigation`)                       | Mocked          |
+| External boundaries | `getUserId()`, `scrapeFeed`/`scrapeArticle`, `generateAiLead`, global `fetch`, AI SDK | Mocked          |
 
 ## Test Harness
 
@@ -99,12 +99,13 @@ concerns. The test harness keeps the database real and mocks the rest:
 ### Database lifecycle
 
 - **Temp-file SQLite per worker**, e.g. `file:./.tmp/test-<worker>.db`. Chosen
-  over in-memory because `prisma db push` against `:memory:` is unreliable across
-  Prisma's multiple connections; a temp file is reliable and still fast.
+  over in-memory because `prisma db push` against `:memory:` is unreliable
+  across Prisma's multiple connections; a temp file is reliable and still fast.
 - Schema applied with `prisma db push --skip-generate` against the test
   `DATABASE_URL` during global/worker setup.
-- A `resetDb()` helper, called in `beforeEach`, clears all tables in FK-safe order
-  to give each test true isolation without transaction-rollback gymnastics.
+- A `resetDb()` helper, called in `beforeEach`, clears all tables in FK-safe
+  order to give each test true isolation without transaction-rollback
+  gymnastics.
 - A typed **factory module** (`tests/helpers/factories.ts`) provides
   `createUser()`, `createFeed()`, `createArticle()`, `createCategory()` with
   sensible defaults and overrides so tests stay readable.
@@ -136,9 +137,9 @@ tests/
   e2e/          # existing Playwright specs (unchanged this phase)
 ```
 
-The existing Playwright specs (`frontpage.spec.ts`, `navigation-sidebar.spec.ts`,
-`fixtures.ts`) move under `tests/e2e/` for clarity; their content and the
-`test:e2e` script are otherwise untouched.
+The existing Playwright specs (`frontpage.spec.ts`,
+`navigation-sidebar.spec.ts`, `fixtures.ts`) move under `tests/e2e/` for
+clarity; their content and the `test:e2e` script are otherwise untouched.
 
 ## package.json scripts
 
@@ -164,9 +165,9 @@ confidence. The commented-out `e2e-test` job stays commented (deferred phase).
 ## Housekeeping
 
 - `.gitignore`: add `.tmp/` (test databases) and `coverage/`.
-- Flag (separately, not changed by this work): `shadow.db` is currently untracked
-  in the working directory and is likely a Prisma shadow database that should be
-  gitignored.
+- Flag (separately, not changed by this work): `shadow.db` is currently
+  untracked in the working directory and is likely a Prisma shadow database that
+  should be gitignored.
 
 ## Rollout (implementation phases)
 

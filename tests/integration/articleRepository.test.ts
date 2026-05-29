@@ -5,13 +5,13 @@ import {
   markArticleAsStarred,
   unmarkArticleAsStarred,
 } from "@/lib/repository/articleRepository";
+import { getUserId } from "@/lib/repository/userRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createArticle, createFeed, createUser } from "../helpers/factories";
 
 vi.mock("@/lib/repository/userRepository", () => ({
   getUserId: vi.fn(),
 }));
-import { getUserId } from "@/lib/repository/userRepository";
 
 let userId: string;
 let feedId: number;
@@ -30,7 +30,9 @@ describe("articleRepository", () => {
 
     await markArticleAsRead(article.id);
 
-    const updated = await prisma.article.findUniqueOrThrow({ where: { id: article.id } });
+    const updated = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
     expect(updated.readAt).not.toBeNull();
     expect(updated.readLater).toBe(false);
   });
@@ -40,7 +42,9 @@ describe("articleRepository", () => {
 
     await markArticleAsReadLater(article.id);
 
-    const updated = await prisma.article.findUniqueOrThrow({ where: { id: article.id } });
+    const updated = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
     expect(updated.readLater).toBe(true);
   });
 
@@ -48,10 +52,16 @@ describe("articleRepository", () => {
     const article = await createArticle({ userId, feedId });
 
     await markArticleAsStarred(article.id);
-    expect((await prisma.article.findUniqueOrThrow({ where: { id: article.id } })).starred).toBe(true);
+    expect(
+      (await prisma.article.findUniqueOrThrow({ where: { id: article.id } }))
+        .starred,
+    ).toBe(true);
 
     await unmarkArticleAsStarred(article.id);
-    expect((await prisma.article.findUniqueOrThrow({ where: { id: article.id } })).starred).toBe(false);
+    expect(
+      (await prisma.article.findUniqueOrThrow({ where: { id: article.id } }))
+        .starred,
+    ).toBe(false);
   });
 
   it("enforces the unique (userId, feedId, link) constraint", async () => {
