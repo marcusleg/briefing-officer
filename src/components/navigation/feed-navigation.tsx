@@ -15,7 +15,7 @@ import {
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { Prisma } from "@prisma/client";
-import { NewspaperIcon, PlusIcon } from "lucide-react";
+import { NewspaperIcon, PauseIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
@@ -58,8 +58,12 @@ const FeedNavigation = async () => {
     feeds.map((feed) => (
       <SidebarMenuItem key={feed.id}>
         <AppSidebarMenuButton href={`/feed/${feed.id}`}>
-          <NewspaperIcon />
-          <span className="grow truncate">{feed.title}</span>
+          {feed.enabled ? <NewspaperIcon /> : <PauseIcon />}
+          <span
+            className={`grow truncate ${feed.enabled ? "" : "text-muted-foreground"}`}
+          >
+            {feed.title}
+          </span>
           {feed._count.articles > 0 && (
             <Badge variant="secondary">{feed._count.articles}</Badge>
           )}
