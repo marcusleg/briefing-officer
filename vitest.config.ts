@@ -5,8 +5,8 @@ export default defineConfig({
   test: {
     environment: "node",
     setupFiles: ["./vitest.setup.ts"],
-    // Repositories use a shared per-worker SQLite file, so tests within a
-    // file must not run concurrently against the same connection.
+    // Each file runs in its own worker (default pool), so per-worker DB
+    // isolation via VITEST_WORKER_ID prevents cross-file state bleed.
     fileParallelism: true,
     include: ["tests/unit/**/*.test.ts", "tests/integration/**/*.test.ts"],
     coverage: {
