@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createFeed,
@@ -40,12 +41,14 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
           link: editFeed.link,
           titleFilterExpressions: editFeed.titleFilterExpressions,
           feedCategoryId: editFeed.feedCategoryId ?? undefined,
+          enabled: editFeed.enabled,
         }
       : {
           title: "",
           link: "",
           titleFilterExpressions: "",
           feedCategoryId: undefined,
+          enabled: true,
         },
   });
 
@@ -161,6 +164,28 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                   />
                 </FormControl>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="enabled"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between gap-2">
+                <div className="flex flex-col gap-1">
+                  <FormLabel>Enabled</FormLabel>
+                  <p className="text-muted-foreground text-sm">
+                    Paused feeds are skipped during automatic refresh.
+                  </p>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={submitting}
+                  />
+                </FormControl>
               </FormItem>
             )}
           />
