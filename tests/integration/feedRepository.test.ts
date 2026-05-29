@@ -24,6 +24,7 @@ import {
   deleteCategory,
   deleteFeed,
   getUserCategories,
+  refreshCategoryFeeds,
   refreshFeed,
   refreshFeeds,
   updateCategory,
@@ -178,5 +179,38 @@ describe("feedRepository categories", () => {
     expect(await prisma.feedCategory.count({ where: { id: category.id } })).toBe(0);
     const stillThere = await prisma.feed.findUniqueOrThrow({ where: { id: feed.id } });
     expect(stillThere.feedCategoryId).toBeNull();
+  });
+});
+
+describe("feedRepository.refreshCategoryFeeds", () => {
+  it("refreshes only enabled feeds in the given category", async () => {
+    const category = await createCategory({ userId, name: "Tech" });
+    const inCategoryEnabled = await createFeed({
+      userId,
+      enabled: true,
+      feedCategoryId: category.id,
+      link: "https://example.com/cat-on.xml",
+    });
+    const inCategoryDisabled = await createFeed({
+      userId,
+      enabled: false,
+      feedCategoryId: category.id,
+      link: "https://example.com/cat-off.xml",
+    });
+    const outOfCategory = await createFeed({
+      userId,
+      enabled: true,
+      feedCategoryId: null,
+      link: "https://example.com/no-cat.xml",
+    });
+    vi.mocked(scrapeFeed).mockImplementation(async (feed: Feed) => [
+      feedItem(`Item for ${feed.id}`, `https://example.com/cat-item-${feed.id}`),
+    ]);
+
+    await refreshCategoryFeeds(category.id);
+
+    expect(await prisma.article.count({ where: { feedId: inCategoryEnabled.id } })).toBe(1);
+    expect(await prisma.article.count({ where: { feedId: inCategoryDisabled.id } })).toBe(0);
+    expect(await prisma.article.count({ where: { feedId: outOfCategory.id } })).toBe(0);
   });
 });
