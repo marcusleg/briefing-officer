@@ -64,7 +64,11 @@ const CategoryForm = ({
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter category name" {...field} />
+                  <Input
+                    disabled={submitting}
+                    placeholder="Enter category name"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -73,7 +77,9 @@ const CategoryForm = ({
 
           <div className="flex flex-row justify-end gap-2">
             <DialogClose asChild>
-              <Button variant="secondary">Cancel</Button>
+              <Button disabled={submitting} variant="secondary">
+                Cancel
+              </Button>
             </DialogClose>
             <Button disabled={submitting} type="submit">
               {submitting ? (
