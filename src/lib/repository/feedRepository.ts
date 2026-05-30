@@ -118,7 +118,7 @@ export const refreshFeed = async (feedId: number) => {
 
 export const refreshCategoryFeeds = async (categoryId: number) => {
   const feeds = await prisma.feed.findMany({
-    where: { feedCategoryId: categoryId, enabled: true },
+    where: { feedCategoryId: categoryId, autoRefresh: true },
     select: { id: true },
   });
 
@@ -140,7 +140,7 @@ export const refreshFeeds = async () => {
   logger.debug("Refreshing all feeds.");
 
   const feeds = await prisma.feed.findMany({
-    where: { enabled: true },
+    where: { autoRefresh: true },
     select: { id: true },
   });
 

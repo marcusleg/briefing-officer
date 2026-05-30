@@ -85,15 +85,15 @@ describe("feedRepository.refreshFeed", () => {
 });
 
 describe("feedRepository.refreshFeeds", () => {
-  it("refreshes only enabled feeds", async () => {
-    const enabled = await createFeed({
+  it("refreshes only auto-refresh feeds", async () => {
+    const autoRefreshed = await createFeed({
       userId,
-      enabled: true,
+      autoRefresh: true,
       link: "https://example.com/on.xml",
     });
-    const disabled = await createFeed({
+    const paused = await createFeed({
       userId,
-      enabled: false,
+      autoRefresh: false,
       link: "https://example.com/off.xml",
     });
     vi.mocked(scrapeFeed).mockImplementation(async (feed: Feed) => [
@@ -102,10 +102,10 @@ describe("feedRepository.refreshFeeds", () => {
 
     await refreshFeeds();
 
-    expect(await prisma.article.count({ where: { feedId: enabled.id } })).toBe(
-      1,
-    );
-    expect(await prisma.article.count({ where: { feedId: disabled.id } })).toBe(
+    expect(
+      await prisma.article.count({ where: { feedId: autoRefreshed.id } }),
+    ).toBe(1);
+    expect(await prisma.article.count({ where: { feedId: paused.id } })).toBe(
       0,
     );
   });
@@ -124,7 +124,7 @@ describe("feedRepository.createFeed", () => {
       title: "",
       link: "https://example.com/new.xml",
       titleFilterExpressions: "",
-      enabled: true,
+      autoRefresh: true,
     });
 
     const created = await prisma.feed.findFirstOrThrow({ where: { userId } });
@@ -143,14 +143,14 @@ describe("feedRepository.updateFeed", () => {
       title: "New",
       link: feed.link,
       titleFilterExpressions: "",
-      enabled: false,
+      autoRefresh: false,
     });
 
     const updated = await prisma.feed.findUniqueOrThrow({
       where: { id: feed.id },
     });
     expect(updated.title).toBe("New");
-    expect(updated.enabled).toBe(false);
+    expect(updated.autoRefresh).toBe(false);
   });
 });
 
@@ -209,23 +209,23 @@ describe("feedRepository categories", () => {
 });
 
 describe("feedRepository.refreshCategoryFeeds", () => {
-  it("refreshes only enabled feeds in the given category", async () => {
+  it("refreshes only auto-refresh feeds in the given category", async () => {
     const category = await createCategory({ userId, name: "Tech" });
     const inCategoryEnabled = await createFeed({
       userId,
-      enabled: true,
+      autoRefresh: true,
       feedCategoryId: category.id,
       link: "https://example.com/cat-on.xml",
     });
     const inCategoryDisabled = await createFeed({
       userId,
-      enabled: false,
+      autoRefresh: false,
       feedCategoryId: category.id,
       link: "https://example.com/cat-off.xml",
     });
     const outOfCategory = await createFeed({
       userId,
-      enabled: true,
+      autoRefresh: true,
       feedCategoryId: null,
       link: "https://example.com/no-cat.xml",
     });

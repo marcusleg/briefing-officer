@@ -58,12 +58,12 @@ const FeedNavigation = async () => {
     feeds.map((feed) => (
       <SidebarMenuItem key={feed.id}>
         <AppSidebarMenuButton href={`/feed/${feed.id}`}>
-          {feed.enabled ? <NewspaperIcon /> : <PauseIcon />}
+          {feed.autoRefresh ? <NewspaperIcon /> : <PauseIcon />}
           <span
-            className={`grow truncate ${feed.enabled ? "" : "text-muted-foreground"}`}
+            className={`grow truncate ${feed.autoRefresh ? "" : "text-muted-foreground"}`}
           >
             {feed.title}
-            {!feed.enabled && <span className="sr-only"> (paused)</span>}
+            {!feed.autoRefresh && <span className="sr-only"> (paused)</span>}
           </span>
           {feed._count.articles > 0 && (
             <Badge variant="secondary">{feed._count.articles}</Badge>

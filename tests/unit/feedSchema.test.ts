@@ -5,7 +5,7 @@ const validFeed = {
   title: "Example",
   link: "https://example.com/feed.xml",
   titleFilterExpressions: "",
-  enabled: true,
+  autoRefresh: true,
 };
 
 describe("feedSchema", () => {

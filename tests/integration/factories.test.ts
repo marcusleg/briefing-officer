@@ -18,7 +18,7 @@ describe("factories", () => {
     const user = await createUser();
     const feed = await createFeed({ userId: user.id, title: "My Feed" });
     expect(feed.title).toBe("My Feed");
-    expect(feed.enabled).toBe(true);
+    expect(feed.autoRefresh).toBe(true);
   });
 
   it("creates an article on a feed", async () => {
