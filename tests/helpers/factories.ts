@@ -33,7 +33,7 @@ export const createFeed = (overrides: {
   userId: string;
   title?: string;
   link?: string;
-  enabled?: boolean;
+  autoRefresh?: boolean;
   titleFilterExpressions?: string;
   feedCategoryId?: number | null;
 }) => {
@@ -42,7 +42,7 @@ export const createFeed = (overrides: {
       userId: overrides.userId,
       title: overrides.title ?? "Test Feed",
       link: overrides.link ?? `https://example.com/${randomUUID()}.xml`,
-      enabled: overrides.enabled ?? true,
+      autoRefresh: overrides.autoRefresh ?? true,
       titleFilterExpressions: overrides.titleFilterExpressions ?? "",
       lastFetched: new Date(0),
       feedCategoryId: overrides.feedCategoryId ?? null,

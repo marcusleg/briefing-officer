@@ -41,14 +41,14 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
           link: editFeed.link,
           titleFilterExpressions: editFeed.titleFilterExpressions,
           feedCategoryId: editFeed.feedCategoryId ?? undefined,
-          enabled: editFeed.enabled,
+          autoRefresh: editFeed.autoRefresh,
         }
       : {
           title: "",
           link: "",
           titleFilterExpressions: "",
           feedCategoryId: undefined,
-          enabled: true,
+          autoRefresh: true,
         },
   });
 
@@ -170,13 +170,14 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
 
           <FormField
             control={form.control}
-            name="enabled"
+            name="autoRefresh"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between gap-2">
                 <div className="flex flex-col gap-1">
-                  <FormLabel>Enabled</FormLabel>
+                  <FormLabel>Refresh Automatically</FormLabel>
                   <p className="text-muted-foreground text-sm">
-                    Paused feeds are skipped during automatic refresh.
+                    When disabled, this feed is skipped during automatic
+                    refresh.
                   </p>
                 </div>
                 <FormControl>

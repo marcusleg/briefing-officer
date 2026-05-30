@@ -20,7 +20,7 @@ export const feedSchema = z.object({
     },
   ),
   feedCategoryId: z.number().optional(),
-  enabled: z.boolean(),
+  autoRefresh: z.boolean(),
 });
 export type FeedSchema = z.infer<typeof feedSchema>;
 
