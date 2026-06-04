@@ -82,12 +82,31 @@ export const refreshFeed = async (feedId: number) => {
     feed.titleFilterExpressions,
   );
 
+  const existingLinks = new Set(
+    (
+      await prisma.article.findMany({
+        where: { feedId: feed.id, userId: feed.userId },
+        select: { link: true },
+      })
+    ).map((a) => a.link),
+  );
+
   const createArticlePromises = filteredFeedItems.map((item) =>
-    prisma.article.create({
-      data: {
+    prisma.article.upsert({
+      where: {
+        userId_feedId_link: {
+          userId: feed.userId,
+          feedId: feed.id,
+          link: item.link,
+        },
+      },
+      create: {
         ...item,
         feedId: feed.id,
         userId: feed.userId,
+      },
+      update: {
+        commentsLink: item.commentsLink,
       },
     }),
   );
@@ -96,7 +115,8 @@ export const refreshFeed = async (feedId: number) => {
   // TODO check whether articles that already exist have changed
   const createdArticles = createArticleResults
     .filter((result) => result.status === "fulfilled")
-    .map((result) => result.value);
+    .map((result) => result.value)
+    .filter((article) => !existingLinks.has(article.link));
 
   const processedArticles = createdArticles.map((article) =>
     processArticle(article),
