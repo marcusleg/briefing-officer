@@ -69,6 +69,27 @@ describe("feedRepository.refreshFeed", () => {
     );
   });
 
+  it("updates commentsLink on an existing article when the feed is refreshed", async () => {
+    const feed = await createFeed({ userId });
+    vi.mocked(scrapeFeed).mockResolvedValue([
+      feedItem("Article", "https://example.com/1"),
+    ]);
+    await refreshFeed(feed.id);
+
+    const withComments = {
+      ...feedItem("Article", "https://example.com/1"),
+      commentsLink: "https://example.com/1#comments",
+    };
+    vi.mocked(scrapeFeed).mockResolvedValue([withComments]);
+    await refreshFeed(feed.id);
+
+    const article = await prisma.article.findFirstOrThrow({
+      where: { feedId: feed.id },
+    });
+    expect(article.commentsLink).toBe("https://example.com/1#comments");
+    expect(await prisma.article.count({ where: { feedId: feed.id } })).toBe(1);
+  });
+
   it("does not create articles whose title matches a filter expression", async () => {
     const feed = await createFeed({ userId, titleFilterExpressions: "Sports" });
     vi.mocked(scrapeFeed).mockResolvedValue([

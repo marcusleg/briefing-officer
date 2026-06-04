@@ -180,4 +180,40 @@ describe("scrapeFeed", () => {
     expect(items[0].commentsLink).toBeNull();
     vi.unstubAllGlobals();
   });
+
+  it("assigns commentsLink by link URL, not position, when an invalid item precedes a valid one", async () => {
+    const xml = `
+      <rss><channel>
+        <item>
+          <title>Bad Item (no pubDate)</title>
+          <link>https://example.com/bad</link>
+          <comments>https://example.com/bad#comments</comments>
+        </item>
+        <item>
+          <title>Good Item</title>
+          <link>https://example.com/good</link>
+          <comments>https://example.com/good#comments</comments>
+        </item>
+      </channel></rss>
+    `;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
+    // parseFeed skips the bad item (no pubDate) — only returns the good one
+    vi.mocked(parseFeed).mockReturnValue({
+      type: "rss2",
+      id: "",
+      title: "Test",
+      link: "",
+      description: "",
+      items: [makeRssItem("Good Item", "https://example.com/good")],
+    } as ReturnType<typeof parseFeed>);
+
+    const items = await scrapeFeed(makeFeed());
+
+    expect(items).toHaveLength(1);
+    expect(items[0].commentsLink).toBe("https://example.com/good#comments");
+    vi.unstubAllGlobals();
+  });
 });
