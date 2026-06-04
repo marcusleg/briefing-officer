@@ -26,9 +26,9 @@ vi.mock("@/lib/logger", () => ({
 }));
 vi.mock("@/lib/ai/services/leadService", () => ({ generateAiLead: vi.fn() }));
 
-import { parseFeed } from "htmlparser2";
 import { scrapeFeed } from "@/lib/scraper";
 import type { Feed } from "@prisma/client";
+import { parseFeed } from "htmlparser2";
 
 const makeFeed = (link = "https://example.com/feed.xml"): Feed =>
   ({
@@ -67,7 +67,10 @@ describe("scrapeFeed", () => {
         </item>
       </channel></rss>
     `;
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(xml)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
     vi.mocked(parseFeed).mockReturnValue({
       type: "rss2",
       id: "",
@@ -93,7 +96,10 @@ describe("scrapeFeed", () => {
         </item>
       </channel></rss>
     `;
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(xml)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
     vi.mocked(parseFeed).mockReturnValue({
       type: "rss2",
       id: "",
@@ -124,7 +130,10 @@ describe("scrapeFeed", () => {
         </item>
       </channel></rss>
     `;
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(xml)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
     vi.mocked(parseFeed).mockReturnValue({
       type: "rss2",
       id: "",
@@ -153,7 +162,10 @@ describe("scrapeFeed", () => {
         </entry>
       </feed>
     `;
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(xml)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
     vi.mocked(parseFeed).mockReturnValue({
       type: "atom",
       id: "",

@@ -1,25 +1,34 @@
 # Comments Link Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> superpowers:subagent-driven-development (recommended) or
+> superpowers:executing-plans to implement this plan task-by-task. Steps use
+> checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Show a "Comments" link button on article cards when the RSS feed item includes a `<comments>` URL, opening in a new tab.
+**Goal:** Show a "Comments" link button on article cards when the RSS feed item
+includes a `<comments>` URL, opening in a new tab.
 
-**Architecture:** Add `commentsLink String?` to the `Article` schema; extract the field from raw RSS XML in `scrapeFeed` via regex alongside the existing `parseFeed` call; pass it through to `prisma.article.create`; render a new `CommentsButton` component in `article-card-actions.tsx` conditionally when the field is present.
+**Architecture:** Add `commentsLink String?` to the `Article` schema; extract
+the field from raw RSS XML in `scrapeFeed` via regex alongside the existing
+`parseFeed` call; pass it through to `prisma.article.create`; render a new
+`CommentsButton` component in `article-card-actions.tsx` conditionally when the
+field is present.
 
-**Tech Stack:** Prisma (SQLite), Next.js Server Components, Vitest (unit + integration), TypeScript
+**Tech Stack:** Prisma (SQLite), Next.js Server Components, Vitest (unit +
+integration), TypeScript
 
 ---
 
 ## File Map
 
-| Action | File |
-|--------|------|
-| Modify | `prisma/schema.prisma` |
+| Action | File                                                                             |
+| ------ | -------------------------------------------------------------------------------- |
+| Modify | `prisma/schema.prisma`                                                           |
 | Create | `prisma/migrations/<timestamp>_add_comments_link/migration.sql` (auto-generated) |
-| Modify | `src/lib/scraper.ts` |
-| Modify | `tests/integration/feedRepository.test.ts` |
-| Create | `src/components/article/comments-button.tsx` |
-| Modify | `src/components/article/article-card-actions.tsx` |
+| Modify | `src/lib/scraper.ts`                                                             |
+| Modify | `tests/integration/feedRepository.test.ts`                                       |
+| Create | `src/components/article/comments-button.tsx`                                     |
+| Modify | `src/components/article/article-card-actions.tsx`                                |
 
 ---
 
@@ -38,11 +47,13 @@ Expected: `Switched to a new branch 'feat/comments-link'`
 ### Task 2: Add `commentsLink` to the Prisma schema and migrate
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 - [ ] **Step 1: Add the field to the Article model**
 
-In `prisma/schema.prisma`, find the `Article` model and add `commentsLink` after `link`:
+In `prisma/schema.prisma`, find the `Article` model and add `commentsLink` after
+`link`:
 
 ```prisma
 model Article {
@@ -75,7 +86,8 @@ model Article {
 npm run prisma:migrate-dev -- --name add_comments_link
 ```
 
-Expected output includes: `The following migration(s) have been applied` and `✓ Generated Prisma Client`
+Expected output includes: `The following migration(s) have been applied` and
+`✓ Generated Prisma Client`
 
 - [ ] **Step 3: Commit**
 
@@ -89,11 +101,13 @@ git commit -m "feat: add commentsLink field to Article schema"
 ### Task 3: Extract `<comments>` in `scrapeFeed` and update the return type
 
 **Files:**
+
 - Modify: `src/lib/scraper.ts`
 
 - [ ] **Step 1: Update the `scrapeFeed` function**
 
-Replace the entire `scrapeFeed` function in `src/lib/scraper.ts` (lines 73–106) with:
+Replace the entire `scrapeFeed` function in `src/lib/scraper.ts` (lines 73–106)
+with:
 
 ```typescript
 export const scrapeFeed = async (feed: Feed) => {
@@ -108,9 +122,9 @@ export const scrapeFeed = async (feed: Feed) => {
     throw new Error("Unable to parse feed.");
   }
 
-  const commentsUrls = [...fetchedFeed.matchAll(/<comments>(.*?)<\/comments>/gs)].map(
-    (m) => m[1].trim(),
-  );
+  const commentsUrls = [
+    ...fetchedFeed.matchAll(/<comments>(.*?)<\/comments>/gs),
+  ].map((m) => m[1].trim());
 
   const validFeedItems: Pick<
     Article,
@@ -157,9 +171,12 @@ git commit -m "feat: extract <comments> URL from RSS feed items"
 ### Task 4: Add unit tests for `<comments>` extraction in `scrapeFeed`
 
 **Files:**
+
 - Create: `tests/unit/scraper.test.ts`
 
-The existing integration tests mock `scrapeFeed` entirely, so we need a unit test that exercises the extraction logic directly. We mock `fetch` and `parseFeed` to control the inputs.
+The existing integration tests mock `scrapeFeed` entirely, so we need a unit
+test that exercises the extraction logic directly. We mock `fetch` and
+`parseFeed` to control the inputs.
 
 - [ ] **Step 1: Create the test file**
 
@@ -219,7 +236,10 @@ describe("scrapeFeed", () => {
         </item>
       </channel></rss>
     `;
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(xml)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
     vi.mocked(parseFeed).mockReturnValue({
       type: "rss2",
       id: "",
@@ -245,7 +265,10 @@ describe("scrapeFeed", () => {
         </item>
       </channel></rss>
     `;
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(xml)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
     vi.mocked(parseFeed).mockReturnValue({
       type: "rss2",
       id: "",
@@ -274,7 +297,10 @@ describe("scrapeFeed", () => {
         </item>
       </channel></rss>
     `;
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(xml)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
     vi.mocked(parseFeed).mockReturnValue({
       type: "rss2",
       id: "",
@@ -303,7 +329,10 @@ describe("scrapeFeed", () => {
         </entry>
       </feed>
     `;
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(xml)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
     vi.mocked(parseFeed).mockReturnValue({
       type: "atom",
       id: "",
@@ -341,13 +370,17 @@ git commit -m "test: unit tests for commentsLink extraction in scrapeFeed"
 ### Task 5: Update the integration test helper to include `commentsLink`
 
 **Files:**
+
 - Modify: `tests/integration/feedRepository.test.ts`
 
-The `feedItem` helper in the integration test returns a mock `scrapeFeed` result. It needs `commentsLink` to match the updated return type, so existing tests don't get TypeScript errors.
+The `feedItem` helper in the integration test returns a mock `scrapeFeed`
+result. It needs `commentsLink` to match the updated return type, so existing
+tests don't get TypeScript errors.
 
 - [ ] **Step 1: Update the `feedItem` helper**
 
-In `tests/integration/feedRepository.test.ts`, update the `feedItem` helper (lines 36–41):
+In `tests/integration/feedRepository.test.ts`, update the `feedItem` helper
+(lines 36–41):
 
 ```typescript
 const feedItem = (title: string, link: string) => ({
@@ -379,6 +412,7 @@ git commit -m "test: add commentsLink to feedItem helper"
 ### Task 6: Create the `CommentsButton` component
 
 **Files:**
+
 - Create: `src/components/article/comments-button.tsx`
 
 - [ ] **Step 1: Create the component**
@@ -441,11 +475,14 @@ git commit -m "feat: add CommentsButton component"
 ### Task 7: Wire `CommentsButton` into `article-card-actions.tsx`
 
 **Files:**
+
 - Modify: `src/components/article/article-card-actions.tsx`
 
 - [ ] **Step 1: Import and place `CommentsButton`**
 
-In `src/components/article/article-card-actions.tsx`, add the import and place `<CommentsButton>` immediately after `<VisitButton>`. The full file should look like:
+In `src/components/article/article-card-actions.tsx`, add the import and place
+`<CommentsButton>` immediately after `<VisitButton>`. The full file should look
+like:
 
 ```typescript
 "use client";
@@ -528,9 +565,12 @@ git commit -m "feat: show CommentsButton in article card actions"
 npm run dev
 ```
 
-- [ ] **Step 2: Open an RSS feed that includes `<comments>` elements** (e.g. `https://hnrss.org/show?points=100`) and verify:
-  - Articles with a `<comments>` URL show a "Comments" button to the right of "Visit Original"
+- [ ] **Step 2: Open an RSS feed that includes `<comments>` elements** (e.g.
+      `https://hnrss.org/show?points=100`) and verify:
+  - Articles with a `<comments>` URL show a "Comments" button to the right of
+    "Visit Original"
   - Clicking it opens the comments URL in a new tab
   - Articles without a `<comments>` URL show no button
 
-- [ ] **Step 3: Open an Atom feed and verify no "Comments" button appears on any article**
+- [ ] **Step 3: Open an Atom feed and verify no "Comments" button appears on any
+      article**
