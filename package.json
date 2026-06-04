@@ -68,7 +68,7 @@
     "pino": "^10.3.0",
     "quick-lru": "^7.3.0",
     "radix-ui": "^1.4.3",
-    "react": "19.2.3",
+    "react": "19.2.4",
     "react-day-picker": "^9.13.2",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.71.1",
