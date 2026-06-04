@@ -1,6 +1,7 @@
 "use client";
 
 import AiSummaryButton from "@/components/article/ai-summary-button";
+import CommentsButton from "@/components/article/comments-button";
 import ToggleReadButton from "@/components/article/toggle-read-button";
 import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
 import ToggleStarredButton from "@/components/article/toggle-starred-button";
@@ -30,6 +31,8 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
     <ToggleReadButton article={props.article} />
 
     <VisitButton article={props.article} size="sm" />
+
+    <CommentsButton article={props.article} />
 
     {!props.hideAiSummary && (
       <AiSummaryButton
