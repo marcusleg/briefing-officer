@@ -82,11 +82,20 @@ export const scrapeFeed = async (feed: Feed) => {
     throw new Error("Unable to parse feed.");
   }
 
+  const itemBlocks = [...fetchedFeed.matchAll(/<item[\s>](.*?)<\/item>/gs)].map(
+    (m) => m[0],
+  );
+
+  const commentsUrls = itemBlocks.map((block) => {
+    const match = block.match(/<comments>(.*?)<\/comments>/s);
+    return match ? match[1].trim() : null;
+  });
+
   const validFeedItems: Pick<
     Article,
-    "title" | "link" | "description" | "publicationDate"
+    "title" | "link" | "description" | "publicationDate" | "commentsLink"
   >[] = [];
-  parsedFeed.items.forEach((item) => {
+  parsedFeed.items.forEach((item, index) => {
     if (!item.title || !item.link || !item.pubDate) {
       logger.error({ item }, "Invalid feed item.");
     } else {
@@ -95,6 +104,7 @@ export const scrapeFeed = async (feed: Feed) => {
         link: item.link,
         description: item.description ? item.description : null,
         publicationDate: new Date(item.pubDate),
+        commentsLink: commentsUrls[index] ?? null,
       });
     }
   });

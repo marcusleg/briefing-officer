@@ -38,6 +38,7 @@ const feedItem = (title: string, link: string) => ({
   link,
   description: null,
   publicationDate: new Date(),
+  commentsLink: null,
 });
 
 beforeEach(async () => {
