@@ -90,12 +90,16 @@ Standard flow:
    `docs/add-git-instructions`).
 2. Commit changes.
 3. Push the branch.
-4. Open a PR against `main` with `gh pr create`. The PR title should follow
-   Conventional Commits too, since squash-merges use it as the commit message.
+4. Open a PR against `main` with `gh pr create`. Each commit on the branch
+   should already follow Conventional Commits, since the default merge method is
+   **rebase** — individual commits land on `main` as-is, preserving the branch
+   history.
 5. Wait for CI (`format-check`, `lint`, `test`, `build`) to pass.
 6. The user reviews the PR before it can be merged. The user will either merge
    the PR themselves or explicitly instruct the agent to merge it. Do **not**
-   merge a PR without that explicit instruction, even after CI passes.
+   merge a PR without that explicit instruction, even after CI passes. When
+   merging on the user's behalf, use `gh pr merge --rebase` unless the user
+   specifies a different method.
 
 If any check fails, fix the underlying issue and re-push. Do **not** bypass with
 `git commit --no-verify`, `gh pr merge --admin`, or by disabling the failing
