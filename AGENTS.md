@@ -35,7 +35,10 @@ npm run build   # Next.js production build
 
 ### Commit messages
 
-Use [Conventional Commits](https://www.conventionalcommits.org/) **without scopes**.
+Use [Conventional Commits](https://www.conventionalcommits.org/) **without
+scopes**. The commit history feeds `release-please`, which generates the
+changelog and version bumps — non-conforming messages break the release
+pipeline.
 
 Valid prefixes:
 
@@ -56,33 +59,44 @@ Example: `feat: add user registration form`
 
 Every commit must include `Co-Authored-By` trailer lines for:
 
-1. **The coding agent** — e.g. `Co-Authored-By: OpenCode <noreply@opencode.ai>`
-2. **The LLM model used** — e.g. `Co-Authored-By: Qwen 3.6 27B <noreply@opencode.ai>`
+1. **The coding agent** — the tool driving the session (e.g. `Claude Code`,
+   `OpenCode`, `Codex`, `Aider`, `Cursor`)
+2. **The LLM model** — the actual model loaded in your session, with whatever
+   version identifier is current
 
-Use the actual agent name and model loaded in your session. Common agent
-names: `Claude Code`, `OpenCode`, `Codex`. Common model examples:
-`Claude Sonnet 4.6`, `Qwen 3.6 27B`, `GPT-4o`.
+Use a `noreply@` address from the relevant vendor (e.g. `noreply@anthropic.com`
+for Claude models, `noreply@openai.com` for GPT models, `noreply@qwen.ai` for
+Qwen models). When the agent and model come from the same vendor, both trailers
+can share the same domain.
 
 Example commit message:
 
 ```
 feat: add user registration form
 
-Co-Authored-By: OpenCode <noreply@opencode.ai>
-Co-Authored-By: Qwen 3.6 27B <noreply@qwen.ai>
+Co-Authored-By: Claude Code <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 ```
 
 ### Workflow
 
-Pushing directly to `main` is discouraged and requires explicit user consent.
+Pushing directly to `main` is prohibited unless the user explicitly authorises
+it for a specific commit.
 
-Typical git flow:
+Standard flow:
 
-1. Create a branch
-2. Commit changes
-3. Push changes
-4. Create a pull request
-5. Merge PR if all checks pass
+1. Create a branch named `<type>/<short-slug>`, where `<type>` matches a
+   Conventional Commits prefix (e.g. `feat/user-registration`,
+   `docs/add-git-instructions`).
+2. Commit changes.
+3. Push the branch.
+4. Open a PR against `main` with `gh pr create`. The PR title should follow
+   Conventional Commits too, since squash-merges use it as the commit message.
+5. Wait for CI (`format-check`, `lint`, `test`, `build`) to pass, then merge.
+
+If any check fails, fix the underlying issue and re-push. Do **not** bypass with
+`git commit --no-verify`, `gh pr merge --admin`, or by disabling the failing
+job.
 
 ### Commit granularity
 
