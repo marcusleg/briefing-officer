@@ -90,7 +90,7 @@
     "@types/react-dom": "19.2.3",
     "@vitest/coverage-v8": "^4.1.8",
     "eslint": "9.39.2",
-    "eslint-config-next": "16.1.7",
+    "eslint-config-next": "16.2.7",
     "postcss": "8.5.15",
     "prettier": "3.7.4",
     "prettier-plugin-organize-imports": "4.3.0",
