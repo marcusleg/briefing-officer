@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.7.0](https://github.com/marcusleg/briefing-officer/compare/v0.6.1...v0.7.0) (2026-06-04)
+
+
+### Features
+
+* add enabled column to Feed via migration ([d1dba31](https://github.com/marcusleg/briefing-officer/commit/d1dba31d823928fc1b022728d006d9865056d4da))
+* add enabled switch to feed form ([fab0a95](https://github.com/marcusleg/briefing-officer/commit/fab0a953fe31dbea7dbb6b68afe7d67620148116))
+* add enabled to feed schema ([61bff82](https://github.com/marcusleg/briefing-officer/commit/61bff82ba5cc1a041501a05abc3ccd706bd1b1c0))
+* add Switch ui component ([32c9f2d](https://github.com/marcusleg/briefing-officer/commit/32c9f2ddc38bf049d2f7f6c966e5a6b29a47059c))
+* announce paused feeds to screen readers ([b89397d](https://github.com/marcusleg/briefing-officer/commit/b89397dfb29f436a11beb1da23ee48da4157d7f3))
+* disable form inputs and buttons while submitting for improved UX ([e02de2c](https://github.com/marcusleg/briefing-officer/commit/e02de2c55a85e9beb43e74ddd4583438fce9ac52))
+* show Comments link on article cards from RSS &lt;comments&gt; field ([#642](https://github.com/marcusleg/briefing-officer/issues/642)) ([2e2cafc](https://github.com/marcusleg/briefing-officer/commit/2e2cafc201205f1397a826b63bdc822568fe106f))
+* show disabled feeds as paused in sidebar ([f13b58c](https://github.com/marcusleg/briefing-officer/commit/f13b58c586277c19ba526422bc21fc082a3ddeaf))
+* skip disabled feeds in automatic refresh ([1c20568](https://github.com/marcusleg/briefing-officer/commit/1c2056806731144087505dd79b357663f8747df9))
+
+
+### Bug Fixes
+
+* make CommentsButton visible by correcting commentsLink indexing and upsert on refresh ([85821f1](https://github.com/marcusleg/briefing-officer/commit/85821f1080b250eb44e3c5c506f5ee179d7b98e7))
+
 ## [0.6.1](https://github.com/marcusleg/briefing-officer/compare/v0.6.0...v0.6.1) (2026-04-01)
 
 
