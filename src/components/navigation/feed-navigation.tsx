@@ -1,21 +1,19 @@
 "use server";
 
-import AddCategoryFormDialogTrigger from "@/components/category/add-category-form-dialog-trigger";
-import AddFeedFormDialogTrigger from "@/components/navigation/add-feed-form-dialog-trigger";
+import AddNavActions from "@/components/navigation/add-nav-actions";
 import AppSidebarMenuButton from "@/components/navigation/app-sidebar-menu-button";
 import { Badge } from "@/components/ui/badge";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { Prisma } from "@prisma/client";
-import { NewspaperIcon, PauseIcon, PlusIcon } from "lucide-react";
+import { NewspaperIcon, PauseIcon } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
@@ -99,22 +97,7 @@ const FeedNavigation = async () => {
       <SidebarSeparator />
 
       <SidebarGroupContent>
-        <SidebarMenuItem>
-          <AddCategoryFormDialogTrigger>
-            <SidebarMenuButton className="cursor-pointer">
-              <PlusIcon />
-              <span className="truncate">Add Category</span>
-            </SidebarMenuButton>
-          </AddCategoryFormDialogTrigger>
-        </SidebarMenuItem>
-        <AddFeedFormDialogTrigger>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="cursor-pointer">
-              <PlusIcon />
-              <span className="truncate">Add Feed</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </AddFeedFormDialogTrigger>
+        <AddNavActions />
       </SidebarGroupContent>
     </SidebarGroup>
   );
