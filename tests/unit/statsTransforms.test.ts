@@ -2,6 +2,7 @@ import {
   computeDailyAverage,
   shapeArticlesPerFeedPerDay,
   shapeTokenUsage,
+  type ArticlesPerFeedRow,
 } from "@/lib/repository/statsTransforms";
 import { TokenUsage } from "@prisma/client";
 import { describe, expect, it } from "vitest";
@@ -46,7 +47,7 @@ describe("shapeArticlesPerFeedPerDay", () => {
   });
 
   it("collects feed keys across rows, excluding 'date'", () => {
-    const rows = [
+    const rows: ArticlesPerFeedRow[] = [
       { date: "d1", FeedA: 2, FeedB: 3 },
       { date: "d2", FeedA: 1, FeedC: 4 },
     ];
@@ -56,7 +57,7 @@ describe("shapeArticlesPerFeedPerDay", () => {
   });
 
   it("computes dailyAverage from numeric feed values only", () => {
-    const rows = [
+    const rows: ArticlesPerFeedRow[] = [
       { date: "d1", FeedA: 2, FeedB: 3 },
       { date: "d2", FeedA: 5 },
     ];
