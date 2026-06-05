@@ -1,6 +1,13 @@
 "use server";
 
 import prisma from "@/lib/prismaClient";
+import { calculateTotalCost } from "@/lib/ai/tokenPricing";
+import {
+  ArticlesPerFeedRow,
+  computeDailyAverage,
+  shapeArticlesPerFeedPerDay,
+  shapeTokenUsage,
+} from "@/lib/repository/statsTransforms";
 import { getUserId } from "@/lib/repository/userRepository";
 
 export const getNumberOfReadLaterArticles = async () => {
@@ -66,15 +73,13 @@ export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
 
   const dates = getDaysInDateRange(from, to);
 
-  // Fetch feeds once to map feedId -> title
   const feeds = await prisma.feed.findMany({
     where: { userId },
     select: { id: true, title: true },
   });
   const feedTitleById = new Map(feeds.map((f) => [f.id, f.title]));
 
-  // For each date, group articles by feed and count
-  const perDayPerFeed = await Promise.all(
+  const perDayPerFeed: ArticlesPerFeedRow[] = await Promise.all(
     dates.map(async (date) => {
       const groups = await prisma.article.groupBy({
         by: ["feedId"],
@@ -88,8 +93,8 @@ export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
         },
       });
 
-      const entry: Record<string, string> = { date };
-      groups.forEach((g: any) => {
+      const entry: ArticlesPerFeedRow = { date };
+      groups.forEach((g) => {
         const title = feedTitleById.get(g.feedId);
         if (title) {
           entry[title] = g._count._all;
@@ -99,7 +104,7 @@ export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
     }),
   );
 
-  return perDayPerFeed;
+  return shapeArticlesPerFeedPerDay(perDayPerFeed);
 };
 
 export const getWeeklyArticlesRead = async (from: Date, to: Date) => {
@@ -124,10 +129,12 @@ export const getWeeklyArticlesRead = async (from: Date, to: Date) => {
     ),
   );
 
-  return dates.map((date, index) => ({
+  const rows = dates.map((date, index) => ({
     date,
     count: articlesReadPerDay[index]._count._all,
   }));
+
+  return { rows, dailyAverage: computeDailyAverage(rows) };
 };
 
 export const getTokenUsageHistory = async (from: Date, to: Date) => {
@@ -135,7 +142,7 @@ export const getTokenUsageHistory = async (from: Date, to: Date) => {
 
   const dates = getDaysInDateRange(from, to);
 
-  return prisma.tokenUsage.findMany({
+  const raw = await prisma.tokenUsage.findMany({
     where: {
       userId,
       date: {
@@ -143,4 +150,7 @@ export const getTokenUsageHistory = async (from: Date, to: Date) => {
       },
     },
   });
+
+  const { rows, models } = shapeTokenUsage(raw);
+  return { rows, models, totalCost: calculateTotalCost(raw) };
 };
