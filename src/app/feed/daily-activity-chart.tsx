@@ -2,98 +2,55 @@
 
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
-import SkeletonChart from "@/app/feed/skeleton-chart";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import ChartCard from "@/app/feed/chart-card";
+import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useDateFormatters } from "@/hooks/use-date-formatters";
 
 const chartConfig = {
-  count: {
-    label: "Articles",
-  },
-} satisfies ChartConfig;
+  count: { label: "Articles" },
+};
 
-export interface NumberOfArticlesReadLast7DaysChartData {
-  date: string;
-  count: number;
+export interface DailyActivityData {
+  rows: Array<{ date: string; count: number }>;
+  dailyAverage: number;
 }
 
-interface NumberOfArticlesReadLast7DaysChartProps {
-  chartData?: NumberOfArticlesReadLast7DaysChartData[];
+interface DailyActivityChartProps {
+  data?: DailyActivityData;
 }
 
-const DailyActivityChart = ({
-  chartData,
-}: NumberOfArticlesReadLast7DaysChartProps) => {
-  const chartTitle = "Your Daily Activity";
-  const chartDescription = "Number of articles you interacted with each day";
-
-  if (!chartData) {
-    return <SkeletonChart title={chartTitle} description={chartDescription} />;
-  }
-
-  const dateFormatterShort = new Intl.DateTimeFormat(navigator.language, {
-    day: "2-digit",
-    month: "short",
-  });
-  const dateFormatterLong = new Intl.DateTimeFormat(navigator.language, {
-    dateStyle: "full",
-  });
-
-  const dailyAverage = chartData.reduce((acc, day) => acc + day.count, 0) / 7;
+const DailyActivityChart = ({ data }: DailyActivityChartProps) => {
+  const { short, long } = useDateFormatters();
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{chartTitle}</CardTitle>
-        <CardDescription>{chartDescription}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="date"
-              tickFormatter={(value) =>
-                dateFormatterShort.format(new Date(value))
-              }
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent />}
-              labelFormatter={(value) =>
-                dateFormatterLong.format(new Date(value))
-              }
-            />
-            <Bar dataKey="count" fill="var(--chart-1)" stackId="a" />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-      <CardFooter className="text-center text-sm font-medium">
-        {dailyAverage.toFixed(2)} articles per day
-      </CardFooter>
-    </Card>
+    <ChartCard
+      title="Your Daily Activity"
+      description="Number of articles you interacted with each day"
+      config={chartConfig}
+      data={data}
+      footer={data && `${data.dailyAverage.toFixed(2)} articles per day`}
+    >
+      <BarChart
+        accessibilityLayer
+        data={data?.rows}
+        margin={{ left: 12, right: 12 }}
+      >
+        <CartesianGrid vertical={false} />
+        <XAxis
+          dataKey="date"
+          tickFormatter={(value) => short.format(new Date(value))}
+          tickLine={false}
+          tickMargin={10}
+          axisLine={false}
+        />
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent />}
+          labelFormatter={(value) => long.format(new Date(value))}
+        />
+        <Bar dataKey="count" fill="var(--chart-1)" stackId="a" />
+      </BarChart>
+    </ChartCard>
   );
 };
 
