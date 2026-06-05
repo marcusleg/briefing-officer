@@ -7,6 +7,7 @@ mod api;
 mod db;
 mod models;
 mod repository;
+mod frontend;
 
 use crate::repository::FeedRepository;
 use crate::api::handlers::AppState;

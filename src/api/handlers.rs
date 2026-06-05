@@ -24,6 +24,7 @@ pub fn create_router(state: AppState) -> Router<AppState> {
         .route("/feeds", get(get_feeds).post(create_feed))
         .route("/articles", get(get_articles))
         .route("/articles/:id/read", patch(mark_article_as_read))
+        .route("/", get(render_app))
         .with_state(state)
 }
 
@@ -82,4 +83,18 @@ async fn get_articles(_state: State<AppState>) -> impl IntoResponse {
 
 async fn mark_article_as_read(_state: State<AppState>, Path(_id): Path<uuid::Uuid>) -> impl IntoResponse {
     StatusCode::OK
+}
+
+async fn render_app() -> impl IntoResponse {
+    format!(
+        "<!DOCTYPE html>
+        <html lang=\"en\">
+            <head>
+                <meta charset=\"utf-8\" />
+                <meta name=\"viewport\" content=\"width=device-width, initial-scale/\" />
+                <title>Briefing Officer</title>
+            </head>
+            <body></body>
+        </html>"
+    )
 }
