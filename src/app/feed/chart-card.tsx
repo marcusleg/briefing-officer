@@ -18,7 +18,7 @@ interface ChartCardProps {
   description: string;
   footer?: ReactNode;
   config: ChartConfig;
-  data: unknown | undefined;
+  data: unknown;
   children: ReactNode;
   containerClassName?: string;
 }

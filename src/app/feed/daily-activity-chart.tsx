@@ -3,12 +3,16 @@
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import ChartCard from "@/app/feed/chart-card";
-import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { useDateFormatters } from "@/hooks/use-date-formatters";
 
 const chartConfig = {
   count: { label: "Articles" },
-};
+} satisfies ChartConfig;
 
 export interface DailyActivityData {
   rows: Array<{ date: string; count: number }>;
