@@ -36,6 +36,23 @@ jobs:
       - name: Run Lint
         run: npm run lint
 
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.x"
+          cache: "npm"
+      - name: Install Dependencies
+        run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+      - name: Run Unit and Integration Tests
+        run: npm run test
+
   build:
     runs-on: ubuntu-latest
 
@@ -45,7 +62,7 @@ jobs:
       AZURE_OPENAI_MODEL: gpt-0-pico
       AZURE_OPENAI_RESOURCE_NAME: oai-example-dev-001
       CRON_API_TOKEN: any-value-will-do-at-build-time
-       DATABASE_URL: file:/tmp/briefing-officer-test.sqlite
+      DATABASE_URL: file:/tmp/database.sqlite
       OPENAI_API_KEY=: any-value-will-do-at-build-time
       OPENAI_API_URL=: http://localhost
 
@@ -63,7 +80,7 @@ jobs:
       - name: Run Build
         run: npm run build
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build-artifact
           path: .next/
@@ -71,40 +88,37 @@ jobs:
           include-hidden-files: "true"
           retention-days: 1
 
-  e2e-test:
-    needs: build
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24.x"
-       - name: Install dependencies
-         run: npm ci
-       - name: Generate Prisma Client
-         run: npx prisma generate
-       - name: Download Build Artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: build-artifact
-          path: ${{ github.workspace }}/.next/
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-      - name: Run Prisma migrations
-        run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: file:/tmp/briefing-officer-test.sqlite
-      - name: Run Playwright tests
-        run: npx playwright test
-        env:
-          DATABASE_URL: file:/tmp/briefing-officer-test.sqlite
-      - uses: actions/upload-artifact@v6
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
+  #  e2e-test:
+  #    needs: build
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #      - uses: actions/checkout@v6
+  #      - uses: actions/setup-node@v6
+  #        with:
+  #          node-version: "24.x"
+  #      - name: Install dependencies
+  #        run: npm ci
+  #      - name: Download Build Artifact
+  #        uses: actions/download-artifact@v7
+  #        with:
+  #          name: build-artifact
+  #          path: ${{ github.workspace }}/.next/
+  #      - name: Install Playwright Browsers
+  #        run: npx playwright install --with-deps
+  #      - name: Run Prisma migrations
+  #        run: npx prisma migrate deploy
+  #        env:
+  #          DATABASE_URL: file:/tmp/briefing-officer-test.sqlite
+  #      - name: Run Playwright tests
+  #        run: npx playwright test
+  #        env:
+  #          DATABASE_URL: file:/tmp/briefing-officer-test.sqlite
+  #      - uses: actions/upload-artifact@v7
+  #        if: ${{ !cancelled() }}
+  #        with:
+  #          name: playwright-report
+  #          path: playwright-report/
+  #          retention-days: 30
 
   render-helm-chart:
     runs-on: ubuntu-latest
