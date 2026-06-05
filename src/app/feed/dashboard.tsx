@@ -1,12 +1,12 @@
 "use client";
 
 import DailyActivityChart, {
-  NumberOfArticlesReadLast7DaysChartData,
+  DailyActivityData,
 } from "@/app/feed/daily-activity-chart";
 import DailyNewArticlesChart, {
-  NumberOfArticlesLast7DaysChartData,
+  DailyNewArticlesData,
 } from "@/app/feed/daily-new-articles-chart";
-import TokenUsageChart from "@/app/feed/token-usage-chart";
+import TokenUsageChart, { TokenUsageData } from "@/app/feed/token-usage-chart";
 import UnreadArticlesPieChart, {
   UnreadArticlesChartData,
 } from "@/app/feed/unread-articles-pie-chart";
@@ -18,7 +18,6 @@ import {
   getWeeklyArticleCountPerFeed,
   getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
-import { TokenUsage } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 export enum DateRangePreset {
@@ -60,12 +59,11 @@ const Dashboard = () => {
 
   const [unreadArticlesChartData, setUnreadArticlesChartData] =
     useState<UnreadArticlesChartData[]>();
-  const [tokenUsageChartData, setTokenUsageChartData] =
-    useState<TokenUsage[]>();
-  const [numberOfNewArticlesChartData, setNumberOfNewArticlesChartData] =
-    useState<NumberOfArticlesLast7DaysChartData[]>();
-  const [weeklyArticlesReadChartData, setWeeklyArticlesReadChartData] =
-    useState<NumberOfArticlesReadLast7DaysChartData[]>();
+  const [tokenUsageData, setTokenUsageData] = useState<TokenUsageData>();
+  const [dailyNewArticlesData, setDailyNewArticlesData] =
+    useState<DailyNewArticlesData>();
+  const [dailyActivityData, setDailyActivityData] =
+    useState<DailyActivityData>();
 
   useEffect(() => {
     const dateRange = getDateRangeFromPreset(selectedRange);
@@ -73,15 +71,15 @@ const Dashboard = () => {
     getUnreadArticlesPerFeed().then((data) => setUnreadArticlesChartData(data));
 
     getTokenUsageHistory(dateRange.from, dateRange.to).then((data) =>
-      setTokenUsageChartData(data),
+      setTokenUsageData(data),
     );
 
     getWeeklyArticleCountPerFeed(dateRange.from, dateRange.to).then((data) =>
-      setNumberOfNewArticlesChartData(data),
+      setDailyNewArticlesData(data),
     );
 
     getWeeklyArticlesRead(dateRange.from, dateRange.to).then((data) =>
-      setWeeklyArticlesReadChartData(data),
+      setDailyActivityData(data),
     );
   }, [selectedRange]);
 
@@ -105,11 +103,9 @@ const Dashboard = () => {
 
       <div className="mx-auto hidden w-full max-w-7xl grid-cols-1 gap-4 md:visible md:grid md:grid-cols-2 lg:grid-cols-4">
         <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
-        <TokenUsageChart chartData={tokenUsageChartData} />
-        <DailyNewArticlesChart chartData={numberOfNewArticlesChartData} />
-        <DailyActivityChart
-          chartData={weeklyArticlesReadChartData}
-        ></DailyActivityChart>
+        <TokenUsageChart data={tokenUsageData} />
+        <DailyNewArticlesChart data={dailyNewArticlesData} />
+        <DailyActivityChart data={dailyActivityData} />
       </div>
     </>
   );
