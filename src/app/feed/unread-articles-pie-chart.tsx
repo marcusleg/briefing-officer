@@ -1,7 +1,11 @@
 "use client";
 
 import ChartCard from "@/app/feed/chart-card";
-import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { CHART_COLORS } from "@/lib/charts/palette";
 import { Cell, Label, Pie, PieChart } from "recharts";
 
@@ -33,7 +37,10 @@ const UnreadArticlesPieChart = ({ chartData }: UnreadArticlesChartProps) => {
       containerClassName="mx-auto aspect-square max-h-[250px]"
     >
       <PieChart>
-        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent hideLabel />}
+        />
         <Pie
           data={chartData}
           dataKey="unread"

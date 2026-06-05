@@ -3,7 +3,11 @@
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import ChartCard from "@/app/feed/chart-card";
-import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { useDateFormatters } from "@/hooks/use-date-formatters";
 import { CHART_COLORS } from "@/lib/charts/palette";
 import { TokenUsageRow } from "@/lib/repository/statsTransforms";
@@ -47,7 +51,9 @@ const TokenUsageChart = ({ data }: TokenUsageChartProps) => {
       description="Daily total of LLM tokens used by your AI Briefing Officer"
       config={config}
       data={data}
-      footer={data && `$${data.totalCost.toFixed(2)} estimated cost for this period`}
+      footer={
+        data && `$${data.totalCost.toFixed(2)} estimated cost for this period`
+      }
     >
       <BarChart
         accessibilityLayer

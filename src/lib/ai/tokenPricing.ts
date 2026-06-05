@@ -38,6 +38,10 @@ export function calculateTotalCost(usage: TokenUsage[]): number {
   return Object.entries(totalsByModel).reduce((cost, [model, tokens]) => {
     const pricing = TOKEN_PRICING[model];
     if (!pricing) return cost;
-    return cost + tokens.input * pricing.inputToken + tokens.output * pricing.outputToken;
+    return (
+      cost +
+      tokens.input * pricing.inputToken +
+      tokens.output * pricing.outputToken
+    );
   }, 0);
 }

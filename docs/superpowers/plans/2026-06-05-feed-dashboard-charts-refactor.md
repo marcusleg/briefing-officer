@@ -1,11 +1,14 @@
 # Feed Dashboard Charts — Code-Structure Refactor Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> superpowers:subagent-driven-development (recommended) or
+> superpowers:executing-plans to implement this plan task-by-task. Steps use
+> checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Refactor the four chart components on `/feed` to remove duplication
 (card chrome, palette helper, date formatters), lift data shaping into pure
-transforms with unit tests, and move the LLM token-pricing table out of UI
-code. No rendered output changes except a corrected per-day average in
+transforms with unit tests, and move the LLM token-pricing table out of UI code.
+No rendered output changes except a corrected per-day average in
 `Your Daily Activity` for 30-day and 3-month ranges.
 
 **Architecture:** Repository functions return chart-ready data (rows + derived
@@ -16,14 +19,15 @@ branch. Each chart file shrinks to a render-only component that consumes the
 pre-shaped data and the shared helpers (`buildPalette`, `useDateFormatters`).
 
 **Tech Stack:** Next.js (App Router), React 19, Recharts via shadcn's
-`ChartContainer` primitive, Prisma, Vitest. Tests live under `tests/unit/`
-and import source via the `@/` alias.
+`ChartContainer` primitive, Prisma, Vitest. Tests live under `tests/unit/` and
+import source via the `@/` alias.
 
 ---
 
 ## File map
 
 **Create:**
+
 - `src/lib/repository/statsTransforms.ts` — pure transforms.
 - `src/lib/ai/tokenPricing.ts` — pricing table + cost calculation.
 - `src/lib/charts/palette.ts` — color palette helper.
@@ -34,20 +38,28 @@ and import source via the `@/` alias.
 - `tests/unit/palette.test.ts`
 
 **Modify:**
-- `src/lib/repository/statsRepository.ts` — three exports return pre-shaped data.
-- `src/app/feed/dashboard.tsx` — state types match new shapes.
-- `src/app/feed/daily-activity-chart.tsx` — adopt `ChartCard`, use `data.dailyAverage`.
-- `src/app/feed/daily-new-articles-chart.tsx` — adopt `ChartCard`, palette helper, formatter hook.
-- `src/app/feed/token-usage-chart.tsx` — adopt `ChartCard`, palette helper, formatter hook, `tokenPricing` import.
-- `src/app/feed/unread-articles-pie-chart.tsx` — adopt `ChartCard` and palette helper.
 
-**Untouched:** `src/app/feed/skeleton-chart.tsx` (consumed by `ChartCard` as-is).
+- `src/lib/repository/statsRepository.ts` — three exports return pre-shaped
+  data.
+- `src/app/feed/dashboard.tsx` — state types match new shapes.
+- `src/app/feed/daily-activity-chart.tsx` — adopt `ChartCard`, use
+  `data.dailyAverage`.
+- `src/app/feed/daily-new-articles-chart.tsx` — adopt `ChartCard`, palette
+  helper, formatter hook.
+- `src/app/feed/token-usage-chart.tsx` — adopt `ChartCard`, palette helper,
+  formatter hook, `tokenPricing` import.
+- `src/app/feed/unread-articles-pie-chart.tsx` — adopt `ChartCard` and palette
+  helper.
+
+**Untouched:** `src/app/feed/skeleton-chart.tsx` (consumed by `ChartCard`
+as-is).
 
 ---
 
 ## Task 1: Add `CHART_COLORS` + `buildPalette`
 
 **Files:**
+
 - Create: `src/lib/charts/palette.ts`
 - Test: `tests/unit/palette.test.ts`
 
@@ -101,8 +113,8 @@ describe("buildPalette", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/unit/palette.test.ts`
-Expected: FAIL — cannot resolve `@/lib/charts/palette`.
+Run: `npx vitest run tests/unit/palette.test.ts` Expected: FAIL — cannot resolve
+`@/lib/charts/palette`.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -136,8 +148,8 @@ export function buildPalette(keys: string[]): ChartConfig {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run tests/unit/palette.test.ts`
-Expected: PASS — three tests pass.
+Run: `npx vitest run tests/unit/palette.test.ts` Expected: PASS — three tests
+pass.
 
 - [ ] **Step 5: Commit**
 
@@ -151,6 +163,7 @@ git commit -m "feat(charts): add shared CHART_COLORS and buildPalette helper"
 ## Task 2: Add `tokenPricing` module
 
 **Files:**
+
 - Create: `src/lib/ai/tokenPricing.ts`
 - Test: `tests/unit/tokenPricing.test.ts`
 
@@ -206,7 +219,9 @@ describe("calculateTotalCost", () => {
   });
 
   it("ignores unknown models without throwing", () => {
-    expect(calculateTotalCost([u("mystery-model", 1_000_000, 1_000_000)])).toBe(0);
+    expect(calculateTotalCost([u("mystery-model", 1_000_000, 1_000_000)])).toBe(
+      0,
+    );
   });
 
   it("mixes known + unknown models correctly", () => {
@@ -229,8 +244,8 @@ describe("calculateTotalCost", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/unit/tokenPricing.test.ts`
-Expected: FAIL — cannot resolve `@/lib/ai/tokenPricing`.
+Run: `npx vitest run tests/unit/tokenPricing.test.ts` Expected: FAIL — cannot
+resolve `@/lib/ai/tokenPricing`.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -277,15 +292,19 @@ export function calculateTotalCost(usage: TokenUsage[]): number {
   return Object.entries(totalsByModel).reduce((cost, [model, tokens]) => {
     const pricing = TOKEN_PRICING[model];
     if (!pricing) return cost;
-    return cost + tokens.input * pricing.inputToken + tokens.output * pricing.outputToken;
+    return (
+      cost +
+      tokens.input * pricing.inputToken +
+      tokens.output * pricing.outputToken
+    );
   }, 0);
 }
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run tests/unit/tokenPricing.test.ts`
-Expected: PASS — all tests pass.
+Run: `npx vitest run tests/unit/tokenPricing.test.ts` Expected: PASS — all tests
+pass.
 
 - [ ] **Step 5: Commit**
 
@@ -299,6 +318,7 @@ git commit -m "feat(ai): extract tokenPricing table and calculateTotalCost"
 ## Task 3: Add `statsTransforms` pure transforms
 
 **Files:**
+
 - Create: `src/lib/repository/statsTransforms.ts`
 - Test: `tests/unit/statsTransforms.test.ts`
 
@@ -361,7 +381,9 @@ describe("shapeArticlesPerFeedPerDay", () => {
       { date: "d2", FeedA: 1, FeedC: 4 },
     ];
     const result = shapeArticlesPerFeedPerDay(rows);
-    expect(new Set(result.feedKeys)).toEqual(new Set(["FeedA", "FeedB", "FeedC"]));
+    expect(new Set(result.feedKeys)).toEqual(
+      new Set(["FeedA", "FeedB", "FeedC"]),
+    );
     expect(result.rows).toBe(rows);
   });
 
@@ -411,8 +433,8 @@ describe("shapeTokenUsage", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/unit/statsTransforms.test.ts`
-Expected: FAIL — cannot resolve `@/lib/repository/statsTransforms`.
+Run: `npx vitest run tests/unit/statsTransforms.test.ts` Expected: FAIL — cannot
+resolve `@/lib/repository/statsTransforms`.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -487,8 +509,8 @@ export function computeDailyAverage(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run tests/unit/statsTransforms.test.ts`
-Expected: PASS — all tests pass.
+Run: `npx vitest run tests/unit/statsTransforms.test.ts` Expected: PASS — all
+tests pass.
 
 - [ ] **Step 5: Commit**
 
@@ -502,6 +524,7 @@ git commit -m "feat(stats): add pure transforms for chart-ready shapes"
 ## Task 4: Add `useDateFormatters` hook
 
 **Files:**
+
 - Create: `src/hooks/use-date-formatters.ts`
 
 (No tests — thin wrapper over `Intl.DateTimeFormat`. The spec excludes it
@@ -535,8 +558,7 @@ export function useDateFormatters(): {
 
 - [ ] **Step 2: Verify it type-checks**
 
-Run: `npx tsc --noEmit`
-Expected: PASS — no type errors.
+Run: `npx tsc --noEmit` Expected: PASS — no type errors.
 
 - [ ] **Step 3: Commit**
 
@@ -550,11 +572,12 @@ git commit -m "feat(hooks): add useDateFormatters for memoized Intl formatters"
 ## Task 5: Add `ChartCard` shared shell
 
 **Files:**
+
 - Create: `src/app/feed/chart-card.tsx`
 
 (No unit test — the only branch is `data === undefined` rendering
-`SkeletonChart`. The project has no React testing setup; the branch is
-covered transitively when the four charts render in the dashboard.)
+`SkeletonChart`. The project has no React testing setup; the branch is covered
+transitively when the four charts render in the dashboard.)
 
 - [ ] **Step 1: Write the implementation**
 
@@ -624,8 +647,7 @@ export default ChartCard;
 
 - [ ] **Step 2: Verify it type-checks**
 
-Run: `npx tsc --noEmit`
-Expected: PASS — no type errors.
+Run: `npx tsc --noEmit` Expected: PASS — no type errors.
 
 - [ ] **Step 3: Commit**
 
@@ -639,12 +661,14 @@ git commit -m "feat(feed): add ChartCard shell with skeleton fallback"
 ## Task 6: Update `statsRepository` to return chart-ready shapes
 
 **Files:**
+
 - Modify: `src/lib/repository/statsRepository.ts`
 
 - [ ] **Step 1: Replace the file contents**
 
-Open `src/lib/repository/statsRepository.ts` and replace `getWeeklyArticleCountPerFeed`,
-`getWeeklyArticlesRead`, and `getTokenUsageHistory` so the file becomes:
+Open `src/lib/repository/statsRepository.ts` and replace
+`getWeeklyArticleCountPerFeed`, `getWeeklyArticlesRead`, and
+`getTokenUsageHistory` so the file becomes:
 
 ```ts
 "use server";
@@ -807,10 +831,9 @@ export const getTokenUsageHistory = async (from: Date, to: Date) => {
 
 - [ ] **Step 2: Verify it type-checks**
 
-Run: `npx tsc --noEmit`
-Expected: PASS — file resolves the new imports and returns the new shapes.
-(There will still be type errors in dashboard/chart callers — those are
-fixed in Tasks 7–11.)
+Run: `npx tsc --noEmit` Expected: PASS — file resolves the new imports and
+returns the new shapes. (There will still be type errors in dashboard/chart
+callers — those are fixed in Tasks 7–11.)
 
 - [ ] **Step 3: Commit**
 
@@ -824,6 +847,7 @@ git commit -m "refactor(stats): return chart-ready shapes from repository"
 ## Task 7: Refactor `daily-activity-chart` to use `ChartCard`
 
 **Files:**
+
 - Modify: `src/app/feed/daily-activity-chart.tsx`
 
 - [ ] **Step 1: Replace the file contents**
@@ -892,9 +916,8 @@ export default DailyActivityChart;
 
 - [ ] **Step 2: Verify it type-checks**
 
-Run: `npx tsc --noEmit`
-Expected: errors only in `dashboard.tsx` (still imports the old type). No
-errors in `daily-activity-chart.tsx` itself.
+Run: `npx tsc --noEmit` Expected: errors only in `dashboard.tsx` (still imports
+the old type). No errors in `daily-activity-chart.tsx` itself.
 
 - [ ] **Step 3: Commit**
 
@@ -908,6 +931,7 @@ git commit -m "refactor(feed): daily-activity-chart uses ChartCard"
 ## Task 8: Refactor `daily-new-articles-chart` to use `ChartCard`
 
 **Files:**
+
 - Modify: `src/app/feed/daily-new-articles-chart.tsx`
 
 - [ ] **Step 1: Replace the file contents**
@@ -984,8 +1008,7 @@ export default DailyNewArticlesChart;
 
 - [ ] **Step 2: Verify it type-checks**
 
-Run: `npx tsc --noEmit`
-Expected: errors only in `dashboard.tsx`. No errors in
+Run: `npx tsc --noEmit` Expected: errors only in `dashboard.tsx`. No errors in
 `daily-new-articles-chart.tsx`.
 
 - [ ] **Step 3: Commit**
@@ -1000,6 +1023,7 @@ git commit -m "refactor(feed): daily-new-articles-chart uses ChartCard"
 ## Task 9: Refactor `token-usage-chart` to use `ChartCard`
 
 **Files:**
+
 - Modify: `src/app/feed/token-usage-chart.tsx`
 
 - [ ] **Step 1: Replace the file contents**
@@ -1012,7 +1036,11 @@ Open `src/app/feed/token-usage-chart.tsx` and replace its contents:
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import ChartCard from "@/app/feed/chart-card";
-import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { useDateFormatters } from "@/hooks/use-date-formatters";
 import { CHART_COLORS } from "@/lib/charts/palette";
 import { TokenUsageRow } from "@/lib/repository/statsTransforms";
@@ -1056,7 +1084,9 @@ const TokenUsageChart = ({ data }: TokenUsageChartProps) => {
       description="Daily total of LLM tokens used by your AI Briefing Officer"
       config={config}
       data={data}
-      footer={data && `$${data.totalCost.toFixed(2)} estimated cost for this period`}
+      footer={
+        data && `$${data.totalCost.toFixed(2)} estimated cost for this period`
+      }
     >
       <BarChart
         accessibilityLayer
@@ -1106,13 +1136,12 @@ export default TokenUsageChart;
 
 `buildModelTokenConfig` is kept local — it's a token-usage-specific
 3-variant-per-model encoding that doesn't generalize to `buildPalette`'s
-1-color-per-key contract. It now consumes the shared `CHART_COLORS`
-constant.
+1-color-per-key contract. It now consumes the shared `CHART_COLORS` constant.
 
 - [ ] **Step 2: Verify it type-checks**
 
-Run: `npx tsc --noEmit`
-Expected: errors only in `dashboard.tsx`. No errors in `token-usage-chart.tsx`.
+Run: `npx tsc --noEmit` Expected: errors only in `dashboard.tsx`. No errors in
+`token-usage-chart.tsx`.
 
 - [ ] **Step 3: Commit**
 
@@ -1126,6 +1155,7 @@ git commit -m "refactor(feed): token-usage-chart uses ChartCard and shared prici
 ## Task 10: Refactor `unread-articles-pie-chart` to use `ChartCard`
 
 **Files:**
+
 - Modify: `src/app/feed/unread-articles-pie-chart.tsx`
 
 - [ ] **Step 1: Replace the file contents**
@@ -1136,7 +1166,11 @@ Open `src/app/feed/unread-articles-pie-chart.tsx` and replace its contents:
 "use client";
 
 import ChartCard from "@/app/feed/chart-card";
-import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { CHART_COLORS } from "@/lib/charts/palette";
 import { Cell, Label, Pie, PieChart } from "recharts";
 
@@ -1168,7 +1202,10 @@ const UnreadArticlesPieChart = ({ chartData }: UnreadArticlesChartProps) => {
       containerClassName="mx-auto aspect-square max-h-[250px]"
     >
       <PieChart>
-        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent hideLabel />}
+        />
         <Pie
           data={chartData}
           dataKey="unread"
@@ -1222,8 +1259,7 @@ export default UnreadArticlesPieChart;
 
 - [ ] **Step 2: Verify it type-checks**
 
-Run: `npx tsc --noEmit`
-Expected: errors only in `dashboard.tsx`. No errors in
+Run: `npx tsc --noEmit` Expected: errors only in `dashboard.tsx`. No errors in
 `unread-articles-pie-chart.tsx`.
 
 - [ ] **Step 3: Commit**
@@ -1238,6 +1274,7 @@ git commit -m "refactor(feed): unread-articles-pie-chart uses ChartCard"
 ## Task 11: Update `dashboard.tsx` to consume new shapes
 
 **Files:**
+
 - Modify: `src/app/feed/dashboard.tsx`
 
 - [ ] **Step 1: Replace the file contents**
@@ -1363,8 +1400,7 @@ export default Dashboard;
 
 - [ ] **Step 2: Verify the whole project type-checks**
 
-Run: `npx tsc --noEmit`
-Expected: PASS — no errors anywhere.
+Run: `npx tsc --noEmit` Expected: PASS — no errors anywhere.
 
 - [ ] **Step 3: Commit**
 
@@ -1381,38 +1417,34 @@ git commit -m "refactor(feed): dashboard consumes pre-shaped chart data"
 
 - [ ] **Step 1: Format**
 
-Run: `npm run format`
-Expected: Prettier rewrites any unformatted files.
+Run: `npm run format` Expected: Prettier rewrites any unformatted files.
 
 - [ ] **Step 2: Lint**
 
-Run: `npm run lint`
-Expected: PASS — no ESLint errors.
+Run: `npm run lint` Expected: PASS — no ESLint errors.
 
 - [ ] **Step 3: Tests**
 
-Run: `npm run test`
-Expected: PASS — existing tests still pass; the three new test files
-(palette, tokenPricing, statsTransforms) pass.
+Run: `npm run test` Expected: PASS — existing tests still pass; the three new
+test files (palette, tokenPricing, statsTransforms) pass.
 
 - [ ] **Step 4: Production build**
 
-Run: `npm run build`
-Expected: PASS — Next.js build completes with no type errors.
+Run: `npm run build` Expected: PASS — Next.js build completes with no type
+errors.
 
 - [ ] **Step 5: Manual smoke**
 
-Run: `npm run dev`
-Then in a browser, sign in and visit `/feed`. Confirm:
-  - All four chart cards render.
-  - Switching between `Last 7 Days` / `Last 30 Days` / `Last 3 Months`
-    updates the charts.
-  - For the `Last 7 Days` range, `Your Daily Activity` footer shows the
-    same number as before the refactor.
-  - For `Last 30 Days` and `Last 3 Months`, `Your Daily Activity` footer
-    shows a different (corrected) number — divided by the actual day
-    count, not by 7.
-  - Token-usage footer shows the same dollar value as before.
+Run: `npm run dev` Then in a browser, sign in and visit `/feed`. Confirm:
+
+- All four chart cards render.
+- Switching between `Last 7 Days` / `Last 30 Days` / `Last 3 Months` updates the
+  charts.
+- For the `Last 7 Days` range, `Your Daily Activity` footer shows the same
+  number as before the refactor.
+- For `Last 30 Days` and `Last 3 Months`, `Your Daily Activity` footer shows a
+  different (corrected) number — divided by the actual day count, not by 7.
+- Token-usage footer shows the same dollar value as before.
 
 - [ ] **Step 6: Commit any formatter-only changes**
 
@@ -1440,9 +1472,9 @@ If nothing changed, skip this step.
   - Repository contract changes → Task 6.
   - Chart components after refactor → Tasks 7–10.
   - Dashboard state types → Task 11.
-  - The deliberate behavior change (corrected per-day average) → Task 7
-    consumes `data.dailyAverage`, which Task 6's repo + Task 3's
-    `computeDailyAverage` derive from `rows.length`.
+  - The deliberate behavior change (corrected per-day average) → Task 7 consumes
+    `data.dailyAverage`, which Task 6's repo + Task 3's `computeDailyAverage`
+    derive from `rows.length`.
   - Testing section → Tasks 1, 2, 3 (transforms, pricing, palette).
   - Verification gate → Task 12.
 
@@ -1450,5 +1482,5 @@ If nothing changed, skip this step.
 
 - **Type consistency:** `DailyActivityData`, `DailyNewArticlesData`,
   `TokenUsageData`, `ArticlesPerFeedRow`, `TokenUsageRow`,
-  `UnreadArticlesChartData` are each defined once and reused everywhere
-  with matching field names.
+  `UnreadArticlesChartData` are each defined once and reused everywhere with
+  matching field names.

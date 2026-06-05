@@ -43,7 +43,9 @@ describe("calculateTotalCost", () => {
   });
 
   it("ignores unknown models without throwing", () => {
-    expect(calculateTotalCost([u("mystery-model", 1_000_000, 1_000_000)])).toBe(0);
+    expect(calculateTotalCost([u("mystery-model", 1_000_000, 1_000_000)])).toBe(
+      0,
+    );
   });
 
   it("mixes known + unknown models correctly", () => {

@@ -52,7 +52,9 @@ describe("shapeArticlesPerFeedPerDay", () => {
       { date: "d2", FeedA: 1, FeedC: 4 },
     ];
     const result = shapeArticlesPerFeedPerDay(rows);
-    expect(new Set(result.feedKeys)).toEqual(new Set(["FeedA", "FeedB", "FeedC"]));
+    expect(new Set(result.feedKeys)).toEqual(
+      new Set(["FeedA", "FeedB", "FeedC"]),
+    );
     expect(result.rows).toBe(rows);
   });
 
