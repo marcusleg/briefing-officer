@@ -14,6 +14,7 @@ describe("buildSummaryPrompt", () => {
   it("includes the article text and Markdown structure cues", () => {
     const prompt = buildSummaryPrompt("Body text here");
     expect(prompt).toContain("Body text here");
-    expect(prompt).toContain("Executive Summary");
+    expect(prompt).toContain("Key Facts");
+    expect(prompt).toContain("Key Takeaways");
   });
 });

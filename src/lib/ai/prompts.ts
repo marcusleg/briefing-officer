@@ -1,18 +1,10 @@
 export const systemPrompt =
-  "You are an expert at summarizing articles for professionals who want to quickly understand core content, key facts, and main arguments.";
+  "You are an expert at summarizing articles for professionals who want to quickly understand the key facts and takeaways.";
 
 export const buildSummaryPrompt = (textContent: string) =>
   `Write a summary in the following structure and **format your response in Markdown**:
 
-- Key Points (as a bullet list; use "Key Facts" for factual articles or "Key Takeaways" for opinion pieces)
-  Highlight one keywords or key term per bullet point in bold.
-- Executive Summary
-  Focus on a high information density while maintaining clear, readable language. Include all major points, arguments, or findings that are most relevant to understanding the article as a whole. Do not simply copy text verbatim — paraphrase and condense where appropriate.
-  Use paragraphs with headings to logically organize the information and emphasize key points. For major sections, use level 4 headings (\`####\`). For subsections that provide additional detail or clarification, use level 5 headings (\`#####\`). Feel free to include unstructured paragraphs when appropriate for smooth narrative flow.
-- Why the Full Article Is Worth Reading
-  Only include this section if the full article offers additional detail, nuance, or unique value that is not fully captured in your summary. If the summary sufficiently covers all key content, you may omit this section.
-
- Each should use a level 3 headings (\`###\`) with the respective content underneath:
+Use a level 3 heading (\`###\`) titled "Key Facts" for factual articles or "Key Takeaways" for opinion pieces, followed by a bullet list of 5–12 bullets. Highlight one keyword or key term per bullet point in bold.
 
 Below is the article:
 
