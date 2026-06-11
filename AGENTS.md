@@ -53,6 +53,11 @@ Valid prefixes:
 - `ci:` — CI/CD configuration changes
 - `chore:` — maintenance, other changes
 
+`feat:` and `fix:` commits are included in the public changelog, so word the
+first line with end users in mind — describe what changed from their
+perspective, not how the code changed internally. The commit body may go into
+implementation details and technical context.
+
 Example: `feat: add user registration form`
 
 ### Co-authorship
