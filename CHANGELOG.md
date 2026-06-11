@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.8.0](https://github.com/marcusleg/briefing-officer/compare/v0.7.0...v0.8.0) (2026-06-11)
+
+
+### Features
+
+* add opencode.json ([a41f1b3](https://github.com/marcusleg/briefing-officer/commit/a41f1b37e16dbcaf457ddc2f2273d5d9a06d7470))
+* **ai:** extract tokenPricing table and calculateTotalCost ([98f77f7](https://github.com/marcusleg/briefing-officer/commit/98f77f7000b5a83625bcf16faef270055c6397ca))
+* **charts:** add shared CHART_COLORS and buildPalette helper ([f44fe41](https://github.com/marcusleg/briefing-officer/commit/f44fe41f528b7efb08c3b577f7ee1ba6acab3654))
+* **feed:** add ChartCard shell with skeleton fallback ([359c0ce](https://github.com/marcusleg/briefing-officer/commit/359c0ce99112fdfb10657865ac5bd93928101983))
+* **hooks:** add useDateFormatters for memoized Intl formatters ([d7048a7](https://github.com/marcusleg/briefing-officer/commit/d7048a787a7fce25a32e7f17d50b742e46857292))
+* simplify summary prompt to key facts/takeaways only ([df10cc0](https://github.com/marcusleg/briefing-officer/commit/df10cc04ff192ee91b4b98fd9bec621f63481ca1))
+* **stats:** add pure transforms for chart-ready shapes ([d674c8e](https://github.com/marcusleg/briefing-officer/commit/d674c8eb9fb37dfcfd37a4c406bfdf3d6b191753))
+
+
+### Bug Fixes
+
+* replace next-themes with @wrksz/themes to fix React 19 script tag warning ([fb573a1](https://github.com/marcusleg/briefing-officer/commit/fb573a169068cb386a2904aed3e4b1221a45b211))
+* resolve hydration mismatch in sidebar dialog triggers ([9cadc73](https://github.com/marcusleg/briefing-officer/commit/9cadc73e8f9ad8b68103c8fb38182df3e5f1b1a7))
+* **tests:** type rows as ArticlesPerFeedRow[] to satisfy index signature ([0190645](https://github.com/marcusleg/briefing-officer/commit/0190645af8e198cc456a817dc2a0ea1505a8399a))
+
 ## [0.7.0](https://github.com/marcusleg/briefing-officer/compare/v0.6.1...v0.7.0) (2026-06-04)
 
 
