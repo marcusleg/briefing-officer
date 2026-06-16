@@ -52,10 +52,9 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
 
   return (
     <Button
-      className="cursor-pointer text-xs"
+      className="cursor-pointer text-sm"
       disabled={isSubmitting}
       onClick={isRead ? handleMarkAsUnread : handleMarkAsRead}
-      size="sm"
       variant="ghost"
     >
       {isRead ? (

@@ -47,9 +47,8 @@ const ToggleStarredButton = ({ article }: ToggleStarredButtonProps) => {
   return (
     <Button
       variant="ghost"
-      size="sm"
       onClick={article.starred ? handleUnstarClick : handleStarClick}
-      className="cursor-pointer text-xs"
+      className="cursor-pointer text-sm"
     >
       <StarIcon
         className={`mr-1 size-4 ${article.starred ? "fill-black dark:fill-white" : "fill-transparent"}`}

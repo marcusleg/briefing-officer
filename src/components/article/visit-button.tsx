@@ -16,8 +16,7 @@ const VisitButton = ({ article, size }: VisitButtonProps) => {
   return (
     <Link
       className={buttonVariants({
-        className: "text-xs",
-        size: "sm",
+        className: "text-sm",
         variant: "ghost",
       })}
       href={article.link}
