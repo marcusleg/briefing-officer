@@ -81,7 +81,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     : undefined;
 
   const description = () => {
-    const className = "text-justify text-sm leading-relaxed";
+    const className = "text-justify text-base leading-relaxed";
 
     if (!props.article.scrape?.textContent) {
       return (
@@ -112,7 +112,7 @@ const ArticleCard = (props: ArticleCardProps) => {
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h2 className="hover:text-primary mb-3 text-xl leading-tight font-semibold wrap-break-word transition-colors">
+            <h2 className="hover:text-primary mb-3 text-2xl leading-tight font-semibold wrap-break-word transition-colors">
               {props.article.title}
             </h2>
 

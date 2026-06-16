@@ -47,13 +47,12 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
   return (
     <Button
       variant="ghost"
-      size="sm"
       onClick={
         article.readLater
           ? handleRemoveFromReadLaterClick
           : handleReadLaterClick
       }
-      className="cursor-pointer text-xs"
+      className="cursor-pointer text-sm"
     >
       <BookmarkIcon
         className={`mr-1 size-4 ${article.readLater ? "fill-black dark:fill-white" : "fill-transparent"}`}

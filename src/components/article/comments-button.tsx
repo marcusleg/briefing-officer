@@ -15,8 +15,7 @@ const CommentsButton = ({ article }: CommentsButtonProps) => {
   return (
     <Link
       className={buttonVariants({
-        className: "text-xs",
-        size: "sm",
+        className: "text-sm",
         variant: "ghost",
       })}
       href={article.commentsLink}

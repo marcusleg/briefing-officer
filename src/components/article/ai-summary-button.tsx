@@ -13,8 +13,7 @@ const AiSummaryButton = ({ feedId, articleId, size }: AiSummaryButtonProps) => {
   return (
     <Link
       className={buttonVariants({
-        className: "text-xs",
-        size: "sm",
+        className: "text-sm",
         variant: "ghost",
       })}
       href={`/feed/${feedId}/article/${articleId}/ai-summary`}

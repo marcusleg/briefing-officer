@@ -9,9 +9,8 @@ const BackButton = () => {
 
   return (
     <Button
-      className="cursor-pointer text-xs"
+      className="cursor-pointer text-sm"
       onClick={router.back}
-      size="sm"
       variant="ghost"
     >
       <ArrowLeftIcon className="mr-1 size-4" />
