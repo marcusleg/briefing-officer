@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/marcusleg/briefing-officer/compare/v0.9.1...v0.10.0) (2026-06-17)
+
+
+### Features
+
+* navigate back on Dismiss from AI summary page ([e2eebf0](https://github.com/marcusleg/briefing-officer/commit/e2eebf0f45a8332bfe8b976a703f7008c5e38660))
+
+
+### Bug Fixes
+
+* remove mostly broken token cost estimates ([805787c](https://github.com/marcusleg/briefing-officer/commit/805787cb298408e18098deca88f48946d1fae905))
+* remove obsolete reasoning token tracking ([f42a123](https://github.com/marcusleg/briefing-officer/commit/f42a12349d2db82cad56b27f218d89fe28d2aee5))
+
 ## [0.9.1](https://github.com/marcusleg/briefing-officer/compare/v0.9.0...v0.9.1) (2026-06-17)
 
 
