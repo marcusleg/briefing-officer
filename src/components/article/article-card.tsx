@@ -1,22 +1,27 @@
 "use client";
 
 import ArticleCardActions from "@/components/article/article-card-actions";
+import AiSummaryButton from "@/components/article/ai-summary-button";
 import ArticleMeta from "@/components/article/article-meta";
-import ArticleReadingTime from "@/components/article/article-reading-time";
+import CommentsButton from "@/components/article/comments-button";
+import IntlRelativeTime from "@/components/intl-relative-time";
+import ToggleReadButton from "@/components/article/toggle-read-button";
+import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
+import ToggleStarredButton from "@/components/article/toggle-starred-button";
+import VisitButton from "@/components/article/visit-button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { generateAiLead } from "@/lib/ai/services/leadService";
 import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
 import { Prisma } from "@prisma/client";
-import { LoaderCircleIcon } from "lucide-react";
+import { LoaderCircleIcon, ClockIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -33,7 +38,6 @@ interface ArticleCardProps {
 
 const ArticleCard = (props: ArticleCardProps) => {
   const router = useRouter();
-  const isMobile = useIsMobile();
   const [aiLead, setAiLead] = useState(props.article.lead?.text);
 
   useEffect(() => {
@@ -81,7 +85,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     : undefined;
 
   const description = () => {
-    const className = "text-justify text-base leading-relaxed";
+    const className = "text-base leading-relaxed";
 
     if (!props.article.scrape?.textContent) {
       return (
@@ -112,14 +116,22 @@ const ArticleCard = (props: ArticleCardProps) => {
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
+            <div className="mb-4 flex items-baseline gap-2 text-base">
+              <span className="text-muted-foreground font-semibold tracking-wide uppercase">
+                {props.article.feed.title}
+              </span>
+              <span className="text-muted-foreground">·</span>
+              <span className="text-muted-foreground">
+                <IntlRelativeTime date={props.article.publicationDate} />
+              </span>
+            </div>
+
             <h2 className="hover:text-primary mb-3 text-2xl leading-tight font-semibold wrap-break-word transition-colors">
               {props.article.title}
             </h2>
 
             <ArticleMeta
-              feedTitle={props.article.feed.title}
               author={props.article.scrape?.author}
-              date={props.article.publicationDate}
             />
           </div>
         </div>
@@ -127,17 +139,49 @@ const ArticleCard = (props: ArticleCardProps) => {
 
       <CardContent>{description()}</CardContent>
 
-      <CardFooter className="flex flex-col gap-2 md:flex-row">
-        {articleReadingTime && (
-          <ArticleReadingTime
-            text={articleReadingTime.text}
-            words={articleReadingTime.words}
+      <CardFooter className="flex-col gap-3 border-t md:flex md:flex-row md:items-center md:gap-2">
+        {/* Mobile: row 1 — reading time left, icon buttons right */}
+        <div className="flex w-full items-center gap-2 md:hidden">
+          {articleReadingTime && (
+            <span className="text-muted-foreground flex items-center gap-1 text-xs">
+              <ClockIcon className="size-3" />
+              {articleReadingTime.text}
+            </span>
+          )}
+          <div className="grow" />
+          <ToggleReadLaterButton article={props.article} variant="ghost" />
+          <ToggleStarredButton article={props.article} variant="ghost" />
+          <CommentsButton article={props.article} variant="ghost" />
+        </div>
+
+        {/* Mobile: row 2 — Dismiss, Summarize, Read */}
+        <div className="flex w-full gap-2 md:hidden">
+          <ToggleReadButton
+            article={props.article}
+            className="flex-1 justify-center text-sm"
           />
-        )}
+          <AiSummaryButton
+            feedId={props.article.feedId}
+            articleId={props.article.id}
+            className="flex-1 justify-center text-sm"
+          />
+          <VisitButton
+            article={props.article}
+            className="flex-1 justify-center text-sm"
+          />
+        </div>
 
-        {!isMobile && <div className="grow" />}
-
-        <ArticleCardActions article={props.article} />
+        {/* Desktop: single row */}
+        <div className="hidden md:flex md:w-full md:items-center md:gap-2">
+          {articleReadingTime && (
+            <span className="text-muted-foreground flex items-center gap-1 text-xs">
+              <ClockIcon className="size-3" />
+              {articleReadingTime.text}
+            </span>
+          )}
+          <div className="grow" />
+          <ArticleCardActions article={props.article} />
+        </div>
       </CardFooter>
     </Card>
   );

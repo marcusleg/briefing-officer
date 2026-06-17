@@ -3,6 +3,7 @@
 import AiSummaryStream from "@/components/article/ai-summary-stream";
 import ArticleCardActions from "@/components/article/article-card-actions";
 import ArticleMeta from "@/components/article/article-meta";
+import IntlRelativeTime from "@/components/intl-relative-time";
 import TopNavigation from "@/components/navigation/top-navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { auth } from "@/lib/auth";
@@ -49,12 +50,20 @@ const AiSummary = async (props0: {
       <article className="mx-auto flex max-w-4xl flex-col gap-4">
         <ArticleCardActions article={article} hideAiSummary showBackButton />
 
+        <div className="flex items-baseline gap-2 text-base">
+          <span className="text-muted-foreground font-semibold tracking-wide uppercase">
+            {article.feed.title}
+          </span>
+          <span className="text-muted-foreground">·</span>
+          <span className="text-muted-foreground">
+            <IntlRelativeTime date={article.publicationDate} />
+          </span>
+        </div>
+
         <h2 className="text-2xl font-bold tracking-tight">{article.title}</h2>
 
         <ArticleMeta
-          feedTitle={article.feed.title}
           author={article.scrape?.author}
-          date={article.publicationDate}
         />
 
         {article.scrape ? (
