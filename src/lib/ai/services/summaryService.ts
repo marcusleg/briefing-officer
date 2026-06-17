@@ -25,7 +25,10 @@ export const streamAiSummary = async (articleId: number) => {
     const { textStream, totalUsage } = streamText({
       model,
       system: systemPrompt,
-      prompt: buildSummaryPrompt(article.scrape?.textContent ?? ""),
+      prompt: buildSummaryPrompt(
+        article.title,
+        article.scrape?.textContent ?? "",
+      ),
     });
 
     for await (const delta of textStream) {
