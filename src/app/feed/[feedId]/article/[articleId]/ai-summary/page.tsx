@@ -71,7 +71,9 @@ const AiSummary = async (props0: {
         <ArticleMeta author={article.scrape?.author} />
 
         {article.scrape ? (
-          <AiSummaryStream articleId={article.id} />
+          <div className="leading-relaxed">
+            <AiSummaryStream articleId={article.id} />
+          </div>
         ) : (
           <Alert className="mx-auto my-12 max-w-md">
             <AlertTitle>Summary unavailable</AlertTitle>
