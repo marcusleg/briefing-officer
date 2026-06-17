@@ -1,13 +1,7 @@
 "use client";
 
-import AiSummaryButton from "@/components/article/ai-summary-button";
 import ArticleCardActions from "@/components/article/article-card-actions";
 import ArticleMeta from "@/components/article/article-meta";
-import CommentsButton from "@/components/article/comments-button";
-import ToggleReadButton from "@/components/article/toggle-read-button";
-import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
-import ToggleStarredButton from "@/components/article/toggle-starred-button";
-import VisitButton from "@/components/article/visit-button";
 import IntlRelativeTime from "@/components/intl-relative-time";
 import {
   Card,
@@ -21,7 +15,7 @@ import {
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
 import { Prisma } from "@prisma/client";
-import { ClockIcon, LoaderCircleIcon } from "lucide-react";
+import { LoaderCircleIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -141,48 +135,10 @@ const ArticleCard = (props: ArticleCardProps) => {
       <CardContent className="px-4 md:px-6">{description()}</CardContent>
 
       <CardFooter className="flex-col gap-3 border-t px-4 md:flex md:flex-row md:items-center md:gap-2 md:px-6">
-        {/* Mobile: row 1 — reading time left, icon buttons right */}
-        <div className="flex w-full items-center gap-2 md:hidden">
-          {articleReadingTime && (
-            <span className="text-muted-foreground flex items-center gap-1 text-xs">
-              <ClockIcon className="size-3" />
-              {articleReadingTime.text}
-            </span>
-          )}
-          <div className="grow" />
-          <ToggleReadLaterButton article={props.article} variant="ghost" />
-          <ToggleStarredButton article={props.article} variant="ghost" />
-          <CommentsButton article={props.article} variant="ghost" />
-        </div>
-
-        {/* Mobile: row 2 — Dismiss, Summarize, Read */}
-        <div className="flex w-full gap-2 md:hidden">
-          <ToggleReadButton
-            article={props.article}
-            className="flex-1 justify-center text-sm"
-          />
-          <AiSummaryButton
-            feedId={props.article.feedId}
-            articleId={props.article.id}
-            className="flex-1 justify-center text-sm"
-          />
-          <VisitButton
-            article={props.article}
-            className="flex-1 justify-center text-sm"
-          />
-        </div>
-
-        {/* Desktop: single row */}
-        <div className="hidden md:flex md:w-full md:items-center md:gap-2">
-          {articleReadingTime && (
-            <span className="text-muted-foreground flex items-center gap-1 text-xs">
-              <ClockIcon className="size-3" />
-              {articleReadingTime.text}
-            </span>
-          )}
-          <div className="grow" />
-          <ArticleCardActions article={props.article} />
-        </div>
+        <ArticleCardActions
+          article={props.article}
+          readingTime={articleReadingTime}
+        />
       </CardFooter>
     </Card>
   );
