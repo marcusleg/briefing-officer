@@ -43,11 +43,13 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
         <AiSummaryButton
           feedId={props.article.feedId}
           articleId={props.article.id}
+          size="sm"
           className="flex-1 justify-center text-sm"
         />
       )}
       <VisitButton
         article={props.article}
+        size="sm"
         className="flex-1 justify-center text-sm"
       />
     </div>
