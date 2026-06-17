@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { markArticleAsRead } from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
 import { ExternalLink } from "lucide-react";
@@ -10,23 +10,26 @@ import React from "react";
 interface VisitButtonProps {
   article: Article;
   size?: React.ComponentProps<typeof Button>["size"];
+  className?: string;
 }
 
-const VisitButton = ({ article, size }: VisitButtonProps) => {
+const VisitButton = ({ article, size, className }: VisitButtonProps) => {
   return (
-    <Link
-      className={buttonVariants({
-        className: "text-sm",
-        variant: "ghost",
-      })}
-      href={article.link}
-      onClick={() => markArticleAsRead(article.id)}
-      onAuxClick={() => markArticleAsRead(article.id)}
-      referrerPolicy="no-referrer"
+    <Button
+      asChild
+      variant="default"
+      className={className ?? "justify-start text-sm"}
     >
-      <ExternalLink className="mr-1 size-4" />
-      Visit Original
-    </Link>
+      <Link
+        href={article.link}
+        onClick={() => markArticleAsRead(article.id)}
+        onAuxClick={() => markArticleAsRead(article.id)}
+        referrerPolicy="no-referrer"
+      >
+        <ExternalLink className="mr-1 size-4" />
+        Read
+      </Link>
+    </Button>
   );
 };
 

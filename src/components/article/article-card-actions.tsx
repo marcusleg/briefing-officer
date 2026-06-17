@@ -19,7 +19,7 @@ interface ArticleCardActionsProps {
 }
 
 const ArticleCardActions = (props: ArticleCardActionsProps) => (
-  <div className="grid w-full grid-cols-2 justify-items-start gap-y-1 md:flex md:w-auto md:grid-cols-none">
+  <div className="flex flex-wrap gap-2">
     {props.showBackButton && (
       <>
         <BackButton />
@@ -28,23 +28,24 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
       </>
     )}
 
-    <ToggleReadButton article={props.article} />
+    <ToggleReadLaterButton article={props.article} />
 
-    <VisitButton article={props.article} size="sm" />
+    <ToggleStarredButton article={props.article} />
 
     <CommentsButton article={props.article} />
+
+    <ToggleReadButton article={props.article} className="cursor-pointer justify-start text-sm" />
 
     {!props.hideAiSummary && (
       <AiSummaryButton
         feedId={props.article.feedId}
         articleId={props.article.id}
         size="sm"
+        className="justify-start text-sm"
       />
     )}
 
-    <ToggleReadLaterButton article={props.article} />
-
-    <ToggleStarredButton article={props.article} />
+    <VisitButton article={props.article} size="sm" className="justify-start text-sm" />
   </div>
 );
 
