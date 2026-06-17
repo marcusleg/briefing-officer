@@ -1,30 +1,17 @@
-import IntlRelativeTime from "@/components/intl-relative-time";
-import { CalendarIcon, GlobeIcon, UserIcon } from "lucide-react";
+import { UserIcon } from "lucide-react";
 
 interface ArticleMetaProps {
-  feedTitle: string;
   author?: string | null;
-  date: Date;
 }
 
 const ArticleMeta = (props: ArticleMetaProps) => {
+  if (!props.author) return null;
+
   return (
     <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-sm">
-      <div className="flex items-center gap-1 font-medium">
-        <GlobeIcon className="size-4" />
-        <span>{props.feedTitle}</span>
-      </div>
-      {props.author && (
-        <div className="flex items-center gap-1">
-          <UserIcon className="size-4" />
-          <span>{props.author}</span>
-        </div>
-      )}
       <div className="flex items-center gap-1">
-        <CalendarIcon className="size-4" />
-        <span>
-          <IntlRelativeTime date={props.date} />
-        </span>
+        <UserIcon className="size-4" />
+        <span>{props.author}</span>
       </div>
     </div>
   );
