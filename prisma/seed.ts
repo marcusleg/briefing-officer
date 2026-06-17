@@ -52,6 +52,59 @@ const LOREM_WORDS = [
   "pariatur",
 ];
 
+const FIRST_NAMES = [
+  "Alice",
+  "Bob",
+  "Carol",
+  "David",
+  "Eve",
+  "Frank",
+  "Grace",
+  "Henry",
+  "Isabel",
+  "James",
+  "Karen",
+  "Liam",
+  "Mia",
+  "Noah",
+  "Olivia",
+  "Paul",
+  "Quinn",
+  "Rachel",
+  "Sam",
+  "Tara",
+];
+const LAST_NAMES = [
+  "Anderson",
+  "Brown",
+  "Chen",
+  "Davis",
+  "Evans",
+  "Fischer",
+  "Garcia",
+  "Harris",
+  "Imai",
+  "Jones",
+  "Kim",
+  "Lopez",
+  "Miller",
+  "Nguyen",
+  "Ortiz",
+  "Patel",
+  "Quinn",
+  "Roberts",
+  "Smith",
+  "Taylor",
+];
+
+function randomName(): string {
+  return (
+    FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)] +
+    " " +
+    LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)]
+  );
+}
+
 function loremWords(n: number): string {
   return Array.from(
     { length: n },
@@ -64,14 +117,19 @@ function loremTitle(): string {
   return title.charAt(0).toUpperCase() + title.slice(1);
 }
 
-function loremDescription(): string {
-  return loremWords(12 + Math.floor(Math.random() * 20)) + ".";
+function lorem(n: number): string {
+  const words = loremWords(n);
+  return words.charAt(0).toUpperCase() + words.slice(1) + ".";
 }
 
 function randomDateInLastNDays(days: number): Date {
   const now = Date.now();
   const offset = Math.floor(Math.random() * days * 24 * 60 * 60 * 1000);
   return new Date(now - offset);
+}
+
+function isoDate(date: Date): string {
+  return date.toISOString().split("T")[0];
 }
 
 async function main() {
@@ -176,17 +234,71 @@ async function main() {
 
     const articleCount = Math.floor(Math.random() * 9); // 0–8
     for (let i = 0; i < articleCount; i++) {
-      await prisma.article.create({
+      const article = await prisma.article.create({
         data: {
           userId,
           feedId: feed.id,
           title: loremTitle(),
-          description: loremDescription(),
+          description: lorem(50 + Math.floor(Math.random() * 11)),
           link: `https://example.com/article/${randomUUID()}`,
           publicationDate: randomDateInLastNDays(30),
         },
       });
+      const textContent = lorem(300 + Math.floor(Math.random() * 1201));
+      await prisma.articleScrape.create({
+        data: { articleId: article.id, textContent, author: randomName() },
+      });
+      await prisma.articleLead.create({
+        data: {
+          articleId: article.id,
+          text: lorem(50 + Math.floor(Math.random() * 11)),
+        },
+      });
     }
+
+    // 5–10 already-read articles per feed within the last 7 days (for Daily Activity chart)
+    const readCount = 5 + Math.floor(Math.random() * 6);
+    for (let i = 0; i < readCount; i++) {
+      const readAt = randomDateInLastNDays(7);
+      const article = await prisma.article.create({
+        data: {
+          userId,
+          feedId: feed.id,
+          title: loremTitle(),
+          description: lorem(50 + Math.floor(Math.random() * 11)),
+          link: `https://example.com/article/${randomUUID()}`,
+          publicationDate: new Date(readAt.getTime() - 3600_000),
+          readAt,
+        },
+      });
+      const textContent = lorem(300 + Math.floor(Math.random() * 1201));
+      await prisma.articleScrape.create({
+        data: { articleId: article.id, textContent, author: randomName() },
+      });
+      await prisma.articleLead.create({
+        data: {
+          articleId: article.id,
+          text: lorem(50 + Math.floor(Math.random() * 11)),
+        },
+      });
+    }
+  }
+
+  // Token usage: 1–3 entries per day for the last 7 days
+  const MODEL = "claude-sonnet-4-6";
+  for (let d = 0; d < 7; d++) {
+    const date = new Date();
+    date.setDate(date.getDate() - d);
+    const dateStr = isoDate(date);
+    await prisma.tokenUsage.create({
+      data: {
+        userId,
+        date: dateStr,
+        model: MODEL,
+        inputTokens: 1000 + Math.floor(Math.random() * 9000),
+        outputTokens: 200 + Math.floor(Math.random() * 1800),
+      },
+    });
   }
 
   console.log("Seed complete.");

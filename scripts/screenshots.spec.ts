@@ -6,7 +6,7 @@ const BASE_URL = "http://localhost:3000";
 
 const VIEWPORTS = [
   { name: "mobile", width: 390, height: 844 },
-  { name: "desktop", width: 1440, height: 900 },
+  { name: "desktop", width: 1440, height: 1080 },
 ] as const;
 
 const THEMES = ["light", "dark"] as const;
@@ -42,6 +42,12 @@ test("capture screenshots", async ({ browser }) => {
 
       await page.goto("/feed");
       await page.waitForLoadState("networkidle");
+
+      // Hide the Next.js dev-mode overlay icon
+      await page.evaluate(() => {
+        const portal = document.querySelector("nextjs-portal");
+        if (portal) (portal as HTMLElement).style.display = "none";
+      });
 
       const filename = `${viewport.name}-${theme}.png`;
       await page.screenshot({
