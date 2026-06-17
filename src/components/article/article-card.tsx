@@ -16,6 +16,7 @@ import {
 } from "@/lib/repository/articleRepository";
 import { Prisma } from "@prisma/client";
 import { LoaderCircleIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -114,9 +115,12 @@ const ArticleCard = (props: ArticleCardProps) => {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className="mb-4 flex items-baseline gap-2 text-base">
-              <span className="text-muted-foreground font-semibold tracking-wide uppercase">
+              <Link
+                className="text-muted-foreground hover:text-primary font-semibold tracking-wide uppercase transition-colors"
+                href={`/feed/${props.article.feedId}`}
+              >
                 {props.article.feed.title}
-              </span>
+              </Link>
               <span className="text-muted-foreground">·</span>
               <span className="text-muted-foreground">
                 <IntlRelativeTime date={props.article.publicationDate} />
