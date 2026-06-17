@@ -83,9 +83,6 @@ const ArticleCard = (props: ArticleCardProps) => {
     const className = "text-base leading-relaxed";
 
     if (!props.article.scrape?.textContent) {
-      if (props.article.description) {
-        return <p className={className}>{props.article.description}</p>;
-      }
       return (
         <p className={className}>
           No content available. Visit the original article.
