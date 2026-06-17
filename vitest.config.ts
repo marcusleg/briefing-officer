@@ -5,6 +5,10 @@ const alias = { "@": resolve(__dirname, "./src") };
 
 export default defineConfig({
   test: {
+    coverage: {
+      provider: "v8",
+      include: ["src/lib/**/*.ts"],
+    },
     projects: [
       {
         test: {
@@ -16,10 +20,6 @@ export default defineConfig({
             "tests/unit/**/*.test.ts",
             "tests/integration/**/*.test.ts",
           ],
-          coverage: {
-            provider: "v8",
-            include: ["src/lib/**/*.ts"],
-          },
         },
         resolve: { alias },
       },
