@@ -1,6 +1,5 @@
 "use server";
 
-import { calculateTotalCost } from "@/lib/ai/tokenPricing";
 import prisma from "@/lib/prismaClient";
 import {
   ArticlesPerFeedRow,
@@ -152,5 +151,5 @@ export const getTokenUsageHistory = async (from: Date, to: Date) => {
   });
 
   const { rows, models } = shapeTokenUsage(raw);
-  return { rows, models, totalCost: calculateTotalCost(raw) };
+  return { rows, models };
 };
