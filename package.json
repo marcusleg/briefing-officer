@@ -20,7 +20,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "prepare": "husky",
-    "test:components": "vitest run --project components"
+    "test:components": "vitest run --project components",
+    "update-screenshots": "prisma db seed && playwright test --config=playwright.screenshots.config.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs}": [
