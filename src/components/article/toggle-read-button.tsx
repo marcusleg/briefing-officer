@@ -12,9 +12,11 @@ import { toast } from "sonner";
 const ToggleReadButton = ({
   article,
   className,
+  onAfterDismiss,
 }: {
   article: Article;
   className?: string;
+  onAfterDismiss?: () => void;
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,6 +24,7 @@ const ToggleReadButton = ({
     setIsSubmitting(true);
     await markArticleAsRead(article.id);
     setIsSubmitting(false);
+    onAfterDismiss?.();
 
     toast("Article marked as read", {
       description: <span className="italic">{article.title}</span>,

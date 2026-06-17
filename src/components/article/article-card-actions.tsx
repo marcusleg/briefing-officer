@@ -14,6 +14,7 @@ interface ArticleCardActionsProps {
     include: { feed: true; scrape: true };
   }>;
   hideSummarizeButton?: boolean;
+  onAfterDismiss?: () => void;
   readingTime?: { text: string; minutes: number; time: number; words: number };
 }
 
@@ -46,6 +47,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
       <ToggleReadButton
         article={props.article}
         className="flex-1 justify-center text-sm"
+        onAfterDismiss={props.onAfterDismiss}
       />
       {!props.hideSummarizeButton && (
         <AiSummaryButton
@@ -74,6 +76,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
       <ToggleReadButton
         article={props.article}
         className="cursor-pointer justify-start text-sm"
+        onAfterDismiss={props.onAfterDismiss}
       />
       {!props.hideSummarizeButton && (
         <AiSummaryButton
