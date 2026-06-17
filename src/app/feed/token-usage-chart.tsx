@@ -15,7 +15,6 @@ import { TokenUsageRow } from "@/lib/repository/statsTransforms";
 export interface TokenUsageData {
   rows: TokenUsageRow[];
   models: string[];
-  totalCost: number;
 }
 
 interface TokenUsageChartProps {
@@ -51,9 +50,6 @@ const TokenUsageChart = ({ data }: TokenUsageChartProps) => {
       description="Daily total of LLM tokens used by your AI Briefing Officer"
       config={config}
       data={data}
-      footer={
-        data && `$${data.totalCost.toFixed(2)} estimated cost for this period`
-      }
     >
       <BarChart
         accessibilityLayer

@@ -1,6 +1,8 @@
+import prisma from "@/lib/prismaClient";
 import {
   getNumberOfReadLaterArticles,
   getNumberOfUnreadArticles,
+  getTokenUsageHistory,
   getUnreadArticlesPerFeed,
 } from "@/lib/repository/statsRepository";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -43,5 +45,35 @@ describe("statsRepository counts", () => {
 
     const perFeed = await getUnreadArticlesPerFeed();
     expect(perFeed).toEqual([{ feedTitle: "Feed A", unread: 1 }]);
+  });
+
+  it("reports token usage history by date and model", async () => {
+    await prisma.tokenUsage.create({
+      data: {
+        userId,
+        date: "2026-06-17",
+        model: "test-model",
+        inputTokens: 10,
+        outputTokens: 5,
+        reasoningTokens: 1,
+      },
+    });
+
+    await expect(
+      getTokenUsageHistory(
+        new Date("2026-06-17T00:00:00.000Z"),
+        new Date("2026-06-17T23:59:59.999Z"),
+      ),
+    ).resolves.toEqual({
+      rows: [
+        {
+          date: "2026-06-17",
+          "test-model_input": 10,
+          "test-model_output": 5,
+          "test-model_reasoning": 1,
+        },
+      ],
+      models: ["test-model"],
+    });
   });
 });
