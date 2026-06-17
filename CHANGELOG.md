@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/marcusleg/briefing-officer/compare/v0.9.0...v0.9.1) (2026-06-17)
+
+
+### Bug Fixes
+
+* align line-height of AI Summaries with Article Card ([d7d67a4](https://github.com/marcusleg/briefing-officer/commit/d7d67a4dc905ce876fe30a20b12d22c7defe5ad6))
+* left-align back button on AI summary page ([3bcffc3](https://github.com/marcusleg/briefing-officer/commit/3bcffc390433a65dc12bc00e877e52bd02dfe219))
+
 ## [0.9.0](https://github.com/marcusleg/briefing-officer/compare/v0.8.0...v0.9.0) (2026-06-17)
 
 
