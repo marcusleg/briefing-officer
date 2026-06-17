@@ -4,6 +4,7 @@ import AiSummaryStream from "@/components/article/ai-summary-stream";
 import ArticleCardActions from "@/components/article/article-card-actions";
 import ArticleMeta from "@/components/article/article-meta";
 import IntlRelativeTime from "@/components/intl-relative-time";
+import BackButton from "@/components/navigation/back-button";
 import TopNavigation from "@/components/navigation/top-navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { auth } from "@/lib/auth";
@@ -11,6 +12,7 @@ import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import readingTime from "reading-time";
 
 const AiSummary = async (props0: {
   params: Promise<{ feedId: string; articleId: string }>;
@@ -37,6 +39,10 @@ const AiSummary = async (props0: {
     notFound();
   }
 
+  const articleReadingTime = article.scrape
+    ? readingTime(article.scrape.textContent)
+    : undefined;
+
   return (
     <div className="m-2 flex flex-col gap-2">
       <TopNavigation
@@ -48,7 +54,7 @@ const AiSummary = async (props0: {
       />
 
       <article className="mx-auto flex max-w-4xl flex-col gap-4">
-        <ArticleCardActions article={article} hideAiSummary showBackButton />
+        <BackButton />
 
         <div className="flex items-baseline gap-2 text-base">
           <span className="text-muted-foreground font-semibold tracking-wide uppercase">
@@ -78,6 +84,14 @@ const AiSummary = async (props0: {
 
         <div className="text-muted-foreground text-sm">
           Source: <Link href={article.link}>{article.link}</Link>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:gap-2">
+          <ArticleCardActions
+            article={article}
+            hideSummarizeButton
+            readingTime={articleReadingTime}
+          />
         </div>
       </article>
     </div>
