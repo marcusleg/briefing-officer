@@ -50,7 +50,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     "s",
     createHotkeyHandler(() => {
       router.push(
-        `/feed/${props.article.feed}/article/${props.article.id}/ai-summary`,
+        `/feed/${props.article.feedId}/article/${props.article.id}/ai-summary`,
       );
     }),
   );
