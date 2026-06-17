@@ -112,8 +112,11 @@ const ArticleCard = (props: ArticleCardProps) => {
   }
 
   return (
-    <Card className={className} onClick={props.onClick}>
-      <CardHeader>
+    <Card
+      className={`${className} gap-4 py-4 md:gap-6 md:py-6`}
+      onClick={props.onClick}
+    >
+      <CardHeader className="px-4 md:px-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className="mb-4 flex items-baseline gap-2 text-base">
@@ -135,9 +138,9 @@ const ArticleCard = (props: ArticleCardProps) => {
         </div>
       </CardHeader>
 
-      <CardContent>{description()}</CardContent>
+      <CardContent className="px-4 md:px-6">{description()}</CardContent>
 
-      <CardFooter className="flex-col gap-3 border-t md:flex md:flex-row md:items-center md:gap-2">
+      <CardFooter className="flex-col gap-3 border-t px-4 md:flex md:flex-row md:items-center md:gap-2 md:px-6">
         {/* Mobile: row 1 — reading time left, icon buttons right */}
         <div className="flex w-full items-center gap-2 md:hidden">
           {articleReadingTime && (
