@@ -32,10 +32,6 @@ const buildModelTokenConfig = (models: string[]): ChartConfig => {
       label: `${model} Output`,
       color: CHART_COLORS[(index + models.length) % CHART_COLORS.length],
     };
-    config[`${model}_reasoning`] = {
-      label: `${model} Reasoning`,
-      color: CHART_COLORS[(index + 2 * models.length) % CHART_COLORS.length],
-    };
   });
   return config;
 };
@@ -80,12 +76,6 @@ const TokenUsageChart = ({ data }: TokenUsageChartProps) => {
             key={`${model}_output`}
             dataKey={`${model}_output`}
             fill={config[`${model}_output`].color}
-            stackId="a"
-          />,
-          <Bar
-            key={`${model}_reasoning`}
-            dataKey={`${model}_reasoning`}
-            fill={config[`${model}_reasoning`].color}
             stackId="a"
           />,
         ])}

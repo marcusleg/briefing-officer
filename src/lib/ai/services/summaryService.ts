@@ -51,7 +51,6 @@ export const streamAiSummary = async (articleId: number) => {
       model.modelId,
       tokenUsage.inputTokens ?? 0,
       tokenUsage.outputTokens ?? 0,
-      tokenUsage.reasoningTokens ?? 0,
     );
   })();
 

@@ -55,7 +55,6 @@ describe("statsRepository counts", () => {
         model: "test-model",
         inputTokens: 10,
         outputTokens: 5,
-        reasoningTokens: 1,
       },
     });
 
@@ -70,7 +69,6 @@ describe("statsRepository counts", () => {
           date: "2026-06-17",
           "test-model_input": 10,
           "test-model_output": 5,
-          "test-model_reasoning": 1,
         },
       ],
       models: ["test-model"],

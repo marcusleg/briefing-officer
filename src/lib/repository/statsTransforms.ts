@@ -47,7 +47,6 @@ export function shapeTokenUsage(raw: TokenUsage[]): {
     }
     row[`${entry.model}_input`] = entry.inputTokens;
     row[`${entry.model}_output`] = entry.outputTokens;
-    row[`${entry.model}_reasoning`] = entry.reasoningTokens;
   });
 
   const models = [...new Set(raw.map((entry) => entry.model))];
