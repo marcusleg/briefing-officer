@@ -1,22 +1,38 @@
 import { resolve } from "path";
 import { defineConfig } from "vitest/config";
 
+const alias = { "@": resolve(__dirname, "./src") };
+
 export default defineConfig({
   test: {
-    environment: "node",
-    setupFiles: ["./vitest.setup.ts"],
-    // Each file runs in its own worker (default pool), so per-worker DB
-    // isolation via VITEST_WORKER_ID prevents cross-file state bleed.
-    fileParallelism: true,
-    include: ["tests/unit/**/*.test.ts", "tests/integration/**/*.test.ts"],
-    coverage: {
-      provider: "v8",
-      include: ["src/lib/**/*.ts"],
-    },
-  },
-  resolve: {
-    alias: {
-      "@": resolve(__dirname, "./src"),
-    },
+    projects: [
+      {
+        test: {
+          name: "node",
+          environment: "node",
+          setupFiles: ["./vitest.setup.ts"],
+          fileParallelism: true,
+          include: [
+            "tests/unit/**/*.test.ts",
+            "tests/integration/**/*.test.ts",
+          ],
+          coverage: {
+            provider: "v8",
+            include: ["src/lib/**/*.ts"],
+          },
+        },
+        resolve: { alias },
+      },
+      {
+        test: {
+          name: "components",
+          environment: "jsdom",
+          globals: true,
+          setupFiles: ["./tests/components/setup.ts"],
+          include: ["tests/components/**/*.test.tsx"],
+        },
+        resolve: { alias },
+      },
+    ],
   },
 });
