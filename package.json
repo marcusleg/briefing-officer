@@ -29,6 +29,9 @@
     ],
     "!(*.js|*.jsx|*.ts|*.tsx|*.mjs|*.cjs)": "prettier --ignore-unknown --write"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",
     "@ai-sdk/azure": "^3.0.69",
