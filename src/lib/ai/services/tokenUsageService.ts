@@ -7,7 +7,6 @@ export const trackTokenUsage = async (
   model: string,
   inputTokens: number,
   outputTokens: number,
-  reasoningTokens: number,
 ) => {
   const date = new Date().toISOString().split("T")[0];
 
@@ -25,12 +24,10 @@ export const trackTokenUsage = async (
       model: model,
       inputTokens: inputTokens,
       outputTokens: outputTokens,
-      reasoningTokens: reasoningTokens,
     },
     update: {
       inputTokens: { increment: inputTokens },
       outputTokens: { increment: outputTokens },
-      reasoningTokens: { increment: reasoningTokens },
     },
   });
 };

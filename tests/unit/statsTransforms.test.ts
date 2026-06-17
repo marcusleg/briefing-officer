@@ -12,14 +12,12 @@ const tu = (
   model: string,
   input: number,
   output: number,
-  reasoning = 0,
 ): TokenUsage => ({
   userId: "u",
   date,
   model,
   inputTokens: input,
   outputTokens: output,
-  reasoningTokens: reasoning,
 });
 
 describe("computeDailyAverage", () => {
@@ -74,27 +72,22 @@ describe("shapeTokenUsage", () => {
 
   it("collapses multiple models on the same date into one row", () => {
     const result = shapeTokenUsage([
-      tu("d1", "modelA", 10, 20, 0),
-      tu("d1", "modelB", 30, 40, 5),
+      tu("d1", "modelA", 10, 20),
+      tu("d1", "modelB", 30, 40),
     ]);
     expect(result.rows).toHaveLength(1);
-    expect(result.rows[0]).toEqual({
+    expect(result.rows[0]).toStrictEqual({
       date: "d1",
       modelA_input: 10,
       modelA_output: 20,
-      modelA_reasoning: 0,
       modelB_input: 30,
       modelB_output: 40,
-      modelB_reasoning: 5,
     });
     expect(new Set(result.models)).toEqual(new Set(["modelA", "modelB"]));
   });
 
   it("creates one row per distinct date", () => {
-    const result = shapeTokenUsage([
-      tu("d1", "m", 1, 2, 0),
-      tu("d2", "m", 3, 4, 0),
-    ]);
+    const result = shapeTokenUsage([tu("d1", "m", 1, 2), tu("d2", "m", 3, 4)]);
     expect(result.rows.map((r) => r.date)).toEqual(["d1", "d2"]);
     expect(result.models).toEqual(["m"]);
   });

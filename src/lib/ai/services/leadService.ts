@@ -37,7 +37,6 @@ export const generateAiLead = async (articleId: number) => {
     model.modelId,
     lead.totalUsage.inputTokens ?? 0,
     lead.totalUsage.outputTokens ?? 0,
-    lead.totalUsage.reasoningTokens ?? 0,
   );
 
   logger.info(
