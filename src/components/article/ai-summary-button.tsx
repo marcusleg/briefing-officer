@@ -10,7 +10,12 @@ interface AiSummaryButtonProps {
   className?: string;
 }
 
-const AiSummaryButton = ({ feedId, articleId, size, className }: AiSummaryButtonProps) => {
+const AiSummaryButton = ({
+  feedId,
+  articleId,
+  size,
+  className,
+}: AiSummaryButtonProps) => {
   return (
     <Button
       asChild
