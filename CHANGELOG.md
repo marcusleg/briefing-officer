@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.9.0](https://github.com/marcusleg/briefing-officer/compare/v0.8.0...v0.9.0) (2026-06-17)
+
+
+### Features
+
+* clicking the feed name on article cards navigates to the feed page ([1dd474d](https://github.com/marcusleg/briefing-officer/commit/1dd474da6c63cc04c73034f2e86c141106fcd597))
+* collapse secondary buttons to icon-only with tooltips; introduce Dismiss/Restore ([902815d](https://github.com/marcusleg/briefing-officer/commit/902815d711b280c215119296785253029259b019))
+* increase most font sizes for better legibility ([5709601](https://github.com/marcusleg/briefing-officer/commit/5709601aa231d94b3d7a690db007e3a8e19a65af))
+* move feed name and publication date above article title ([836c007](https://github.com/marcusleg/briefing-officer/commit/836c007dead909bd13e5a4d486fd48deace232e0))
+* reduce font size of source link on AI Summary page ([f445a75](https://github.com/marcusleg/briefing-officer/commit/f445a75fa5c6be44dd50f3675f07fe29dc362771))
+* rename, reorder action buttons and add reading time to footer ([ef7572c](https://github.com/marcusleg/briefing-officer/commit/ef7572c53aee2a18b31bb6e8a2ffc82d55d3f178))
+* restructure AI summary page layout to match ArticleCard design ([12ab193](https://github.com/marcusleg/briefing-officer/commit/12ab193cefdb3d24a6c93b38a44ee9a0b18fb277))
+
+
+### Bug Fixes
+
+* correct hotkey feedId reference and mobile button size ([9a47ae3](https://github.com/marcusleg/briefing-officer/commit/9a47ae3a0b4fb29c6acf8547f5dd06eb444fa0e6))
+* reduce card padding and gap on mobile ([46a339c](https://github.com/marcusleg/briefing-officer/commit/46a339c0b557dc6181fce30659758acd2ddf76c3))
+* replace EyeIcon with ArchiveRestoreIcon for toggle-read button ([45b2ff7](https://github.com/marcusleg/briefing-officer/commit/45b2ff758effc7d72e8f6efa110b47e78217e516))
+
 ## [0.8.0](https://github.com/marcusleg/briefing-officer/compare/v0.7.0...v0.8.0) (2026-06-11)
 
 
