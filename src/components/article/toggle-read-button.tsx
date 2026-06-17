@@ -5,7 +5,7 @@ import {
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
-import { EyeIcon, Trash2Icon } from "lucide-react";
+import { ArchiveRestoreIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -51,7 +51,7 @@ const ToggleReadButton = ({
     >
       {isRead ? (
         <>
-          <EyeIcon className="size-4" />
+          <ArchiveRestoreIcon className="size-4" />
           Restore
         </>
       ) : (
