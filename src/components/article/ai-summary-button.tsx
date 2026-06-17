@@ -1,4 +1,4 @@
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -7,20 +7,21 @@ interface AiSummaryButtonProps {
   feedId: number;
   articleId: number;
   size?: React.ComponentProps<typeof Button>["size"];
+  className?: string;
 }
 
-const AiSummaryButton = ({ feedId, articleId, size }: AiSummaryButtonProps) => {
+const AiSummaryButton = ({ feedId, articleId, size, className }: AiSummaryButtonProps) => {
   return (
-    <Link
-      className={buttonVariants({
-        className: "text-sm",
-        variant: "ghost",
-      })}
-      href={`/feed/${feedId}/article/${articleId}/ai-summary`}
+    <Button
+      asChild
+      variant="secondary"
+      className={className ?? "justify-start text-sm"}
     >
-      <Sparkles className="mr-1 size-4" />
-      AI Summary
-    </Link>
+      <Link href={`/feed/${feedId}/article/${articleId}/ai-summary`}>
+        <Sparkles className="mr-1 size-4" />
+        Summarize
+      </Link>
+    </Button>
   );
 };
 
