@@ -2,16 +2,24 @@
 
 AI summaries for your favorite news feeds.
 
-![Screenshot of Briefing Officer](./screenshot.png)
+## Screenshots
+
+<div align="center">
+  <a href="./docs/screenshots/mobile-light.png"><img src="./docs/screenshots/mobile-light.png" width="24%" alt="Mobile light mode" /></a>
+  <a href="./docs/screenshots/mobile-dark.png"><img src="./docs/screenshots/mobile-dark.png" width="24%" alt="Mobile dark mode" /></a>
+  <br/>
+  <a href="./docs/screenshots/desktop-light.png"><img src="./docs/screenshots/desktop-light.png" width="48%" alt="Desktop light mode" /></a>
+  <a href="./docs/screenshots/desktop-dark.png"><img src="./docs/screenshots/desktop-dark.png" width="48%" alt="Desktop dark mode" /></a>
+</div>
 
 ## Features
 
 - News reader with RSS and Atom support.
-- Three types of AI summaries:
-  - Short descriptions that summarize the article instead of just teasing it.
-  - A bullet-point list of the key points and takeaways.
-  - Executive summary, a detailed summary containing all the original
-    information but very condensed.
+- Two types of AI summaries:
+  - **Lead**: A single paragraph summarizing what the article covers and why it
+    is significant or timely, capped at 80 words.
+  - **Key Facts / Takeaways**: A bullet-point list of 5–12 concise sentences
+    highlighting the most important points from the article.
 - Save articles for later using the "Read Later" and "Star" feature.
 - Support for multiple AI providers (OpenAI, Azure OpenAI, Anthropic, and any
   OpenAI-compatible API).
