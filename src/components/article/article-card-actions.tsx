@@ -17,16 +17,22 @@ interface ArticleCardActionsProps {
   readingTime?: { text: string; minutes: number; time: number; words: number };
 }
 
+const ReadingTimeLabel = ({
+  readingTime,
+}: {
+  readingTime: NonNullable<ArticleCardActionsProps["readingTime"]>;
+}) => (
+  <span className="text-muted-foreground flex items-center gap-1 text-xs">
+    <ClockIcon className="size-3" />
+    {readingTime.text}
+  </span>
+);
+
 const ArticleCardActions = (props: ArticleCardActionsProps) => (
   <>
     {/* Mobile: row 1 — reading time left, icon buttons right */}
     <div className="flex w-full items-center gap-2 md:hidden">
-      {props.readingTime && (
-        <span className="text-muted-foreground flex items-center gap-1 text-xs">
-          <ClockIcon className="size-3" />
-          {props.readingTime.text}
-        </span>
-      )}
+      {props.readingTime && <ReadingTimeLabel readingTime={props.readingTime} />}
       <div className="grow" />
       <ToggleReadLaterButton article={props.article} variant="ghost" />
       <ToggleStarredButton article={props.article} variant="ghost" />
@@ -56,12 +62,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
 
     {/* Desktop: single row */}
     <div className="hidden md:flex md:w-full md:items-center md:gap-2">
-      {props.readingTime && (
-        <span className="text-muted-foreground flex items-center gap-1 text-xs">
-          <ClockIcon className="size-3" />
-          {props.readingTime.text}
-        </span>
-      )}
+      {props.readingTime && <ReadingTimeLabel readingTime={props.readingTime} />}
       <div className="grow" />
       <ToggleReadLaterButton article={props.article} />
       <ToggleStarredButton article={props.article} />
