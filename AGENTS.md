@@ -4,7 +4,15 @@ Guidance for AI coding agents working in this repository.
 
 ## Before every commit
 
-Run Prettier to format the code, otherwise the `format-check` CI job will fail:
+A Husky pre-commit hook runs `lint-staged`, which automatically applies
+`eslint --fix` and Prettier to staged files. It installs automatically via the
+`prepare` script on `npm install`. Do **not** bypass it with
+`git commit --no-verify`; if the hook reports an error it cannot auto-fix, fix
+the underlying issue instead.
+
+The hook only touches staged files, so still run Prettier across the project
+before committing to catch anything the hook misses — otherwise the
+`format-check` CI job will fail:
 
 ```bash
 npm run format
