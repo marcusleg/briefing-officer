@@ -5,11 +5,11 @@ import {
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
 import { Article } from "@prisma/client";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const ToggleReadButton = ({ article }: { article: Article }) => {
+const ToggleReadButton = ({ article, className }: { article: Article; className?: string }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleMarkAsRead = async () => {
@@ -18,15 +18,8 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
     setIsSubmitting(false);
 
     toast("Article marked as read", {
-      description: (
-        <>
-          <span className="italic">{article.title}</span>
-        </>
-      ),
-      action: {
-        label: "Undo",
-        onClick: () => handleMarkAsUnread(),
-      },
+      description: <span className="italic">{article.title}</span>,
+      action: { label: "Undo", onClick: () => handleMarkAsUnread() },
     });
   };
 
@@ -36,15 +29,8 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
     setIsSubmitting(false);
 
     toast("Article marked as unread", {
-      description: (
-        <>
-          <span className="italic">{article.title}</span>
-        </>
-      ),
-      action: {
-        label: "Undo",
-        onClick: () => handleMarkAsRead(),
-      },
+      description: <span className="italic">{article.title}</span>,
+      action: { label: "Undo", onClick: () => handleMarkAsRead() },
     });
   };
 
@@ -52,17 +38,22 @@ const ToggleReadButton = ({ article }: { article: Article }) => {
 
   return (
     <Button
-      className="cursor-pointer text-sm"
+      className={className ?? "cursor-pointer justify-start text-sm"}
       disabled={isSubmitting}
       onClick={isRead ? handleMarkAsUnread : handleMarkAsRead}
-      variant="ghost"
+      variant="secondary"
     >
       {isRead ? (
-        <EyeOffIcon className="mr-1 size-4" />
+        <>
+          <EyeIcon className="size-4" />
+          Restore
+        </>
       ) : (
-        <EyeIcon className="mr-1 size-4" />
+        <>
+          <Trash2Icon className="size-4" />
+          Dismiss
+        </>
       )}
-      {isRead ? "Mark Unread" : "Mark Read"}
     </Button>
   );
 };

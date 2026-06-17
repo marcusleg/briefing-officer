@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   markArticleAsReadLater,
   unmarkArticleAsReadLater,
 } from "@/lib/repository/articleRepository";
@@ -7,24 +13,13 @@ import { Article } from "@prisma/client";
 import { BookmarkIcon } from "lucide-react";
 import { toast } from "sonner";
 
-interface ToggleReadLaterButtonProps {
-  article: Article;
-}
-
-const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
+const ToggleReadLaterButton = ({ article, variant = "secondary" }: { article: Article; variant?: "secondary" | "ghost" }) => {
   const handleReadLaterClick = async () => {
     await markArticleAsReadLater(article.id);
 
     toast("Article Added To Read Later", {
-      description: (
-        <>
-          <span className="italic">{article.title}</span>
-        </>
-      ),
-      action: {
-        label: "Undo",
-        onClick: async () => await unmarkArticleAsReadLater(article.id),
-      },
+      description: <span className="italic">{article.title}</span>,
+      action: { label: "Undo", onClick: async () => await unmarkArticleAsReadLater(article.id) },
     });
   };
 
@@ -32,33 +27,29 @@ const ToggleReadLaterButton = ({ article }: ToggleReadLaterButtonProps) => {
     await unmarkArticleAsReadLater(article.id);
 
     toast("Article Removed From Read Later", {
-      description: (
-        <>
-          <span className="italic">{article.title}</span>
-        </>
-      ),
-      action: {
-        label: "Undo",
-        onClick: async () => await markArticleAsReadLater(article.id),
-      },
+      description: <span className="italic">{article.title}</span>,
+      action: { label: "Undo", onClick: async () => await markArticleAsReadLater(article.id) },
     });
   };
 
   return (
-    <Button
-      variant="ghost"
-      onClick={
-        article.readLater
-          ? handleRemoveFromReadLaterClick
-          : handleReadLaterClick
-      }
-      className="cursor-pointer text-sm"
-    >
-      <BookmarkIcon
-        className={`mr-1 size-4 ${article.readLater ? "fill-black dark:fill-white" : "fill-transparent"}`}
-      />
-      {article.readLater ? "Saved for Later" : "Read Later"}
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={variant}
+            size="icon"
+            onClick={article.readLater ? handleRemoveFromReadLaterClick : handleReadLaterClick}
+            className="cursor-pointer"
+          >
+            <BookmarkIcon
+              className={`size-4 ${article.readLater ? "fill-black dark:fill-white" : "fill-transparent"}`}
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{article.readLater ? "Remove from Read Later" : "Read Later"}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
