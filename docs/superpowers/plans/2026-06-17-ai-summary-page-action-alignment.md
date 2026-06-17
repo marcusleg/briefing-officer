@@ -1,35 +1,59 @@
 # AI Summary Page Action Button Alignment Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> superpowers:subagent-driven-development (recommended) or
+> superpowers:executing-plans to implement this plan task-by-task. Steps use
+> checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Align the AI Summary page action button layout with ArticleCard by consolidating responsive layout and reading time into `ArticleCardActions`, moving the back button out of that component, and restructuring the AI Summary page layout.
+**Goal:** Align the AI Summary page action button layout with ArticleCard by
+consolidating responsive layout and reading time into `ArticleCardActions`,
+moving the back button out of that component, and restructuring the AI Summary
+page layout.
 
-**Architecture:** The responsive two-row mobile layout currently duplicated in `ArticleCard`'s footer moves into `ArticleCardActions`, which gains an optional `readingTime` prop. `ArticleCard` simplifies its footer to a single `ArticleCardActions` call. The AI Summary page restructures its layout to show a standalone `BackButton` at the top and `ArticleCardActions` at the bottom after the summary content.
+**Architecture:** The responsive two-row mobile layout currently duplicated in
+`ArticleCard`'s footer moves into `ArticleCardActions`, which gains an optional
+`readingTime` prop. `ArticleCard` simplifies its footer to a single
+`ArticleCardActions` call. The AI Summary page restructures its layout to show a
+standalone `BackButton` at the top and `ArticleCardActions` at the bottom after
+the summary content.
 
-**Tech Stack:** Next.js 15 App Router, React, TypeScript, Tailwind CSS, Prisma, `reading-time` npm package, shadcn/ui components
+**Tech Stack:** Next.js 15 App Router, React, TypeScript, Tailwind CSS, Prisma,
+`reading-time` npm package, shadcn/ui components
 
 ## Global Constraints
 
 - No new dependencies
 - Follow existing Tailwind class patterns (see `article-card.tsx` for reference)
 - All TypeScript — no `any` types
-- `reading-time` package is already installed; import as `import readingTime from "reading-time"`
-- `ReadingTime` result type: `{ text: string; minutes: number; time: number; words: number }`
+- `reading-time` package is already installed; import as
+  `import readingTime from "reading-time"`
+- `ReadingTime` result type:
+  `{ text: string; minutes: number; time: number; words: number }`
 
 ---
 
 ### Task 1: Refactor `ArticleCardActions` — remove back button, add responsive layout and `readingTime` prop
 
 **Files:**
+
 - Modify: `src/components/article/article-card-actions.tsx`
 
 **Interfaces:**
+
 - Produces:
+
   ```ts
   interface ArticleCardActionsProps {
-    article: Prisma.ArticleGetPayload<{ include: { feed: true; scrape: true } }>;
+    article: Prisma.ArticleGetPayload<{
+      include: { feed: true; scrape: true };
+    }>;
     hideSummarizeButton?: boolean;
-    readingTime?: { text: string; minutes: number; time: number; words: number };
+    readingTime?: {
+      text: string;
+      minutes: number;
+      time: number;
+      words: number;
+    };
   }
   ```
 
@@ -135,7 +159,8 @@ cd /home/marcus/Documents/Programming/briefing-officer
 npx tsc --noEmit
 ```
 
-Expected: no errors (there will be type errors in `article-card.tsx` about the removed props — that's fine, they'll be fixed in Task 2).
+Expected: no errors (there will be type errors in `article-card.tsx` about the
+removed props — that's fine, they'll be fixed in Task 2).
 
 - [ ] **Step 3: Commit**
 
@@ -149,14 +174,17 @@ git commit -m "refactor: consolidate responsive layout and readingTime into Arti
 ### Task 2: Simplify `ArticleCard` footer
 
 **Files:**
+
 - Modify: `src/components/article/article-card.tsx`
 
 **Interfaces:**
+
 - Consumes: `ArticleCardActions` with props `{ article, readingTime? }`
 
 - [ ] **Step 1: Replace the CardFooter section**
 
-In `src/components/article/article-card.tsx`, replace the entire `<CardFooter>` block (lines 143–186) with:
+In `src/components/article/article-card.tsx`, replace the entire `<CardFooter>`
+block (lines 143–186) with:
 
 ```tsx
 <CardFooter className="flex-col gap-3 border-t px-4 md:flex md:flex-row md:items-center md:gap-2 md:px-6">
@@ -182,8 +210,10 @@ npm run dev
 ```
 
 Open `http://localhost:3000/feed` in a browser. Check:
+
 - Desktop: single row with reading time left, all action buttons right
-- Mobile (resize to < 768px): two rows — row 1 icon buttons with reading time, row 2 full-width Dismiss/Summarize/Visit
+- Mobile (resize to < 768px): two rows — row 1 icon buttons with reading time,
+  row 2 full-width Dismiss/Summarize/Visit
 
 - [ ] **Step 4: Commit**
 
@@ -197,10 +227,13 @@ git commit -m "refactor: simplify ArticleCard footer to use ArticleCardActions"
 ### Task 3: Restructure the AI Summary page
 
 **Files:**
+
 - Modify: `src/app/feed/[feedId]/article/[articleId]/ai-summary/page.tsx`
 
 **Interfaces:**
-- Consumes: `ArticleCardActions` with props `{ article, hideSummarizeButton: true, readingTime? }`
+
+- Consumes: `ArticleCardActions` with props
+  `{ article, hideSummarizeButton: true, readingTime? }`
 - Consumes: `BackButton` from `@/components/navigation/back-button`
 
 - [ ] **Step 1: Replace the page file content**
@@ -322,6 +355,7 @@ Expected: no errors.
 - [ ] **Step 3: Visually verify the AI Summary page**
 
 With dev server running, navigate to any article's AI Summary page. Check:
+
 - `BackButton` appears at the top of the article area
 - Article header (feed name, date, title, author) appears below
 - AI summary stream renders
