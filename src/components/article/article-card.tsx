@@ -1,14 +1,14 @@
 "use client";
 
-import ArticleCardActions from "@/components/article/article-card-actions";
 import AiSummaryButton from "@/components/article/ai-summary-button";
+import ArticleCardActions from "@/components/article/article-card-actions";
 import ArticleMeta from "@/components/article/article-meta";
 import CommentsButton from "@/components/article/comments-button";
-import IntlRelativeTime from "@/components/intl-relative-time";
 import ToggleReadButton from "@/components/article/toggle-read-button";
 import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
 import ToggleStarredButton from "@/components/article/toggle-starred-button";
 import VisitButton from "@/components/article/visit-button";
+import IntlRelativeTime from "@/components/intl-relative-time";
 import {
   Card,
   CardContent,
@@ -21,7 +21,7 @@ import {
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
 import { Prisma } from "@prisma/client";
-import { LoaderCircleIcon, ClockIcon } from "lucide-react";
+import { ClockIcon, LoaderCircleIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -130,9 +130,7 @@ const ArticleCard = (props: ArticleCardProps) => {
               {props.article.title}
             </h2>
 
-            <ArticleMeta
-              author={props.article.scrape?.author}
-            />
+            <ArticleMeta author={props.article.scrape?.author} />
           </div>
         </div>
       </CardHeader>

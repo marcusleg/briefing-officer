@@ -62,9 +62,7 @@ const AiSummary = async (props0: {
 
         <h2 className="text-2xl font-bold tracking-tight">{article.title}</h2>
 
-        <ArticleMeta
-          author={article.scrape?.author}
-        />
+        <ArticleMeta author={article.scrape?.author} />
 
         {article.scrape ? (
           <AiSummaryStream articleId={article.id} />

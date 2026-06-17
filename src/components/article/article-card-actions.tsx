@@ -34,7 +34,10 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
 
     <CommentsButton article={props.article} />
 
-    <ToggleReadButton article={props.article} className="cursor-pointer justify-start text-sm" />
+    <ToggleReadButton
+      article={props.article}
+      className="cursor-pointer justify-start text-sm"
+    />
 
     {!props.hideAiSummary && (
       <AiSummaryButton
@@ -45,7 +48,11 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
       />
     )}
 
-    <VisitButton article={props.article} size="sm" className="justify-start text-sm" />
+    <VisitButton
+      article={props.article}
+      size="sm"
+      className="justify-start text-sm"
+    />
   </div>
 );
 

@@ -13,13 +13,22 @@ import { Article } from "@prisma/client";
 import { StarIcon } from "lucide-react";
 import { toast } from "sonner";
 
-const ToggleStarredButton = ({ article, variant = "secondary" }: { article: Article; variant?: "secondary" | "ghost" }) => {
+const ToggleStarredButton = ({
+  article,
+  variant = "secondary",
+}: {
+  article: Article;
+  variant?: "secondary" | "ghost";
+}) => {
   const handleStarClick = async () => {
     await markArticleAsStarred(article.id);
 
     toast("Article Starred", {
       description: <span className="italic">{article.title}</span>,
-      action: { label: "Undo", onClick: async () => await unmarkArticleAsStarred(article.id) },
+      action: {
+        label: "Undo",
+        onClick: async () => await unmarkArticleAsStarred(article.id),
+      },
     });
   };
 
@@ -28,7 +37,10 @@ const ToggleStarredButton = ({ article, variant = "secondary" }: { article: Arti
 
     toast("Article Unstarred", {
       description: <span className="italic">{article.title}</span>,
-      action: { label: "Undo", onClick: async () => await markArticleAsStarred(article.id) },
+      action: {
+        label: "Undo",
+        onClick: async () => await markArticleAsStarred(article.id),
+      },
     });
   };
 

@@ -16,14 +16,22 @@ interface CommentsButtonProps {
   variant?: "secondary" | "ghost";
 }
 
-const CommentsButton = ({ article, variant = "secondary" }: CommentsButtonProps) => {
+const CommentsButton = ({
+  article,
+  variant = "secondary",
+}: CommentsButtonProps) => {
   if (!article.commentsLink) return null;
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button asChild variant={variant} size="icon" className="cursor-pointer">
+          <Button
+            asChild
+            variant={variant}
+            size="icon"
+            className="cursor-pointer"
+          >
             <Link
               href={article.commentsLink}
               target="_blank"

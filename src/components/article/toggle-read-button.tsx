@@ -9,7 +9,13 @@ import { EyeIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const ToggleReadButton = ({ article, className }: { article: Article; className?: string }) => {
+const ToggleReadButton = ({
+  article,
+  className,
+}: {
+  article: Article;
+  className?: string;
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleMarkAsRead = async () => {
