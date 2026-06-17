@@ -54,8 +54,9 @@ const AiSummary = async (props0: {
       />
 
       <article className="mx-auto flex max-w-4xl flex-col gap-4">
-        <BackButton />
-
+        <div className="-ml-3 self-start">
+          <BackButton />
+        </div>
         <div className="flex items-baseline gap-2 text-base">
           <span className="text-muted-foreground font-semibold tracking-wide uppercase">
             {article.feed.title}
@@ -65,11 +66,8 @@ const AiSummary = async (props0: {
             <IntlRelativeTime date={article.publicationDate} />
           </span>
         </div>
-
         <h2 className="text-2xl font-bold tracking-tight">{article.title}</h2>
-
         <ArticleMeta author={article.scrape?.author} />
-
         {article.scrape ? (
           <div className="leading-relaxed">
             <AiSummaryStream articleId={article.id} />
@@ -83,11 +81,9 @@ const AiSummary = async (props0: {
             </AlertDescription>
           </Alert>
         )}
-
         <div className="text-muted-foreground text-xs">
           Source: <Link href={article.link}>{article.link}</Link>
         </div>
-
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:gap-2">
           <ArticleCardActions
             article={article}
