@@ -2,6 +2,7 @@
 
 import { generateAiLead } from "@/lib/ai/services/leadService";
 import logger from "@/lib/logger";
+import { recordArticleScrape } from "@/lib/metrics";
 import prisma from "@/lib/prismaClient";
 import { filterFeedItemsByTitle } from "@/lib/repository/feedFilter";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
@@ -11,6 +12,16 @@ import { Article, Feed } from "@prisma/client";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+const safeRecordArticleScrape = (
+  event: Parameters<typeof recordArticleScrape>[0],
+) => {
+  try {
+    recordArticleScrape(event);
+  } catch {
+    // Metrics must never block feed refresh workflows.
+  }
+};
 
 export const createFeed = async (feed: FeedSchema) => {
   const fetchedFeed = await fetch(feed.link).then((res) => res.text());
@@ -46,10 +57,20 @@ export const deleteFeed = async (feedId: number) => {
   redirect("/");
 };
 
-const processArticle = async (article: Article) => {
+const processArticle = async (article: Article, feedName: string) => {
   try {
     await scrapeArticle(article.id, article.link);
+    safeRecordArticleScrape({
+      userId: article.userId,
+      feedName,
+      status: "success",
+    });
   } catch (error) {
+    safeRecordArticleScrape({
+      userId: article.userId,
+      feedName,
+      status: "error",
+    });
     logger.error(
       { article: { id: article.id, title: article.title, link: article.link } },
       "Failed to scrape article.",
@@ -119,7 +140,7 @@ export const refreshFeed = async (feedId: number) => {
     .filter((article) => !existingLinks.has(article.link));
 
   const processedArticles = createdArticles.map((article) =>
-    processArticle(article),
+    processArticle(article, feed.title),
   );
   await Promise.allSettled(processedArticles);
 
