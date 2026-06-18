@@ -17,7 +17,7 @@ const VisitButton = ({ article, size, className }: VisitButtonProps) => {
   return (
     <Button
       asChild
-      variant="default"
+      variant="secondary"
       className={className ?? "justify-start text-sm"}
     >
       <Link
