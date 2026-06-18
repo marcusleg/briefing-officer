@@ -1,13 +1,27 @@
 import { GET } from "@/app/api/metrics/route";
 import { recordArticleScrape, resetMetricsForTests } from "@/lib/metrics";
-import { beforeEach, describe, expect, it } from "vitest";
+import { collectGaugeMetrics } from "@/lib/metricsRepository";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resetDb } from "../helpers/db";
 import { createFeed, createUser } from "../helpers/factories";
+
+vi.mock("@/lib/metricsRepository", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/lib/metricsRepository")>();
+  return {
+    ...actual,
+    collectGaugeMetrics: vi.fn(actual.collectGaugeMetrics),
+  };
+});
 
 beforeEach(async () => {
   resetMetricsForTests();
   delete process.env.METRICS_TOKEN;
   await resetDb();
+  const actual = await vi.importActual<
+    typeof import("@/lib/metricsRepository")
+  >("@/lib/metricsRepository");
+  vi.mocked(collectGaugeMetrics).mockImplementation(actual.collectGaugeMetrics);
 });
 
 describe("metrics route", () => {
@@ -72,5 +86,23 @@ describe("metrics route", () => {
     expect(body).toContain(
       `briefing_officer_article_scrapes_total{user_id="${user.id}",feed_name="Tech Feed",status="success"} 1`,
     );
+  });
+
+  it("returns 503 when metrics collection fails", async () => {
+    process.env.METRICS_TOKEN = "secret-token";
+    vi.mocked(collectGaugeMetrics).mockRejectedValueOnce(
+      new Error("database unavailable"),
+    );
+
+    const response = await GET(
+      new Request("http://localhost/api/metrics", {
+        headers: {
+          Authorization: "Bearer secret-token",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(503);
+    await expect(response.text()).resolves.toBe("Service Unavailable");
   });
 });

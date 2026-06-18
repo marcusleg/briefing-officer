@@ -60,16 +60,6 @@ export const streamAiSummary = async (articleId: number) => {
       finishStream();
 
       try {
-        recordAiSummaryGeneration({
-          userId,
-          feedName: article.feed.title,
-          status: "success",
-        });
-      } catch {
-        // Metrics failures must never break summary generation.
-      }
-
-      try {
         const tokenUsage = await totalUsage;
 
         logger.info(
@@ -82,15 +72,21 @@ export const streamAiSummary = async (articleId: number) => {
           "AI summary generated.",
         );
 
+        await trackTokenUsage(
+          userId,
+          model.modelId,
+          tokenUsage.inputTokens ?? 0,
+          tokenUsage.outputTokens ?? 0,
+        );
+
         try {
-          await trackTokenUsage(
+          recordAiSummaryGeneration({
             userId,
-            model.modelId,
-            tokenUsage.inputTokens ?? 0,
-            tokenUsage.outputTokens ?? 0,
-          );
+            feedName: article.feed.title,
+            status: "success",
+          });
         } catch {
-          // Token usage tracking must never break summary generation.
+          // Metrics failures must never break summary generation.
         }
       } catch (error) {
         logger.error(

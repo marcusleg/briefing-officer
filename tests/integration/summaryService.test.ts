@@ -134,7 +134,7 @@ describe("streamAiSummary", () => {
     expect(lastStream.done).toHaveBeenCalled();
   });
 
-  it("records success when token usage retrieval fails after streaming completes", async () => {
+  it("does not record success when token usage retrieval fails after streaming completes", async () => {
     const article = await createArticle({ userId, feedId, title: "article" });
     vi.mocked(streamText).mockImplementationOnce(() => ({
       textStream: (async function* () {
@@ -146,13 +146,12 @@ describe("streamAiSummary", () => {
 
     await streamAiSummary(article.id);
 
-    await vi.waitFor(() =>
-      expect(vi.mocked(recordAiSummaryGeneration)).toHaveBeenCalledWith({
-        userId,
-        feedName: "Tech Feed",
-        status: "success",
-      }),
-    );
+    await vi.waitFor(() => expect(lastStream.done).toHaveBeenCalled());
+    expect(vi.mocked(recordAiSummaryGeneration)).not.toHaveBeenCalledWith({
+      userId,
+      feedName: "Tech Feed",
+      status: "success",
+    });
     expect(vi.mocked(recordAiSummaryGeneration)).not.toHaveBeenCalledWith({
       userId,
       feedName: "Tech Feed",
@@ -162,7 +161,7 @@ describe("streamAiSummary", () => {
     expect(lastStream.done).toHaveBeenCalled();
   });
 
-  it("records success when token usage tracking fails after streaming completes", async () => {
+  it("does not record success when token usage tracking fails after streaming completes", async () => {
     const article = await createArticle({ userId, feedId, title: "article" });
     vi.mocked(trackTokenUsage).mockRejectedValueOnce(
       new Error("token tracking failed"),
@@ -171,17 +170,42 @@ describe("streamAiSummary", () => {
     await streamAiSummary(article.id);
 
     await vi.waitFor(() =>
-      expect(vi.mocked(recordAiSummaryGeneration)).toHaveBeenCalledWith({
+      expect(vi.mocked(trackTokenUsage)).toHaveBeenCalledWith(
         userId,
-        feedName: "Tech Feed",
-        status: "success",
-      }),
+        "test-model",
+        11,
+        4,
+      ),
     );
+    expect(vi.mocked(recordAiSummaryGeneration)).not.toHaveBeenCalledWith({
+      userId,
+      feedName: "Tech Feed",
+      status: "success",
+    });
     expect(vi.mocked(recordAiSummaryGeneration)).not.toHaveBeenCalledWith({
       userId,
       feedName: "Tech Feed",
       status: "error",
     });
+    expect(lastStream.done).toHaveBeenCalled();
+  });
+
+  it("records success when success metrics fail after token usage is tracked", async () => {
+    const article = await createArticle({ userId, feedId, title: "article" });
+    vi.mocked(recordAiSummaryGeneration).mockImplementationOnce(() => {
+      throw new Error("metric failed");
+    });
+
+    await streamAiSummary(article.id);
+
+    await vi.waitFor(() =>
+      expect(vi.mocked(trackTokenUsage)).toHaveBeenCalledWith(
+        userId,
+        "test-model",
+        11,
+        4,
+      ),
+    );
     expect(lastStream.done).toHaveBeenCalled();
   });
 
