@@ -80,7 +80,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     : undefined;
 
   const description = () => {
-    const className = "text-base leading-relaxed";
+    const className = "text-base leading-relaxed wrap-anywhere";
 
     if (!props.article.scrape?.textContent) {
       return (
