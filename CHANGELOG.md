@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.11.0](https://github.com/marcusleg/briefing-officer/compare/v0.10.0...v0.11.0) (2026-06-21)
+
+
+### Features
+
+* add playwright config for screenshot capture ([40f3cf3](https://github.com/marcusleg/briefing-officer/commit/40f3cf36583fbe4be166bb720bb73457cb4290d1))
+* add prisma seed script with demo fixtures ([dd4eb6d](https://github.com/marcusleg/briefing-officer/commit/dd4eb6d7d24a042fc79009415c08f17bc18ad998))
+* add screenshot capture script and npm run update-screenshots ([34a46c7](https://github.com/marcusleg/briefing-officer/commit/34a46c7fd8f3f48a2c53100da3932028137aa70a))
+* refined prompts for AI summary generation ([c2a7a58](https://github.com/marcusleg/briefing-officer/commit/c2a7a583292dd618b8d174f886f5d44cfa62667c))
+
+
+### Bug Fixes
+
+* improve seed fixtures and screenshot capture quality ([356dd8f](https://github.com/marcusleg/briefing-officer/commit/356dd8f5926475ad8c237c21a17cfeb5d933cc29))
+* muted "Read" button to avoid visual button hierarchy ([d83bb71](https://github.com/marcusleg/briefing-officer/commit/d83bb71d35d8b0a5ec9c8bbb6b54eeabacfd5ce0))
+* prevent article card from overflowing the viewport on mobile ([754abd8](https://github.com/marcusleg/briefing-officer/commit/754abd81f2257511084bbee49bb32b04567d07a0))
+
+
+### Reverts
+
+* remove accidental application code change from article-card ([3cc8e02](https://github.com/marcusleg/briefing-officer/commit/3cc8e02243c23d0abb2d00fc215df5f269629834))
+
 ## [0.10.0](https://github.com/marcusleg/briefing-officer/compare/v0.9.1...v0.10.0) (2026-06-17)
 
 
