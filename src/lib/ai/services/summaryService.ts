@@ -3,6 +3,7 @@
 import { buildSummaryPrompt, systemPrompt } from "@/lib/ai/prompts";
 import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
 import logger from "@/lib/logger";
+import { recordAiSummaryGeneration } from "@/lib/metrics";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { createStreamableValue } from "@ai-sdk/rsc";
@@ -16,45 +17,115 @@ export const streamAiSummary = async (articleId: number) => {
 
   const article = await prisma.article.findUniqueOrThrow({
     where: { id: articleId, userId },
-    include: { scrape: true },
+    include: {
+      feed: {
+        select: {
+          title: true,
+        },
+      },
+      scrape: true,
+    },
   });
 
   const stream = createStreamableValue("");
 
   void (async () => {
-    const { textStream, totalUsage } = streamText({
-      model,
-      system: systemPrompt,
-      prompt: buildSummaryPrompt(
-        article.title,
-        article.scrape?.textContent ?? "",
-      ),
-    });
+    let finished = false;
 
-    for await (const delta of textStream) {
-      stream.update(delta);
+    const finishStream = () => {
+      if (finished) {
+        return;
+      }
+
+      finished = true;
+      stream.done();
+    };
+
+    try {
+      const { textStream, totalUsage } = await Promise.resolve(
+        streamText({
+          model,
+          system: systemPrompt,
+          prompt: buildSummaryPrompt(
+            article.title,
+            article.scrape?.textContent ?? "",
+          ),
+        }),
+      );
+
+      for await (const delta of textStream) {
+        stream.update(delta);
+      }
+
+      finishStream();
+
+      try {
+        const tokenUsage = await totalUsage;
+
+        logger.info(
+          {
+            articleId,
+            feedId: article.feedId,
+            model: model.modelId,
+            tokenUsage,
+          },
+          "AI summary generated.",
+        );
+
+        await trackTokenUsage(
+          userId,
+          model.modelId,
+          tokenUsage.inputTokens ?? 0,
+          tokenUsage.outputTokens ?? 0,
+        );
+
+        try {
+          recordAiSummaryGeneration({
+            userId,
+            feedName: article.feed.title,
+            status: "success",
+          });
+        } catch {
+          // Metrics failures must never break summary generation.
+        }
+      } catch (error) {
+        logger.error(
+          {
+            articleId,
+            feedId: article.feedId,
+            model: model.modelId,
+            error,
+          },
+          "AI summary token usage bookkeeping failed.",
+        );
+      }
+    } catch (error) {
+      try {
+        recordAiSummaryGeneration({
+          userId,
+          feedName: article.feed.title,
+          status: "error",
+        });
+      } catch {
+        // Metrics failures must never hide the original failure.
+      }
+
+      try {
+        finishStream();
+      } catch {
+        // Stream completion must never break product workflows.
+      }
+
+      logger.error(
+        {
+          articleId,
+          feedId: article.feedId,
+          model: model.modelId,
+          error,
+        },
+        "AI summary generation failed.",
+      );
     }
-
-    stream.done();
-
-    const tokenUsage = await totalUsage;
-
-    logger.info(
-      {
-        articleId,
-        feedId: article.feedId,
-        model: model.modelId,
-        tokenUsage,
-      },
-      "AI summary generated.",
-    );
-
-    await trackTokenUsage(
-      userId,
-      model.modelId,
-      tokenUsage.inputTokens ?? 0,
-      tokenUsage.outputTokens ?? 0,
-    );
   })();
 
   return { output: stream.value };

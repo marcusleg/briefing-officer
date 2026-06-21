@@ -1,5 +1,6 @@
 "use server";
 
+import { recordLanguageModelTokens } from "@/lib/metrics";
 import prisma from "@/lib/prismaClient";
 
 export const trackTokenUsage = async (
@@ -30,4 +31,19 @@ export const trackTokenUsage = async (
       outputTokens: { increment: outputTokens },
     },
   });
+
+  try {
+    recordLanguageModelTokens({
+      model,
+      direction: "input",
+      tokens: inputTokens,
+    });
+    recordLanguageModelTokens({
+      model,
+      direction: "output",
+      tokens: outputTokens,
+    });
+  } catch {
+    // Metrics failures must never break persistence.
+  }
 };
