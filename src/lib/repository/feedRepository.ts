@@ -51,7 +51,10 @@ const processArticle = async (article: Article) => {
     await scrapeArticle(article.id, article.link);
   } catch (error) {
     logger.error(
-      { article: { id: article.id, title: article.title, link: article.link } },
+      {
+        err: error,
+        article: { id: article.id, title: article.title, link: article.link },
+      },
       "Failed to scrape article.",
     );
   }
@@ -60,7 +63,10 @@ const processArticle = async (article: Article) => {
     await generateAiLead(article.id);
   } catch (error) {
     logger.error(
-      { article: { id: article.id, title: article.title, link: article.link } },
+      {
+        err: error,
+        article: { id: article.id, title: article.title, link: article.link },
+      },
       "Failed to generate AI lead.",
     );
   }
