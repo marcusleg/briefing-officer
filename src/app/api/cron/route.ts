@@ -14,11 +14,23 @@ export const POST = async (request: Request) => {
     return new Response("", { status: 401 });
   }
 
-  refreshFeeds()
-    .then(() => logger.debug("Cron finished successfully."))
-    .catch((error) => logger.error({ error }, "Cron failed."));
+  logger.debug("Cron triggered.");
+  const startedAt = Date.now();
 
-  void deleteArticlesOlderThanXDays(ARTICLE_RETENTION_DAYS);
+  refreshFeeds()
+    .then(() =>
+      logger.info(
+        { durationMs: Date.now() - startedAt },
+        "Cron finished: feeds refreshed.",
+      ),
+    )
+    .catch((error) =>
+      logger.error({ err: error }, "Cron failed: refreshing feeds threw."),
+    );
+
+  deleteArticlesOlderThanXDays(ARTICLE_RETENTION_DAYS).catch((error) =>
+    logger.error({ err: error }, "Cron failed: deleting old articles threw."),
+  );
 
   return new Response("", { status: 200 });
 };
