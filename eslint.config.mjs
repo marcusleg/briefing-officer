@@ -8,6 +8,17 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig([
   {
+    ignores: [
+      ".next/**",
+      "blob-report/**",
+      "coverage/**",
+      "node_modules/**",
+      "out/**",
+      "playwright-report/**",
+      "test-results/**",
+    ],
+  },
+  {
     extends: [...nextCoreWebVitals],
   },
 ]);

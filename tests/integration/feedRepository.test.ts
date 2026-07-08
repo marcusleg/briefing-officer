@@ -14,8 +14,20 @@ vi.mock("@/lib/scraper", () => ({
 vi.mock("@/lib/ai/services/leadService", () => ({
   generateAiLead: vi.fn(),
 }));
+vi.mock("@/lib/metrics", () => ({
+  recordArticleScrape: vi.fn(),
+}));
+vi.mock("@/lib/logger", () => ({
+  default: {
+    debug: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+  },
+}));
 
 import { generateAiLead } from "@/lib/ai/services/leadService";
+import logger from "@/lib/logger";
+import { recordArticleScrape } from "@/lib/metrics";
 import {
   createCategory as createCategoryAction,
   createFeed as createFeedAction,
@@ -48,6 +60,8 @@ beforeEach(async () => {
   vi.mocked(scrapeArticle).mockResolvedValue(undefined as never);
   vi.mocked(generateAiLead).mockResolvedValue(undefined as never);
   vi.mocked(scrapeFeed).mockResolvedValue([]);
+  vi.mocked(recordArticleScrape).mockReset();
+  vi.mocked(logger.error).mockClear();
 });
 
 describe("feedRepository.refreshFeed", () => {
@@ -67,6 +81,76 @@ describe("feedRepository.refreshFeed", () => {
     expect(refreshed.lastFetched.getTime()).toBeGreaterThan(
       new Date(0).getTime(),
     );
+  });
+
+  it("records a successful article scrape", async () => {
+    const feed = await createFeed({ userId, title: "Tech Feed" });
+    vi.mocked(scrapeFeed).mockResolvedValue([
+      feedItem("Article", "https://example.com/1"),
+    ]);
+
+    await refreshFeed(feed.id);
+
+    expect(vi.mocked(recordArticleScrape)).toHaveBeenCalledWith({
+      userId,
+      feedName: "Tech Feed",
+      status: "success",
+    });
+  });
+
+  it("continues AI lead generation when successful scrape metric recording fails", async () => {
+    const feed = await createFeed({ userId, title: "Tech Feed" });
+    vi.mocked(scrapeFeed).mockResolvedValue([
+      feedItem("Article", "https://example.com/1"),
+    ]);
+    vi.mocked(recordArticleScrape).mockImplementationOnce(() => {
+      throw new Error("metric failed");
+    });
+
+    await refreshFeed(feed.id);
+
+    expect(vi.mocked(generateAiLead)).toHaveBeenCalledWith(expect.any(Number));
+    expect(vi.mocked(recordArticleScrape)).not.toHaveBeenCalledWith({
+      userId,
+      feedName: "Tech Feed",
+      status: "error",
+    });
+    expect(vi.mocked(logger.error)).not.toHaveBeenCalledWith(
+      expect.anything(),
+      "Failed to scrape article.",
+    );
+  });
+
+  it("records a failed article scrape and still generates an AI lead", async () => {
+    const feed = await createFeed({ userId, title: "Tech Feed" });
+    vi.mocked(scrapeFeed).mockResolvedValue([
+      feedItem("Article", "https://example.com/1"),
+    ]);
+    vi.mocked(scrapeArticle).mockRejectedValueOnce(new Error("scrape failed"));
+
+    await refreshFeed(feed.id);
+
+    expect(vi.mocked(recordArticleScrape)).toHaveBeenCalledWith({
+      userId,
+      feedName: "Tech Feed",
+      status: "error",
+    });
+    expect(vi.mocked(generateAiLead)).toHaveBeenCalledWith(expect.any(Number));
+  });
+
+  it("continues AI lead generation when failed scrape metric recording fails", async () => {
+    const feed = await createFeed({ userId, title: "Tech Feed" });
+    vi.mocked(scrapeFeed).mockResolvedValue([
+      feedItem("Article", "https://example.com/1"),
+    ]);
+    vi.mocked(scrapeArticle).mockRejectedValueOnce(new Error("scrape failed"));
+    vi.mocked(recordArticleScrape).mockImplementationOnce(() => {
+      throw new Error("metric failed");
+    });
+
+    await refreshFeed(feed.id);
+
+    expect(vi.mocked(generateAiLead)).toHaveBeenCalledWith(expect.any(Number));
   });
 
   it("updates commentsLink on an existing article when the feed is refreshed", async () => {
