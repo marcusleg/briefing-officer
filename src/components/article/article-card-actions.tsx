@@ -2,7 +2,7 @@
 
 import AiSummaryButton from "@/components/article/ai-summary-button";
 import CommentsButton from "@/components/article/comments-button";
-import ToggleReadButton from "@/components/article/toggle-read-button";
+import DismissButton from "@/components/article/dismiss-button";
 import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
 import ToggleStarredButton from "@/components/article/toggle-starred-button";
 import VisitButton from "@/components/article/visit-button";
@@ -44,7 +44,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
 
     {/* Mobile: row 2 — full-width labeled buttons */}
     <div className="flex w-full gap-2 md:hidden">
-      <ToggleReadButton
+      <DismissButton
         article={props.article}
         className="flex-1 justify-center text-sm"
         onAfterDismiss={props.onAfterDismiss}
@@ -73,7 +73,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
       <ToggleReadLaterButton article={props.article} />
       <ToggleStarredButton article={props.article} />
       <CommentsButton article={props.article} />
-      <ToggleReadButton
+      <DismissButton
         article={props.article}
         className="cursor-pointer justify-start text-sm"
         onAfterDismiss={props.onAfterDismiss}
