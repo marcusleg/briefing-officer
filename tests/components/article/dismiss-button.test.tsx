@@ -1,4 +1,4 @@
-import ToggleReadButton from "@/components/article/toggle-read-button";
+import DismissButton from "@/components/article/dismiss-button";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -18,14 +18,11 @@ const unreadArticle = {
   title: "Test article",
 } as any;
 
-describe("ToggleReadButton", () => {
+describe("DismissButton", () => {
   it("calls onAfterDismiss after marking as read", async () => {
     const onAfterDismiss = vi.fn();
     render(
-      <ToggleReadButton
-        article={unreadArticle}
-        onAfterDismiss={onAfterDismiss}
-      />,
+      <DismissButton article={unreadArticle} onAfterDismiss={onAfterDismiss} />,
     );
 
     await userEvent.click(screen.getByRole("button", { name: /dismiss/i }));
@@ -37,10 +34,7 @@ describe("ToggleReadButton", () => {
     const onAfterDismiss = vi.fn();
     const readArticle = { ...unreadArticle, readAt: new Date() };
     render(
-      <ToggleReadButton
-        article={readArticle}
-        onAfterDismiss={onAfterDismiss}
-      />,
+      <DismissButton article={readArticle} onAfterDismiss={onAfterDismiss} />,
     );
 
     await userEvent.click(screen.getByRole("button", { name: /restore/i }));

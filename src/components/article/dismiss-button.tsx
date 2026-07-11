@@ -9,7 +9,7 @@ import { ArchiveRestoreIcon, CheckIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const ToggleReadButton = ({
+const DismissButton = ({
   article,
   className,
   onAfterDismiss,
@@ -67,4 +67,4 @@ const ToggleReadButton = ({
   );
 };
 
-export default ToggleReadButton;
+export default DismissButton;
