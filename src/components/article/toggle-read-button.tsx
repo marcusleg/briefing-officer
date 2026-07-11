@@ -5,7 +5,7 @@ import {
   markArticleAsRead,
   unmarkArticleAsRead,
 } from "@/lib/repository/articleRepository";
-import { ArchiveRestoreIcon, Trash2Icon } from "lucide-react";
+import { ArchiveRestoreIcon, CheckIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -59,7 +59,7 @@ const ToggleReadButton = ({
         </>
       ) : (
         <>
-          <Trash2Icon className="size-4" />
+          <CheckIcon className="size-4" />
           Dismiss
         </>
       )}
