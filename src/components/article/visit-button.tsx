@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Article } from "@/generated/prisma/client";
-import { markArticleAsRead } from "@/lib/repository/articleRepository";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -20,12 +19,7 @@ const VisitButton = ({ article, size, className }: VisitButtonProps) => {
       variant="secondary"
       className={className ?? "justify-start text-sm"}
     >
-      <Link
-        href={article.link}
-        onClick={() => markArticleAsRead(article.id)}
-        onAuxClick={() => markArticleAsRead(article.id)}
-        referrerPolicy="no-referrer"
-      >
+      <Link href={article.link} referrerPolicy="no-referrer">
         <ExternalLink className="mr-1 size-4" />
         Read
       </Link>
