@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.12.0](https://github.com/marcusleg/briefing-officer/compare/v0.11.0...v0.12.0) (2026-07-11)
+
+
+### Features
+
+* **article:** stop marking article as read on visit ([a607cff](https://github.com/marcusleg/briefing-officer/commit/a607cff5595c4ad9a4a3ea7023b2c5a3cd899f12))
+
+
+### Bug Fixes
+
+* **article:** use checkmark instead of trash icon on dismiss button ([d8de716](https://github.com/marcusleg/briefing-officer/commit/d8de7165541c30420a20f62c82f3161d508ea535))
+* **db:** resolve SQLite path relative to project root ([27a0bf6](https://github.com/marcusleg/briefing-officer/commit/27a0bf6e8cc46bc4e847429f860528072ab5bd8c))
+* **deps:** pin kysely to ^0.28.17 to fix better-auth 1.6.13 build ([ba495a7](https://github.com/marcusleg/briefing-officer/commit/ba495a75594b304050350fb1d8f72b0808498b14))
+* include error details in cron and article processing logs ([bf4f890](https://github.com/marcusleg/briefing-officer/commit/bf4f890fdc22fdb6594c69538048d0462fcfb40e))
+
+
+### Performance Improvements
+
+* enable SQLite WAL mode to prevent writes from blocking page loads ([72e29a3](https://github.com/marcusleg/briefing-officer/commit/72e29a3b428cab9933023314e8aabb30f3866cca))
+
 ## [0.11.0](https://github.com/marcusleg/briefing-officer/compare/v0.10.0...v0.11.0) (2026-06-21)
 
 
