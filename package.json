@@ -34,10 +34,10 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.81",
-    "@ai-sdk/azure": "^3.0.69",
-    "@ai-sdk/react": "^3.0.198",
-    "@ai-sdk/rsc": "^2.0.196",
+    "@ai-sdk/anthropic": "^4.0.19",
+    "@ai-sdk/azure": "^4.0.21",
+    "@ai-sdk/react": "^4.0.40",
+    "@ai-sdk/rsc": "^3.0.37",
     "@hookform/resolvers": "^5.4.0",
     "@mozilla/readability": "^0.6.0",
     "@prisma/adapter-better-sqlite3": "^7.8.0",
@@ -70,7 +70,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@types/jsdom": "^21.1.7",
     "@wrksz/themes": "^0.9.3",
-    "ai": "^6.0.196",
+    "ai": "^7.0.37",
     "axios": "^1.17.0",
     "better-auth": "^1.6.13",
     "class-variance-authority": "^0.7.1",
