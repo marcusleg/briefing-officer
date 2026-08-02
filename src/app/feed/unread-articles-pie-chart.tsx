@@ -45,7 +45,7 @@ const UnreadArticlesPieChart = ({ chartData }: UnreadArticlesChartProps) => {
           data={chartData}
           dataKey="unread"
           nameKey="feedTitle"
-          innerRadius={60}
+          innerRadius="50%"
           strokeWidth={5}
         >
           {(chartData ?? []).map((entry, index) => (
