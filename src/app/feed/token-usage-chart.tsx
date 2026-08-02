@@ -63,7 +63,7 @@ const TokenUsageChart = ({ data }: TokenUsageChartProps) => {
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent indicator="dot" />}
-          labelFormatter={(value) => long.format(new Date(value))}
+          labelFormatter={(value) => long.format(new Date(String(value)))}
         />
         {(data?.models ?? []).flatMap((model) => [
           <Bar
