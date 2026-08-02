@@ -50,7 +50,7 @@ const DailyActivityChart = ({ data }: DailyActivityChartProps) => {
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent />}
-          labelFormatter={(value) => long.format(new Date(value))}
+          labelFormatter={(value) => long.format(new Date(String(value)))}
         />
         <Bar dataKey="count" fill="var(--chart-1)" stackId="a" />
       </BarChart>
