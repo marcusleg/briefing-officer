@@ -34,10 +34,10 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^4.0.23",
-    "@ai-sdk/azure": "^4.0.23",
-    "@ai-sdk/react": "^4.0.43",
-    "@ai-sdk/rsc": "^3.0.40",
+    "@ai-sdk/anthropic": "^4.0.25",
+    "@ai-sdk/azure": "^4.0.26",
+    "@ai-sdk/react": "^4.0.47",
+    "@ai-sdk/rsc": "^3.0.44",
     "@hookform/resolvers": "^5.4.0",
     "@mozilla/readability": "^0.6.0",
     "@prisma/adapter-better-sqlite3": "^7.8.0",
