@@ -176,10 +176,50 @@ describe("AudioSummaryPlayer", () => {
 
     await waitFor(() => expect(screen.getByText("1.5×")).toBeInTheDocument());
     // Re-applying the rate while playing would cancel and re-speak the queue,
-    // so the opening line would be spoken twice.
-    const openings = engine
-      .spoken()
-      .filter((utterance) => utterance.text.startsWith("Kernel 7.2"));
-    expect(openings).toHaveLength(1);
+    // so the opening line would be heard twice.
+    //
+    // Count only utterances queued after the last cancel: the fake's cancel()
+    // does not discard queued utterances the way a real engine does, so
+    // spoken() also contains ones that were cancelled before making a sound —
+    // including the opening that Strict Mode's cleanup cancelled.
+    const lastCancel = Math.max(0, ...engine.cancel.mock.invocationCallOrder);
+    const liveOpenings = engine.speak.mock.calls.filter(
+      (call, index) =>
+        (call[0] as unknown as { text: string }).text.startsWith(
+          "Kernel 7.2",
+        ) && engine.speak.mock.invocationCallOrder[index] > lastCancel,
+    );
+    expect(liveOpenings).toHaveLength(1);
+  });
+
+  it("still speaks the opening after Strict Mode's cleanup cancels playback", async () => {
+    const engine = installSpeechEngine();
+
+    render(
+      <React.StrictMode>
+        <AudioSummaryPlayer {...props} />
+      </React.StrictMode>,
+    );
+
+    // The cleanup between Strict Mode's two mount passes cancels playback via
+    // the hook's unmount effect. Without a replay on remount the opening is
+    // silenced for good, because the initialized guard stops it being enqueued
+    // a second time — losing the whole point of building it locally.
+    //
+    // Asserting on ordering rather than on spoken() is deliberate: the fake's
+    // cancel() does not discard queued utterances the way a real engine does,
+    // so spoken() alone cannot tell a live utterance from a cancelled one.
+    // What matters is that the opening reaches the engine after the last
+    // cancel, and so survives in the live queue.
+    await waitFor(() => expect(engine.cancel).toHaveBeenCalled());
+
+    const lastCancel = Math.max(...engine.cancel.mock.invocationCallOrder);
+    const openingSpokenAfterCancel = engine.speak.mock.calls.some(
+      (call, index) =>
+        (call[0] as unknown as { text: string }).text.startsWith(
+          "Kernel 7.2 removes strncpy. Written by Jane Doe",
+        ) && engine.speak.mock.invocationCallOrder[index] > lastCancel,
+    );
+    expect(openingSpokenAfterCancel).toBe(true);
   });
 });

@@ -63,7 +63,16 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
   }, [setRate]);
 
   useEffect(() => {
-    if (initialized.current) return; // Prevent multiple streams
+    if (initialized.current) {
+      // Strict Mode double-invokes mount effects in development, and the
+      // cleanup between the two runs cancels playback through the hook's
+      // unmount effect — which would otherwise silence the opening line for
+      // good, since the guard below stops it being enqueued again. Every
+      // sentence is still retained by the hook, so replaying costs nothing
+      // and generates nothing.
+      playFrom(0);
+      return; // Prevent multiple streams
+    }
     initialized.current = true;
 
     const append = (sentence: string) => {
