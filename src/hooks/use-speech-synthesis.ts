@@ -46,6 +46,12 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
   // this to tell "my queue finished" from "my queue was thrown away".
   const generation = React.useRef(0);
 
+  // True when playback stopped because handleDone reached the last retained
+  // sentence, as opposed to a deliberate playFrom()/cancel(). Lets enqueue()
+  // tell "the stream stalled, resume for the new arrival" apart from "the
+  // listener stopped playback on purpose".
+  const endedAtTail = React.useRef(false);
+
   React.useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
       return;
@@ -83,6 +89,7 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
         if (index !== sentences.current.length - 1) return;
 
         playing.current = false;
+        endedAtTail.current = true;
         activeIndexValue.current = undefined;
         setSpeaking(false);
         setPaused(false);
@@ -102,8 +109,14 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
       generation.current += 1;
       const forGeneration = generation.current;
       window.speechSynthesis.cancel();
+      // cancel() empties the queue but does not clear the paused flag it
+      // latches on the engine, so a speak() right after would sit silent
+      // until something called resume(). This is a deliberate transition,
+      // so it never leaves playback stalled at the tail.
+      window.speechSynthesis.resume();
 
       playing.current = true;
+      endedAtTail.current = false;
       activeIndexValue.current = undefined;
       setSpeaking(true);
       setPaused(false);
@@ -129,6 +142,17 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
       // its own FIFO queue, so playback continues rather than restarting.
       if (playing.current) {
         speakSentence(index, generation.current);
+        return;
+      }
+
+      // Playback previously stopped only because it ran out of retained
+      // sentences, not because the listener stopped it deliberately. The
+      // stream has caught up, so resume for the sentence that just arrived.
+      if (endedAtTail.current) {
+        endedAtTail.current = false;
+        playing.current = true;
+        setSpeaking(true);
+        speakSentence(index, generation.current);
       }
     },
     [speakSentence],
@@ -137,8 +161,12 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
   const cancel = React.useCallback(() => {
     generation.current += 1;
     playing.current = false;
+    endedAtTail.current = false;
     activeIndexValue.current = undefined;
     window.speechSynthesis.cancel();
+    // See the comment in playFrom(): cancel() alone leaves the engine's
+    // paused flag latched, which would silently swallow the next speak().
+    window.speechSynthesis.resume();
     setSpeaking(false);
     setPaused(false);
     setActiveIndex(undefined);
