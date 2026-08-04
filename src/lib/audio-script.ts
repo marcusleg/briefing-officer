@@ -58,8 +58,8 @@ const isSentenceEnd = (buffer: string, index: number): boolean => {
   // An ordinal number (1st, 21st, etc.) is a real sentence end, not an abbreviation.
   // The letter-run regex yields just the letters ("st" from "1st"), so check if a
   // digit precedes the word. If there is, it is an ordinal and ends the sentence.
-  const charBeforeWord = buffer[index - precedingWord.length - 1];
-  if (/\d/.test(charBeforeWord)) {
+  const characterBeforeWord = buffer[index - precedingWord.length - 1];
+  if (/\d/.test(characterBeforeWord)) {
     return true;
   }
 

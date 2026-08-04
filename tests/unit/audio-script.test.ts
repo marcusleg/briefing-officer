@@ -136,4 +136,13 @@ describe("splitIntoSentences", () => {
       remainder: "Then more",
     });
   });
+
+  it("splits after a multi-digit ordinal", () => {
+    // Guards the digit-lookback arithmetic, which single-digit ordinals alone
+    // would not catch if it were ever changed.
+    expect(splitIntoSentences("She placed 21st. Then rested")).toEqual({
+      sentences: ["She placed 21st."],
+      remainder: "Then rested",
+    });
+  });
 });
