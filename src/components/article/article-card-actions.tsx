@@ -1,9 +1,9 @@
 "use client";
 
 import AiSummaryButton from "@/components/article/ai-summary-button";
+import AudioSummaryButton from "@/components/article/audio-summary-button";
 import CommentsButton from "@/components/article/comments-button";
 import DismissButton from "@/components/article/dismiss-button";
-import ReadAloudButton from "@/components/article/read-aloud-button";
 import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
 import ToggleStarredButton from "@/components/article/toggle-starred-button";
 import VisitButton from "@/components/article/visit-button";
@@ -14,8 +14,8 @@ interface ArticleCardActionsProps {
   article: Prisma.ArticleGetPayload<{
     include: { feed: true; scrape: true };
   }>;
-  hideSummarizeButton?: boolean;
-  leadText?: string;
+  /** The page rendering this row, so it can suppress its own entry. */
+  currentPage?: "ai-summary" | "audio-summary";
   onAfterDismiss?: () => void;
   readingTime?: { text: string; minutes: number; time: number; words: number };
 }
@@ -42,10 +42,10 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
       <ToggleReadLaterButton article={props.article} variant="ghost" />
       <ToggleStarredButton article={props.article} variant="ghost" />
       <CommentsButton article={props.article} variant="ghost" />
-      {props.leadText && (
-        <ReadAloudButton
-          text={props.leadText}
-          title={props.article.title}
+      {props.currentPage !== "audio-summary" && (
+        <AudioSummaryButton
+          feedId={props.article.feedId}
+          articleId={props.article.id}
           variant="ghost"
         />
       )}
@@ -58,7 +58,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
         className="flex-1 justify-center text-sm"
         onAfterDismiss={props.onAfterDismiss}
       />
-      {!props.hideSummarizeButton && (
+      {props.currentPage !== "ai-summary" && (
         <AiSummaryButton
           feedId={props.article.feedId}
           articleId={props.article.id}
@@ -82,15 +82,18 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
       <ToggleReadLaterButton article={props.article} />
       <ToggleStarredButton article={props.article} />
       <CommentsButton article={props.article} />
-      {props.leadText && (
-        <ReadAloudButton text={props.leadText} title={props.article.title} />
+      {props.currentPage !== "audio-summary" && (
+        <AudioSummaryButton
+          feedId={props.article.feedId}
+          articleId={props.article.id}
+        />
       )}
       <DismissButton
         article={props.article}
         className="cursor-pointer justify-start text-sm"
         onAfterDismiss={props.onAfterDismiss}
       />
-      {!props.hideSummarizeButton && (
+      {props.currentPage !== "ai-summary" && (
         <AiSummaryButton
           feedId={props.article.feedId}
           articleId={props.article.id}
