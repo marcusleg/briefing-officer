@@ -145,4 +145,18 @@ describe("splitIntoSentences", () => {
       remainder: "Then rested",
     });
   });
+
+  it("keeps a trailing space that separates two words across deltas", () => {
+    // The player feeds the remainder back with the next delta appended, so a
+    // trailing space dropped here glues two words into one.
+    let buffer = "";
+    const spoken: string[] = [];
+    for (const delta of ["It landed after ", "362 patches. "]) {
+      buffer += delta;
+      const { sentences, remainder } = splitIntoSentences(buffer);
+      buffer = remainder;
+      spoken.push(...sentences);
+    }
+    expect(spoken).toEqual(["It landed after 362 patches."]);
+  });
 });

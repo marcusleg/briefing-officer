@@ -14,6 +14,17 @@ interface SpeechSynthesisControls {
   supported: boolean;
 }
 
+// Centralizes the "does this environment even have the API" check so
+// playFrom(), cancel(), pause(), resume(), and speakSentence() do not each
+// repeat it — and, more importantly, so none of them can forget it. The
+// support effect below only gates the `supported` flag; it does not stop
+// these functions from being called (the player's mount effect calls
+// playFrom(0) unconditionally, before `supported` can gate anything).
+const speechEngine = () =>
+  typeof window !== "undefined" && "speechSynthesis" in window
+    ? window.speechSynthesis
+    : undefined;
+
 /**
  * Drives the Web Speech API as a queue of sentences.
  *
@@ -72,6 +83,9 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
 
   const speakSentence = React.useCallback(
     (index: number, forGeneration: number) => {
+      const engine = speechEngine();
+      if (!engine) return;
+
       const utterance = new SpeechSynthesisUtterance(sentences.current[index]);
       utterance.rate = rateValue.current;
 
@@ -99,25 +113,34 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
       utterance.onend = handleDone;
       utterance.onerror = handleDone;
 
-      window.speechSynthesis.speak(utterance);
+      engine.speak(utterance);
     },
     [],
   );
 
   const playFrom = React.useCallback(
     (index: number) => {
+      const engine = speechEngine();
+      if (!engine) return;
+
       generation.current += 1;
       const forGeneration = generation.current;
-      window.speechSynthesis.cancel();
+      engine.cancel();
       // cancel() empties the queue but does not clear the paused flag it
       // latches on the engine, so a speak() right after would sit silent
       // until something called resume(). This is a deliberate transition,
       // so it never leaves playback stalled at the tail.
-      window.speechSynthesis.resume();
+      engine.resume();
 
       playing.current = true;
       endedAtTail.current = false;
-      activeIndexValue.current = undefined;
+      // Known immediately, unlike the state below: setRate() reads this ref
+      // to decide where to re-speak from, and it may be called again before
+      // the engine ever fires onstart for this position. The React state
+      // (activeIndex, cleared just below) is the confirmed, visible
+      // highlight — it stays undefined until the engine reports a sentence
+      // has actually started.
+      activeIndexValue.current = index;
       setSpeaking(true);
       setPaused(false);
       setActiveIndex(undefined);
@@ -159,26 +182,35 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
   );
 
   const cancel = React.useCallback(() => {
+    const engine = speechEngine();
+    if (!engine) return;
+
     generation.current += 1;
     playing.current = false;
     endedAtTail.current = false;
     activeIndexValue.current = undefined;
-    window.speechSynthesis.cancel();
+    engine.cancel();
     // See the comment in playFrom(): cancel() alone leaves the engine's
     // paused flag latched, which would silently swallow the next speak().
-    window.speechSynthesis.resume();
+    engine.resume();
     setSpeaking(false);
     setPaused(false);
     setActiveIndex(undefined);
   }, []);
 
   const pause = React.useCallback(() => {
-    window.speechSynthesis.pause();
+    const engine = speechEngine();
+    if (!engine) return;
+
+    engine.pause();
     setPaused(true);
   }, []);
 
   const resume = React.useCallback(() => {
-    window.speechSynthesis.resume();
+    const engine = speechEngine();
+    if (!engine) return;
+
+    engine.resume();
     setPaused(false);
   }, []);
 
