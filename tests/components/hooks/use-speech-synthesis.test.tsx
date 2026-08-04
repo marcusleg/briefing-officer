@@ -141,7 +141,10 @@ describe("useSpeechSynthesis", () => {
     expect(result.current.speaking).toBe(true);
 
     act(() => result.current.resume());
-    expect(engine.resume).toHaveBeenCalledOnce();
+    // playFrom() also calls resume() defensively (cancel() alone leaves the
+    // engine's paused flag latched), so the explicit resume() here is the
+    // second call, mirroring the cancel() count below.
+    expect(engine.resume).toHaveBeenCalledTimes(2);
     expect(result.current.paused).toBe(false);
   });
 
@@ -217,5 +220,59 @@ describe("useSpeechSynthesis", () => {
 
     // Only one audio surface is ever mounted, so this needs no ownership check.
     expect(engine.cancel).toHaveBeenCalledTimes(2);
+  });
+
+  it("un-pauses the engine when re-speaking, since cancel does not clear it", () => {
+    const engine = installSpeechEngine();
+    const { result } = renderHook(() => useSpeechSynthesis());
+
+    act(() => {
+      result.current.enqueue("One.");
+      result.current.playFrom(0);
+    });
+    act(() => result.current.pause());
+    act(() => result.current.setRate(1.5));
+
+    // speechSynthesis.pause() latches a flag that cancel() leaves set, so
+    // without an explicit resume the re-spoken queue would be silent.
+    expect(engine.resume).toHaveBeenCalled();
+    expect(result.current.paused).toBe(false);
+  });
+
+  it("resumes speaking when a sentence arrives after the stream stalled", () => {
+    const engine = installSpeechEngine();
+    const { result } = renderHook(() => useSpeechSynthesis());
+
+    act(() => {
+      result.current.enqueue("One.");
+      result.current.playFrom(0);
+    });
+    // The stream fell behind the voice: the only known sentence finishes.
+    act(() => engine.spoken()[0].onend!());
+    expect(result.current.speaking).toBe(false);
+
+    act(() => result.current.enqueue("Two."));
+
+    expect(engine.spoken().map((utterance) => utterance.text)).toEqual([
+      "One.",
+      "Two.",
+    ]);
+    expect(result.current.speaking).toBe(true);
+  });
+
+  it("does not resume after the listener deliberately stopped playback", () => {
+    const engine = installSpeechEngine();
+    const { result } = renderHook(() => useSpeechSynthesis());
+
+    act(() => {
+      result.current.enqueue("One.");
+      result.current.playFrom(0);
+    });
+    act(() => result.current.cancel());
+    act(() => result.current.enqueue("Two."));
+
+    // Only the pre-stop utterance was ever spoken.
+    expect(engine.spoken()).toHaveLength(1);
+    expect(result.current.speaking).toBe(false);
   });
 });
