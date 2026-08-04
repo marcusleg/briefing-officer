@@ -6,6 +6,8 @@ import { vi } from "vitest";
  */
 export class FakeUtterance {
   text: string;
+  rate = 1;
+  onstart: (() => void) | null = null;
   onend: (() => void) | null = null;
   onerror: (() => void) | null = null;
 
@@ -18,6 +20,9 @@ export class FakeUtterance {
  * Installs a fake speech engine on the global object and returns it so tests
  * can assert against its calls. Pass an empty array to simulate a browser with
  * no voices installed. Call `vi.unstubAllGlobals()` afterwards.
+ *
+ * `spoken()` returns the utterances handed to `speak()` in order, which is the
+ * queue the real engine would play back to back.
  */
 export const installSpeechEngine = (
   voices: unknown[] = [{ name: "Test Voice" }],
@@ -35,5 +40,11 @@ export const installSpeechEngine = (
   vi.stubGlobal("speechSynthesis", speechSynthesis);
   vi.stubGlobal("SpeechSynthesisUtterance", FakeUtterance);
 
-  return speechSynthesis;
+  return {
+    ...speechSynthesis,
+    spoken: () =>
+      speechSynthesis.speak.mock.calls.map(
+        (call) => call[0] as unknown as FakeUtterance,
+      ),
+  };
 };
