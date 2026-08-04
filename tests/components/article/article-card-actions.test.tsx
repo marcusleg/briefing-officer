@@ -1,7 +1,6 @@
 import ArticleCardActions from "@/components/article/article-card-actions";
 import { render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { installSpeechEngine } from "../../helpers/speech-synthesis";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/repository/articleRepository", () => ({
   markArticleAsRead: vi.fn().mockResolvedValue(undefined),
@@ -16,8 +15,6 @@ vi.mock("sonner", () => ({
   toast: vi.fn(),
 }));
 
-afterEach(() => vi.unstubAllGlobals());
-
 const article = {
   id: 1,
   feedId: 1,
@@ -30,24 +27,35 @@ const article = {
 } as any;
 
 describe("ArticleCardActions", () => {
-  it("renders a read-aloud button in both layouts when leadText is set", () => {
-    installSpeechEngine();
-
-    render(<ArticleCardActions article={article} leadText="A lead." />);
+  it("links to the audio summary page in both layouts", () => {
+    render(<ArticleCardActions article={article} />);
 
     // Both the mobile (md:hidden) and desktop (hidden md:flex) layouts render
     // into the DOM simultaneously; CSS, not JS, decides which is visible.
-    const buttons = screen.getAllByRole("button", { name: /read aloud/i });
-    expect(buttons).toHaveLength(2);
+    const links = screen.getAllByRole("link", { name: /audio summary/i });
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute("href", "/feed/1/article/1/audio-summary");
   });
 
-  it("renders no read-aloud button when leadText is absent", () => {
-    installSpeechEngine();
-
-    render(<ArticleCardActions article={article} />);
+  it("hides the summarize entry on the AI summary page", () => {
+    render(<ArticleCardActions article={article} currentPage="ai-summary" />);
 
     expect(
-      screen.queryByRole("button", { name: /read aloud/i }),
+      screen.queryByRole("link", { name: /summarize/i }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: /audio summary/i }),
+    ).toHaveLength(2);
+  });
+
+  it("hides the audio entry on the audio summary page", () => {
+    render(
+      <ArticleCardActions article={article} currentPage="audio-summary" />,
+    );
+
+    expect(
+      screen.queryByRole("link", { name: /audio summary/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /summarize/i })).toHaveLength(2);
   });
 });

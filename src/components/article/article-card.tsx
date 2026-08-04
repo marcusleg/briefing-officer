@@ -57,6 +57,15 @@ const ArticleCard = (props: ArticleCardProps) => {
   );
 
   useHotkeys(
+    "a",
+    createHotkeyHandler(() => {
+      router.push(
+        `/feed/${props.article.feedId}/article/${props.article.id}/audio-summary`,
+      );
+    }),
+  );
+
+  useHotkeys(
     "v",
     createHotkeyHandler(async () => {
       window.open(props.article.link, "_blank");
@@ -141,7 +150,6 @@ const ArticleCard = (props: ArticleCardProps) => {
       <CardFooter className="flex-col gap-3 border-t px-4 md:flex md:flex-row md:items-center md:gap-2 md:px-6">
         <ArticleCardActions
           article={props.article}
-          leadText={aiLead}
           readingTime={articleReadingTime}
         />
       </CardFooter>
