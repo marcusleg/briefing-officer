@@ -61,9 +61,11 @@ controls an icon cannot host: pause, restart, and a speech-rate slider.
 2. Both navigate to the Audio Summary page for that article.
 3. The page shows the feed name, publication time, title, and author — matching
    the AI Summary page header — then the transcript area and transport controls.
-4. Playback attempts to start automatically on arrival. The script streams in as
-   text; each completed sentence begins speaking as it arrives, so audio starts
-   roughly a second after the page loads rather than after generation finishes.
+4. Playback attempts to start automatically on arrival, opening with a
+   constructed introduction — title, author, feed — that is available
+   immediately, so audio begins without waiting on the model at all. The
+   generated body then streams in as text, each completed sentence beginning to
+   speak as it arrives.
 5. The sentence currently being spoken is highlighted in the transcript.
 6. Transport controls: play/pause, restart, and a speech-rate slider.
 7. The configured rate persists across sessions on that device.
@@ -110,14 +112,51 @@ When `article.scrape` is missing it renders the same "unavailable" `Alert`
 pattern, worded for audio. Otherwise it renders the client player and the
 actions row.
 
+### The opening line
+
+The script opens with an introduction naming the article, its author, and its
+feed. This is **constructed in code, not generated**. Asking the model to open
+with specific values invites it to paraphrase the title, drop the author, or
+invent one — and the values are already known, so an LLM adds nothing but risk.
+
+`buildOpeningLine(title, author, feedTitle)` is a pure function returning:
+
+```
+"{title}. Written by {author}, from {feedTitle}."
+"{title}. From {feedTitle}."                        // author missing
+```
+
+Terminating the title as its own sentence is deliberate: feed headlines
+frequently end in `?` or `!`, and appending a comma to those produces an audible
+glitch ("Is Rust dead?, written by…"). Ending the sentence sidesteps the
+collision entirely and supplies a natural pause. "From" is used rather than
+"at", which would imply employment, and works for aggregator feeds as well as
+publications.
+
+Two input hazards it must absorb:
+
+- **Missing author.** `scraper.ts:47` stores `parsedArticle!.byline ?? ""`, so
+  the author is an empty string whenever Readability finds no byline. This is
+  common. `ArticleMeta` already guards the same way.
+- **Pre-prefixed bylines.** Readability commonly returns `"By Jane Doe"`, which
+  would otherwise yield "written by By Jane Doe". A leading `By ` is stripped,
+  case-insensitively.
+
+Because the opening needs no generation, it is enqueued the moment the page
+mounts. Audio starts immediately rather than a second in, and the model gets
+that head start to stay ahead of the voice.
+
 ### Generation
 
-`buildAudioScriptPrompt(feedTitle, title, textContent)` joins the existing
-prompts in `src/lib/ai/prompts.ts`. It targets 150–200 words — about one minute
-of speech — opening with `"From {feedTitle}."`. It instructs: short declarative
-sentences, explicit connectives between them, numbers written as they are
-spoken, no parenthetical asides, and — stated explicitly — no Markdown, no
-headings, and no bullet lists.
+`buildAudioScriptPrompt(title, textContent)` joins the existing prompts in
+`src/lib/ai/prompts.ts`. It produces only the **body** — the opening is handled
+above, and the prompt states that the script will already have been introduced,
+so it must not restate the title, author, or publication.
+
+It targets 150–200 words, about one minute of speech, and instructs: short
+declarative sentences, explicit connectives between them, numbers written as
+they are spoken, no parenthetical asides, and — stated explicitly — no Markdown,
+no headings, and no bullet lists.
 
 `src/lib/ai/services/audioScriptService.ts` mirrors `summaryService.ts`:
 `createStreamableValue`, `streamText` against
@@ -126,7 +165,9 @@ headings, and no bullet lists.
 
 ### Sentence splitting
 
-`splitIntoSentences(buffer)` — a pure function in `src/lib/` — returns the
+`splitIntoSentences(buffer)` joins `buildOpeningLine` in
+`src/lib/audio-script.ts` — both are small, pure, script-assembly helpers, and
+one module is simpler than two files of a dozen lines each. It returns the
 complete sentences found in a buffer plus the unterminated remainder, so it can
 be called repeatedly against a growing stream:
 
@@ -143,11 +184,13 @@ unit-tested without a DOM.
 
 ### Playback
 
-The player accumulates stream deltas into a buffer, splits off whole sentences,
-and enqueues each as its own `SpeechSynthesisUtterance`. `speechSynthesis`
-queues utterances FIFO and plays them back to back, so playback is gapless.
-Because models emit far faster than a voice speaks (~150 wpm), generation stays
-ahead of playback after the first sentence.
+The player enqueues the constructed opening line first, before generation has
+returned anything. It then accumulates stream deltas into a buffer, splits off
+whole sentences, and enqueues each as its own `SpeechSynthesisUtterance`.
+`speechSynthesis` queues utterances FIFO and plays them back to back, so
+playback is gapless. Because models emit far faster than a voice speaks (~150
+wpm), and the opening buys several seconds of head start, generation stays ahead
+of playback for the rest of the script.
 
 Per-sentence utterances also sidestep Chrome's 15-second truncation bug, which
 applies to a single long utterance. A sentence at this length runs about five
@@ -239,13 +282,14 @@ both controls share `playFrom(index)` rather than adding a second code path.
 
 ## Failure modes
 
-| Condition           | Behaviour                                                                                                                            |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| No `article.scrape` | "Audio summary unavailable" `Alert`, matching the AI Summary page's pattern. No generation is attempted.                             |
-| No speech voices    | An `Alert` states that the browser has no speech voices installed. The transcript still streams and renders, so reading still works. |
-| Autoplay blocked    | Transport sits at Play. No special-case UI.                                                                                          |
-| Navigation away     | Unmount cancels playback unconditionally.                                                                                            |
-| Generation error    | The stream ends; whatever was spoken has been spoken. Surfaced through the existing service logging.                                 |
+| Condition           | Behaviour                                                                                                                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No `article.scrape` | "Audio summary unavailable" `Alert`, matching the AI Summary page's pattern. No generation is attempted.                                                                                        |
+| No speech voices    | An `Alert` states that the browser has no speech voices installed. The transcript still streams and renders, so reading still works.                                                            |
+| Autoplay blocked    | Transport sits at Play. No special-case UI.                                                                                                                                                     |
+| Navigation away     | Unmount cancels playback unconditionally.                                                                                                                                                       |
+| Generation error    | The stream ends; whatever was spoken has been spoken. The constructed opening always plays, so the listener at least hears what the article was. Surfaced through the existing service logging. |
+| Missing author      | The opening drops the attribution clause rather than speaking an empty name.                                                                                                                    |
 
 The no-voices case is a strict improvement on today's behaviour, where the
 button silently renders nothing and the user has no way to know why.
@@ -256,12 +300,14 @@ New:
 
 - `splitIntoSentences` — abbreviations, decimals, ellipses, incremental feeding
   of a growing buffer, empty and whitespace-only input. Pure unit tests, no DOM.
+- `buildOpeningLine` — author present, author empty, author already prefixed
+  with `By ` in either case, and titles ending in `?`, `!`, or a period.
 - The queue hook — enqueue ordering, `activeIndex` driven by `onstart`,
   pause/resume, cancel, `playFrom(index)`, and that `setRate` re-enqueues from
   the active index with the new rate applied.
-- The player — streams deltas into sentences, highlights the active one,
-  transport controls behave, and the rate slider persists to and restores from
-  `localStorage`.
+- The player — speaks the opening before any delta arrives, streams deltas into
+  sentences, highlights the active one, transport controls behave, and the rate
+  slider persists to and restores from `localStorage`.
 - `AudioSummaryButton` — renders a link to the correct href. Much smaller than
   the test it replaces.
 
@@ -286,7 +332,7 @@ Deleted:
 | Add    | `src/components/article/audio-summary-button.tsx`                                                                                  |
 | Add    | `src/components/article/audio-summary-article-actions.tsx`                                                                         |
 | Add    | `src/lib/ai/services/audioScriptService.ts`                                                                                        |
-| Add    | `src/lib/sentences.ts`                                                                                                             |
+| Add    | `src/lib/audio-script.ts` — `buildOpeningLine`, `splitIntoSentences`                                                               |
 | Edit   | `src/lib/ai/prompts.ts` — add `buildAudioScriptPrompt`                                                                             |
 | Edit   | `src/hooks/use-speech-synthesis.ts` — rewrite as a queue                                                                           |
 | Edit   | `src/components/article/article-card-actions.tsx` — swap button, replace `hideSummarizeButton` with `currentPage`, drop `leadText` |
