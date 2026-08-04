@@ -19,7 +19,6 @@ const ABBREVIATIONS = new Set([
   "inc",
   "ltd",
   "co",
-  "no",
   "fig",
 ]);
 
@@ -54,6 +53,14 @@ const isSentenceEnd = (buffer: string, index: number): boolean => {
   // "U.S.", "J. R. R. Tolkien".
   if (precedingWord.length === 1) {
     return false;
+  }
+
+  // An ordinal number (1st, 21st, etc.) is a real sentence end, not an abbreviation.
+  // The letter-run regex yields just the letters ("st" from "1st"), so check if a
+  // digit precedes the word. If there is, it is an ordinal and ends the sentence.
+  const charBeforeWord = buffer[index - precedingWord.length - 1];
+  if (/\d/.test(charBeforeWord)) {
+    return true;
   }
 
   return !ABBREVIATIONS.has(precedingWord.toLowerCase());

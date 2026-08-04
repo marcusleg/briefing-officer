@@ -113,4 +113,27 @@ describe("splitIntoSentences", () => {
       remainder: "Three",
     });
   });
+
+  it("splits after a standalone No", () => {
+    expect(splitIntoSentences("Is it done? No. Not yet")).toEqual({
+      sentences: ["Is it done?", "No."],
+      remainder: "Not yet",
+    });
+  });
+
+  it("splits after an ordinal, which only looks like an abbreviation", () => {
+    // The letter-run regex yields "st" from "1st", which would otherwise be
+    // suppressed as the abbreviation for Saint or Street.
+    expect(splitIntoSentences("He came in 1st. Then left")).toEqual({
+      sentences: ["He came in 1st."],
+      remainder: "Then left",
+    });
+  });
+
+  it("still does not split after Saint or Street", () => {
+    expect(splitIntoSentences("St. Louis grew. Then more")).toEqual({
+      sentences: ["St. Louis grew."],
+      remainder: "Then more",
+    });
+  });
 });
