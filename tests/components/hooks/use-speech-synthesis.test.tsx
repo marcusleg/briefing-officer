@@ -275,4 +275,29 @@ describe("useSpeechSynthesis", () => {
     expect(engine.spoken()).toHaveLength(1);
     expect(result.current.speaking).toBe(false);
   });
+
+  it("keeps its place when the rate changes twice before speech starts", () => {
+    const engine = installSpeechEngine();
+    const { result } = renderHook(() => useSpeechSynthesis());
+
+    act(() => {
+      result.current.enqueue("One.");
+      result.current.enqueue("Two.");
+      result.current.enqueue("Three.");
+      result.current.playFrom(0);
+    });
+    act(() => engine.spoken()[2].onstart!());
+
+    act(() => result.current.setRate(1.2));
+    const spokenAfterFirstChange = engine.spoken().length;
+    act(() => result.current.setRate(1.4));
+
+    // Without a remembered position the second change would fall back to 0 and
+    // restart the briefing from the top, re-speaking "One." and "Two." too.
+    // Asserting only on the last call's text is not enough to catch that: a
+    // full restart also ends up re-speaking "Three." last, since it is still
+    // the final retained sentence either way.
+    const respoken = engine.spoken().slice(spokenAfterFirstChange);
+    expect(respoken.map((utterance) => utterance.text)).toEqual(["Three."]);
+  });
 });

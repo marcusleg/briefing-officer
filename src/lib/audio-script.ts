@@ -89,7 +89,12 @@ export const splitIntoSentences = (
     start = index + 1;
   }
 
-  return { sentences, remainder: buffer.slice(start).trim() };
+  // trimStart() only: the caller feeds this remainder back with the next
+  // delta appended, so a trailing space here is a real separator between two
+  // words that have not both arrived yet. Trimming it away glues them
+  // together. The leading trim is still wanted — it strips the space that
+  // followed a terminator.
+  return { sentences, remainder: buffer.slice(start).trimStart() };
 };
 
 /**

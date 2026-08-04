@@ -222,4 +222,46 @@ describe("AudioSummaryPlayer", () => {
     );
     expect(openingSpokenAfterCancel).toBe(true);
   });
+
+  it("stops feeding the speech engine once the page unmounts", async () => {
+    const engine = installSpeechEngine();
+    let release: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    vi.mocked(readStreamableValue).mockImplementationOnce(
+      () =>
+        ({
+          async *[Symbol.asyncIterator]() {
+            yield "First sentence here. ";
+            await gate;
+            yield "Late sentence arrives. ";
+          },
+        }) as never,
+    );
+
+    const { unmount } = render(<AudioSummaryPlayer {...props} />);
+    await waitFor(() => expect(engine.spoken()).toHaveLength(2));
+
+    unmount();
+    const spokenBeforeRelease = engine.spoken().length;
+    release!();
+    // Give the detached loop a chance to deliver the late sentence.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // The global speech engine is shared, so a sentence arriving after unmount
+    // would play over whatever page the reader moved on to.
+    expect(engine.spoken()).toHaveLength(spokenBeforeRelease);
+  });
+
+  it("explains itself instead of crashing when the API is missing entirely", async () => {
+    // No installSpeechEngine() call: jsdom has no speechSynthesis at all, which
+    // is different from an engine that reports zero voices.
+    render(<AudioSummaryPlayer {...props} />);
+
+    expect(await screen.findByText(/no speech voices/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/It landed after 362 patches\./),
+    ).toBeInTheDocument();
+  });
 });
