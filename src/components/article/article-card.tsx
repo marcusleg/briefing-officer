@@ -141,6 +141,7 @@ const ArticleCard = (props: ArticleCardProps) => {
       <CardFooter className="flex-col gap-3 border-t px-4 md:flex md:flex-row md:items-center md:gap-2 md:px-6">
         <ArticleCardActions
           article={props.article}
+          leadText={aiLead}
           readingTime={articleReadingTime}
         />
       </CardFooter>
