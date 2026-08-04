@@ -1,0 +1,144 @@
+import AudioSummaryPlayer from "@/components/article/audio-summary-player";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { installSpeechEngine } from "../../helpers/speech-synthesis";
+
+vi.mock("@/lib/ai/services/audioScriptService", () => ({
+  streamAudioScript: vi.fn().mockResolvedValue({ output: "streamable" }),
+}));
+
+vi.mock("@ai-sdk/rsc", () => ({
+  readStreamableValue: vi.fn(() => ({
+    async *[Symbol.asyncIterator]() {
+      yield "It landed after 362 patches. ";
+      yield "Maintainers had warned for years.";
+    },
+  })),
+}));
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  window.localStorage.clear();
+});
+
+const props = {
+  articleId: 42,
+  title: "Kernel 7.2 removes strncpy",
+  author: "Jane Doe",
+  feedTitle: "Hacker News",
+};
+
+describe("AudioSummaryPlayer", () => {
+  it("speaks the constructed opening before any generated text arrives", () => {
+    const engine = installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...props} />);
+
+    expect(engine.spoken()[0].text).toBe(
+      "Kernel 7.2 removes strncpy. Written by Jane Doe, from Hacker News.",
+    );
+  });
+
+  it("speaks each generated sentence as it streams in", async () => {
+    const engine = installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...props} />);
+
+    await waitFor(() =>
+      expect(engine.spoken().map((utterance) => utterance.text)).toEqual([
+        "Kernel 7.2 removes strncpy. Written by Jane Doe, from Hacker News.",
+        "It landed after 362 patches.",
+        "Maintainers had warned for years.",
+      ]),
+    );
+  });
+
+  it("renders the transcript as it arrives", async () => {
+    installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...props} />);
+
+    expect(
+      await screen.findByText(/It landed after 362 patches\./),
+    ).toBeInTheDocument();
+  });
+
+  it("highlights the sentence the engine reports as started", async () => {
+    const engine = installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...props} />);
+    await waitFor(() => expect(engine.spoken()).toHaveLength(3));
+
+    engine.spoken()[1].onstart!();
+
+    await waitFor(() =>
+      expect(screen.getByText(/It landed after 362 patches\./)).toHaveAttribute(
+        "data-active",
+        "true",
+      ),
+    );
+  });
+
+  it("pauses and resumes playback", async () => {
+    const engine = installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...props} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /pause/i }));
+    expect(engine.pause).toHaveBeenCalledOnce();
+
+    // playFrom() calls resume() defensively at mount, since cancel() leaves the
+    // engine's paused flag latched. Clear it so this asserts the Play click
+    // alone rather than counting playFrom's internals.
+    engine.resume.mockClear();
+
+    await userEvent.click(screen.getByRole("button", { name: /play/i }));
+    expect(engine.resume).toHaveBeenCalledOnce();
+  });
+
+  it("restarts from the first sentence", async () => {
+    const engine = installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...props} />);
+    await waitFor(() => expect(engine.spoken()).toHaveLength(3));
+
+    await userEvent.click(screen.getByRole("button", { name: /restart/i }));
+
+    const respoken = engine.spoken().slice(3);
+    expect(respoken[0].text).toBe(
+      "Kernel 7.2 removes strncpy. Written by Jane Doe, from Hacker News.",
+    );
+  });
+
+  it("restores a saved rate and applies it to speech", async () => {
+    window.localStorage.setItem("briefing-officer:speech-rate", "1.5");
+    const engine = installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...props} />);
+
+    await waitFor(() => expect(screen.getByText("1.5×")).toBeInTheDocument());
+    await waitFor(() => expect(engine.spoken().at(-1)!.rate).toBe(1.5));
+  });
+
+  it("ignores a stored rate outside the supported range", async () => {
+    window.localStorage.setItem("briefing-officer:speech-rate", "9");
+    installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...props} />);
+
+    await waitFor(() => expect(screen.getByText("1.0×")).toBeInTheDocument());
+  });
+
+  it("tells the reader when the browser has no speech voices", async () => {
+    installSpeechEngine([]);
+
+    render(<AudioSummaryPlayer {...props} />);
+
+    expect(await screen.findByText(/no speech voices/i)).toBeInTheDocument();
+    // The transcript still streams, so reading remains possible.
+    expect(
+      await screen.findByText(/It landed after 362 patches\./),
+    ).toBeInTheDocument();
+  });
+});
