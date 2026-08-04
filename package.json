@@ -69,7 +69,7 @@
     "@radix-ui/react-toggle-group": "^1.1.15",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@types/jsdom": "^21.1.7",
-    "@wrksz/themes": "^0.9.3",
+    "@wrksz/themes": "^1.0.0",
     "ai": "^7.0.40",
     "axios": "^1.17.0",
     "better-auth": "^1.6.25",
