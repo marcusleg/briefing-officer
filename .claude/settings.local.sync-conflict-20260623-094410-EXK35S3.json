@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/marcus/Documents/codecentric/Code/briefing-officer/**)",
+      "Bash(head -100 README.md)",
+      "Bash(git *)"
+    ]
+  }
+}
