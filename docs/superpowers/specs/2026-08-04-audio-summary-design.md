@@ -50,6 +50,14 @@ controls an icon cannot host: pause, restart, and a speech-rate slider.
   mostly does not arise, and it needs per-sentence refs plus logic to avoid
   fighting a user who scrolls manually.
 - **Voice selection.** Rate is exposed; picking among installed voices is not.
+- **Normalising the author value.** Readability's byline is known to be
+  unreliable — it can arrive prefixed with "By", or carrying a job title or
+  date. The intended fix is to prefer the author supplied by the RSS feed and
+  fall back to the byline, which is separate work not yet in place. This feature
+  deliberately does **not** clean the value up locally: a second place that
+  knows how to tidy bylines would only make that fix harder. Some articles will
+  therefore be introduced awkwardly, and will be corrected for free once the
+  author-determination change lands.
 - **A persistent mini-player.** Docking playback at the bottom of every page
   would preserve feed-skimming, but needs global playback state, a portal, and
   layout changes on every page.
@@ -133,14 +141,14 @@ collision entirely and supplies a natural pause. "From" is used rather than
 "at", which would imply employment, and works for aggregator feeds as well as
 publications.
 
-Two input hazards it must absorb:
+The one input case it handles is a **missing author**: `scraper.ts:47` stores
+`parsedArticle!.byline ?? ""`, so the author is an empty string whenever
+Readability finds no byline, which is common. Without the second form the line
+would read "Written by , from Hacker News" — a structural break, not merely an
+awkward one. `ArticleMeta` already guards the same way.
 
-- **Missing author.** `scraper.ts:47` stores `parsedArticle!.byline ?? ""`, so
-  the author is an empty string whenever Readability finds no byline. This is
-  common. `ArticleMeta` already guards the same way.
-- **Pre-prefixed bylines.** Readability commonly returns `"By Jane Doe"`, which
-  would otherwise yield "written by By Jane Doe". A leading `By ` is stripped,
-  case-insensitively.
+Otherwise the `author` value is used **verbatim**, and is assumed to contain
+only a name — see the non-goal on normalising it.
 
 Because the opening needs no generation, it is enqueued the moment the page
 mounts. Audio starts immediately rather than a second in, and the model gets
@@ -300,8 +308,9 @@ New:
 
 - `splitIntoSentences` — abbreviations, decimals, ellipses, incremental feeding
   of a growing buffer, empty and whitespace-only input. Pure unit tests, no DOM.
-- `buildOpeningLine` — author present, author empty, author already prefixed
-  with `By ` in either case, and titles ending in `?`, `!`, or a period.
+- `buildOpeningLine` — author present, author empty, and titles ending in `?`,
+  `!`, or a period. The author is passed through verbatim; there is no
+  normalisation to test.
 - The queue hook — enqueue ordering, `activeIndex` driven by `onstart`,
   pause/resume, cancel, `playFrom(index)`, and that `setRate` re-enqueues from
   the active index with the new rate applied.
