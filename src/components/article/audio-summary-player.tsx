@@ -40,11 +40,22 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
   // The hook keeps its own copy of the sentences for playback, but that copy is
   // a ref and cannot drive rendering. This one is for display.
   const [sentences, setSentences] = useState<string[]>([]);
+  const [generationFailed, setGenerationFailed] = useState(false);
   const initialized = useRef(false);
+  // Strict Mode double-invokes mount effects in development. setRate() calls
+  // playFrom() when playback is already under way, so a second invocation of
+  // this effect while the streaming effect's playFrom(0) is in flight would
+  // cancel and re-speak the whole queue from the top. Guard with its own ref,
+  // separate from `initialized`, so each effect's guard stays readable on its
+  // own.
+  const restoredRate = useRef(false);
 
   // Read the saved rate in an effect rather than during render, so the server
   // and the first client render agree on the 1.0x default.
   useEffect(() => {
+    if (restoredRate.current) return;
+    restoredRate.current = true;
+
     const stored = Number(window.localStorage.getItem(RATE_STORAGE_KEY));
     if (stored >= MIN_RATE && stored <= MAX_RATE) {
       setRate(stored);
@@ -66,20 +77,26 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
     playFrom(0);
 
     const streamScript = async () => {
-      const { output } = await streamAudioScript(props.articleId);
+      try {
+        const { output } = await streamAudioScript(props.articleId);
 
-      let buffer = "";
-      for await (const delta of readStreamableValue(output)) {
-        buffer += delta ?? "";
-        const { sentences: complete, remainder } = splitIntoSentences(buffer);
-        buffer = remainder;
-        complete.forEach(append);
-      }
+        let buffer = "";
+        for await (const delta of readStreamableValue(output)) {
+          buffer += delta ?? "";
+          const { sentences: complete, remainder } = splitIntoSentences(buffer);
+          buffer = remainder;
+          complete.forEach(append);
+        }
 
-      // A stream often ends without terminal punctuation, so whatever is left
-      // is spoken as a final sentence.
-      if (buffer.trim()) {
-        append(buffer.trim());
+        // A stream often ends without terminal punctuation, so whatever is left
+        // is spoken as a final sentence.
+        if (buffer.trim()) {
+          append(buffer.trim());
+        }
+      } catch {
+        // Whatever already streamed keeps playing — only the rest of the
+        // script failed to arrive. Surface that without touching playback.
+        setGenerationFailed(true);
       }
     };
 
@@ -116,6 +133,16 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
           <AlertDescription>
             This browser has no speech voices installed, so the briefing cannot
             be read aloud. The transcript below is still generated.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {generationFailed && (
+        <Alert>
+          <AlertTitle>Briefing incomplete</AlertTitle>
+          <AlertDescription>
+            The rest of this summary could not be generated. What was written is
+            shown below.
           </AlertDescription>
         </Alert>
       )}

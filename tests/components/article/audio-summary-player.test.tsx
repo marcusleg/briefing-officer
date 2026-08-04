@@ -1,6 +1,8 @@
 import AudioSummaryPlayer from "@/components/article/audio-summary-player";
+import { readStreamableValue } from "@ai-sdk/rsc";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { installSpeechEngine } from "../../helpers/speech-synthesis";
 
@@ -140,5 +142,44 @@ describe("AudioSummaryPlayer", () => {
     expect(
       await screen.findByText(/It landed after 362 patches\./),
     ).toBeInTheDocument();
+  });
+
+  it("keeps the spoken opening and explains itself when generation fails", async () => {
+    const engine = installSpeechEngine();
+    vi.mocked(readStreamableValue).mockImplementationOnce(
+      () =>
+        ({
+          async *[Symbol.asyncIterator]() {
+            throw new Error("model unavailable");
+          },
+        }) as never,
+    );
+
+    render(<AudioSummaryPlayer {...props} />);
+
+    expect(await screen.findByText(/briefing incomplete/i)).toBeInTheDocument();
+    // The locally-built opening needs no model, so it still plays.
+    expect(engine.spoken()[0].text).toBe(
+      "Kernel 7.2 removes strncpy. Written by Jane Doe, from Hacker News.",
+    );
+  });
+
+  it("applies a stored rate only once, despite Strict Mode double-invoking effects", async () => {
+    window.localStorage.setItem("briefing-officer:speech-rate", "1.5");
+    const engine = installSpeechEngine();
+
+    render(
+      <React.StrictMode>
+        <AudioSummaryPlayer {...props} />
+      </React.StrictMode>,
+    );
+
+    await waitFor(() => expect(screen.getByText("1.5×")).toBeInTheDocument());
+    // Re-applying the rate while playing would cancel and re-speak the queue,
+    // so the opening line would be spoken twice.
+    const openings = engine
+      .spoken()
+      .filter((utterance) => utterance.text.startsWith("Kernel 7.2"));
+    expect(openings).toHaveLength(1);
   });
 });
