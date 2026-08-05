@@ -7,6 +7,7 @@ import IntlRelativeTime from "@/components/intl-relative-time";
 import BackButton from "@/components/navigation/back-button";
 import TopNavigation from "@/components/navigation/top-navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { articleAuthor } from "@/lib/article";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
@@ -62,11 +63,11 @@ const AudioSummary = async (props0: {
           </span>
         </div>
         <h2 className="text-2xl font-bold tracking-tight">{article.title}</h2>
-        <ArticleMeta author={article.scrape?.author} />
+        <ArticleMeta author={articleAuthor(article)} />
         {article.scrape ? (
           <AudioSummaryPlayer
             articleId={article.id}
-            author={article.scrape?.author}
+            author={articleAuthor(article)}
             feedTitle={article.feed.title}
             title={article.title}
           />

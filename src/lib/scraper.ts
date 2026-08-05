@@ -70,6 +70,103 @@ export const scrapeArticle = async (articleId: number, articleLink: string) => {
 
   return scrape;
 };
+// htmlparser2 exposes neither <comments> nor per-item authors, so both are read
+// straight off the feed source. The blocks are matched with a regex rather than
+// a second DOM pass because only a handful of elements are needed.
+const FEED_ITEM_PATTERN = /<(item|entry)(?:\s[^>]*)?>.*?<\/\1>/gs;
+
+const XML_ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+};
+
+const decodeFeedText = (value: string) =>
+  value
+    .replace(/<!\[CDATA\[(.*?)\]\]>/gs, "$1")
+    .replace(/<[^>]*>/g, "")
+    .replace(
+      /&(?:#(\d+)|#[xX]([\dA-Fa-f]+)|([A-Za-z]+));/g,
+      (match, dec, hex, name) => {
+        if (dec) return String.fromCodePoint(Number(dec));
+        if (hex) return String.fromCodePoint(parseInt(hex, 16));
+        return XML_ENTITIES[name] ?? match;
+      },
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+
+const extractElement = (block: string, tagName: string) => {
+  const match = block.match(
+    new RegExp(`<${tagName}(?:\\s[^>]*)?>(.*?)</${tagName}>`, "s"),
+  );
+  return match ? decodeFeedText(match[1]) : null;
+};
+
+const extractItemLink = (block: string) => {
+  const rssLink = extractElement(block, "link");
+  if (rssLink) return rssLink;
+
+  // Atom puts the target in the href attribute of a self-closing <link>.
+  // htmlparser2 takes the first one regardless of its rel, so do the same.
+  const atomLink = block.match(/<link(?:\s[^>]*)?\shref="(.*?)"/s);
+  return atomLink ? decodeFeedText(atomLink[1]) : null;
+};
+
+const extractAuthor = (block: string) => {
+  // dc:creator carries a display name, whereas RSS 2.0 specifies <author> as an
+  // email address, so a creator is the better label whenever both are present.
+  const creators = [
+    ...block.matchAll(/<dc:creator(?:\s[^>]*)?>(.*?)<\/dc:creator>/gs),
+  ]
+    .map((match) => decodeFeedText(match[1]))
+    .filter((name) => name !== "");
+  if (creators.length > 0) return creators.join(", ");
+
+  const authors = [...block.matchAll(/<author(?:\s[^>]*)?>(.*?)<\/author>/gs)]
+    .map((match) => {
+      // Atom wraps the display name in <name>. RSS publishers that follow the
+      // email convention usually append the name: "jane@example.com (Jane Doe)".
+      const name = extractElement(match[1], "name");
+      if (name) return name;
+
+      const text = decodeFeedText(match[1]);
+      const parenthesised = text.match(/\(([^)]*)\)/);
+      return parenthesised ? parenthesised[1].trim() : text;
+    })
+    .filter((name) => name !== "");
+
+  return authors.length > 0 ? authors.join(", ") : null;
+};
+
+const extractItemMetadata = (feedSource: string) => {
+  const itemBlocks = [...feedSource.matchAll(FEED_ITEM_PATTERN)].map(
+    (match) => match[0],
+  );
+
+  // An Atom entry inherits the feed-level author when it declares none of its
+  // own (RFC 4287 §4.2.1), which is how single-author blogs usually publish.
+  const feedAuthor = extractAuthor(feedSource.replace(FEED_ITEM_PATTERN, ""));
+
+  const metadataByItemLink = new Map<
+    string,
+    { commentsLink: string | null; author: string | null }
+  >();
+  for (const block of itemBlocks) {
+    const link = extractItemLink(block);
+    if (!link) continue;
+
+    metadataByItemLink.set(link, {
+      commentsLink: extractElement(block, "comments"),
+      author: extractAuthor(block) ?? feedAuthor,
+    });
+  }
+
+  return metadataByItemLink;
+};
+
 export const scrapeFeed = async (feed: Feed) => {
   const fetchedFeed = await fetch(feed.link).then((res) => res.text());
   const parsedFeed = parseFeed(fetchedFeed);
@@ -82,33 +179,29 @@ export const scrapeFeed = async (feed: Feed) => {
     throw new Error("Unable to parse feed.");
   }
 
-  const itemBlocks = [...fetchedFeed.matchAll(/<item[\s>](.*?)<\/item>/gs)].map(
-    (m) => m[0],
-  );
-
-  const commentsLinkByItemLink = new Map<string, string>();
-  for (const block of itemBlocks) {
-    const linkMatch = block.match(/<link>(.*?)<\/link>/s);
-    const commentsMatch = block.match(/<comments>(.*?)<\/comments>/s);
-    if (linkMatch && commentsMatch) {
-      commentsLinkByItemLink.set(linkMatch[1].trim(), commentsMatch[1].trim());
-    }
-  }
+  const metadataByItemLink = extractItemMetadata(fetchedFeed);
 
   const validFeedItems: Pick<
     Article,
-    "title" | "link" | "description" | "publicationDate" | "commentsLink"
+    | "title"
+    | "link"
+    | "description"
+    | "publicationDate"
+    | "commentsLink"
+    | "author"
   >[] = [];
   parsedFeed.items.forEach((item) => {
     if (!item.title || !item.link || !item.pubDate) {
       logger.error({ item }, "Invalid feed item.");
     } else {
+      const metadata = metadataByItemLink.get(item.link);
       validFeedItems.push({
         title: item.title,
         link: item.link,
         description: item.description ? item.description : null,
         publicationDate: new Date(item.pubDate),
-        commentsLink: commentsLinkByItemLink.get(item.link) ?? null,
+        commentsLink: metadata?.commentsLink ?? null,
+        author: metadata?.author ?? null,
       });
     }
   });

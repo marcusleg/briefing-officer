@@ -21,7 +21,7 @@ describe("Audio summary page layout", () => {
     // The opening line is built from these, so they must reach the client.
     expect(pageSource).toContain("<AudioSummaryPlayer");
     expect(pageSource).toContain("feedTitle={article.feed.title}");
-    expect(pageSource).toContain("author={article.scrape?.author}");
+    expect(pageSource).toContain("author={articleAuthor(article)}");
   });
 
   it("explains itself when the article body could not be retrieved", () => {
