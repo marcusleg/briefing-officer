@@ -6,7 +6,7 @@ import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { Readability } from "@mozilla/readability";
 import axios from "axios";
-import { parseFeed } from "htmlparser2";
+import { DomUtils, parseDocument, parseFeed } from "htmlparser2";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
 
@@ -75,26 +75,19 @@ export const scrapeArticle = async (articleId: number, articleLink: string) => {
 // a second DOM pass because only a handful of elements are needed.
 const FEED_ITEM_PATTERN = /<(item|entry)(?:\s[^>]*)?>.*?<\/\1>/gs;
 
-const XML_ENTITIES: Record<string, string> = {
-  amp: "&",
-  lt: "<",
-  gt: ">",
-  quot: '"',
-  apos: "'",
-};
-
+// Reduces an element's raw inner XML to the plain text it stands for: entities
+// decoded, any markup around the value dropped. Parsing rather than unescaping
+// by hand keeps this identical to how htmlparser2 decoded the feed's own
+// fields, which matters because item links are used as lookup keys below.
 const decodeFeedText = (value: string) =>
-  value
-    .replace(/<!\[CDATA\[(.*?)\]\]>/gs, "$1")
-    .replace(/<[^>]*>/g, "")
-    .replace(
-      /&(?:#(\d+)|#[xX]([\dA-Fa-f]+)|([A-Za-z]+));/g,
-      (match, dec, hex, name) => {
-        if (dec) return String.fromCodePoint(Number(dec));
-        if (hex) return String.fromCodePoint(parseInt(hex, 16));
-        return XML_ENTITIES[name] ?? match;
-      },
-    )
+  DomUtils.textContent(
+    // As far as XML is concerned CDATA is literal text, but publishers use it
+    // to embed markup — typically a link wrapped around the author's name — so
+    // the section is unwrapped and its content parsed like everything else.
+    parseDocument(value.replace(/<!\[CDATA\[(.*?)\]\]>/gs, "$1"), {
+      xmlMode: true,
+    }),
+  )
     .replace(/\s+/g, " ")
     .trim();
 

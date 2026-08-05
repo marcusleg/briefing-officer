@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("htmlparser2", () => ({
+// Only parseFeed is stubbed. The scraper also parses raw element content with
+// htmlparser2, and these tests assert on what that produces.
+vi.mock("htmlparser2", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("htmlparser2")>()),
   parseFeed: vi.fn(),
 }));
 
@@ -318,6 +321,40 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane & John O'Doe");
+    vi.unstubAllGlobals();
+  });
+
+  it("unwraps markup around the author name", async () => {
+    stubFeedSource(`
+      <rss><channel>
+        <item>
+          <title>Article 1</title>
+          <link>https://example.com/1</link>
+          <dc:creator><![CDATA[<a href="https://example.com/jane">Jane Doe</a>]]></dc:creator>
+        </item>
+      </channel></rss>
+    `);
+
+    const items = await scrapeFeed(makeFeed());
+
+    expect(items[0].author).toBe("Jane Doe");
+    vi.unstubAllGlobals();
+  });
+
+  it("leaves no tag behind when the markup is nested", async () => {
+    stubFeedSource(`
+      <rss><channel>
+        <item>
+          <title>Article 1</title>
+          <link>https://example.com/1</link>
+          <dc:creator><![CDATA[<<b>b>Jane Doe]]></dc:creator>
+        </item>
+      </channel></rss>
+    `);
+
+    const items = await scrapeFeed(makeFeed());
+
+    expect(items[0].author).not.toContain("<");
     vi.unstubAllGlobals();
   });
 
