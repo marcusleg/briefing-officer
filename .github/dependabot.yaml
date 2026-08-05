@@ -1,9 +1,18 @@
 version: 2
+# Node.js runtime bumps arrive as one pull request: the container base image and
+# the matching @types/node typings should always move together.
+multi-ecosystem-groups:
+  node:
+    schedule:
+      interval: "weekly"
 updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "daily"
+    patterns:
+      - "@types/node"
+    multi-ecosystem-group: "node"
     groups:
       ai-sdk:
         patterns:
@@ -15,8 +24,9 @@ updates:
           - "@prisma/*"
   - package-ecosystem: "docker"
     directory: "/"
-    schedule:
-      interval: "weekly"
+    patterns:
+      - "*node"
+    multi-ecosystem-group: "node"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
