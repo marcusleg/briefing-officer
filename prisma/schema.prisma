@@ -48,6 +48,7 @@ model Article {
   publicationDate DateTime
   description     String?
   content         String?
+  author          String?
   link            String
   commentsLink    String?
   readAt          DateTime?

@@ -113,6 +113,7 @@ export const refreshFeed = async (feedId: number) => {
       },
       update: {
         commentsLink: item.commentsLink,
+        author: item.author,
       },
     }),
   );

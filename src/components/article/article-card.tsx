@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Prisma } from "@/generated/prisma/client";
 import { generateAiLead } from "@/lib/ai/services/leadService";
+import { articleAuthor } from "@/lib/article";
 import {
   markArticleAsRead,
   unmarkArticleAsRead,
@@ -140,7 +141,7 @@ const ArticleCard = (props: ArticleCardProps) => {
               {props.article.title}
             </h2>
 
-            <ArticleMeta author={props.article.scrape?.author} />
+            <ArticleMeta author={articleAuthor(props.article)} />
           </div>
         </div>
       </CardHeader>
