@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { streamAudioScript } from "@/lib/ai/services/audioScriptService";
-import { buildOpeningLine, splitIntoSentences } from "@/lib/audio-script";
+import { splitIntoSentences, spokenTitle } from "@/lib/audio-script";
+import { languageDisplayName } from "@/lib/language";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import { PauseIcon, PlayIcon, RotateCcwIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -19,8 +20,7 @@ const MAX_RATE = 2;
 
 interface AudioSummaryPlayerProps {
   articleId: number;
-  author: string | null | undefined;
-  feedTitle: string;
+  language: string | null;
   title: string;
 }
 
@@ -36,7 +36,8 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
     setRate,
     speaking,
     supported,
-  } = useSpeechSynthesis();
+    voiceAvailable,
+  } = useSpeechSynthesis(props.language);
   // The hook keeps its own copy of the sentences for playback, but that copy is
   // a ref and cannot drive rendering. This one is for display.
   const [sentences, setSentences] = useState<string[]>([]);
@@ -49,13 +50,6 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
   // restored from localStorage show up on mount.
   const [draggedRate, setDraggedRate] = useState<number | undefined>(undefined);
   const initialized = useRef(false);
-  // Strict Mode double-invokes mount effects in development. setRate() calls
-  // playFrom() when playback is already under way, so a second invocation of
-  // this effect while the streaming effect's playFrom(0) is in flight would
-  // cancel and re-speak the whole queue from the top. Guard with its own ref,
-  // separate from `initialized`, so each effect's guard stays readable on its
-  // own.
-  const restoredRate = useRef(false);
   // Set by the streaming effect's cleanup so the in-flight `for await` loop
   // stops feeding the speech engine once this instance is torn down. See the
   // comment where it is reset, inside the effect.
@@ -64,9 +58,6 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
   // Read the saved rate in an effect rather than during render, so the server
   // and the first client render agree on the 1.0x default.
   useEffect(() => {
-    if (restoredRate.current) return;
-    restoredRate.current = true;
-
     const stored = Number(window.localStorage.getItem(RATE_STORAGE_KEY));
     if (stored >= MIN_RATE && stored <= MAX_RATE) {
       setRate(stored);
@@ -91,8 +82,10 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
     if (initialized.current) {
       // Strict Mode double-invokes mount effects in development, and the
       // cleanup between the two runs cancels playback through the hook's
-      // unmount effect — which would otherwise silence the opening line for
-      // good, since the guard below stops it being enqueued again. Every
+      // unmount effect — which calls speechSynthesis.cancel() directly,
+      // leaving the engine's paused flag latched. playFrom() is what clears
+      // it, via its explicit resume(); without this replay every later
+      // utterance would be handed to an engine that stays silent. Every
       // sentence is still retained by the hook, so replaying costs nothing
       // and generates nothing.
       playFrom(0);
@@ -108,9 +101,13 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
       enqueue(sentence);
     };
 
-    // The opening needs no generation, so playback starts before the model has
-    // returned anything — which also buys it a head start over the voice.
-    append(buildOpeningLine(props.title, props.author, props.feedTitle));
+    // The title needs no generation, so playback starts the moment the page
+    // opens rather than waiting on the model's first token — and the headline
+    // is spoken exactly as written instead of however the model paraphrased
+    // it. Enqueued directly rather than through append(): the transcript
+    // covers the generated briefing only, since the page heading right above
+    // already shows the title. That offset is undone where sentences render.
+    enqueue(spokenTitle(props.title));
     playFrom(0);
 
     const streamScript = async () => {
@@ -125,7 +122,7 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
           complete.forEach(append);
         }
 
-        // A stream often ends without terminal punctuation, so whatever is left
+        // A stream often ends without a trailing newline, so whatever is left
         // is spoken as a final sentence.
         if (buffer.trim()) {
           append(buffer.trim());
@@ -133,6 +130,13 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
       } catch {
         // Whatever already streamed keeps playing — only the rest of the
         // script failed to arrive. Surface that without touching playback.
+        //
+        // Known cosmetic gap: if this throws before any sentence has
+        // arrived, nothing was ever queued, so the hook's handleDone never
+        // runs and `speaking` stays true — the button reads "Pause" forever
+        // beside the "Briefing incomplete" alert. Not worth an unconditional
+        // cancel() here, since that would also cut off sentences that did
+        // stream successfully before the failure.
         setGenerationFailed(true);
       }
     };
@@ -144,14 +148,7 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
     };
     // Guarded by initialized.current above, so this effect behaves as a
     // mount-only effect despite the honest dependency array.
-  }, [
-    props.articleId,
-    props.title,
-    props.author,
-    props.feedTitle,
-    enqueue,
-    playFrom,
-  ]);
+  }, [props.articleId, props.title, enqueue, playFrom]);
 
   const togglePlayback = () => {
     if (paused) return resume();
@@ -184,6 +181,17 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
         </Alert>
       )}
 
+      {supported && !voiceAvailable && (
+        <Alert>
+          <AlertTitle>Voice unavailable</AlertTitle>
+          <AlertDescription>
+            No {languageDisplayName(props.language)} voice is installed in this
+            browser, so the briefing will be read with the default voice and
+            pronounced incorrectly. The transcript below is unaffected.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {generationFailed && (
         <Alert>
           <AlertTitle>Briefing incomplete</AlertTitle>
@@ -194,17 +202,22 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
         </Alert>
       )}
 
-      <p className="text-lg leading-relaxed text-pretty">
+      {/* One block per sentence, so the line structure the model emits
+          survives to the page instead of being reflowed into a paragraph. */}
+      <div className="leading-loose text-pretty">
         {sentences.map((sentence, index) => (
-          <span
+          <p
             key={index}
-            data-active={index === activeIndex}
+            // The hook also retains the spoken title at playback index 0,
+            // which the transcript omits, so display index i is playback
+            // index i + 1.
+            data-active={index + 1 === activeIndex}
             className="data-[active=true]:bg-primary/15 rounded transition-colors"
           >
-            {sentence}{" "}
-          </span>
+            {sentence}
+          </p>
         ))}
-      </p>
+      </div>
 
       <div className="flex flex-wrap items-center gap-4 border-t pt-4">
         <Button

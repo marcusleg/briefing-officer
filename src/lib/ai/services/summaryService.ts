@@ -28,6 +28,7 @@ export const streamAiSummary = async (articleId: number) => {
       prompt: buildSummaryPrompt(
         article.title,
         article.scrape?.textContent ?? "",
+        article.language,
       ),
     });
 
@@ -43,6 +44,7 @@ export const streamAiSummary = async (articleId: number) => {
       {
         articleId,
         feedId: article.feedId,
+        language: article.language,
         model: model.modelId,
         tokenUsage,
       },

@@ -13,11 +13,16 @@ vi.mock("@/lib/ai/services/audioScriptService", () => ({
 vi.mock("@ai-sdk/rsc", () => ({
   readStreamableValue: vi.fn(() => ({
     async *[Symbol.asyncIterator]() {
-      yield "It landed after 362 patches. ";
+      yield "Published at Hacker News, written by Jane Doe.\n";
+      yield "It landed after 362 patches.\n";
       yield "Maintainers had warned for years.";
     },
   })),
 }));
+
+// The title is spoken from code, so it leads the playback queue while being
+// absent from the transcript.
+const SPOKEN_TITLE = "Kernel 7.2 removes strncpy.";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -26,20 +31,41 @@ afterEach(() => {
 
 const props = {
   articleId: 42,
+  language: "en",
   title: "Kernel 7.2 removes strncpy",
-  author: "Jane Doe",
-  feedTitle: "Hacker News",
 };
 
 describe("AudioSummaryPlayer", () => {
-  it("speaks the constructed opening before any generated text arrives", () => {
+  it("speaks the title at mount, before the model has returned anything", () => {
     const engine = installSpeechEngine();
 
     render(<AudioSummaryPlayer {...props} />);
 
-    expect(engine.spoken()[0].text).toBe(
-      "Kernel 7.2 removes strncpy. Written by Jane Doe, from Hacker News.",
+    // Synchronous with render: the title needs no generation, so audio starts
+    // without waiting on the model's first token.
+    expect(engine.spoken().map((utterance) => utterance.text)).toEqual([
+      SPOKEN_TITLE,
+    ]);
+  });
+
+  it("terminates the spoken title so it does not run into the next sentence", () => {
+    const engine = installSpeechEngine();
+
+    render(
+      <AudioSummaryPlayer title="Is Rust dead?" articleId={42} language="en" />,
     );
+
+    expect(engine.spoken()[0].text).toBe("Is Rust dead?");
+  });
+
+  it("keeps the title out of the transcript", async () => {
+    installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...props} />);
+
+    // The page heading above the player already shows it.
+    await screen.findByText(/It landed after 362 patches\./);
+    expect(screen.queryByText(SPOKEN_TITLE)).not.toBeInTheDocument();
   });
 
   it("speaks each generated sentence as it streams in", async () => {
@@ -49,7 +75,8 @@ describe("AudioSummaryPlayer", () => {
 
     await waitFor(() =>
       expect(engine.spoken().map((utterance) => utterance.text)).toEqual([
-        "Kernel 7.2 removes strncpy. Written by Jane Doe, from Hacker News.",
+        SPOKEN_TITLE,
+        "Published at Hacker News, written by Jane Doe.",
         "It landed after 362 patches.",
         "Maintainers had warned for years.",
       ]),
@@ -70,9 +97,11 @@ describe("AudioSummaryPlayer", () => {
     const engine = installSpeechEngine();
 
     render(<AudioSummaryPlayer {...props} />);
-    await waitFor(() => expect(engine.spoken()).toHaveLength(3));
+    await waitFor(() => expect(engine.spoken()).toHaveLength(4));
 
-    engine.spoken()[1].onstart!();
+    // Playback index 2 is transcript index 1: the spoken title occupies
+    // playback index 0 and is not displayed.
+    engine.spoken()[2].onstart!();
 
     await waitFor(() =>
       expect(screen.getByText(/It landed after 362 patches\./)).toHaveAttribute(
@@ -99,18 +128,16 @@ describe("AudioSummaryPlayer", () => {
     expect(engine.resume).toHaveBeenCalledOnce();
   });
 
-  it("restarts from the first sentence", async () => {
+  it("restarts from the spoken title", async () => {
     const engine = installSpeechEngine();
 
     render(<AudioSummaryPlayer {...props} />);
-    await waitFor(() => expect(engine.spoken()).toHaveLength(3));
+    await waitFor(() => expect(engine.spoken()).toHaveLength(4));
 
     await userEvent.click(screen.getByRole("button", { name: /restart/i }));
 
-    const respoken = engine.spoken().slice(3);
-    expect(respoken[0].text).toBe(
-      "Kernel 7.2 removes strncpy. Written by Jane Doe, from Hacker News.",
-    );
+    const respoken = engine.spoken().slice(4);
+    expect(respoken[0].text).toBe(SPOKEN_TITLE);
   });
 
   it("restores a saved rate and applies it to speech", async () => {
@@ -144,8 +171,8 @@ describe("AudioSummaryPlayer", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps the spoken opening and explains itself when generation fails", async () => {
-    const engine = installSpeechEngine();
+  it("explains itself when generation fails", async () => {
+    installSpeechEngine();
     vi.mocked(readStreamableValue).mockImplementationOnce(
       () =>
         ({
@@ -158,13 +185,9 @@ describe("AudioSummaryPlayer", () => {
     render(<AudioSummaryPlayer {...props} />);
 
     expect(await screen.findByText(/briefing incomplete/i)).toBeInTheDocument();
-    // The locally-built opening needs no model, so it still plays.
-    expect(engine.spoken()[0].text).toBe(
-      "Kernel 7.2 removes strncpy. Written by Jane Doe, from Hacker News.",
-    );
   });
 
-  it("applies a stored rate only once, despite Strict Mode double-invoking effects", async () => {
+  it("speaks each sentence exactly once under Strict Mode", async () => {
     window.localStorage.setItem("briefing-officer:speech-rate", "1.5");
     const engine = installSpeechEngine();
 
@@ -175,24 +198,30 @@ describe("AudioSummaryPlayer", () => {
     );
 
     await waitFor(() => expect(screen.getByText("1.5×")).toBeInTheDocument());
-    // Re-applying the rate while playing would cancel and re-speak the queue,
-    // so the opening line would be heard twice.
-    //
+    await waitFor(() =>
+      expect(engine.spoken().length).toBeGreaterThanOrEqual(4),
+    );
+
     // Count only utterances queued after the last cancel: the fake's cancel()
     // does not discard queued utterances the way a real engine does, so
-    // spoken() also contains ones that were cancelled before making a sound —
-    // including the opening that Strict Mode's cleanup cancelled.
+    // spoken() also contains ones that were cancelled before making a sound.
     const lastCancel = Math.max(0, ...engine.cancel.mock.invocationCallOrder);
-    const liveOpenings = engine.speak.mock.calls.filter(
-      (call, index) =>
-        (call[0] as unknown as { text: string }).text.startsWith(
-          "Kernel 7.2",
-        ) && engine.speak.mock.invocationCallOrder[index] > lastCancel,
-    );
-    expect(liveOpenings).toHaveLength(1);
+    const live = engine.speak.mock.calls
+      .filter(
+        (_, index) => engine.speak.mock.invocationCallOrder[index] > lastCancel,
+      )
+      .map((call) => (call[0] as unknown as { text: string }).text);
+
+    expect(live).toEqual([
+      SPOKEN_TITLE,
+      "Published at Hacker News, written by Jane Doe.",
+      "It landed after 362 patches.",
+      "Maintainers had warned for years.",
+    ]);
+    expect(engine.spoken().at(-1)!.rate).toBe(1.5);
   });
 
-  it("still speaks the opening after Strict Mode's cleanup cancels playback", async () => {
+  it("still speaks the briefing after Strict Mode's cleanup cancels playback", async () => {
     const engine = installSpeechEngine();
 
     render(
@@ -202,25 +231,24 @@ describe("AudioSummaryPlayer", () => {
     );
 
     // The cleanup between Strict Mode's two mount passes cancels playback via
-    // the hook's unmount effect. Without a replay on remount the opening is
-    // silenced for good, because the initialized guard stops it being enqueued
-    // a second time — losing the whole point of building it locally.
+    // the hook's unmount effect. Without the remount branch's replay, playback
+    // stays dead and nothing reaches the engine afterwards.
     //
     // Asserting on ordering rather than on spoken() is deliberate: the fake's
     // cancel() does not discard queued utterances the way a real engine does,
     // so spoken() alone cannot tell a live utterance from a cancelled one.
-    // What matters is that the opening reaches the engine after the last
-    // cancel, and so survives in the live queue.
-    await waitFor(() => expect(engine.cancel).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(engine.spoken().length).toBeGreaterThanOrEqual(4),
+    );
 
     const lastCancel = Math.max(...engine.cancel.mock.invocationCallOrder);
-    const openingSpokenAfterCancel = engine.speak.mock.calls.some(
+    const spokenAfterCancel = engine.speak.mock.calls.some(
       (call, index) =>
         (call[0] as unknown as { text: string }).text.startsWith(
-          "Kernel 7.2 removes strncpy. Written by Jane Doe",
+          "Kernel 7.2 removes strncpy",
         ) && engine.speak.mock.invocationCallOrder[index] > lastCancel,
     );
-    expect(openingSpokenAfterCancel).toBe(true);
+    expect(spokenAfterCancel).toBe(true);
   });
 
   it("stops feeding the speech engine once the page unmounts", async () => {
@@ -233,13 +261,14 @@ describe("AudioSummaryPlayer", () => {
       () =>
         ({
           async *[Symbol.asyncIterator]() {
-            yield "First sentence here. ";
+            yield "First sentence here.\n";
             await gate;
-            yield "Late sentence arrives. ";
+            yield "Late sentence arrives.\n";
           },
         }) as never,
     );
 
+    // Two: the spoken title, then the stream's first sentence.
     const { unmount } = render(<AudioSummaryPlayer {...props} />);
     await waitFor(() => expect(engine.spoken()).toHaveLength(2));
 
@@ -263,5 +292,15 @@ describe("AudioSummaryPlayer", () => {
     expect(
       await screen.findByText(/It landed after 362 patches\./),
     ).toBeInTheDocument();
+  });
+
+  it("warns when no voice matches the article's language", async () => {
+    installSpeechEngine([{ name: "Test Voice", lang: "en-US" }]);
+
+    render(<AudioSummaryPlayer {...props} language="de" />);
+
+    expect(await screen.findByText(/no German voice/i)).toBeInTheDocument();
+    // The reader can still play it, knowing it will be mispronounced.
+    expect(screen.getByRole("button", { name: /pause|play/i })).toBeEnabled();
   });
 });
