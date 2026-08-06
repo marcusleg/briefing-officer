@@ -15,7 +15,7 @@ interface ArticleCardActionsProps {
     include: { feed: true; scrape: true };
   }>;
   /** The page rendering this row, so it can suppress its own entry. */
-  currentPage?: "ai-summary" | "audio-summary";
+  currentPage?: "text-summary" | "audio-summary";
   onAfterDismiss?: () => void;
   readingTime?: { text: string; minutes: number; time: number; words: number };
 }
@@ -58,7 +58,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
         className="flex-1 justify-center text-sm"
         onAfterDismiss={props.onAfterDismiss}
       />
-      {props.currentPage !== "ai-summary" && (
+      {props.currentPage !== "text-summary" && (
         <AiSummaryButton
           feedId={props.article.feedId}
           articleId={props.article.id}
@@ -93,7 +93,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => (
         className="cursor-pointer justify-start text-sm"
         onAfterDismiss={props.onAfterDismiss}
       />
-      {props.currentPage !== "ai-summary" && (
+      {props.currentPage !== "text-summary" && (
         <AiSummaryButton
           feedId={props.article.feedId}
           articleId={props.article.id}
