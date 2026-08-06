@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "firefox-devtools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@mozilla/firefox-devtools-mcp@latest"],
+      "env": {}
+    }
+  }
+}
