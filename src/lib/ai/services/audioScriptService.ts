@@ -2,6 +2,7 @@
 
 import { buildAudioScriptPrompt, systemPrompt } from "@/lib/ai/prompts";
 import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
+import { articleAuthor } from "@/lib/article";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -16,7 +17,7 @@ export const streamAudioScript = async (articleId: number) => {
 
   const article = await prisma.article.findUniqueOrThrow({
     where: { id: articleId, userId },
-    include: { scrape: true },
+    include: { feed: true, scrape: true },
   });
 
   const stream = createStreamableValue("");
@@ -25,10 +26,15 @@ export const streamAudioScript = async (articleId: number) => {
     const { textStream, totalUsage } = streamText({
       model,
       system: systemPrompt,
-      prompt: buildAudioScriptPrompt(
-        article.title,
-        article.scrape?.textContent ?? "",
-      ),
+      prompt: buildAudioScriptPrompt({
+        title: article.title,
+        // The existing helper, so the feed-declared author keeps winning over
+        // Readability's byline and no second notion of "the author" appears.
+        author: articleAuthor(article),
+        feedTitle: article.feed.title,
+        textContent: article.scrape?.textContent ?? "",
+        language: article.language,
+      }),
     });
 
     for await (const delta of textStream) {
@@ -43,6 +49,7 @@ export const streamAudioScript = async (articleId: number) => {
       {
         articleId,
         feedId: article.feedId,
+        language: article.language,
         model: model.modelId,
         tokenUsage,
       },

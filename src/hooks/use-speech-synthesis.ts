@@ -1,3 +1,4 @@
+import { DEFAULT_LANGUAGE } from "@/lib/language";
 import * as React from "react";
 
 interface SpeechSynthesisControls {
@@ -12,7 +13,14 @@ interface SpeechSynthesisControls {
   setRate: (rate: number) => void;
   speaking: boolean;
   supported: boolean;
+  voiceAvailable: boolean;
 }
+
+// `speechSynthesis` is a single global shared by every instance of this hook,
+// so exactly one of them may own it at a time. Module scope rather than a ref
+// because the point is coordination *between* instances during the overlap a
+// client-side navigation creates.
+let engineOwner: symbol | undefined;
 
 // Centralizes the "does this environment even have the API" check so
 // playFrom(), cancel(), pause(), resume(), and speakSentence() do not each
@@ -36,8 +44,11 @@ const speechEngine = () =>
  * Only one audio surface is mounted at a time, so this needs none of the
  * cross-component arbitration a per-card version would.
  */
-export function useSpeechSynthesis(): SpeechSynthesisControls {
+export function useSpeechSynthesis(
+  language: string | null,
+): SpeechSynthesisControls {
   const [supported, setSupported] = React.useState(false);
+  const [voiceAvailable, setVoiceAvailable] = React.useState(false);
   const [speaking, setSpeaking] = React.useState(false);
   const [paused, setPaused] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState<number | undefined>(
@@ -51,6 +62,18 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
   const playing = React.useRef(false);
   const rateValue = React.useRef(1);
   const activeIndexValue = React.useRef<number | undefined>(undefined);
+
+  // Identifies this instance for the engine-ownership check below. A ref so
+  // it survives Strict Mode's remount, which reuses the same instance.
+  const ownerToken = React.useRef<symbol>(undefined as unknown as symbol);
+  ownerToken.current ??= Symbol("speech-engine-owner");
+
+  // Resolved once here so every utterance and the voice lookup agree on it.
+  const spokenLanguage = language ?? DEFAULT_LANGUAGE;
+
+  // Read at speak() time rather than through state, because sentences are
+  // handed to the engine as they stream in, outside a render.
+  const voice = React.useRef<SpeechSynthesisVoice | undefined>(undefined);
 
   // Incremented whenever the engine queue is discarded. cancel() makes the
   // engine fire onend for every pending utterance, so handlers compare against
@@ -71,15 +94,27 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
     // getVoices() is populated asynchronously in Chrome, so an empty list only
     // means "no voices" after voiceschanged has fired. Linux without
     // speech-dispatcher installed never reports any.
-    const syncSupport = () =>
-      setSupported(window.speechSynthesis.getVoices().length > 0);
+    const syncVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      setSupported(voices.length > 0);
 
-    syncSupport();
-    window.speechSynthesis.addEventListener("voiceschanged", syncSupport);
+      // Engines disagree on the separator. Browsers report the BCP-47 form
+      // ("de-DE"), while some Linux speech backends surface a POSIX locale
+      // ("de_DE") instead.
+      const match = voices.find(
+        (candidate) =>
+          candidate.lang?.toLowerCase().split(/[-_]/)[0] === spokenLanguage,
+      );
+      voice.current = match;
+      setVoiceAvailable(match !== undefined);
+    };
+
+    syncVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", syncVoices);
 
     return () =>
-      window.speechSynthesis?.removeEventListener("voiceschanged", syncSupport);
-  }, []);
+      window.speechSynthesis?.removeEventListener("voiceschanged", syncVoices);
+  }, [spokenLanguage]);
 
   const speakSentence = React.useCallback(
     (index: number, forGeneration: number) => {
@@ -88,6 +123,13 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
 
       const utterance = new SpeechSynthesisUtterance(sentences.current[index]);
       utterance.rate = rateValue.current;
+      utterance.lang = spokenLanguage;
+
+      // Assigned only when a match exists: handing the engine an undefined
+      // voice is not the same as leaving it to pick its own default.
+      if (voice.current) {
+        utterance.voice = voice.current;
+      }
 
       utterance.onstart = () => {
         if (generation.current !== forGeneration) return;
@@ -115,7 +157,7 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
 
       engine.speak(utterance);
     },
-    [],
+    [spokenLanguage],
   );
 
   const playFrom = React.useCallback(
@@ -228,14 +270,24 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
     [playFrom],
   );
 
-  // Stop playback when the page goes away. Only one audio surface is ever
-  // mounted, so this cancels unconditionally.
-  React.useEffect(
-    () => () => {
+  // Stop playback when the page goes away — but only while this instance is
+  // still the engine's owner.
+  //
+  // Router navigations commit inside a transition, so the outgoing page's
+  // cleanup can run *after* the incoming page has mounted and queued its
+  // first utterance. Cancelling unconditionally then silences the new page's
+  // opening line while everything it streams later survives, because those
+  // arrive well after the stale cleanup. Claiming ownership on mount and
+  // checking it on cleanup fixes the ordering rather than racing it.
+  React.useEffect(() => {
+    engineOwner = ownerToken.current;
+
+    return () => {
+      if (engineOwner !== ownerToken.current) return;
+      engineOwner = undefined;
       window.speechSynthesis?.cancel();
-    },
-    [],
-  );
+    };
+  }, []);
 
   return {
     activeIndex,
@@ -249,5 +301,6 @@ export function useSpeechSynthesis(): SpeechSynthesisControls {
     setRate,
     speaking,
     supported,
+    voiceAvailable,
   };
 }

@@ -7,7 +7,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("useSpeechSynthesis", () => {
   it("is unsupported when the browser has no speech engine", () => {
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     expect(result.current.supported).toBe(false);
   });
@@ -16,11 +16,11 @@ describe("useSpeechSynthesis", () => {
     const voices: unknown[] = [];
     const engine = installSpeechEngine(voices);
 
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
     expect(result.current.supported).toBe(false);
 
     // Chrome fires voiceschanged once the engine has enumerated its voices.
-    voices.push({ name: "Test Voice" });
+    voices.push({ name: "Test Voice", lang: "en-US" });
     const [event, listener] = engine.addEventListener.mock.calls[0];
     expect(event).toBe("voiceschanged");
     act(() => listener());
@@ -30,7 +30,7 @@ describe("useSpeechSynthesis", () => {
 
   it("does not speak sentences enqueued before playback starts", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => result.current.enqueue("One."));
 
@@ -39,7 +39,7 @@ describe("useSpeechSynthesis", () => {
 
   it("speaks the retained sentences in order once playback starts", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -56,7 +56,7 @@ describe("useSpeechSynthesis", () => {
 
   it("appends to the live queue without restarting playback", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -75,7 +75,7 @@ describe("useSpeechSynthesis", () => {
 
   it("tracks which sentence is speaking", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -93,7 +93,7 @@ describe("useSpeechSynthesis", () => {
 
   it("stops speaking once the final sentence ends", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -111,7 +111,7 @@ describe("useSpeechSynthesis", () => {
 
   it("ignores end events from a queue that was thrown away", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -128,7 +128,7 @@ describe("useSpeechSynthesis", () => {
 
   it("pauses and resumes without ending playback", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -150,7 +150,7 @@ describe("useSpeechSynthesis", () => {
 
   it("cancels playback and clears the active sentence", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -165,7 +165,7 @@ describe("useSpeechSynthesis", () => {
 
   it("applies the rate to newly spoken utterances", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => result.current.setRate(1.5));
     act(() => {
@@ -179,7 +179,7 @@ describe("useSpeechSynthesis", () => {
 
   it("re-speaks from the active sentence when the rate changes mid-playback", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -199,7 +199,7 @@ describe("useSpeechSynthesis", () => {
 
   it("only stores the rate when nothing is playing", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => result.current.enqueue("One."));
     act(() => result.current.setRate(1.5));
@@ -210,7 +210,7 @@ describe("useSpeechSynthesis", () => {
 
   it("cancels playback when the component unmounts", () => {
     const engine = installSpeechEngine();
-    const { result, unmount } = renderHook(() => useSpeechSynthesis());
+    const { result, unmount } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -224,7 +224,7 @@ describe("useSpeechSynthesis", () => {
 
   it("un-pauses the engine when re-speaking, since cancel does not clear it", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -241,7 +241,7 @@ describe("useSpeechSynthesis", () => {
 
   it("resumes speaking when a sentence arrives after the stream stalled", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -262,7 +262,7 @@ describe("useSpeechSynthesis", () => {
 
   it("does not resume after the listener deliberately stopped playback", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -278,7 +278,7 @@ describe("useSpeechSynthesis", () => {
 
   it("keeps its place when the rate changes twice before speech starts", () => {
     const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis());
+    const { result } = renderHook(() => useSpeechSynthesis("en"));
 
     act(() => {
       result.current.enqueue("One.");
@@ -299,5 +299,103 @@ describe("useSpeechSynthesis", () => {
     // the final retained sentence either way.
     const respoken = engine.spoken().slice(spokenAfterFirstChange);
     expect(respoken.map((utterance) => utterance.text)).toEqual(["Three."]);
+  });
+
+  it("speaks with a voice matching the article's language", () => {
+    const german = { name: "Anna", lang: "de-DE" };
+    const engine = installSpeechEngine([
+      { name: "Test Voice", lang: "en-US" },
+      german,
+    ]);
+
+    const { result } = renderHook(() => useSpeechSynthesis("de"));
+    act(() => result.current.enqueue("Guten Tag."));
+    act(() => result.current.playFrom(0));
+
+    expect(result.current.voiceAvailable).toBe(true);
+    expect(engine.spoken()[0].voice).toBe(german);
+    expect(engine.spoken()[0].lang).toBe("de");
+  });
+
+  it("matches voices that report an underscore separator", () => {
+    // Chrome reports "de-DE"; some Linux engines report "de_DE".
+    const german = { name: "Anna", lang: "de_DE" };
+    const engine = installSpeechEngine([german]);
+
+    const { result } = renderHook(() => useSpeechSynthesis("de"));
+    act(() => result.current.enqueue("Guten Tag."));
+    act(() => result.current.playFrom(0));
+
+    expect(engine.spoken()[0].voice).toBe(german);
+  });
+
+  it("leaves the voice unset when none matches, but still speaks", () => {
+    const engine = installSpeechEngine([{ name: "Test Voice", lang: "en-US" }]);
+
+    const { result } = renderHook(() => useSpeechSynthesis("de"));
+    act(() => result.current.enqueue("Guten Tag."));
+    act(() => result.current.playFrom(0));
+
+    expect(result.current.supported).toBe(true);
+    expect(result.current.voiceAvailable).toBe(false);
+    // The engine gets its own fallback rather than an undefined voice, and
+    // `lang` still tells it what it is reading.
+    expect(engine.spoken()[0].voice).toBeUndefined();
+    expect(engine.spoken()[0].lang).toBe("de");
+  });
+
+  it("treats a missing language as English", () => {
+    const english = { name: "Test Voice", lang: "en-US" };
+    const engine = installSpeechEngine([english]);
+
+    const { result } = renderHook(() => useSpeechSynthesis(null));
+    act(() => result.current.enqueue("Hello."));
+    act(() => result.current.playFrom(0));
+
+    expect(result.current.voiceAvailable).toBe(true);
+    expect(engine.spoken()[0].voice).toBe(english);
+    expect(engine.spoken()[0].lang).toBe("en");
+  });
+
+  it("finds a matching voice that loads late", () => {
+    const voices: unknown[] = [];
+    const engine = installSpeechEngine(voices);
+
+    const { result } = renderHook(() => useSpeechSynthesis("de"));
+    expect(result.current.voiceAvailable).toBe(false);
+
+    voices.push({ name: "Anna", lang: "de-DE" });
+    const [, listener] = engine.addEventListener.mock.calls[0];
+    act(() => listener());
+
+    expect(result.current.voiceAvailable).toBe(true);
+  });
+
+  it("cancels playback when the owning instance unmounts", () => {
+    const engine = installSpeechEngine();
+    const only = renderHook(() => useSpeechSynthesis("en"));
+
+    engine.cancel.mockClear();
+    only.unmount();
+
+    expect(engine.cancel).toHaveBeenCalled();
+  });
+
+  it("does not cancel playback once a newer instance has taken over", () => {
+    // A router navigation commits inside a transition, so the outgoing page's
+    // cleanup can run after the incoming page has mounted and queued its
+    // opening line. Cancelling then would silence the new page.
+    const engine = installSpeechEngine();
+    const outgoing = renderHook(() => useSpeechSynthesis("en"));
+    const incoming = renderHook(() => useSpeechSynthesis("en"));
+
+    act(() => incoming.result.current.enqueue("Fresh headline."));
+    act(() => incoming.result.current.playFrom(0));
+    engine.cancel.mockClear();
+
+    outgoing.unmount();
+
+    expect(engine.cancel).not.toHaveBeenCalled();
+    expect(engine.spoken().at(-1)!.text).toBe("Fresh headline.");
   });
 });

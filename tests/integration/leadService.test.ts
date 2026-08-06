@@ -1,4 +1,5 @@
 import prisma from "@/lib/prismaClient";
+import { generateObject } from "ai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createArticle, createFeed, createUser } from "../helpers/factories";
 
@@ -9,13 +10,19 @@ vi.mock("@/lib/ai/registry", () => ({
   })),
 }));
 vi.mock("ai", () => ({
-  generateText: vi.fn(async () => ({
-    text: "Generated lead.",
-    totalUsage: { inputTokens: 7, outputTokens: 3, reasoningTokens: 0 },
+  generateObject: vi.fn(async () => ({
+    object: { language: "en", lead: "Generated lead." },
+    usage: { inputTokens: 7, outputTokens: 3 },
   })),
 }));
 
 import { generateAiLead } from "@/lib/ai/services/leadService";
+
+const mockGeneration = (language: string, lead = "Generated lead.") =>
+  vi.mocked(generateObject).mockResolvedValueOnce({
+    object: { language, lead },
+    usage: { inputTokens: 7, outputTokens: 3 },
+  } as never);
 
 let userId: string;
 let feedId: number;
@@ -42,5 +49,71 @@ describe("generateAiLead", () => {
     });
     expect(usage.inputTokens).toBe(7);
     expect(usage.outputTokens).toBe(3);
+  });
+
+  it("stores the language the model reported", async () => {
+    const article = await createArticle({ userId, feedId });
+    mockGeneration("de");
+
+    await generateAiLead(article.id);
+
+    const stored = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(stored.language).toBe("de");
+  });
+
+  it("normalises a regional tag before storing it", async () => {
+    const article = await createArticle({ userId, feedId });
+    mockGeneration("de-DE");
+
+    await generateAiLead(article.id);
+
+    const stored = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(stored.language).toBe("de");
+  });
+
+  it("stores no language when the model reports it as undetermined", async () => {
+    const article = await createArticle({ userId, feedId });
+    mockGeneration("und");
+
+    await generateAiLead(article.id);
+
+    const stored = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(stored.language).toBeNull();
+  });
+
+  it("keeps the lead when the reported language is unusable", async () => {
+    // A bad language code must not cost the reader their lead.
+    const article = await createArticle({ userId, feedId });
+    mockGeneration("German", "Trotzdem ein Lead.");
+
+    await generateAiLead(article.id);
+
+    const stored = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+      include: { lead: true },
+    });
+    expect(stored.language).toBeNull();
+    expect(stored.lead?.text).toBe("Trotzdem ein Lead.");
+  });
+
+  it("replaces an existing lead rather than failing", async () => {
+    const article = await createArticle({ userId, feedId });
+    await generateAiLead(article.id);
+    mockGeneration("fr", "Un nouveau lead.");
+
+    await generateAiLead(article.id);
+
+    const stored = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+      include: { lead: true },
+    });
+    expect(stored.lead?.text).toBe("Un nouveau lead.");
+    expect(stored.language).toBe("fr");
   });
 });

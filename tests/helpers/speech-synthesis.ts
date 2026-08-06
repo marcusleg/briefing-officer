@@ -7,6 +7,8 @@ import { vi } from "vitest";
 export class FakeUtterance {
   text: string;
   rate = 1;
+  lang = "";
+  voice: unknown = undefined;
   onstart: (() => void) | null = null;
   onend: (() => void) | null = null;
   onerror: (() => void) | null = null;
@@ -25,7 +27,7 @@ export class FakeUtterance {
  * queue the real engine would play back to back.
  */
 export const installSpeechEngine = (
-  voices: unknown[] = [{ name: "Test Voice" }],
+  voices: unknown[] = [{ name: "Test Voice", lang: "en-US" }],
 ) => {
   const speechSynthesis = {
     speak: vi.fn(),
