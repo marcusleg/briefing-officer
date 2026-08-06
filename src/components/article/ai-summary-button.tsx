@@ -22,7 +22,7 @@ const AiSummaryButton = ({
       variant="secondary"
       className={className ?? "justify-start text-sm"}
     >
-      <Link href={`/feed/${feedId}/article/${articleId}/ai-summary`}>
+      <Link href={`/feed/${feedId}/article/${articleId}/text-summary`}>
         <Sparkles className="mr-1 size-4" />
         Summarize
       </Link>

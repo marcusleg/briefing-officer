@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const pageSource = readFileSync(
   resolve(
     __dirname,
-    "../../src/app/feed/[feedId]/article/[articleId]/ai-summary/page.tsx",
+    "../../src/app/feed/[feedId]/article/[articleId]/text-summary/page.tsx",
   ),
   "utf8",
 );

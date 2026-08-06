@@ -18,7 +18,7 @@ const AiSummaryArticleActions = ({ article }: { article: Article }) => {
   return (
     <ArticleCardActions
       article={article}
-      currentPage="ai-summary"
+      currentPage="text-summary"
       readingTime={articleReadingTime}
       onAfterDismiss={() => router.back()}
     />

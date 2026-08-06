@@ -38,7 +38,7 @@ describe("ArticleCardActions", () => {
   });
 
   it("hides the summarize entry on the AI summary page", () => {
-    render(<ArticleCardActions article={article} currentPage="ai-summary" />);
+    render(<ArticleCardActions article={article} currentPage="text-summary" />);
 
     expect(
       screen.queryByRole("link", { name: /summarize/i }),
