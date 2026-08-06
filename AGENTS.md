@@ -68,29 +68,6 @@ implementation details and technical context.
 
 Example: `feat: add user registration form`
 
-### Co-authorship
-
-Every commit must include `Co-Authored-By` trailer lines for:
-
-1. **The coding agent** — the tool driving the session (e.g. `Claude Code`,
-   `OpenCode`, `Codex`, `Aider`, `Cursor`)
-2. **The LLM model** — the actual model loaded in your session, with whatever
-   version identifier is current
-
-Use a `noreply@` address from the relevant vendor (e.g. `noreply@anthropic.com`
-for Claude models, `noreply@openai.com` for GPT models, `noreply@qwen.ai` for
-Qwen models). When the agent and model come from the same vendor, both trailers
-can share the same domain.
-
-Example commit message:
-
-```
-feat: add user registration form
-
-Co-Authored-By: Claude Code <noreply@anthropic.com>
-Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
-```
-
 ### Workflow
 
 Pushing directly to `main` is prohibited unless the user explicitly authorises
