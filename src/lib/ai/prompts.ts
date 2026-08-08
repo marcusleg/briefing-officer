@@ -40,9 +40,8 @@ ${textContent}
 </article>`;
 
 /**
- * Takes an object rather than positional arguments: four of the five fields
- * are strings, and three of those are freely transposable at a call site
- * without a type error.
+ * Takes an object rather than positional arguments: three of the five fields
+ * are plain strings, freely transposable at a call site without a type error.
  */
 export const buildAudioScriptPrompt = ({
   title,

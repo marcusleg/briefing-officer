@@ -26,11 +26,9 @@ export const spokenTitle = (title: string): string => {
  * abbreviation list would mis-split German ("z.B.") and every other language in
  * its own way.
  *
- * If the model ignores the instruction and emits no newlines at all, the whole
- * briefing arrives as a single utterance. Chrome truncates one of those at
- * roughly 15 seconds; Firefox does not, so the consequence depends on the
- * listener's browser. Either way it is accepted rather than defended against —
- * see the design's note on the rejected length fallback.
+ * If the model emits no newlines at all, the whole briefing becomes one
+ * utterance and hits Chrome's ~15-second truncation. Accepted, not defended
+ * against — see docs/superpowers/specs/2026-08-06-article-language-design.md.
  *
  * Safe to call repeatedly against a growing stream: feed the remainder back in
  * with the next delta appended.
