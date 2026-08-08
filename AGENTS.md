@@ -34,9 +34,10 @@ reflowed too. Ignored paths are in `.prettierignore`.
 Run these before pushing; CI gates on all of them:
 
 ```bash
-npm run lint    # ESLint
-npm run test    # Vitest unit + integration tests
-npm run build   # Next.js production build
+npm run lint       # ESLint
+npm run typecheck  # tsc --noEmit, covers tests too (the build does not)
+npm run test       # Vitest unit + integration tests
+npm run build      # Next.js production build
 ```
 
 ## Git
@@ -84,7 +85,7 @@ Standard flow:
    should already follow Conventional Commits, since the default merge method is
    **rebase** — individual commits land on `main` as-is, preserving the branch
    history.
-5. Wait for CI (`format-check`, `lint`, `test`, `build`) to pass.
+5. Wait for CI (`format-check`, `lint`, `typecheck`, `test`, `build`) to pass.
 6. The user reviews the PR before it can be merged. The user will either merge
    the PR themselves or explicitly instruct the agent to merge it. Do **not**
    merge a PR without that explicit instruction, even after CI passes. When
