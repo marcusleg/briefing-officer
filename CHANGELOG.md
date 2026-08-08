@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.13.0](https://github.com/marcusleg/briefing-officer/compare/v0.12.0...v0.13.0) (2026-08-08)
+
+
+### Features
+
+* add audio script assembly helpers ([6b6e071](https://github.com/marcusleg/briefing-officer/commit/6b6e07145249f8696541bdc5c6251b0eff06d469))
+* add the audio summary page ([abb3c0e](https://github.com/marcusleg/briefing-officer/commit/abb3c0e354ec0e708b4291b173fb629bcbcda450))
+* generate a spoken script for audio summaries ([7be3db1](https://github.com/marcusleg/briefing-officer/commit/7be3db1d149ba43976faaf4404311050524636d1))
+* generate and speak article briefings in the article's own language ([546556b](https://github.com/marcusleg/briefing-officer/commit/546556b72d61bda526d52eca315bf9254aacd183))
+* move audio playback controls above the briefing transcript ([e8b6893](https://github.com/marcusleg/briefing-officer/commit/e8b68933aa1107e1168dd4428aca7c0b78e433b7))
+* open a dedicated page from the article card's speaker icon ([22715a5](https://github.com/marcusleg/briefing-officer/commit/22715a5c6e29321d8dd87c0e6516afe8185ed833))
+* play audio summaries while the transcript streams in ([444db62](https://github.com/marcusleg/briefing-officer/commit/444db62b2ab9e79751ab1d8a3a0defcd19585471))
+* read article title and lead aloud from the card ([4b15278](https://github.com/marcusleg/briefing-officer/commit/4b15278c5becb2173db0673cbe5b31a67fa936fa))
+* replace the speech rate slider with a playback speed menu ([#736](https://github.com/marcusleg/briefing-officer/issues/736)) ([f5685d8](https://github.com/marcusleg/briefing-officer/commit/f5685d8bdf75c890e6ef4d7cac6f6247dc76d1b2))
+* show the author a feed publishes, not a guessed byline ([#726](https://github.com/marcusleg/briefing-officer/issues/726)) ([d6d61c7](https://github.com/marcusleg/briefing-officer/commit/d6d61c79afb1cc80a91b0994e1a15fe6c8dd2b67))
+
+
+### Bug Fixes
+
+* **ai:** adopt LanguageModelV4 for AI SDK v7 ([4bc0bda](https://github.com/marcusleg/briefing-officer/commit/4bc0bda9cb1e61d3fda332e4606cd44b38d91529))
+* **charts:** scale unread articles donut with its container ([86ed169](https://github.com/marcusleg/briefing-officer/commit/86ed169a706854dc115eca9e5977fa36ec17beab))
+* **deps:** align react-dom with react 19.2.8 ([2fb7b49](https://github.com/marcusleg/briefing-officer/commit/2fb7b49a1d140ba114a36b2719691aac5c3abfc4))
+* **deps:** resolve all open Dependabot security alerts ([#744](https://github.com/marcusleg/briefing-officer/issues/744)) ([8b33833](https://github.com/marcusleg/briefing-officer/commit/8b338338e5b862061062c8d1d96acd3e241fb091))
+* guard rate-restore effect and surface script generation failures ([2bcf036](https://github.com/marcusleg/briefing-officer/commit/2bcf036a868b82464c0dc750cdff0b5b53689b81))
+* ignore authors embedded in feed item content ([d92f076](https://github.com/marcusleg/briefing-officer/commit/d92f076d9887539ee29c11fc741126094cf8a2f6))
+* keep speaking the article introduction in development ([a0bb054](https://github.com/marcusleg/briefing-officer/commit/a0bb054ae651676e1e957117a11da4ebf1c823bb))
+* redirect signed-out visitors from every feed page ([81c3832](https://github.com/marcusleg/briefing-officer/commit/81c38320682977bdb4844cd94480d3b1f4974916))
+* remove "no" from abbreviations and guard ordinals from suppression ([2859935](https://github.com/marcusleg/briefing-officer/commit/285993564c9d4a7047f12f22b8c0a49e6a915d12))
+* report summary generation failures instead of stalling ([62ec9fa](https://github.com/marcusleg/briefing-officer/commit/62ec9fab8332ed594fda82f2c45e6c505814e702))
+* resume engine after cancel and recover from stalled sentence streams ([dc557af](https://github.com/marcusleg/briefing-officer/commit/dc557afd6b3eb923f5522cf95aa4d51bf8eaf717))
+* stop leaked speech playback, rate-drag restarts, and two crash paths ([51346a2](https://github.com/marcusleg/briefing-officer/commit/51346a2475371fbd09f16c3cf857cf4d4cdf118a))
+
 ## [0.12.0](https://github.com/marcusleg/briefing-officer/compare/v0.11.0...v0.12.0) (2026-07-11)
 
 
