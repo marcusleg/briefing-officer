@@ -1,18 +1,18 @@
 "use client";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { streamAiSummary } from "@/lib/ai/services/summaryService";
+import { streamTextSummary } from "@/lib/ai/services/summaryService";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Markdown from "markdown-to-jsx";
 import { useEffect, useRef, useState } from "react";
 
 export const maxDuration = 30;
 
-interface AiSummaryStreamProps {
+interface TextSummaryStreamProps {
   articleId: number;
 }
 
-const AiSummaryStream = ({ articleId }: AiSummaryStreamProps) => {
+const TextSummaryStream = ({ articleId }: TextSummaryStreamProps) => {
   const initialized = useRef(false);
   const [generation, setGeneration] = useState<string>("");
   const [failed, setFailed] = useState(false);
@@ -25,7 +25,7 @@ const AiSummaryStream = ({ articleId }: AiSummaryStreamProps) => {
       setGeneration(""); // Reset state
 
       try {
-        const { output } = await streamAiSummary(articleId);
+        const { output } = await streamTextSummary(articleId);
 
         for await (const delta of readStreamableValue(output)) {
           setGeneration((currentGeneration) => `${currentGeneration}${delta}`);
@@ -94,4 +94,4 @@ const AiSummaryStream = ({ articleId }: AiSummaryStreamProps) => {
   );
 };
 
-export default AiSummaryStream;
+export default TextSummaryStream;

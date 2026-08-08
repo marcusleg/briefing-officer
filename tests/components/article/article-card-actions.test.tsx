@@ -37,11 +37,11 @@ describe("ArticleCardActions", () => {
     expect(links[0]).toHaveAttribute("href", "/feed/1/article/1/audio-summary");
   });
 
-  it("hides the summarize entry on the text summary page", () => {
+  it("hides the text summary entry on the text summary page", () => {
     render(<ArticleCardActions article={article} currentPage="text-summary" />);
 
     expect(
-      screen.queryByRole("link", { name: /summarize/i }),
+      screen.queryByRole("link", { name: /text summary/i }),
     ).not.toBeInTheDocument();
     expect(
       screen.getAllByRole("link", { name: /audio summary/i }),
@@ -56,6 +56,8 @@ describe("ArticleCardActions", () => {
     expect(
       screen.queryByRole("link", { name: /audio summary/i }),
     ).not.toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /summarize/i })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: /text summary/i })).toHaveLength(
+      2,
+    );
   });
 });

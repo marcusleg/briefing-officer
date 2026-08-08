@@ -1,6 +1,6 @@
-import AiSummaryStream from "@/components/article/ai-summary-stream";
 import ArticleMeta from "@/components/article/article-meta";
 import SummaryArticleActions from "@/components/article/summary-article-actions";
+import TextSummaryStream from "@/components/article/text-summary-stream";
 import IntlRelativeTime from "@/components/intl-relative-time";
 import BackButton from "@/components/navigation/back-button";
 import TopNavigation from "@/components/navigation/top-navigation";
@@ -14,7 +14,7 @@ import { notFound } from "next/navigation";
 
 export const maxDuration = 30;
 
-const AiSummary = async ({
+const TextSummary = async ({
   params,
 }: {
   params: Promise<{ feedId: string; articleId: string }>;
@@ -47,7 +47,7 @@ const AiSummary = async ({
           { name: "Feeds", href: "/feed" },
           { name: article.feed.title, href: `/feed/${article.feed.id}` },
         ]}
-        page="AI Summary"
+        page="Text Summary"
       />
 
       <article className="mx-auto flex max-w-4xl flex-col gap-4">
@@ -67,13 +67,13 @@ const AiSummary = async ({
         <ArticleMeta author={articleAuthor(article)} />
         {article.scrape ? (
           <div className="leading-relaxed">
-            <AiSummaryStream articleId={article.id} />
+            <TextSummaryStream articleId={article.id} />
           </div>
         ) : (
           <Alert className="mx-auto my-12 max-w-md">
             <AlertTitle>Summary unavailable</AlertTitle>
             <AlertDescription>
-              The article content could not be retrieved, so an AI summary
+              The article content could not be retrieved, so a text summary
               cannot be generated.
             </AlertDescription>
           </Alert>
@@ -89,4 +89,4 @@ const AiSummary = async ({
   );
 };
 
-export default AiSummary;
+export default TextSummary;
