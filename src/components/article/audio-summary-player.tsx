@@ -202,24 +202,7 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
         </Alert>
       )}
 
-      {/* One block per sentence, so the line structure the model emits
-          survives to the page instead of being reflowed into a paragraph. */}
-      <div className="leading-loose text-pretty">
-        {sentences.map((sentence, index) => (
-          <p
-            key={index}
-            // The hook also retains the spoken title at playback index 0,
-            // which the transcript omits, so display index i is playback
-            // index i + 1.
-            data-active={index + 1 === activeIndex}
-            className="data-[active=true]:bg-primary/15 rounded transition-colors"
-          >
-            {sentence}
-          </p>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-4 border-t pt-4">
+      <div className="flex flex-wrap items-center gap-4 border-b pb-4">
         <Button
           variant="secondary"
           size="icon"
@@ -268,6 +251,23 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
             {displayedRate.toFixed(1)}×
           </span>
         </div>
+      </div>
+
+      {/* One block per sentence, so the line structure the model emits
+          survives to the page instead of being reflowed into a paragraph. */}
+      <div className="leading-loose text-pretty">
+        {sentences.map((sentence, index) => (
+          <p
+            key={index}
+            // The hook also retains the spoken title at playback index 0,
+            // which the transcript omits, so display index i is playback
+            // index i + 1.
+            data-active={index + 1 === activeIndex}
+            className="data-[active=true]:bg-primary/15 rounded transition-colors"
+          >
+            {sentence}
+          </p>
+        ))}
       </div>
     </div>
   );
