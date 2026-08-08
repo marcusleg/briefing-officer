@@ -1,5 +1,9 @@
 # Language-Aware Article Processing — Design
 
+> **Status:** Implemented, shipped in `546556b`. This is a historical design
+> record kept for the reasoning behind the decisions; it is not maintained and
+> its details have since drifted from the code.
+
 Date: 2026-08-06
 
 ## Summary

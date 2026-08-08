@@ -15,11 +15,15 @@ AI summaries for your favorite news feeds.
 ## Features
 
 - News reader with RSS and Atom support.
-- Two types of AI summaries:
+- Three types of AI summaries:
   - **Lead**: A single paragraph summarizing what the article covers and why it
     is significant or timely, capped at 80 words.
   - **Key Facts / Takeaways**: A bullet-point list of 5–12 concise sentences
     highlighting the most important points from the article.
+  - **Audio Briefing**: A spoken briefing of roughly one minute, read aloud by
+    the browser's own speech voices at an adjustable speed, alongside a
+    transcript that highlights each sentence as it is spoken.
+- Summaries are written in the language the article itself is written in.
 - Save articles for later using the "Read Later" and "Star" feature.
 - Support for multiple AI providers (OpenAI, Azure OpenAI, Anthropic, and any
   OpenAI-compatible API).
