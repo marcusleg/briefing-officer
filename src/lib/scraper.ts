@@ -6,6 +6,7 @@ import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { Readability } from "@mozilla/readability";
 import axios from "axios";
+import type { AnyNode } from "domhandler";
 import { DomUtils, parseDocument, parseFeed } from "htmlparser2";
 import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
@@ -43,8 +44,8 @@ export const scrapeArticle = async (articleId: number, articleLink: string) => {
   }
 
   const articleData = {
-    textContent: parsedArticle!.textContent,
-    author: parsedArticle!.byline ?? "",
+    textContent: parsedArticle.textContent,
+    author: parsedArticle.byline ?? "",
   };
 
   const scrape = prisma.articleScrape.upsert({
@@ -57,7 +58,9 @@ export const scrapeArticle = async (articleId: number, articleLink: string) => {
     },
     update: {
       ...articleData,
-      author: parsedArticle!.byline ?? undefined,
+      // Overrides the "" above: a re-scrape that finds no byline should leave
+      // whatever was stored, not blank it.
+      author: parsedArticle.byline ?? undefined,
     },
   });
 
@@ -70,64 +73,54 @@ export const scrapeArticle = async (articleId: number, articleLink: string) => {
 
   return scrape;
 };
-// htmlparser2 exposes neither <comments> nor per-item authors, so both are read
-// straight off the feed source. The blocks are matched with a regex rather than
-// a second DOM pass because only a handful of elements are needed.
-const FEED_ITEM_PATTERN = /<(item|entry)(?:\s[^>]*)?>.*?<\/\1>/gs;
+// htmlparser2's feed parser exposes neither <comments> nor per-item authors,
+// so the source is parsed a second time and read element by element.
 
-// Reduces an element's raw inner XML to the plain text it stands for: entities
-// decoded, any markup around the value dropped. Parsing rather than unescaping
-// by hand keeps this identical to how htmlparser2 decoded the feed's own
-// fields, which matters because item links are used as lookup keys below.
-const decodeFeedText = (value: string) =>
-  DomUtils.textContent(
-    // As far as XML is concerned CDATA is literal text, but publishers use it
-    // to embed markup — typically a link wrapped around the author's name — so
-    // the section is unwrapped and its content parsed like everything else.
-    parseDocument(value.replace(/<!\[CDATA\[(.*?)\]\]>/gs, "$1"), {
-      xmlMode: true,
-    }),
-  )
-    .replace(/\s+/g, " ")
-    .trim();
+// Item links are used as lookup keys against the parsed feed, which trims
+// element text but reads link attributes raw. Both sides go through this so a
+// link carrying stray whitespace still finds its match.
+const collapseWhitespace = (value: string) => value.replace(/\s+/g, " ").trim();
 
-const extractElement = (block: string, tagName: string) => {
-  const match = block.match(
-    new RegExp(`<${tagName}(?:\\s[^>]*)?>(.*?)</${tagName}>`, "s"),
+// Reduces an element to the plain text it stands for. textContent() decodes
+// entities but returns CDATA verbatim, and publishers use CDATA to embed
+// markup — typically a link wrapped around the author's name — so a value that
+// still looks like markup is parsed once more.
+const elementText = (element: AnyNode): string => {
+  const text = collapseWhitespace(DomUtils.textContent(element));
+  if (!text.includes("<")) return text;
+
+  return collapseWhitespace(
+    DomUtils.textContent(parseDocument(text, { xmlMode: true })),
   );
-  return match ? decodeFeedText(match[1]) : null;
 };
 
-const extractItemLink = (block: string) => {
-  const rssLink = extractElement(block, "link");
-  if (rssLink) return rssLink;
+// Direct children only, which is how htmlparser2 reads the same elements. An
+// <author> belonging to something nested inside the item is not its byline.
+const childElements = (children: AnyNode[], tagName: string) =>
+  DomUtils.getElementsByTagName(tagName, children, false);
 
-  // Atom puts the target in the href attribute of a self-closing <link>.
-  // htmlparser2 takes the first one regardless of its rel, so do the same.
-  const atomLink = block.match(/<link(?:\s[^>]*)?\shref="(.*?)"/s);
-  return atomLink ? decodeFeedText(atomLink[1]) : null;
+const firstChildText = (children: AnyNode[], tagName: string) => {
+  const [element] = childElements(children, tagName);
+  return element ? elementText(element) || null : null;
 };
 
-const extractAuthor = (block: string) => {
+const extractAuthor = (children: AnyNode[]) => {
   // dc:creator carries a display name, whereas RSS 2.0 specifies <author> as an
   // email address, so a creator is the better label whenever both are present.
-  const creators = [
-    ...block.matchAll(/<dc:creator(?:\s[^>]*)?>(.*?)<\/dc:creator>/gs),
-  ]
-    .map((match) => decodeFeedText(match[1]))
+  const creators = childElements(children, "dc:creator")
+    .map(elementText)
     .filter((name) => name !== "");
   if (creators.length > 0) return creators.join(", ");
 
-  const authors = [...block.matchAll(/<author(?:\s[^>]*)?>(.*?)<\/author>/gs)]
-    .map((match) => {
+  const authors = childElements(children, "author")
+    .map((element) => {
       // Atom wraps the display name in <name>. RSS publishers that follow the
       // email convention usually append the name: "jane@example.com (Jane Doe)".
-      const name = extractElement(match[1], "name");
+      const name = firstChildText(element.children, "name");
       if (name) return name;
 
-      const text = decodeFeedText(match[1]);
-      const parenthesised = text.match(/\(([^)]*)\)/);
-      return parenthesised ? parenthesised[1].trim() : text;
+      const text = elementText(element);
+      return text.match(/\(([^)]*)\)/)?.[1].trim() ?? text;
     })
     .filter((name) => name !== "");
 
@@ -135,25 +128,41 @@ const extractAuthor = (block: string) => {
 };
 
 const extractItemMetadata = (feedSource: string) => {
-  const itemBlocks = [...feedSource.matchAll(FEED_ITEM_PATTERN)].map(
-    (match) => match[0],
+  const document = parseDocument(feedSource, { xmlMode: true });
+
+  const items = DomUtils.getElementsByTagName(
+    (name) => name === "item" || name === "entry",
+    document,
+    true,
   );
 
   // An Atom entry inherits the feed-level author when it declares none of its
   // own (RFC 4287 §4.2.1), which is how single-author blogs usually publish.
-  const feedAuthor = extractAuthor(feedSource.replace(FEED_ITEM_PATTERN, ""));
+  // Read from the channel's own children, so an item's author is not mistaken
+  // for the feed's.
+  const [feedRoot] = DomUtils.getElementsByTagName(
+    (name) => name === "channel" || name === "feed",
+    document,
+    true,
+    1,
+  );
+  const feedAuthor = feedRoot ? extractAuthor(feedRoot.children) : null;
 
   const metadataByItemLink = new Map<
     string,
     { commentsLink: string | null; author: string | null }
   >();
-  for (const block of itemBlocks) {
-    const link = extractItemLink(block);
+  for (const item of items) {
+    // Atom puts the target in the href attribute of a self-closing <link>.
+    // htmlparser2 takes the first one regardless of its rel, so do the same.
+    const link =
+      firstChildText(item.children, "link") ??
+      childElements(item.children, "link")[0]?.attribs.href;
     if (!link) continue;
 
-    metadataByItemLink.set(link, {
-      commentsLink: extractElement(block, "comments"),
-      author: extractAuthor(block) ?? feedAuthor,
+    metadataByItemLink.set(collapseWhitespace(link), {
+      commentsLink: firstChildText(item.children, "comments"),
+      author: extractAuthor(item.children) ?? feedAuthor,
     });
   }
 
@@ -187,7 +196,7 @@ export const scrapeFeed = async (feed: Feed) => {
     if (!item.title || !item.link || !item.pubDate) {
       logger.error({ item }, "Invalid feed item.");
     } else {
-      const metadata = metadataByItemLink.get(item.link);
+      const metadata = metadataByItemLink.get(collapseWhitespace(item.link));
       validFeedItems.push({
         title: item.title,
         link: item.link,

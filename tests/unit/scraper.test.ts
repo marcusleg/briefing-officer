@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Only parseFeed is stubbed. The scraper also parses raw element content with
 // htmlparser2, and these tests assert on what that produces.
@@ -59,6 +59,10 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+// A hook rather than a call at the end of each test: a failing assertion above
+// would skip the cleanup and leak the stubbed fetch into every later test.
+afterEach(() => vi.unstubAllGlobals());
+
 describe("scrapeFeed", () => {
   it("returns commentsLink when RSS item has <comments> element", async () => {
     const xml = `
@@ -87,7 +91,6 @@ describe("scrapeFeed", () => {
 
     expect(items).toHaveLength(1);
     expect(items[0].commentsLink).toBe("https://example.com/1#comments");
-    vi.unstubAllGlobals();
   });
 
   it("returns null commentsLink when RSS item has no <comments> element", async () => {
@@ -116,7 +119,6 @@ describe("scrapeFeed", () => {
 
     expect(items).toHaveLength(1);
     expect(items[0].commentsLink).toBeNull();
-    vi.unstubAllGlobals();
   });
 
   it("assigns commentsLink correctly when only some items have <comments>", async () => {
@@ -153,7 +155,6 @@ describe("scrapeFeed", () => {
 
     expect(items[0].commentsLink).toBe("https://example.com/1#comments");
     expect(items[1].commentsLink).toBeNull();
-    vi.unstubAllGlobals();
   });
 
   it("returns null commentsLink for Atom feeds (no <comments> element)", async () => {
@@ -181,7 +182,6 @@ describe("scrapeFeed", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].commentsLink).toBeNull();
-    vi.unstubAllGlobals();
   });
 
   it("assigns commentsLink by link URL, not position, when an invalid item precedes a valid one", async () => {
@@ -217,7 +217,6 @@ describe("scrapeFeed", () => {
 
     expect(items).toHaveLength(1);
     expect(items[0].commentsLink).toBe("https://example.com/good#comments");
-    vi.unstubAllGlobals();
   });
 });
 
@@ -251,7 +250,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane Doe");
-    vi.unstubAllGlobals();
   });
 
   it("prefers <dc:creator> over the email in <author>", async () => {
@@ -269,7 +267,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane Doe");
-    vi.unstubAllGlobals();
   });
 
   it("takes the name out of an RSS <author> email address", async () => {
@@ -286,7 +283,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane Doe");
-    vi.unstubAllGlobals();
   });
 
   it("joins multiple <dc:creator> elements", async () => {
@@ -304,7 +300,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane Doe, John Roe");
-    vi.unstubAllGlobals();
   });
 
   it("decodes entities in the author name", async () => {
@@ -321,7 +316,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane & John O'Doe");
-    vi.unstubAllGlobals();
   });
 
   it("unwraps markup around the author name", async () => {
@@ -338,7 +332,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane Doe");
-    vi.unstubAllGlobals();
   });
 
   it("leaves no tag behind when the markup is nested", async () => {
@@ -355,7 +348,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).not.toContain("<");
-    vi.unstubAllGlobals();
   });
 
   it("reads the author from an Atom entry", async () => {
@@ -375,7 +367,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane Doe");
-    vi.unstubAllGlobals();
   });
 
   it("falls back to the feed-level author for Atom entries without one", async () => {
@@ -395,7 +386,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane Doe");
-    vi.unstubAllGlobals();
   });
 
   it("prefers the entry author over the feed-level author", async () => {
@@ -416,7 +406,6 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBe("Jane Doe");
-    vi.unstubAllGlobals();
   });
 
   it("returns a null author when the feed declares none", async () => {
@@ -433,6 +422,60 @@ describe("scrapeFeed authors", () => {
     const items = await scrapeFeed(makeFeed());
 
     expect(items[0].author).toBeNull();
-    vi.unstubAllGlobals();
+  });
+
+  it("ignores an <author> embedded in the item's article content", async () => {
+    stubFeedSource(`
+      <rss><channel>
+        <item>
+          <title>Article 1</title>
+          <link>https://example.com/1</link>
+          <content:encoded><![CDATA[
+            <p>Reported live.</p>
+            <author>Not An Author</author>
+          ]]></content:encoded>
+        </item>
+      </channel></rss>
+    `);
+
+    const items = await scrapeFeed(makeFeed());
+
+    expect(items[0].author).toBeNull();
+  });
+
+  it("ignores a <dc:creator> nested below the item", async () => {
+    stubFeedSource(`
+      <rss><channel>
+        <item>
+          <title>Article 1</title>
+          <link>https://example.com/1</link>
+          <source><dc:creator>Syndication Partner</dc:creator></source>
+        </item>
+      </channel></rss>
+    `);
+
+    const items = await scrapeFeed(makeFeed());
+
+    expect(items[0].author).toBeNull();
+  });
+
+  it("does not treat an item author as the feed-level author", async () => {
+    stubFeedSource(`
+      <rss><channel>
+        <item>
+          <title>Article 1</title>
+          <link>https://example.com/1</link>
+        </item>
+        <item>
+          <title>Article 2</title>
+          <link>https://example.com/2</link>
+          <dc:creator>Jane Doe</dc:creator>
+        </item>
+      </channel></rss>
+    `);
+
+    const items = await scrapeFeed(makeFeed());
+
+    expect(items[0].author).toBeNull();
   });
 });
