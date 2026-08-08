@@ -23,15 +23,25 @@ export class FakeUtterance {
  * can assert against its calls. Pass an empty array to simulate a browser with
  * no voices installed. Call `vi.unstubAllGlobals()` afterwards.
  *
- * `spoken()` returns the utterances handed to `speak()` in order, which is the
- * queue the real engine would play back to back.
+ * `spoken()` returns the live queue: the utterances handed to `speak()` and not
+ * since discarded by `cancel()`, which is what the real engine would play back
+ * to back. `allSpoken()` returns every utterance ever queued, cancelled ones
+ * included, for the rare test that needs to look behind a cancel.
  */
 export const installSpeechEngine = (
   voices: unknown[] = [{ name: "Test Voice", lang: "en-US" }],
 ) => {
+  let queue: FakeUtterance[] = [];
+  const everQueued: FakeUtterance[] = [];
+
   const speechSynthesis = {
-    speak: vi.fn(),
-    cancel: vi.fn(),
+    speak: vi.fn((utterance: FakeUtterance) => {
+      queue.push(utterance);
+      everQueued.push(utterance);
+    }),
+    cancel: vi.fn(() => {
+      queue = [];
+    }),
     pause: vi.fn(),
     resume: vi.fn(),
     getVoices: vi.fn(() => voices),
@@ -44,9 +54,7 @@ export const installSpeechEngine = (
 
   return {
     ...speechSynthesis,
-    spoken: () =>
-      speechSynthesis.speak.mock.calls.map(
-        (call) => call[0] as unknown as FakeUtterance,
-      ),
+    spoken: () => queue,
+    allSpoken: () => everQueued,
   };
 };

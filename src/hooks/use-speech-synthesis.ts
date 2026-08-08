@@ -3,7 +3,6 @@ import * as React from "react";
 
 interface SpeechSynthesisControls {
   activeIndex: number | undefined;
-  cancel: () => void;
   enqueue: (sentence: string) => void;
   pause: () => void;
   paused: boolean;
@@ -22,12 +21,11 @@ interface SpeechSynthesisControls {
 // client-side navigation creates.
 let engineOwner: symbol | undefined;
 
-// Centralizes the "does this environment even have the API" check so
-// playFrom(), cancel(), pause(), resume(), and speakSentence() do not each
-// repeat it — and, more importantly, so none of them can forget it. The
-// support effect below only gates the `supported` flag; it does not stop
-// these functions from being called (the player's mount effect calls
-// playFrom(0) unconditionally, before `supported` can gate anything).
+type Playback = "idle" | "playing" | "ranDry";
+
+// Centralizes the "does this environment even have the API" check so no
+// caller can forget it: the player's mount effect calls playFrom(0)
+// unconditionally, before the `supported` flag can gate anything.
 const speechEngine = () =>
   typeof window !== "undefined" && "speechSynthesis" in window
     ? window.speechSynthesis
@@ -41,8 +39,8 @@ const speechEngine = () =>
  * of it is still being generated. Short utterances also stay well under the
  * roughly 15 second cut-off Chrome applies to a single long one.
  *
- * Only one audio surface is mounted at a time, so this needs none of the
- * cross-component arbitration a per-card version would.
+ * Only one audio surface is mounted at a time, but a client-side navigation
+ * briefly overlaps two, so the module-level owner token above arbitrates.
  */
 export function useSpeechSynthesis(
   language: string | null,
@@ -59,14 +57,22 @@ export function useSpeechSynthesis(
   // Every sentence handed to enqueue(), retained so playFrom() can re-speak
   // from an arbitrary point.
   const sentences = React.useRef<string[]>([]);
-  const playing = React.useRef(false);
   const rateValue = React.useRef(1);
-  const activeIndexValue = React.useRef<number | undefined>(undefined);
+  const queuedFromIndex = React.useRef<number | undefined>(undefined);
 
-  // Identifies this instance for the engine-ownership check below. A ref so
-  // it survives Strict Mode's remount, which reuses the same instance.
-  const ownerToken = React.useRef<symbol>(undefined as unknown as symbol);
-  ownerToken.current ??= Symbol("speech-engine-owner");
+  // "ranDry" means playback stopped because handleDone reached the last
+  // retained sentence, as opposed to a deliberate playFrom(). Lets enqueue()
+  // tell "the stream stalled, resume for the new arrival" apart from "playback
+  // was never started".
+  const playback = React.useRef<Playback>("idle");
+  const setPlayback = React.useCallback((next: Playback) => {
+    playback.current = next;
+    setSpeaking(next === "playing");
+  }, []);
+
+  // Identifies this instance for the engine-ownership check below. Stable for
+  // the lifetime of the instance, so it survives Strict Mode's remount.
+  const [ownerToken] = React.useState(() => Symbol("speech-engine-owner"));
 
   // Resolved once here so every utterance and the voice lookup agree on it.
   const spokenLanguage = language ?? DEFAULT_LANGUAGE;
@@ -79,12 +85,6 @@ export function useSpeechSynthesis(
   // engine fire onend for every pending utterance, so handlers compare against
   // this to tell "my queue finished" from "my queue was thrown away".
   const generation = React.useRef(0);
-
-  // True when playback stopped because handleDone reached the last retained
-  // sentence, as opposed to a deliberate playFrom()/cancel(). Lets enqueue()
-  // tell "the stream stalled, resume for the new arrival" apart from "the
-  // listener stopped playback on purpose".
-  const endedAtTail = React.useRef(false);
 
   React.useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -133,7 +133,7 @@ export function useSpeechSynthesis(
 
       utterance.onstart = () => {
         if (generation.current !== forGeneration) return;
-        activeIndexValue.current = index;
+        queuedFromIndex.current = index;
         setActiveIndex(index);
       };
 
@@ -144,10 +144,8 @@ export function useSpeechSynthesis(
         // engine is already playing them. Only the true tail ends playback.
         if (index !== sentences.current.length - 1) return;
 
-        playing.current = false;
-        endedAtTail.current = true;
-        activeIndexValue.current = undefined;
-        setSpeaking(false);
+        setPlayback("ranDry");
+        queuedFromIndex.current = undefined;
         setPaused(false);
         setActiveIndex(undefined);
       };
@@ -157,7 +155,7 @@ export function useSpeechSynthesis(
 
       engine.speak(utterance);
     },
-    [spokenLanguage],
+    [spokenLanguage, setPlayback],
   );
 
   const playFrom = React.useCallback(
@@ -174,16 +172,10 @@ export function useSpeechSynthesis(
       // so it never leaves playback stalled at the tail.
       engine.resume();
 
-      playing.current = true;
-      endedAtTail.current = false;
-      // Known immediately, unlike the state below: setRate() reads this ref
-      // to decide where to re-speak from, and it may be called again before
-      // the engine ever fires onstart for this position. The React state
-      // (activeIndex, cleared just below) is the confirmed, visible
-      // highlight — it stays undefined until the engine reports a sentence
-      // has actually started.
-      activeIndexValue.current = index;
-      setSpeaking(true);
+      setPlayback("playing");
+      // The queued-from position, known synchronously. `activeIndex` below is
+      // the engine-confirmed highlight and stays undefined until onstart fires.
+      queuedFromIndex.current = index;
       setPaused(false);
       setActiveIndex(undefined);
 
@@ -195,7 +187,7 @@ export function useSpeechSynthesis(
         speakSentence(position, forGeneration);
       }
     },
-    [speakSentence],
+    [speakSentence, setPlayback],
   );
 
   const enqueue = React.useCallback(
@@ -205,40 +197,21 @@ export function useSpeechSynthesis(
 
       // While playing, hand the sentence straight to the engine — it appends to
       // its own FIFO queue, so playback continues rather than restarting.
-      if (playing.current) {
+      if (playback.current === "playing") {
         speakSentence(index, generation.current);
         return;
       }
 
       // Playback previously stopped only because it ran out of retained
-      // sentences, not because the listener stopped it deliberately. The
-      // stream has caught up, so resume for the sentence that just arrived.
-      if (endedAtTail.current) {
-        endedAtTail.current = false;
-        playing.current = true;
-        setSpeaking(true);
+      // sentences. The stream has caught up, so resume for the sentence that
+      // just arrived.
+      if (playback.current === "ranDry") {
+        setPlayback("playing");
         speakSentence(index, generation.current);
       }
     },
-    [speakSentence],
+    [speakSentence, setPlayback],
   );
-
-  const cancel = React.useCallback(() => {
-    const engine = speechEngine();
-    if (!engine) return;
-
-    generation.current += 1;
-    playing.current = false;
-    endedAtTail.current = false;
-    activeIndexValue.current = undefined;
-    engine.cancel();
-    // See the comment in playFrom(): cancel() alone leaves the engine's
-    // paused flag latched, which would silently swallow the next speak().
-    engine.resume();
-    setSpeaking(false);
-    setPaused(false);
-    setActiveIndex(undefined);
-  }, []);
 
   const pause = React.useCallback(() => {
     const engine = speechEngine();
@@ -263,8 +236,8 @@ export function useSpeechSynthesis(
 
       // rate is read at speak() time, so utterances already queued keep the old
       // value. Re-speak from the current sentence to apply it immediately.
-      if (playing.current) {
-        playFrom(activeIndexValue.current ?? 0);
+      if (playback.current === "playing") {
+        playFrom(queuedFromIndex.current ?? 0);
       }
     },
     [playFrom],
@@ -280,18 +253,17 @@ export function useSpeechSynthesis(
   // arrive well after the stale cleanup. Claiming ownership on mount and
   // checking it on cleanup fixes the ordering rather than racing it.
   React.useEffect(() => {
-    engineOwner = ownerToken.current;
+    engineOwner = ownerToken;
 
     return () => {
-      if (engineOwner !== ownerToken.current) return;
+      if (engineOwner !== ownerToken) return;
       engineOwner = undefined;
       window.speechSynthesis?.cancel();
     };
-  }, []);
+  }, [ownerToken]);
 
   return {
     activeIndex,
-    cancel,
     enqueue,
     pause,
     paused,

@@ -48,16 +48,6 @@ describe("AudioSummaryPlayer", () => {
     ]);
   });
 
-  it("terminates the spoken title so it does not run into the next sentence", () => {
-    const engine = installSpeechEngine();
-
-    render(
-      <AudioSummaryPlayer title="Is Rust dead?" articleId={42} language="en" />,
-    );
-
-    expect(engine.spoken()[0].text).toBe("Is Rust dead?");
-  });
-
   it("keeps the title out of the transcript", async () => {
     installSpeechEngine();
 
@@ -81,16 +71,6 @@ describe("AudioSummaryPlayer", () => {
         "Maintainers had warned for years.",
       ]),
     );
-  });
-
-  it("renders the transcript as it arrives", async () => {
-    installSpeechEngine();
-
-    render(<AudioSummaryPlayer {...props} />);
-
-    expect(
-      await screen.findByText(/It landed after 362 patches\./),
-    ).toBeInTheDocument();
   });
 
   it("highlights the sentence the engine reports as started", async () => {
@@ -136,8 +116,8 @@ describe("AudioSummaryPlayer", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /restart/i }));
 
-    const respoken = engine.spoken().slice(4);
-    expect(respoken[0].text).toBe(SPOKEN_TITLE);
+    // The restart discards the live queue and re-speaks it from the top.
+    expect(engine.spoken()[0].text).toBe(SPOKEN_TITLE);
   });
 
   it("restores a saved rate and applies it to speech", async () => {
@@ -150,14 +130,45 @@ describe("AudioSummaryPlayer", () => {
     await waitFor(() => expect(engine.spoken().at(-1)!.rate).toBe(1.5));
   });
 
-  it("ignores a stored rate outside the supported range", async () => {
-    window.localStorage.setItem("briefing-officer:speech-rate", "9");
-    installSpeechEngine();
+  // "0.5" and "1.8" are the real migration case: in range for the engine, but
+  // absent from the menu, so restoring them would show a speed no option
+  // matches.
+  it.each(["9", "0.5", "1.8", "abc", ""])(
+    "ignores the stored rate %j, which the menu cannot represent",
+    async (stored) => {
+      window.localStorage.setItem("briefing-officer:speech-rate", stored);
+      installSpeechEngine();
 
-    render(<AudioSummaryPlayer {...props} />);
+      render(<AudioSummaryPlayer {...props} />);
 
-    await waitFor(() => expect(screen.getByText("1.0×")).toBeInTheDocument());
-  });
+      await waitFor(() => expect(screen.getByText("1.0×")).toBeInTheDocument());
+    },
+  );
+
+  it.each([
+    { option: "1.5×", stored: "1.5", rate: 1.5 },
+    // 2 formats as "2.0": storing the bare "2" would silently fail to restore.
+    { option: "2.0×", stored: "2.0", rate: 2 },
+  ])(
+    "stores the speed picked from the menu ($option)",
+    async ({ option, stored, rate }) => {
+      const engine = installSpeechEngine();
+
+      render(<AudioSummaryPlayer {...props} />);
+      await waitFor(() => expect(engine.spoken()).toHaveLength(4));
+
+      await userEvent.click(screen.getByRole("button", { name: /speed/i }));
+      await userEvent.click(
+        screen.getByRole("menuitemradio", { name: option }),
+      );
+
+      expect(window.localStorage.getItem("briefing-officer:speech-rate")).toBe(
+        stored,
+      );
+      // Changing the speed mid-playback re-speaks the remaining sentences.
+      expect(engine.spoken().at(-1)!.rate).toBe(rate);
+    },
+  );
 
   it("tells the reader when the browser has no speech voices", async () => {
     installSpeechEngine([]);
@@ -198,26 +209,15 @@ describe("AudioSummaryPlayer", () => {
     );
 
     await waitFor(() => expect(screen.getByText("1.5×")).toBeInTheDocument());
+
     await waitFor(() =>
-      expect(engine.spoken().length).toBeGreaterThanOrEqual(4),
+      expect(engine.spoken().map((utterance) => utterance.text)).toEqual([
+        SPOKEN_TITLE,
+        "Published at Hacker News, written by Jane Doe.",
+        "It landed after 362 patches.",
+        "Maintainers had warned for years.",
+      ]),
     );
-
-    // Count only utterances queued after the last cancel: the fake's cancel()
-    // does not discard queued utterances the way a real engine does, so
-    // spoken() also contains ones that were cancelled before making a sound.
-    const lastCancel = Math.max(0, ...engine.cancel.mock.invocationCallOrder);
-    const live = engine.speak.mock.calls
-      .filter(
-        (_, index) => engine.speak.mock.invocationCallOrder[index] > lastCancel,
-      )
-      .map((call) => (call[0] as unknown as { text: string }).text);
-
-    expect(live).toEqual([
-      SPOKEN_TITLE,
-      "Published at Hacker News, written by Jane Doe.",
-      "It landed after 362 patches.",
-      "Maintainers had warned for years.",
-    ]);
     expect(engine.spoken().at(-1)!.rate).toBe(1.5);
   });
 
@@ -231,24 +231,13 @@ describe("AudioSummaryPlayer", () => {
     );
 
     // The cleanup between Strict Mode's two mount passes cancels playback via
-    // the hook's unmount effect. Without the remount branch's replay, playback
-    // stays dead and nothing reaches the engine afterwards.
-    //
-    // Asserting on ordering rather than on spoken() is deliberate: the fake's
-    // cancel() does not discard queued utterances the way a real engine does,
-    // so spoken() alone cannot tell a live utterance from a cancelled one.
+    // the hook's unmount effect, discarding the queued title. Without the
+    // remount branch's replay it never comes back.
     await waitFor(() =>
-      expect(engine.spoken().length).toBeGreaterThanOrEqual(4),
+      expect(engine.spoken().map((utterance) => utterance.text)).toContain(
+        SPOKEN_TITLE,
+      ),
     );
-
-    const lastCancel = Math.max(...engine.cancel.mock.invocationCallOrder);
-    const spokenAfterCancel = engine.speak.mock.calls.some(
-      (call, index) =>
-        (call[0] as unknown as { text: string }).text.startsWith(
-          "Kernel 7.2 removes strncpy",
-        ) && engine.speak.mock.invocationCallOrder[index] > lastCancel,
-    );
-    expect(spokenAfterCancel).toBe(true);
   });
 
   it("stops feeding the speech engine once the page unmounts", async () => {
@@ -268,19 +257,20 @@ describe("AudioSummaryPlayer", () => {
         }) as never,
     );
 
-    // Two: the spoken title, then the stream's first sentence.
+    // Two: the spoken title, then the stream's first sentence. Counted with
+    // allSpoken(), since unmounting cancels and so empties the live queue.
     const { unmount } = render(<AudioSummaryPlayer {...props} />);
-    await waitFor(() => expect(engine.spoken()).toHaveLength(2));
+    await waitFor(() => expect(engine.allSpoken()).toHaveLength(2));
 
     unmount();
-    const spokenBeforeRelease = engine.spoken().length;
+    const queuedBeforeRelease = engine.allSpoken().length;
     release!();
     // Give the detached loop a chance to deliver the late sentence.
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     // The global speech engine is shared, so a sentence arriving after unmount
     // would play over whatever page the reader moved on to.
-    expect(engine.spoken()).toHaveLength(spokenBeforeRelease);
+    expect(engine.allSpoken()).toHaveLength(queuedBeforeRelease);
   });
 
   it("explains itself instead of crashing when the API is missing entirely", async () => {

@@ -18,8 +18,6 @@ import { readStreamableValue } from "@ai-sdk/rsc";
 import { PauseIcon, PlayIcon, RotateCcwIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export const maxDuration = 30;
-
 const RATE_STORAGE_KEY = "briefing-officer:speech-rate";
 const SPEECH_RATES = [1, 1.1, 1.2, 1.3, 1.4, 1.5, 2];
 
@@ -52,7 +50,10 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
   // a ref and cannot drive rendering. This one is for display.
   const [sentences, setSentences] = useState<string[]>([]);
   const [generationFailed, setGenerationFailed] = useState(false);
-  const initialized = useRef(false);
+  // The article whose script this instance has already started streaming, so a
+  // re-run of the effect below can tell a genuinely new article apart from
+  // Strict Mode replaying the same one.
+  const streamedArticleId = useRef<number | undefined>(undefined);
   // Set by the streaming effect's cleanup so the in-flight `for await` loop
   // stops feeding the speech engine once this instance is torn down. See the
   // comment where it is reset, inside the effect.
@@ -62,45 +63,32 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
   // and the first client render agree on the 1.0x default.
   useEffect(() => {
     const stored = Number(window.localStorage.getItem(RATE_STORAGE_KEY));
-    // Only a value the menu can still represent is restored. A rate saved by
-    // the old slider, which allowed anything from 0.5 to 2.0 in steps of 0.1,
-    // is dropped in favour of the 1.0x default rather than showing up as a
-    // speed with no matching option.
+    // Only a value the menu can represent is restored; anything else falls back
+    // to the 1.0x default rather than showing a speed with no matching option.
     if (SPEECH_RATES.includes(stored)) {
       setRate(stored);
     }
   }, [setRate]);
 
   useEffect(() => {
-    // Guards the `for await` loop below: once the effect is torn down
-    // (real unmount, or Strict Mode's cleanup-then-resetup cycle), the loop
-    // itself keeps running to completion — a for-await over an async
-    // generator has no way to know its caller went away. Without this flag,
-    // append() would keep pushing into the shared speechSynthesis singleton
-    // after the component that owns it is gone, including into whatever
-    // article's player mounts next.
-    //
-    // Reset on every run of the effect body, not just at declaration: Strict
-    // Mode re-runs this effect after its cleanup fires, and a latched flag
-    // would permanently disable append() for the remounted instance, silencing
-    // every streamed sentence for good.
+    // A for-await over an async generator cannot know its caller went away, so
+    // this flag stops append() feeding the shared speechSynthesis singleton
+    // after teardown. Reset per effect run, not at declaration: Strict Mode
+    // re-runs the body after its cleanup, and a latched flag would silence the
+    // remount for good.
     cancelled.current = false;
 
-    if (initialized.current) {
-      // Strict Mode double-invokes mount effects in development, and the
-      // cleanup between the two runs cancels playback through the hook's
-      // unmount effect — which calls speechSynthesis.cancel() directly,
-      // leaving the engine's paused flag latched. playFrom() is what clears
-      // it, via its explicit resume(); without this replay every later
-      // utterance would be handed to an engine that stays silent. Every
-      // sentence is still retained by the hook, so replaying costs nothing
-      // and generates nothing.
+    if (streamedArticleId.current === props.articleId) {
+      // Strict Mode's cleanup cancels playback via the hook's unmount effect,
+      // which leaves the engine's paused flag latched. playFrom() clears it via
+      // its explicit resume(); every sentence is still retained, so replaying
+      // generates nothing.
       playFrom(0);
       return () => {
         cancelled.current = true;
-      }; // Prevent multiple streams
+      };
     }
-    initialized.current = true;
+    streamedArticleId.current = props.articleId;
 
     const append = (sentence: string) => {
       if (cancelled.current) return;
@@ -137,13 +125,6 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
       } catch {
         // Whatever already streamed keeps playing — only the rest of the
         // script failed to arrive. Surface that without touching playback.
-        //
-        // Known cosmetic gap: if this throws before any sentence has
-        // arrived, nothing was ever queued, so the hook's handleDone never
-        // runs and `speaking` stays true — the button reads "Pause" forever
-        // beside the "Briefing incomplete" alert. Not worth an unconditional
-        // cancel() here, since that would also cut off sentences that did
-        // stream successfully before the failure.
         setGenerationFailed(true);
       }
     };
@@ -153,8 +134,6 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
     return () => {
       cancelled.current = true;
     };
-    // Guarded by initialized.current above, so this effect behaves as a
-    // mount-only effect despite the honest dependency array.
   }, [props.articleId, props.title, enqueue, playFrom]);
 
   const togglePlayback = () => {
@@ -170,6 +149,10 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
   };
 
   const playing = speaking && !paused;
+
+  // Playback index 0 is the spoken title, which the transcript omits.
+  const activeTranscriptIndex =
+    activeIndex === undefined ? undefined : activeIndex - 1;
 
   return (
     <div className="flex flex-col gap-6">
@@ -272,10 +255,7 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
         {sentences.map((sentence, index) => (
           <p
             key={index}
-            // The hook also retains the spoken title at playback index 0,
-            // which the transcript omits, so display index i is playback
-            // index i + 1.
-            data-active={index + 1 === activeIndex}
+            data-active={index === activeTranscriptIndex}
             className="data-[active=true]:bg-primary/15 rounded transition-colors"
           >
             {sentence}
