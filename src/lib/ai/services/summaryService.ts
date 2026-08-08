@@ -1,15 +1,9 @@
 "use server";
 
-import { buildSummaryPrompt, systemPrompt } from "@/lib/ai/prompts";
-import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
-import logger from "@/lib/logger";
+import { buildSummaryPrompt } from "@/lib/ai/prompts";
+import { streamGeneration } from "@/lib/ai/streamGeneration";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
-import { createStreamableValue } from "@ai-sdk/rsc";
-import { streamText } from "ai";
-import { trackTokenUsage } from "./tokenUsageService";
-
-const model = await getFirstConfiguredLanguageModel();
 
 export const streamAiSummary = async (articleId: number) => {
   const userId = await getUserId();
@@ -19,45 +13,18 @@ export const streamAiSummary = async (articleId: number) => {
     include: { scrape: true },
   });
 
-  const stream = createStreamableValue("");
-
-  void (async () => {
-    const { textStream, totalUsage } = streamText({
-      model,
-      system: systemPrompt,
-      prompt: buildSummaryPrompt(
-        article.title,
-        article.scrape?.textContent ?? "",
-        article.language,
-      ),
-    });
-
-    for await (const delta of textStream) {
-      stream.update(delta);
-    }
-
-    stream.done();
-
-    const tokenUsage = await totalUsage;
-
-    logger.info(
-      {
-        articleId,
-        feedId: article.feedId,
-        language: article.language,
-        model: model.modelId,
-        tokenUsage,
-      },
-      "AI summary generated.",
-    );
-
-    await trackTokenUsage(
-      userId,
-      model.modelId,
-      tokenUsage.inputTokens ?? 0,
-      tokenUsage.outputTokens ?? 0,
-    );
-  })();
-
-  return { output: stream.value };
+  return streamGeneration({
+    userId,
+    label: "AI summary",
+    context: {
+      articleId,
+      feedId: article.feedId,
+      language: article.language,
+    },
+    prompt: buildSummaryPrompt(
+      article.title,
+      article.scrape?.textContent ?? "",
+      article.language,
+    ),
+  });
 };
