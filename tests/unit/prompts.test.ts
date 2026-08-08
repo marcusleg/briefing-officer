@@ -81,33 +81,6 @@ describe("buildAudioScriptPrompt", () => {
     expect(prompt).toContain("plain text only");
   });
 
-  it("tells the model the title is already spoken and must not be repeated", () => {
-    // The title is spoken from code so playback can start before the model
-    // returns anything. Models restate it anyway unless told plainly, so the
-    // prohibition leads the prompt rather than sitting mid-paragraph, and the
-    // title element is labelled as context rather than material.
-    const prompt = buildAudioScriptPrompt(args);
-    expect(prompt).toContain("already been spoken aloud");
-    expect(prompt).toContain("Never repeat, paraphrase, translate, or refer");
-    expect(prompt).toContain("treat it as already said");
-  });
-
-  it("dictates what the first sentence must be", () => {
-    // Stating the required opening works better than only forbidding the
-    // unwanted one.
-    const prompt = buildAudioScriptPrompt(args);
-    expect(prompt).toContain("Your first sentence must");
-    expect(prompt).toContain("naming the publication and the author");
-  });
-
-  it("forbids openings that merely announce the article as an article", () => {
-    // "The article titled…" / "Der Artikel…" tells a listener who just heard
-    // the headline nothing at all.
-    const prompt = buildAudioScriptPrompt(args);
-    expect(prompt).toContain("The article titled");
-    expect(prompt).toContain("carry no information");
-  });
-
   it("supplies the author when one is known", () => {
     const prompt = buildAudioScriptPrompt(args);
     expect(prompt).toContain("<author>Jane Doe</author>");

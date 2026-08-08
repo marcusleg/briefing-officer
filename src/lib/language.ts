@@ -14,15 +14,10 @@ const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
 /**
  * Reduces a model-supplied language to a storable ISO 639-1 code, or null.
  *
- * The order of the checks is load-bearing:
- *
- * - `Intl.DisplayNames.of("")` throws a RangeError rather than returning a
- *   value, so the shape check is what keeps the lookup below safe.
- * - `.of("deu")` returns "German" and `.of("und")` returns "root", so neither
- *   ISO 639-2 codes nor the undetermined sentinel are caught by the
- *   recognition check. The two-letter rule is the only thing that rejects
- *   them. Reordering these would store both — and set them as
- *   `utterance.lang`, where no browser matches them to a voice.
+ * The order is load-bearing. `Intl.DisplayNames.of("")` throws, so the shape
+ * check has to run first; and `.of("deu")` returns "German" while `.of("und")`
+ * returns "root", so the two-letter rule — not the recognition check — is the
+ * only thing rejecting ISO 639-2 codes and the undetermined sentinel.
  */
 export const normalizeLanguage = (
   value: string | null | undefined,
@@ -42,4 +37,6 @@ export const normalizeLanguage = (
  * copy. The interface is English, so the names are too.
  */
 export const languageDisplayName = (language: string | null): string =>
-  languageNames.of(language ?? DEFAULT_LANGUAGE) ?? "English";
+  // The `??` only satisfies the `string | undefined` return type. `of()` echoes
+  // a structurally valid tag back rather than returning undefined.
+  languageNames.of(language ?? DEFAULT_LANGUAGE) ?? DEFAULT_LANGUAGE;
