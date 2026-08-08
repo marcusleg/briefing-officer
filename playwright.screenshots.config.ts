@@ -19,7 +19,7 @@ export default defineConfig({
   webServer: {
     command: "npm run dev",
     env: {
-      DATABASE_URL: "file:../data/database.sqlite",
+      DATABASE_URL: "file:./data/database.sqlite",
     },
     url: "http://localhost:3000",
     reuseExistingServer: true,
