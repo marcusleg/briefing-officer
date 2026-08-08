@@ -1,9 +1,9 @@
 "use client";
 
-import AiSummaryButton from "@/components/article/ai-summary-button";
 import AudioSummaryButton from "@/components/article/audio-summary-button";
 import CommentsButton from "@/components/article/comments-button";
 import DismissButton from "@/components/article/dismiss-button";
+import TextSummaryButton from "@/components/article/text-summary-button";
 import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
 import ToggleStarredButton from "@/components/article/toggle-starred-button";
 import VisitButton from "@/components/article/visit-button";
@@ -72,7 +72,7 @@ const LabelledActions = ({
       onAfterDismiss={onAfterDismiss}
     />
     {currentPage !== "text-summary" && (
-      <AiSummaryButton
+      <TextSummaryButton
         feedId={article.feedId}
         articleId={article.id}
         className={className}

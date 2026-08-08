@@ -2,22 +2,23 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import Link from "next/link";
 
-interface AiSummaryButtonProps {
+interface TextSummaryButtonProps {
   feedId: number;
   articleId: number;
   className?: string;
 }
 
-const AiSummaryButton = ({
+const TextSummaryButton = ({
   feedId,
   articleId,
   className,
-}: AiSummaryButtonProps) => {
+}: TextSummaryButtonProps) => {
   return (
     <Button
       asChild
       variant="secondary"
       className={className ?? "justify-start text-sm"}
+      aria-label="Text summary"
     >
       <Link href={`/feed/${feedId}/article/${articleId}/text-summary`}>
         <Sparkles className="mr-1 size-4" />
@@ -27,4 +28,4 @@ const AiSummaryButton = ({
   );
 };
 
-export default AiSummaryButton;
+export default TextSummaryButton;
