@@ -1,7 +1,5 @@
-"use server";
-
-import AudioSummaryArticleActions from "@/components/article/audio-summary-article-actions";
 import AudioSummaryPlayer from "@/components/article/audio-summary-player";
+import SummaryArticleActions from "@/components/article/summary-article-actions";
 import IntlRelativeTime from "@/components/intl-relative-time";
 import BackButton from "@/components/navigation/back-button";
 import TopNavigation from "@/components/navigation/top-navigation";
@@ -12,11 +10,14 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-const AudioSummary = async (props0: {
+export const maxDuration = 30;
+
+const AudioSummary = async ({
+  params,
+}: {
   params: Promise<{ feedId: string; articleId: string }>;
 }) => {
-  const params = await props0.params;
-  const articleId = parseInt(params.articleId);
+  const articleId = parseInt((await params).articleId);
 
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
@@ -80,7 +81,10 @@ const AudioSummary = async (props0: {
           Source: <Link href={article.link}>{article.link}</Link>
         </div>
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:gap-2">
-          <AudioSummaryArticleActions article={article} />
+          <SummaryArticleActions
+            article={article}
+            currentPage="audio-summary"
+          />
         </div>
       </article>
     </div>

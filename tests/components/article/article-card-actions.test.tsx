@@ -37,7 +37,7 @@ describe("ArticleCardActions", () => {
     expect(links[0]).toHaveAttribute("href", "/feed/1/article/1/audio-summary");
   });
 
-  it("hides the summarize entry on the AI summary page", () => {
+  it("hides the summarize entry on the text summary page", () => {
     render(<ArticleCardActions article={article} currentPage="text-summary" />);
 
     expect(

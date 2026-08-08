@@ -21,7 +21,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import readingTime from "reading-time";
 
 interface ArticleCardProps {
   article: Prisma.ArticleGetPayload<{
@@ -85,10 +84,6 @@ const ArticleCard = (props: ArticleCardProps) => {
     }),
   );
 
-  const articleReadingTime = props.article.scrape
-    ? readingTime(props.article.scrape.textContent)
-    : undefined;
-
   const description = () => {
     const className = "text-base leading-relaxed wrap-anywhere";
 
@@ -149,10 +144,7 @@ const ArticleCard = (props: ArticleCardProps) => {
       <CardContent className="px-4 md:px-6">{description()}</CardContent>
 
       <CardFooter className="flex-col gap-3 border-t px-4 md:flex md:flex-row md:items-center md:gap-2 md:px-6">
-        <ArticleCardActions
-          article={props.article}
-          readingTime={articleReadingTime}
-        />
+        <ArticleCardActions article={props.article} />
       </CardFooter>
     </Card>
   );

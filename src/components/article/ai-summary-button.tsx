@@ -1,19 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
 interface AiSummaryButtonProps {
   feedId: number;
   articleId: number;
-  size?: React.ComponentProps<typeof Button>["size"];
   className?: string;
 }
 
 const AiSummaryButton = ({
   feedId,
   articleId,
-  size,
   className,
 }: AiSummaryButtonProps) => {
   return (
