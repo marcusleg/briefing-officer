@@ -4,15 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Article } from "@/generated/prisma/client";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
 interface VisitButtonProps {
   article: Article;
-  size?: React.ComponentProps<typeof Button>["size"];
   className?: string;
 }
 
-const VisitButton = ({ article, size, className }: VisitButtonProps) => {
+const VisitButton = ({ article, className }: VisitButtonProps) => {
   return (
     <Button
       asChild

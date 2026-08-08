@@ -9,105 +9,125 @@ import ToggleStarredButton from "@/components/article/toggle-starred-button";
 import VisitButton from "@/components/article/visit-button";
 import { Prisma } from "@/generated/prisma/client";
 import { ClockIcon } from "lucide-react";
+import readingTime from "reading-time";
+
+type Article = Prisma.ArticleGetPayload<{
+  include: { feed: true; scrape: true };
+}>;
+
+type ReadingTime = ReturnType<typeof readingTime>;
 
 interface ArticleCardActionsProps {
-  article: Prisma.ArticleGetPayload<{
-    include: { feed: true; scrape: true };
-  }>;
+  article: Article;
   /** The page rendering this row, so it can suppress its own entry. */
   currentPage?: "text-summary" | "audio-summary";
   onAfterDismiss?: () => void;
-  readingTime?: { text: string; minutes: number; time: number; words: number };
 }
 
-const ReadingTimeLabel = ({
-  readingTime,
-}: {
-  readingTime: NonNullable<ArticleCardActionsProps["readingTime"]>;
-}) => (
+const ReadingTimeLabel = ({ readingTime }: { readingTime: ReadingTime }) => (
   <span className="text-muted-foreground flex items-center gap-1 text-xs">
     <ClockIcon className="size-3" />
     {readingTime.text}
   </span>
 );
 
-const ArticleCardActions = (props: ArticleCardActionsProps) => (
+const IconActions = ({
+  article,
+  currentPage,
+  variant,
+}: {
+  article: Article;
+  currentPage?: ArticleCardActionsProps["currentPage"];
+  variant?: "ghost";
+}) => (
   <>
-    {/* Mobile: row 1 — reading time left, icon buttons right */}
-    <div className="flex w-full items-center gap-2 md:hidden">
-      {props.readingTime && (
-        <ReadingTimeLabel readingTime={props.readingTime} />
-      )}
-      <div className="grow" />
-      <ToggleReadLaterButton article={props.article} variant="ghost" />
-      <ToggleStarredButton article={props.article} variant="ghost" />
-      <CommentsButton article={props.article} variant="ghost" />
-      {props.currentPage !== "audio-summary" && (
-        <AudioSummaryButton
-          feedId={props.article.feedId}
-          articleId={props.article.id}
-          variant="ghost"
-        />
-      )}
-    </div>
-
-    {/* Mobile: row 2 — full-width labeled buttons */}
-    <div className="flex w-full gap-2 md:hidden">
-      <DismissButton
-        article={props.article}
-        className="flex-1 justify-center text-sm"
-        onAfterDismiss={props.onAfterDismiss}
+    <ToggleReadLaterButton article={article} variant={variant} />
+    <ToggleStarredButton article={article} variant={variant} />
+    <CommentsButton article={article} variant={variant} />
+    {currentPage !== "audio-summary" && (
+      <AudioSummaryButton
+        feedId={article.feedId}
+        articleId={article.id}
+        variant={variant}
       />
-      {props.currentPage !== "text-summary" && (
-        <AiSummaryButton
-          feedId={props.article.feedId}
-          articleId={props.article.id}
-          size="sm"
-          className="flex-1 justify-center text-sm"
-        />
-      )}
-      <VisitButton
-        article={props.article}
-        size="sm"
-        className="flex-1 justify-center text-sm"
-      />
-    </div>
-
-    {/* Desktop: single row */}
-    <div className="hidden md:flex md:w-full md:items-center md:gap-2">
-      {props.readingTime && (
-        <ReadingTimeLabel readingTime={props.readingTime} />
-      )}
-      <div className="grow" />
-      <ToggleReadLaterButton article={props.article} />
-      <ToggleStarredButton article={props.article} />
-      <CommentsButton article={props.article} />
-      {props.currentPage !== "audio-summary" && (
-        <AudioSummaryButton
-          feedId={props.article.feedId}
-          articleId={props.article.id}
-        />
-      )}
-      <DismissButton
-        article={props.article}
-        className="cursor-pointer justify-start text-sm"
-        onAfterDismiss={props.onAfterDismiss}
-      />
-      {props.currentPage !== "text-summary" && (
-        <AiSummaryButton
-          feedId={props.article.feedId}
-          articleId={props.article.id}
-          size="sm"
-          className="justify-start text-sm"
-        />
-      )}
-      <VisitButton
-        article={props.article}
-        size="sm"
-        className="justify-start text-sm"
-      />
-    </div>
+    )}
   </>
 );
+
+const LabelledActions = ({
+  article,
+  className,
+  currentPage,
+  onAfterDismiss,
+}: {
+  article: Article;
+  className: string;
+  currentPage?: ArticleCardActionsProps["currentPage"];
+  onAfterDismiss?: () => void;
+}) => (
+  <>
+    <DismissButton
+      article={article}
+      className={className}
+      onAfterDismiss={onAfterDismiss}
+    />
+    {currentPage !== "text-summary" && (
+      <AiSummaryButton
+        feedId={article.feedId}
+        articleId={article.id}
+        className={className}
+      />
+    )}
+    <VisitButton article={article} className={className} />
+  </>
+);
+
+const ArticleCardActions = (props: ArticleCardActionsProps) => {
+  const articleReadingTime = props.article.scrape
+    ? readingTime(props.article.scrape.textContent)
+    : undefined;
+
+  return (
+    <>
+      {/* Mobile: row 1 — reading time left, icon buttons right */}
+      <div className="flex w-full items-center gap-2 md:hidden">
+        {articleReadingTime && (
+          <ReadingTimeLabel readingTime={articleReadingTime} />
+        )}
+        <div className="grow" />
+        <IconActions
+          article={props.article}
+          currentPage={props.currentPage}
+          variant="ghost"
+        />
+      </div>
+
+      {/* Mobile: row 2 — full-width labeled buttons */}
+      <div className="flex w-full gap-2 md:hidden">
+        <LabelledActions
+          article={props.article}
+          className="flex-1 cursor-pointer justify-center text-sm"
+          currentPage={props.currentPage}
+          onAfterDismiss={props.onAfterDismiss}
+        />
+      </div>
+
+      {/* Desktop: single row */}
+      <div className="hidden md:flex md:w-full md:items-center md:gap-2">
+        {articleReadingTime && (
+          <ReadingTimeLabel readingTime={articleReadingTime} />
+        )}
+        <div className="grow" />
+        <IconActions article={props.article} currentPage={props.currentPage} />
+        <LabelledActions
+          article={props.article}
+          className="cursor-pointer justify-start text-sm"
+          currentPage={props.currentPage}
+          onAfterDismiss={props.onAfterDismiss}
+        />
+      </div>
+    </>
+  );
+};
 
 export default ArticleCardActions;
