@@ -2,8 +2,14 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { streamAudioScript } from "@/lib/ai/services/audioScriptService";
 import { splitIntoSentences, spokenTitle } from "@/lib/audio-script";
@@ -15,8 +21,12 @@ import { useEffect, useRef, useState } from "react";
 export const maxDuration = 30;
 
 const RATE_STORAGE_KEY = "briefing-officer:speech-rate";
-const MIN_RATE = 0.5;
-const MAX_RATE = 2;
+const SPEECH_RATES = [1, 1.1, 1.2, 1.3, 1.4, 1.5, 2];
+
+// The menu identifies its options by string, and localStorage stores one too,
+// so both go through the same formatting the label uses. 1 and 2 become "1.0"
+// and "2.0" rather than "1" and "2", which keeps the selected option matching.
+const formatRate = (value: number) => value.toFixed(1);
 
 interface AudioSummaryPlayerProps {
   articleId: number;
@@ -42,13 +52,6 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
   // a ref and cannot drive rendering. This one is for display.
   const [sentences, setSentences] = useState<string[]>([]);
   const [generationFailed, setGenerationFailed] = useState(false);
-  // Tracks the slider thumb while it is being dragged, separate from the
-  // hook's committed `rate`. onValueChange fires on every pointer move, and
-  // applying setRate() that often would cancel and re-speak the remaining
-  // queue on each tick. undefined means "no drag in progress", so the
-  // display falls back to the hook's rate — which also makes a value
-  // restored from localStorage show up on mount.
-  const [draggedRate, setDraggedRate] = useState<number | undefined>(undefined);
   const initialized = useRef(false);
   // Set by the streaming effect's cleanup so the in-flight `for await` loop
   // stops feeding the speech engine once this instance is torn down. See the
@@ -59,7 +62,11 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
   // and the first client render agree on the 1.0x default.
   useEffect(() => {
     const stored = Number(window.localStorage.getItem(RATE_STORAGE_KEY));
-    if (stored >= MIN_RATE && stored <= MAX_RATE) {
+    // Only a value the menu can still represent is restored. A rate saved by
+    // the old slider, which allowed anything from 0.5 to 2.0 in steps of 0.1,
+    // is dropped in favour of the 1.0x default rather than showing up as a
+    // speed with no matching option.
+    if (SPEECH_RATES.includes(stored)) {
       setRate(stored);
     }
   }, [setRate]);
@@ -156,18 +163,13 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
     playFrom(0);
   };
 
-  const changeRate = ([next]: number[]) => {
-    setDraggedRate(next);
-  };
-
-  const commitRate = ([next]: number[]) => {
-    setDraggedRate(undefined);
+  const changeRate = (value: string) => {
+    const next = Number(value);
     setRate(next);
-    window.localStorage.setItem(RATE_STORAGE_KEY, String(next));
+    window.localStorage.setItem(RATE_STORAGE_KEY, value);
   };
 
   const playing = speaking && !paused;
-  const displayedRate = draggedRate ?? rate;
 
   return (
     <div className="flex flex-col gap-6">
@@ -229,28 +231,39 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
           <RotateCcwIcon className="size-4" />
         </Button>
 
-        <div className="flex flex-1 items-center gap-3">
-          <Label
-            htmlFor="speech-rate"
-            className="text-muted-foreground text-sm"
-          >
-            Speed
-          </Label>
-          <Slider
-            id="speech-rate"
-            className="max-w-40"
-            min={MIN_RATE}
-            max={MAX_RATE}
-            step={0.1}
-            value={[displayedRate]}
-            onValueChange={changeRate}
-            onValueCommit={commitRate}
-            disabled={!supported}
-          />
-          <span className="text-muted-foreground text-sm tabular-nums">
-            {displayedRate.toFixed(1)}×
-          </span>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="cursor-pointer tabular-nums"
+              // Deliberately not "Playback speed": the accessible name would
+              // then start with the same word as the Play button beside it,
+              // leaving two adjacent controls a screen reader announces
+              // near-identically. The menu it opens is headed "Playback Speed".
+              aria-label={`Speed: ${formatRate(rate)}×`}
+              disabled={!supported}
+            >
+              {formatRate(rate)}×
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel>Playback Speed</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={formatRate(rate)}
+              onValueChange={changeRate}
+            >
+              {SPEECH_RATES.map((option) => (
+                <DropdownMenuRadioItem
+                  key={option}
+                  value={formatRate(option)}
+                  className="cursor-pointer tabular-nums"
+                >
+                  {formatRate(option)}×
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* One block per sentence, so the line structure the model emits
