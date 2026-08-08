@@ -236,7 +236,11 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
             <Button
               variant="ghost"
               className="cursor-pointer tabular-nums"
-              aria-label={`Playback speed: ${formatRate(rate)}×`}
+              // Deliberately not "Playback speed": the accessible name would
+              // then start with the same word as the Play button beside it,
+              // leaving two adjacent controls a screen reader announces
+              // near-identically. The menu it opens is headed "Playback Speed".
+              aria-label={`Speed: ${formatRate(rate)}×`}
               disabled={!supported}
             >
               {formatRate(rate)}×
