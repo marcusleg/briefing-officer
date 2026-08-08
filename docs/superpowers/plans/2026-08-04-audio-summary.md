@@ -1,5 +1,10 @@
 # Audio Summary Implementation Plan
 
+> **Status:** Implemented, shipped across `6b6e071`…`abb3c0e` and the fixes that
+> followed. This is a historical planning record kept for the reasoning behind
+> the design; it is not maintained and its details have since drifted from the
+> code.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:subagent-driven-development (recommended) or
 > superpowers:executing-plans to implement this plan task-by-task. Steps use
