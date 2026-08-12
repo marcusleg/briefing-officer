@@ -5,21 +5,26 @@ Date: 2026-08-12
 ## Summary
 
 Replace the article's `readAt` / `readLater` pair with a single
-`status ArticleStatus` column, and add a fourth state — `FILTERED` — for
-articles a language model judges to be of no interest to the reader. The
-judgement is made per feed, against a free-text interest profile the reader
-writes, and it is produced as extra structured-output fields on the lead
-generation call that already runs for every new article. Filtered articles are
-kept, hidden from the inbox, and reviewable behind a new option in the feed
-page's view selector, where the model's stated reason is shown and the article
-can be pulled back into the inbox.
+`status ArticleStatus` column, and add two states for articles that do not
+belong in the inbox on relevance grounds: `FILTERED`, where a language model
+judged the article to be of no interest, and `NOT_INTERESTED`, where the reader
+said so by hand. The model's judgement is made per feed, against a free-text
+interest profile the reader writes, and it is produced as extra
+structured-output fields on the lead generation call that already runs for every
+new article. Both kinds are kept, hidden from the inbox, and reviewable behind a
+new option in the feed page's view selector, where the reason is shown and the
+article can be pulled back into the inbox.
+
+Keeping the two apart is what makes the model's precision measurable, and
+recording the reader's own rejections is what will later let the filter learn
+from them.
 
 The regex-based `Feed.titleFilterExpressions` feature is removed. Its contents
 migrate into the new interest profile so no reader's intent is silently lost.
 
 ## Motivation
 
-Two problems, one change.
+Three problems, one change.
 
 **The article state machine is spread across two columns with an invariant
 nothing enforces.** `readAt` and `readLater` are already mutually exclusive in
@@ -46,6 +51,15 @@ care about.** `titleFilterExpressions` is the closest thing, and it is a blunt
 instrument: it matches titles with regular expressions, it runs before the
 article is stored, and what it rejects is gone without trace.
 
+**`readAt` cannot distinguish satisfaction from rejection.** A dismissed article
+is recorded identically whether the reader got what they needed from the lead or
+wanted the item off their screen unread. Those are opposite outcomes, and the
+one the application most needs to know about — rejection — is the one it never
+records. Everything downstream inherits the conflation: the read-per-day chart
+counts an annoyed dismissal as a read, and a filter meant to learn what the
+reader dislikes has no source of that information other than its own past
+verdicts.
+
 ## Goals
 
 - One column is the single source of truth for an article's state, and illegal
@@ -67,15 +81,19 @@ article is stored, and what it rejects is gone without trace.
 - **Retroactively filtering existing articles.** `ARTICLE_RETENTION_DAYS` is
   365, so the existing corpus is not going to age out quickly, but running a
   billable pass over it is not worth it. Every existing article migrates to
-  `UNREAD`, `READ`, or `READ_LATER`; none becomes `FILTERED`.
+  `UNREAD`, `READ`, or `READ_LATER`; neither rejection state is ever assigned by
+  the migration.
 - **Re-judging an article when its feed's interest profile changes.** The
   verdict is made once, at ingest. Editing a profile affects articles fetched
   afterwards. Articles already filtered stay filtered until the reader pulls
   them back.
-- **Learning from the reader's corrections.** Pulling an article out of
-  `FILTERED` records that it happened — `filterReason` survives — but nothing
-  feeds it back into the prompt. That would be a separate feature built on the
-  data this one starts collecting.
+- **Learning from the reader's corrections.** This design _collects_ the signals
+  a feedback loop would need — `filterReason` survives an article being pulled
+  back out of `FILTERED`, and `NOT_INTERESTED` records an explicit rejection —
+  but nothing reads them back into the prompt, and no interest profile is ever
+  rewritten automatically. The loop is a separate feature built on the data this
+  one starts gathering. Collecting without consuming is deliberate; see
+  "Decisions and their alternatives".
 - **A cheap pre-filter.** See "Accepted regressions".
 
 ## Decisions and their alternatives
@@ -105,6 +123,7 @@ approximately. For any article whose status is currently `READ`,
 | `READ` → `READ_LATER` | set to now                   | leaves — today it wrongly stays in both lists                 |
 | star / unstar         | untouched                    | none                                                          |
 | → `FILTERED`          | only from `UNREAD` at ingest | none                                                          |
+| → `NOT_INTERESTED`    | set to now                   | none — the reader rejected it rather than reading it          |
 
 The one row where behaviour differs is `READ` → `READ_LATER`, which is the
 double-listing bug being fixed.
@@ -112,6 +131,38 @@ double-listing bug being fixed.
 This guarantee holds only while nothing writes `statusChangedAt` outside a
 status change, so that is enforced structurally rather than by convention — see
 "Writing the status".
+
+**`NOT_INTERESTED` is a distinct state, and the signal is collected explicitly
+rather than inferred.** `READ` conflates two different things: the reader was
+satisfied, and the reader wanted the item gone. The AI filter needs to tell them
+apart, and the negative half is the scarcest label in the system — positive
+signals are abundant (star, read-later, visiting the link, generating a summary,
+pulling an article back out of `FILTERED`) while the only negative currently
+obtainable is the filter's own verdict, which is circular.
+
+Inferring the distinction from behaviour was considered and rejected on a
+property specific to this application: the lead is the product. The most common
+successful interaction is reading the AI lead and dismissing without opening
+anything, so any behavioural inference labels the app's core value as
+disinterest. The bias is systematic, not noise, which is what rules the approach
+out rather than merely weakening it.
+
+Splitting `DismissButton` into two co-equal buttons was also rejected. Dismissal
+is the highest-frequency action in the application, and forcing a classification
+on every one of them taxes the common path to capture a label that only matters
+in the minority case. A low-prominence icon action collects the signal when the
+reader feels strongly enough to reach for it, which is when the signal carries
+information.
+
+Folding "not interested" into `FILTERED` with a user-authored `filterReason` was
+rejected for one reason: the reader's own rejections would then be
+indistinguishable from the model's, and the model's precision would stop being
+measurable. The review view merges the two states; the data keeps them apart.
+
+The collection begins now even though nothing consumes it, because the two costs
+are asymmetric. Adding a fifth enum member later is additive and non-breaking,
+so the schema change is cheap to defer — but every dismissal made before the
+column exists is unlabelled and unrecoverable. Deferring costs data, not work.
 
 **`starred` stays a boolean.** It is the one flag that is genuinely orthogonal:
 a read article can be starred, and a starred article can be read, read-later, or
@@ -170,7 +221,8 @@ deployment already cannot import `feedRepository` or refresh a feed.
 enum ArticleStatus {
   UNREAD
   READ_LATER
-  FILTERED
+  FILTERED        // the model kept it out
+  NOT_INTERESTED  // the reader rejected it by hand
   READ
 }
 
@@ -283,13 +335,20 @@ The bulk paths, `markArticlesOlderThanXDaysAsRead` and
 `markCategoryArticlesOlderThanXDaysAsRead`, move to `setArticleStatusMany` and
 their `readAt: null, readLater: false` predicates become `status: UNREAD`.
 
-One new exported action, `keepArticle`, moves an article from `FILTERED` to
-`UNREAD` without touching `filterReason`.
+`unmarkArticleAsRead` is renamed `restoreArticleToInbox`, because it is now the
+single way back to `UNREAD` from any of `READ`, `FILTERED`, and
+`NOT_INTERESTED`, and "unmark as read" describes only the first. It leaves
+`filterReason` untouched.
+
+One genuinely new exported action, `markArticleAsNotInteresting`, moves an
+article to `NOT_INTERESTED`. No `keepArticle` action is added — pulling a
+filtered article back is the same transition as un-reading a read one, so it is
+the same call.
 
 `deleteArticlesOlderThanXDays` keeps its meaning: its
 `readLater: false, starred: false` predicate becomes
-`status: { not: READ_LATER }, starred: false`, so filtered articles are swept
-with the rest.
+`status: { not: READ_LATER }, starred: false`, so both rejection states are
+swept with the rest.
 
 ## Query migration
 
@@ -310,9 +369,21 @@ Every read site, with its new predicate:
 | `statsRepository.ts:26`                           | `readAt: null, readLater: false`         | `status: UNREAD`                            |
 | `statsRepository.ts:39`                           | `readAt: null` — **the bug**             | `status: UNREAD`                            |
 | `statsRepository.ts:121`                          | `readAt` day range                       | `status: READ`, `statusChangedAt` day range |
-| `components/article/article-card.tsx:79,110`      | `readAt !== null`                        | `status === "READ"`                         |
-| `components/article/dismiss-button.tsx:46`        | `readAt !== null`                        | `status === "READ"`                         |
+| `components/article/article-card.tsx:79`          | `readAt !== null` (`m` hotkey)           | `status !== "UNREAD"`                       |
+| `components/article/article-card.tsx:110`         | `readAt !== null` (dimming)              | `status !== "UNREAD"`                       |
+| `components/article/dismiss-button.tsx:46`        | `readAt !== null`                        | `status !== "UNREAD"`                       |
 | `components/article/toggle-read-later-button.tsx` | `readLater`                              | `status === "READ_LATER"`                   |
+
+Three of those are `!== "UNREAD"` rather than `=== "READ"`, and the distinction
+matters. The `m` hotkey, the dimming, and the Dismiss/Restore label all ask "is
+this out of my inbox", not "was this read" — a filtered or rejected article
+should be dimmed and should offer Restore, exactly as a read one does. Writing
+them as `=== "READ"` would compile and would be wrong in the new view.
+
+`statsRepository.ts:121` gains a second improvement from the split: keyed to
+`status: READ`, the read-per-day chart now excludes hand-rejected articles,
+where today every dismissal counts as a read regardless of whether the reader
+engaged with it.
 
 `app/feed/search/page.tsx` has no state predicate today and gains none, so
 filtered articles remain findable by explicit search. Finding an article you
@@ -404,24 +475,59 @@ relabelled **View**. The word "filter" now means one thing in this application �
 the AI deciding an article is not for you — and a control that chooses which
 articles are listed is a view selector, not a filter.
 
-| Option       | `show`             | Predicate                        |
-| ------------ | ------------------ | -------------------------------- |
-| All articles | `all`              | `status: { in: [UNREAD, READ] }` |
-| Unread only  | `unread` (default) | `status: UNREAD`                 |
-| Filtered out | `filtered`         | `status: FILTERED`               |
+| Option         | `show`             | Predicate                                    |
+| -------------- | ------------------ | -------------------------------------------- |
+| All articles   | `all`              | `status: { in: [UNREAD, READ] }`             |
+| Unread only    | `unread` (default) | `status: UNREAD`                             |
+| Not interested | `rejected`         | `status: { in: [FILTERED, NOT_INTERESTED] }` |
 
 "All articles" continues to exclude `READ_LATER`, as it does today, and now also
-excludes `FILTERED`: filtered articles surface only when explicitly asked for,
-which is the entire point of filtering them.
+excludes both rejection states: they surface only when explicitly asked for,
+which is the entire point of keeping them out.
 
-In the `filtered` view each card shows its `filterReason` and gains a **Keep**
-action — `keepArticle`, moving it to `UNREAD`. The action is named "Keep" rather
-than "Restore" because `DismissButton` already renders a "Restore" label for
-un-reading a read article, and two adjacent buttons meaning different kinds of
-undo would be worse than either.
+The third view is labelled **Not interested** rather than "Filtered out" because
+it holds both members: articles the model kept out, and articles the reader
+rejected by hand. From the reader's side those are one category — "things that
+did not belong in my inbox" — differing only in who decided. Each card states
+which: the model's `filterReason`, rendered as muted text near the lead in the
+article's language, or "You marked this as not interesting."
 
-The reason is rendered as muted text near the lead. It is written in the
-article's language, matching the lead it sits beside.
+No new button is needed for pulling one back. `ArticleCardActions` already
+renders `DismissButton` for every article in every list, and that button's
+condition becomes `status === "UNREAD"` rather than `readAt !== null`, so it
+renders **Restore** for anything out of the inbox — read, filtered, or rejected
+— and calls the one action that returns an article to `UNREAD`.
+
+This is worth stating plainly because it is a place the status column earns its
+keep rather than merely permitting the feature: under `readAt` the same
+component would render the **wrong** button here, since `readAt` is null for a
+filtered article and the card would offer "Dismiss" for something already out of
+the inbox.
+
+## The "not interested" action
+
+A new `not-interested-button.tsx`, rendered in the `IconActions` cluster in
+`article-card-actions.tsx` alongside star and read-later — an icon button with a
+tooltip, not a labelled one. It calls `markArticleAsNotInteresting` and is
+suppressed when the article is already in either rejection state.
+
+"Dismiss" keeps its current prominence, wording, and behaviour. The two actions
+are deliberately not peers: dismissing is what the reader does dozens of times a
+session, rejecting is what they do when something annoys them.
+
+### Undo, which is currently wrong
+
+`DismissButton`'s toasts offer Undo, and the two handlers are hardcoded inverses
+— undoing "marked as unread" calls `markArticleAsRead`. That is already slightly
+wrong and this design would make it visibly so: restoring a filtered article and
+pressing Undo would land it on `READ` rather than back on `FILTERED`.
+
+The fix is to capture `article.status` before the write and have Undo restore
+that captured value rather than assuming the opposite of the action just taken.
+The same applies to the new rejection action, whose toast offers the same Undo.
+With `setArticleStatus` taking an arbitrary target this is a few lines, and it
+makes Undo mean undo for every transition rather than for the two it was written
+against.
 
 ## Error handling
 
@@ -469,11 +575,19 @@ the new column. Three additions:
   Paired with a case in `leadService.test.ts` asserting that the sanctioned
   ingest exception _does_ set `statusChangedAt` when it writes `FILTERED` —
   between them, the only writes that move it are status changes.
-- `keepArticle` moves `FILTERED` to `UNREAD` and leaves `filterReason` set.
+- `restoreArticleToInbox` returns an article to `UNREAD` from each of `READ`,
+  `FILTERED`, and `NOT_INTERESTED`, and leaves `filterReason` set in the
+  `FILTERED` case. Parameterised over the three, since the whole point is that
+  one call serves all of them.
+- `markArticleAsNotInteresting` moves `UNREAD` to `NOT_INTERESTED` and does not
+  set `filterReason` — the reason column belongs to the model, and a hand
+  rejection needs no stated reason.
 
 **`tests/integration/statsRepository.test.ts`** — updates for the new column,
 and its unread-per-feed case becomes a regression test for the
 `statsRepository.ts:39` bug: a read-later article must not be counted as unread.
+A second case asserts the read-per-day chart counts a `READ` article and not a
+`NOT_INTERESTED` one, which is the behaviour the fifth member buys.
 
 **`tests/integration/leadService.test.ts`** — the existing `vi.mock("ai", …)`
 extends to the new fields. Cases: an empty interest profile requests no verdict
@@ -493,13 +607,19 @@ valid regular expression.
 produces today's text unchanged, which is the guard on the no-filter path
 staying free; with a profile it embeds the profile and asks for a verdict.
 
-**`tests/components/article/dismiss-button.test.tsx`** and
-**`article-card-actions.test.tsx`** — fixtures move to `status`. A new case
-covers the Keep button appearing for a `FILTERED` article and not otherwise.
+**`tests/components/article/dismiss-button.test.tsx`** — fixtures move to
+`status`, and the button renders "Restore" for each of `READ`, `FILTERED`, and
+`NOT_INTERESTED` and "Dismiss" only for `UNREAD`. Plus the Undo fix: dismissing
+a `FILTERED` article and pressing Undo returns it to `FILTERED`, not `READ`.
+That last case is the one that would have shipped broken.
 
-**`prisma/seed.ts`** — seeds articles across all four statuses, including a
-filtered one with a reason, so `npm run update-screenshots` captures the new
-view.
+**`tests/components/article/article-card-actions.test.tsx`** — fixtures move to
+`status`; the "not interested" action renders for an inbox article and is
+suppressed for one already rejected.
+
+**`prisma/seed.ts`** — seeds articles across all five statuses, including a
+filtered one with a reason and a hand-rejected one without, so
+`npm run update-screenshots` captures the new view with both kinds in it.
 
 **e2e** — `tests/e2e/article-card.spec.ts` and `navigation-sidebar.spec.ts` do
 not exercise generation and need no change beyond any selector affected by the
@@ -517,7 +637,8 @@ Changed: `prisma/schema.prisma`, `prisma/seed.ts`, one new migration,
 `src/app/feed/[feedId]/{page,no-unread-articles}.tsx`,
 `src/app/feed/category/[categoryId]/page.tsx`.
 
-Added: `src/components/article/keep-button.tsx`.
+Added: `src/components/article/not-interested-button.tsx`. No `keep-button.tsx`
+— the existing `DismissButton` covers pulling an article back.
 
 Renamed: `src/app/feed/[feedId]/feed-filter-button.tsx` →
 `feed-view-button.tsx`.
