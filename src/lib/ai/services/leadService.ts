@@ -30,27 +30,89 @@ const leadSchema = z.object({
   lead: z.string(),
 });
 
+// `relevanceReason` precedes `matchesInterests` for the same reason `language`
+// precedes `lead`: structured output is generated field by field, so the model
+// reasons and then commits. A boolean declared first would be a guess the
+// reasoning is written to justify.
+const filteringLeadSchema = leadSchema.extend({
+  relevanceReason: z
+    .string()
+    .describe(
+      "One sentence explaining why the article does or does not match the " +
+        "reader's stated interests. Write it in the same language as the lead.",
+    ),
+  matchesInterests: z.boolean(),
+});
+
 export const generateAiLead = async (articleId: number) => {
   const article = await prisma.article.findUniqueOrThrow({
-    include: { scrape: true },
+    include: { feed: true, scrape: true },
     where: { id: articleId },
   });
 
-  const { object, usage } = await generateObject({
-    model,
-    schema: leadSchema,
-    system: systemPrompt,
-    prompt: buildLeadPrompt(article.title, article.scrape?.textContent ?? ""),
-  });
+  const interestProfile = article.feed.interestProfile;
+  const filtering = interestProfile !== "";
+  const prompt = buildLeadPrompt(
+    article.title,
+    article.scrape?.textContent ?? "",
+    interestProfile,
+  );
+
+  // Hoisted into two full calls, rather than picking the schema with a
+  // ternary, so `object` keeps the precise shape of the schema that produced
+  // it instead of collapsing to a union `generateObject` can't narrow.
+  const { object, usage, filtered, filterReason } = filtering
+    ? await (async () => {
+        const { object, usage } = await generateObject({
+          model,
+          schema: filteringLeadSchema,
+          system: systemPrompt,
+          prompt,
+        });
+        return {
+          object,
+          usage,
+          filtered: !object.matchesInterests,
+          filterReason: object.relevanceReason as string | null,
+        };
+      })()
+    : await (async () => {
+        const { object, usage } = await generateObject({
+          model,
+          schema: leadSchema,
+          system: systemPrompt,
+          prompt,
+        });
+        return {
+          object,
+          usage,
+          filtered: false,
+          filterReason: null as string | null,
+        };
+      })();
 
   const language = normalizeLanguage(object.language);
 
+  // Filtering happens in this same write rather than through
+  // `setArticleStatus`, the chokepoint that otherwise owns every status change.
+  // Routing it there would mean a second round trip or a row that briefly holds
+  // a lead with no verdict. It writes `statusChangedAt` alongside `status` just
+  // as the chokepoint does. Do not add a second exception without revisiting
+  // the design.
+
   // One nested write, so the language cannot drift out of step with the lead
-  // it was determined alongside.
+  // it was determined alongside, nor the verdict from the reason for it.
   await prisma.article.update({
     where: { id: articleId },
     data: {
       language,
+      ...(filtered
+        ? {
+            status: "FILTERED" as const,
+            statusChangedAt: new Date(),
+            filterReason,
+          }
+        : {}),
       lead: {
         upsert: {
           create: { text: object.lead },
@@ -72,6 +134,7 @@ export const generateAiLead = async (articleId: number) => {
       articleId,
       feedId: article.feedId,
       language,
+      filtered,
       model: model.modelId,
       tokenUsage: usage,
     },

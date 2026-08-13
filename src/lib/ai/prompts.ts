@@ -11,10 +11,34 @@ const languageDirective = (language: string | null) =>
 export const systemPrompt =
   "You are a professional news editor writing article previews for a time-pressed professional readership. Write in a neutral, factual tone. Do not editorialize, express opinions, or draw conclusions not explicitly stated in the source material.";
 
-export const buildLeadPrompt = (title: string, textContent: string) =>
+/**
+ * The relevance block is appended only when the feed has an interest profile,
+ * so a feed without one produces exactly the prompt it produced before this
+ * feature existed — same text, same token count.
+ */
+const relevanceDirective = (interestProfile: string) =>
+  interestProfile === ""
+    ? ""
+    : `
+
+The reader has described what they want from this feed:
+
+<interests>
+${interestProfile}
+</interests>
+
+After writing the lead, judge whether this article matches those interests.
+Report one sentence of reasoning as \`relevanceReason\`, then your verdict as
+\`matchesInterests\`. Write the reasoning in the same language as the lead.`;
+
+export const buildLeadPrompt = (
+  title: string,
+  textContent: string,
+  interestProfile: string,
+) =>
   `Write a single paragraph summarizing what the article covers and why it is significant or timely. Be factual and objective. The summary must be no longer than 80 words. Do not copy the article's opening lines verbatim, and do not add introductory phrases, headings, or filler.
 
-First determine the language the article is written in and report it as a two-letter ISO 639-1 code, for example "de" for German. If the language cannot be established, report "und". Write the lead in the language you reported.
+First determine the language the article is written in and report it as a two-letter ISO 639-1 code, for example "de" for German. If the language cannot be established, report "und". Write the lead in the language you reported.${relevanceDirective(interestProfile)}
 
 <article>
 <title>${title}</title>
