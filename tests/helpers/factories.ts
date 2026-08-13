@@ -57,8 +57,6 @@ export const createArticle = (overrides: {
   title?: string;
   link?: string;
   publicationDate?: Date;
-  readAt?: Date | null;
-  readLater?: boolean;
   starred?: boolean;
   status?: ArticleStatus;
   statusChangedAt?: Date;
@@ -71,8 +69,6 @@ export const createArticle = (overrides: {
       title: overrides.title ?? "Test Article",
       link: overrides.link ?? `https://example.com/article/${randomUUID()}`,
       publicationDate: overrides.publicationDate ?? new Date(),
-      readAt: overrides.readAt ?? null,
-      readLater: overrides.readLater ?? false,
       starred: overrides.starred ?? false,
       status: overrides.status ?? "UNREAD",
       statusChangedAt: overrides.statusChangedAt ?? new Date(),

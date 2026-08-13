@@ -272,7 +272,6 @@ async function main() {
           description: lorem(50 + Math.floor(Math.random() * 11)),
           link: `https://example.com/article/${randomUUID()}`,
           publicationDate: new Date(readAt.getTime() - 3600_000),
-          readAt,
           status: "READ",
           statusChangedAt: readAt,
         },
