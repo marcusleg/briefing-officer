@@ -273,6 +273,8 @@ async function main() {
           link: `https://example.com/article/${randomUUID()}`,
           publicationDate: new Date(readAt.getTime() - 3600_000),
           readAt,
+          status: "READ",
+          statusChangedAt: readAt,
         },
       });
       const textContent = lorem(300 + Math.floor(Math.random() * 1201));
