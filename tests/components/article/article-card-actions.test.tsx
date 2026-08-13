@@ -4,11 +4,13 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/repository/articleRepository", () => ({
   markArticleAsRead: vi.fn().mockResolvedValue(undefined),
-  unmarkArticleAsRead: vi.fn().mockResolvedValue(undefined),
+  restoreArticleToInbox: vi.fn().mockResolvedValue(undefined),
+  restoreArticleStatus: vi.fn().mockResolvedValue(undefined),
   markArticleAsReadLater: vi.fn().mockResolvedValue(undefined),
   unmarkArticleAsReadLater: vi.fn().mockResolvedValue(undefined),
   markArticleAsStarred: vi.fn().mockResolvedValue(undefined),
   unmarkArticleAsStarred: vi.fn().mockResolvedValue(undefined),
+  markArticleAsNotInteresting: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("sonner", () => ({
@@ -58,5 +60,23 @@ describe("ArticleCardActions", () => {
     expect(screen.getAllByRole("link", { name: /text summary/i })).toHaveLength(
       2,
     );
+  });
+
+  it("offers the not-interested action for an inbox article", () => {
+    render(<ArticleCardActions article={article} />);
+
+    // Mobile and desktop layouts both render into the DOM at once (see
+    // above), so the action appears twice.
+    expect(
+      screen.getAllByRole("button", { name: /not interested/i }),
+    ).toHaveLength(2);
+  });
+
+  it("hides the not-interested action for an already-rejected article", () => {
+    render(<ArticleCardActions article={{ ...article, status: "FILTERED" }} />);
+
+    expect(
+      screen.queryAllByRole("button", { name: /not interested/i }),
+    ).toHaveLength(0);
   });
 });

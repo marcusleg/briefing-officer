@@ -192,6 +192,8 @@ async function main() {
       title: "Hacker News",
       link: "https://hnrss.org/newest?points=500",
       categoryId: tech.id,
+      interestProfile:
+        "Software engineering, distributed systems, and developer tooling. Not interested in funding announcements or crypto.",
     },
     {
       title: "CNCF Blog",
@@ -233,6 +235,7 @@ async function main() {
         link: def.link,
         lastFetched: new Date(),
         feedCategoryId: def.categoryId,
+        interestProfile: def.interestProfile ?? "",
       },
     });
 
@@ -274,6 +277,66 @@ async function main() {
           publicationDate: new Date(readAt.getTime() - 3600_000),
           status: "READ",
           statusChangedAt: readAt,
+        },
+      });
+      const textContent = lorem(300 + Math.floor(Math.random() * 1201));
+      await prisma.articleScrape.create({
+        data: { articleId: article.id, textContent, author: randomName() },
+      });
+      await prisma.articleLead.create({
+        data: {
+          articleId: article.id,
+          text: lorem(50 + Math.floor(Math.random() * 11)),
+        },
+      });
+    }
+
+    // 3 rejected articles per feed, so the "Not interested" view has content:
+    // two the model filtered out, one the reader rejected by hand.
+    for (let i = 0; i < 3; i++) {
+      const rejectedAt = randomDateInLastNDays(7);
+      const byModel = i < 2;
+      const article = await prisma.article.create({
+        data: {
+          userId,
+          feedId: feed.id,
+          title: loremTitle(),
+          description: lorem(50 + Math.floor(Math.random() * 11)),
+          link: `https://example.com/article/${randomUUID()}`,
+          publicationDate: new Date(rejectedAt.getTime() - 3600_000),
+          status: byModel ? "FILTERED" : "NOT_INTERESTED",
+          statusChangedAt: rejectedAt,
+          filterReason: byModel
+            ? "This is a funding round announcement, not a technical article."
+            : null,
+        },
+      });
+      const textContent = lorem(300 + Math.floor(Math.random() * 1201));
+      await prisma.articleScrape.create({
+        data: { articleId: article.id, textContent, author: randomName() },
+      });
+      await prisma.articleLead.create({
+        data: {
+          articleId: article.id,
+          text: lorem(50 + Math.floor(Math.random() * 11)),
+        },
+      });
+    }
+
+    // 2 read-later articles per feed. The seed never produced any before, so
+    // the Read Later page screenshotted empty.
+    for (let i = 0; i < 2; i++) {
+      const savedAt = randomDateInLastNDays(7);
+      const article = await prisma.article.create({
+        data: {
+          userId,
+          feedId: feed.id,
+          title: loremTitle(),
+          description: lorem(50 + Math.floor(Math.random() * 11)),
+          link: `https://example.com/article/${randomUUID()}`,
+          publicationDate: new Date(savedAt.getTime() - 3600_000),
+          status: "READ_LATER",
+          statusChangedAt: savedAt,
         },
       });
       const textContent = lorem(300 + Math.floor(Math.random() * 1201));
