@@ -55,10 +55,22 @@ the schema from `schema.prisma` directly, so a broken backfill in a migration
 will not fail a single test. Tasks 1, 3, and 4 each carry an explicit manual
 verification step against a dev database. Do not skip them.
 
-**Prisma enum support on SQLite is unconfirmed.** `prisma validate` accepts an
-enum against a SQLite datasource on 7.9.1, but the generated DDL was never
-confirmed. Task 1 Step 1 settles it empirically and Step 2 branches on the
-answer.
+**Prisma enums work on SQLite here — confirmed.** 7.9.1 emits
+`"status" TEXT NOT NULL DEFAULT 'UNREAD'` for an enum column. Task 1 Step 1
+re-verifies it and Step 2 keeps the string-union fallback documented, but the
+native enum is the expected path.
+
+**Every test command needs a Prisma consent prefix.** Prisma 7.9.1 refuses
+`prisma db push` when it detects an AI agent, and `vitest.setup.ts:39` runs it
+on every test run. The user consented on 2026-08-13, so run tests as:
+
+```bash
+PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npm run test
+```
+
+Do not persist that variable into `.env`, `package.json`, `vitest.setup.ts`, or
+`.claude/settings*.json`. It belongs on the command line only. The consent
+covers the ephemeral `.tmp/test-<worker>.db` files and nothing else.
 
 ## File Structure
 
@@ -116,16 +128,31 @@ npm install
 mkdir -p /tmp/enumcheck && cat > /tmp/enumcheck/mini.prisma <<'EOF'
 datasource db {
   provider = "sqlite"
-  url      = "file:./mini.db"
 }
-enum ArticleStatus { UNREAD  READ_LATER  FILTERED  NOT_INTERESTED  READ }
+
+enum ArticleStatus {
+  UNREAD
+  READ_LATER
+  FILTERED
+  NOT_INTERESTED
+  READ
+}
+
 model Probe {
   id     Int           @id @default(autoincrement())
   status ArticleStatus @default(UNREAD)
 }
 EOF
-npx prisma migrate diff --from-empty --to-schema /tmp/enumcheck/mini.prisma --script
+DATABASE_URL="file:/tmp/enumcheck/mini.db" npx prisma migrate diff \
+  --from-empty --to-schema /tmp/enumcheck/mini.prisma --script
 ```
+
+Two things about this probe schema are load-bearing, both learned the hard way:
+each enum value needs **its own line** (a single-line body is a parse error),
+and the `datasource` block must **not** carry an inline `url` — this project is
+on Prisma 7 with `prisma.config.ts` supplying it, and an inline `url` is
+rejected outright. Get either wrong and the command fails for reasons that have
+nothing to do with enum support, which reads as "enums don't work".
 
 Expected: SQL containing `CREATE TABLE "Probe"` with a
 `"status" TEXT NOT NULL DEFAULT 'UNREAD'` column. If you get that, use a native
@@ -151,9 +178,9 @@ enum ArticleStatus {
 In `model Article`, immediately after the `starred` line, add:
 
 ```prisma
-  status          ArticleStatus @default(UNREAD)
-  statusChangedAt DateTime      @default(now())
-  filterReason    String?
+status          ArticleStatus @default(UNREAD)
+statusChangedAt DateTime      @default(now())
+filterReason    String?
 ```
 
 Leave `readAt` and `readLater` in place — they are removed in Task 3.
@@ -896,13 +923,13 @@ git commit -m "refactor: drop the readAt and readLater columns"
 In `model Feed`, replace
 
 ```prisma
-  titleFilterExpressions String        @default("")
+titleFilterExpressions String        @default("")
 ```
 
 with
 
 ```prisma
-  interestProfile        String        @default("")
+interestProfile        String        @default("")
 ```
 
 - [ ] **Step 2: Generate the migration**
