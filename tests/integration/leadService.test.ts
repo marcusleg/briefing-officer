@@ -25,12 +25,12 @@ const mockGeneration = (language: string, lead = "Generated lead.") =>
   } as never);
 
 const mockVerdict = (
-  matchesInterests: boolean,
-  relevanceReason: string,
+  excludeArticle: boolean,
+  exclusionReason: string,
   lead = "Generated lead.",
 ) =>
   vi.mocked(generateObject).mockResolvedValueOnce({
-    object: { language: "en", lead, relevanceReason, matchesInterests },
+    object: { language: "en", lead, exclusionReason, excludeArticle },
     usage: { inputTokens: 7, outputTokens: 3 },
   } as never);
 
@@ -141,12 +141,12 @@ describe("relevance filtering", () => {
     expect(stored.filterReason).toBeNull();
   });
 
-  it("filters the article and records the reason when it does not match", async () => {
+  it("filters the article and records the reason when it is excluded", async () => {
     const filteredFeedId = (
       await createFeed({ userId, interestProfile: "Only databases" })
     ).id;
     const article = await createArticle({ userId, feedId: filteredFeedId });
-    mockVerdict(false, "This is a funding round announcement.");
+    mockVerdict(true, "This is a funding round announcement.");
 
     await generateAiLead(article.id);
 
@@ -169,7 +169,7 @@ describe("relevance filtering", () => {
       feedId: filteredFeedId,
       statusChangedAt: longAgo,
     });
-    mockVerdict(false, "Off topic.");
+    mockVerdict(true, "Off topic.");
 
     await generateAiLead(article.id);
 
@@ -194,12 +194,45 @@ describe("relevance filtering", () => {
     expect(stored.status).toBe("UNREAD");
   });
 
-  it("leaves the article unread when it does match", async () => {
+  it("leaves the article unread when it is not excluded", async () => {
     const filteredFeedId = (
       await createFeed({ userId, interestProfile: "Only databases" })
     ).id;
     const article = await createArticle({ userId, feedId: filteredFeedId });
-    mockVerdict(true, "Directly about query planners.");
+    mockVerdict(false, "Directly about query planners.");
+
+    await generateAiLead(article.id);
+
+    const stored = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(stored.status).toBe("UNREAD");
+    expect(stored.filterReason).toBeNull();
+  });
+
+  // The reported failure: against an "everything except X" profile, an article
+  // about none of the named topics was filtered. The model had reasoned that
+  // the article "does not overlap with the reader's stated interests of
+  // avoiding coverage about KDE and Apple hardware" — correct reasoning, wrong
+  // question, because the old schema asked whether the article MATCHED the
+  // interests. Nothing at this layer can stop a model returning the wrong
+  // boolean, so this pins the layer that can: `false` means keep, always.
+  it("keeps an article the model did not exclude, under an exclusion-style profile", async () => {
+    const feedWithExclusions = (
+      await createFeed({
+        userId,
+        interestProfile:
+          "I'm interested in everything, except news about KDE and Apple hardware",
+      })
+    ).id;
+    const article = await createArticle({
+      userId,
+      feedId: feedWithExclusions,
+    });
+    mockVerdict(
+      false,
+      "The article is about Framework laptops, neither KDE nor Apple hardware.",
+    );
 
     await generateAiLead(article.id);
 
@@ -223,7 +256,7 @@ describe("relevance filtering", () => {
       feedId: filteredFeedId,
       status: "READ_LATER",
     });
-    mockVerdict(false, "This is a funding round announcement.");
+    mockVerdict(true, "This is a funding round announcement.");
 
     await generateAiLead(article.id);
 

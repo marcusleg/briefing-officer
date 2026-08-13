@@ -158,14 +158,15 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                   <Textarea
                     className="resize-none"
                     disabled={submitting}
-                    placeholder="I care about database internals, distributed systems, and language design. Skip funding rounds, executive hires, and conference announcements."
+                    placeholder="Everything except KDE news and Apple hardware.&#10;&#10;Or, to narrow it right down: only database internals, distributed systems, and language design."
                     rows={5}
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  Articles from this feed that do not match are kept out of your
-                  inbox. Leave empty to see everything.
+                  Describe what you do or don&apos;t want from this feed, in
+                  your own words. Articles are kept unless you&apos;ve ruled
+                  them out. Leave empty to see everything.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
