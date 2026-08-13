@@ -21,8 +21,7 @@ const article = {
   title: "Kernel 7.2 removes strncpy",
   link: "https://example.com/article",
   commentsLink: null,
-  readAt: null,
-  readLater: false,
+  status: "UNREAD",
   starred: false,
 } as any;
 

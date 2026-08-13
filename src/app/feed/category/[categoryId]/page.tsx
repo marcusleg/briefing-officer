@@ -40,8 +40,7 @@ const FeedCategory = async ({ params }: FeedCategoryProps) => {
       scrape: true,
     },
     where: {
-      readAt: null,
-      readLater: false,
+      status: "UNREAD",
       userId,
       feedId: { in: category.feeds.map((feed) => feed.id) },
     },

@@ -15,7 +15,7 @@ import Link from "next/link";
 const NoUnreadArticles = async () => {
   const userId = await getUserId();
   const readLaterCount = await prisma.article.count({
-    where: { userId, readLater: true },
+    where: { userId, status: "READ_LATER" },
   });
 
   return (

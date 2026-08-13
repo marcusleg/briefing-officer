@@ -14,7 +14,7 @@ vi.mock("sonner", () => ({
 
 const unreadArticle = {
   id: 1,
-  readAt: null,
+  status: "UNREAD",
   title: "Test article",
 } as any;
 
@@ -32,7 +32,7 @@ describe("DismissButton", () => {
 
   it("does not call onAfterDismiss when unmarking as read", async () => {
     const onAfterDismiss = vi.fn();
-    const readArticle = { ...unreadArticle, readAt: new Date() };
+    const readArticle = { ...unreadArticle, status: "READ" };
     render(
       <DismissButton article={readArticle} onAfterDismiss={onAfterDismiss} />,
     );

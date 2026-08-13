@@ -43,7 +43,7 @@ const DismissButton = ({
     });
   };
 
-  const isRead = article.readAt !== null;
+  const isRead = article.status !== "UNREAD";
 
   return (
     <Button

@@ -4,6 +4,7 @@ import {
   getNumberOfUnreadArticles,
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
+  getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
 import { getUserId } from "@/lib/repository/userRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,25 +27,49 @@ beforeEach(async () => {
 describe("statsRepository counts", () => {
   it("counts unread articles (not read, not read-later)", async () => {
     await createArticle({ userId, feedId });
-    await createArticle({ userId, feedId, readAt: new Date() });
-    await createArticle({ userId, feedId, readLater: true });
+    await createArticle({ userId, feedId, status: "READ" });
+    await createArticle({ userId, feedId, status: "READ_LATER" });
 
     expect(await getNumberOfUnreadArticles()).toBe(1);
   });
 
   it("counts read-later articles", async () => {
-    await createArticle({ userId, feedId, readLater: true });
+    await createArticle({ userId, feedId, status: "READ_LATER" });
     await createArticle({ userId, feedId });
 
     expect(await getNumberOfReadLaterArticles()).toBe(1);
   });
 
-  it("reports unread counts per feed", async () => {
+  it("does not count read-later articles as unread per feed", async () => {
     await createArticle({ userId, feedId });
-    await createArticle({ userId, feedId, readAt: new Date() });
+    await createArticle({ userId, feedId, status: "READ" });
+    await createArticle({ userId, feedId, status: "READ_LATER" });
 
     const perFeed = await getUnreadArticlesPerFeed();
     expect(perFeed).toEqual([{ feedTitle: "Feed A", unread: 1 }]);
+  });
+
+  it("counts read articles but not hand-rejected ones as read that day", async () => {
+    const day = new Date("2026-02-10T12:00:00.000Z");
+    await createArticle({
+      userId,
+      feedId,
+      status: "READ",
+      statusChangedAt: day,
+    });
+    await createArticle({
+      userId,
+      feedId,
+      status: "NOT_INTERESTED",
+      statusChangedAt: day,
+    });
+
+    const { rows } = await getWeeklyArticlesRead(
+      new Date("2026-02-10T00:00:00.000Z"),
+      new Date("2026-02-10T00:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([{ date: "2026-02-10", count: 1 }]);
   });
 
   it("reports token usage history by date and model", async () => {

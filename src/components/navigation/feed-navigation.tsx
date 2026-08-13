@@ -24,7 +24,7 @@ const FeedNavigation = async () => {
     include: {
       _count: {
         select: {
-          articles: { where: { readAt: null, readLater: false } },
+          articles: { where: { status: "UNREAD" } },
         },
       },
     },
@@ -39,7 +39,7 @@ const FeedNavigation = async () => {
         include: {
           _count: {
             select: {
-              articles: { where: { readAt: null, readLater: false } },
+              articles: { where: { status: "UNREAD" } },
             },
           },
         },

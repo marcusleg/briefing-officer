@@ -20,7 +20,7 @@ const ReadLaterPage = async () => {
       scrape: true,
     },
     where: {
-      readLater: true,
+      status: "READ_LATER",
       userId: session.user.id,
     },
     orderBy: {
