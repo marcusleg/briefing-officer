@@ -2,6 +2,7 @@ import DeleteFeedButton from "@/app/feed/[feedId]/delete-feed-button";
 import EditFeedButton from "@/app/feed/[feedId]/edit-feed-button";
 import FeedViewButton from "@/app/feed/[feedId]/feed-view-button";
 import MarkAsReadButton from "@/app/feed/[feedId]/mark-as-read-button";
+import NoRejectedArticles from "@/app/feed/[feedId]/no-rejected-articles";
 import NoUnreadArticles from "@/app/feed/[feedId]/no-unread-articles";
 import RefreshFeedButton from "@/app/feed/[feedId]/refresh-feed-button";
 import FeedTitle from "@/app/feed/feed-title";
@@ -69,7 +70,10 @@ const FeedById = async (props: FeedByIdProps) => {
         <div className="flex flex-row flex-wrap items-center gap-2">
           <FeedViewButton />
           <RefreshFeedButton feedId={feedId} />
-          <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
+          <MarkAsReadButton
+            disabled={showSearchParam === "rejected" || articles.length === 0}
+            feedId={feedId}
+          />
           <EditFeedButton feed={feed} />
           <DeleteFeedButton feed={feed} />
         </div>
@@ -78,6 +82,8 @@ const FeedById = async (props: FeedByIdProps) => {
       <div className="flex flex-col gap-4">
         {articles.length > 0 ? (
           <ArticleList articles={articles} />
+        ) : showSearchParam === "rejected" ? (
+          <NoRejectedArticles feed={feed} />
         ) : (
           <NoUnreadArticles feed={feed} />
         )}

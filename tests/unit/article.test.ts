@@ -1,4 +1,4 @@
-import { articleAuthor } from "@/lib/article";
+import { articleAuthor, isInInbox } from "@/lib/article";
 import { describe, expect, it } from "vitest";
 
 describe("articleAuthor", () => {
@@ -26,5 +26,17 @@ describe("articleAuthor", () => {
 
   it("returns null when the article has not been scraped", () => {
     expect(articleAuthor({ author: null, scrape: null })).toBeNull();
+  });
+});
+
+describe("isInInbox", () => {
+  it.each([
+    ["UNREAD", true],
+    ["READ_LATER", true],
+    ["READ", false],
+    ["FILTERED", false],
+    ["NOT_INTERESTED", false],
+  ] as const)("for status %s, returns %s", (status, expected) => {
+    expect(isInInbox(status)).toBe(expected);
   });
 });

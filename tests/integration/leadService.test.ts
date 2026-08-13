@@ -209,4 +209,28 @@ describe("relevance filtering", () => {
     expect(stored.status).toBe("UNREAD");
     expect(stored.filterReason).toBeNull();
   });
+
+  it("does not reclassify an article the reader already moved out of the inbox", async () => {
+    // A READ_LATER (or READ) article can still be missing a lead if
+    // generation failed at ingest. article-card.tsx backfills it lazily on
+    // render, which must not let a late "does not match" verdict flip the
+    // article into FILTERED — it should stay exactly where the reader put it.
+    const filteredFeedId = (
+      await createFeed({ userId, interestProfile: "Only databases" })
+    ).id;
+    const article = await createArticle({
+      userId,
+      feedId: filteredFeedId,
+      status: "READ_LATER",
+    });
+    mockVerdict(false, "This is a funding round announcement.");
+
+    await generateAiLead(article.id);
+
+    const stored = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(stored.status).toBe("READ_LATER");
+    expect(stored.filterReason).toBeNull();
+  });
 });

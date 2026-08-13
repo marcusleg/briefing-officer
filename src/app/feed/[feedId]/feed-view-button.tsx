@@ -9,7 +9,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDownIcon, Filter } from "lucide-react";
+import { ChevronDownIcon, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -18,13 +18,13 @@ const FeedViewButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
 
-  const currentFilter = searchParams.get("show") || "unread";
+  const currentView = searchParams.get("show") || "unread";
 
   return (
     <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
       <DropdownMenuTrigger asChild>
         <Button className="cursor-pointer" variant="outline">
-          <Filter className="mr-2 size-4" />
+          <Eye className="mr-2 size-4" />
           View
           {isOpen ? (
             <ChevronDownIcon className="ml-2 size-4 rotate-180 transition-transform" />
@@ -35,7 +35,7 @@ const FeedViewButton = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuLabel>Show articles</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={currentFilter}>
+        <DropdownMenuRadioGroup value={currentView}>
           <DropdownMenuRadioItem
             value="all"
             onClick={() => router.push(`?show=all`)}
