@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 
 describe("buildLeadPrompt", () => {
   it("includes the title and the article text", () => {
-    const prompt = buildLeadPrompt("My Title", "Body text here");
+    const prompt = buildLeadPrompt("My Title", "Body text here", "");
     expect(prompt).toContain("My Title");
     expect(prompt).toContain("Body text here");
     expect(prompt).toContain("no longer than 80 words");
@@ -16,14 +16,28 @@ describe("buildLeadPrompt", () => {
   it("asks the model to report the language as an ISO 639-1 code", () => {
     // The lead is the one call that determines the language; everything
     // downstream reads what it stored.
-    const prompt = buildLeadPrompt("My Title", "Body text here");
+    const prompt = buildLeadPrompt("My Title", "Body text here", "");
     expect(prompt).toContain("ISO 639-1");
     expect(prompt).toContain('"und"');
   });
 
   it("asks for the lead in the language it reports", () => {
-    const prompt = buildLeadPrompt("My Title", "Body text here");
+    const prompt = buildLeadPrompt("My Title", "Body text here", "");
     expect(prompt).toContain("in the language you reported");
+  });
+
+  it("leaves the lead prompt unchanged when no interest profile is set", () => {
+    const prompt = buildLeadPrompt("Title", "Body", "");
+
+    expect(prompt).not.toContain("interests");
+    expect(prompt).toContain("no longer than 80 words");
+  });
+
+  it("states the reader's interests and asks for a verdict when one is set", () => {
+    const prompt = buildLeadPrompt("Title", "Body", "Only database internals");
+
+    expect(prompt).toContain("Only database internals");
+    expect(prompt).toContain("matchesInterests");
   });
 });
 
