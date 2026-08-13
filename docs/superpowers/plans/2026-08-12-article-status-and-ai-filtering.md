@@ -428,10 +428,25 @@ npx vitest run --project node tests/integration/articleRepository.test.ts
 
 Expected: PASS, 6 tests.
 
-- [ ] **Step 12: Run the full gate and commit**
+- [ ] **Step 12: Keep the seed consistent with the new column**
+
+`prisma/seed.ts` sets `readAt` on its already-read articles (line 275) but knows
+nothing about `status`, so seeded read articles would land as `UNREAD` and
+vanish from History the moment Task 2 switches the query over. Add both fields
+now, beside the existing `readAt`:
+
+```ts
+          readAt,
+          status: "READ",
+          statusChangedAt: readAt,
+```
+
+Task 3 removes the `readAt` line once the column is gone.
+
+- [ ] **Step 13: Run the full gate and commit**
 
 ```bash
-npm run lint && npm run typecheck && npm run test && npm run format
+npm run lint && npm run typecheck && npm run test && npm run build && npm run format
 git add prisma src tests
 git commit -m "refactor: add an article status column alongside the read flags"
 ```
@@ -827,13 +842,9 @@ both the `overrides` type and the `data` object in `createArticle`. Keep
 
 - [ ] **Step 6: Update the seed**
 
-In `prisma/seed.ts`, the already-read loop at lines 263-276 sets `readAt`.
-Replace the `readAt` field in that `prisma.article.create` call with:
-
-```ts
-          status: "READ",
-          statusChangedAt: readAt,
-```
+Task 1 Step 12 already added `status` and `statusChangedAt` to the already-read
+loop. Delete the now-orphaned `readAt,` line from that `prisma.article.create`
+call, leaving `status` and `statusChangedAt`.
 
 Leave the surrounding `const readAt = randomDateInLastNDays(7);` and the
 `publicationDate` line alone — the local variable still drives both.
