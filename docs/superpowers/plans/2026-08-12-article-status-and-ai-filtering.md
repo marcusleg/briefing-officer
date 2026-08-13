@@ -1915,6 +1915,43 @@ for (let i = 0; i < 3; i++) {
 Each gets a scrape and a lead like the surrounding loops, so the cards render
 fully rather than showing the loading spinner.
 
+Then add a fourth, shorter loop for `READ_LATER`. The seed has **never**
+produced read-later articles — a pre-existing gap, not one this work introduced
+— so the Read Later page and its sidebar count have always screenshotted empty:
+
+```ts
+// 2 read-later articles per feed. The seed never produced any before, so
+// the Read Later page screenshotted empty.
+for (let i = 0; i < 2; i++) {
+  const savedAt = randomDateInLastNDays(7);
+  const article = await prisma.article.create({
+    data: {
+      userId,
+      feedId: feed.id,
+      title: loremTitle(),
+      description: lorem(50 + Math.floor(Math.random() * 11)),
+      link: `https://example.com/article/${randomUUID()}`,
+      publicationDate: new Date(savedAt.getTime() - 3600_000),
+      status: "READ_LATER",
+      statusChangedAt: savedAt,
+    },
+  });
+  const textContent = lorem(300 + Math.floor(Math.random() * 1201));
+  await prisma.articleScrape.create({
+    data: { articleId: article.id, textContent, author: randomName() },
+  });
+  await prisma.articleLead.create({
+    data: {
+      articleId: article.id,
+      text: lorem(50 + Math.floor(Math.random() * 11)),
+    },
+  });
+}
+```
+
+All five statuses are then represented, which is what the Testing section below
+claims.
+
 Also give one seeded feed a non-empty `interestProfile` so the feed edit dialog
 screenshots show the field populated.
 
