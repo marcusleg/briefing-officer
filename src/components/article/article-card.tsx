@@ -76,7 +76,7 @@ const ArticleCard = (props: ArticleCardProps) => {
   useHotkeys(
     "m",
     createHotkeyHandler(async () => {
-      if (props.article.readAt !== null) {
+      if (props.article.status !== "UNREAD") {
         await unmarkArticleAsRead(props.article.id);
       } else {
         await markArticleAsRead(props.article.id);
@@ -107,7 +107,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     className +=
       " border-foreground scale-101 border shadow-lg transition-all duration-200";
   }
-  if (props.article.readAt !== null) {
+  if (props.article.status !== "UNREAD") {
     className += " opacity-65";
   }
 

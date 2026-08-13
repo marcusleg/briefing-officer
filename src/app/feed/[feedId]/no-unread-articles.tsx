@@ -20,7 +20,7 @@ interface NoUnreadArticlesProps {
 const NoUnreadArticles = async ({ feed }: NoUnreadArticlesProps) => {
   const userId = await getUserId();
   const globalUnreadCount = await prisma.article.count({
-    where: { userId, readAt: null },
+    where: { userId, status: "UNREAD" },
   });
 
   return (

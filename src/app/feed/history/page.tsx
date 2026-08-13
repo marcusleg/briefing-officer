@@ -19,13 +19,11 @@ const ReadHistoryPage = async () => {
       scrape: true,
     },
     where: {
-      readAt: {
-        not: null,
-      },
+      status: "READ",
       userId: session.user.id,
     },
     orderBy: {
-      readAt: "desc",
+      statusChangedAt: "desc",
     },
     take: 50,
   });

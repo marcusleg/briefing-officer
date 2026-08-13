@@ -7,16 +7,6 @@ import { getUserId } from "@/lib/repository/userRepository";
 import { revalidatePath } from "next/cache";
 
 /**
- * Temporary. `readAt` and `readLater` are still what the application reads
- * until Task 2, so every status write mirrors into them. Deleted in Task 2 once
- * nothing reads them.
- */
-const legacyMirror = (status: ArticleStatus) => ({
-  readAt: status === "READ" ? new Date() : null,
-  readLater: status === "READ_LATER",
-});
-
-/**
  * The only writers of `status` and `statusChangedAt`. Pairing the two writes
  * here is what lets History treat `statusChangedAt` as the read timestamp: for
  * a READ article it is, by construction, the moment it became read. Anything
@@ -25,7 +15,7 @@ const legacyMirror = (status: ArticleStatus) => ({
 const setArticleStatus = (articleId: number, status: ArticleStatus) =>
   prisma.article.update({
     where: { id: articleId },
-    data: { status, statusChangedAt: new Date(), ...legacyMirror(status) },
+    data: { status, statusChangedAt: new Date() },
   });
 
 const setArticleStatusMany = (
@@ -34,7 +24,7 @@ const setArticleStatusMany = (
 ) =>
   prisma.article.updateMany({
     where,
-    data: { status, statusChangedAt: new Date(), ...legacyMirror(status) },
+    data: { status, statusChangedAt: new Date() },
   });
 
 export const markArticleAsRead = async (articleId: number) => {
@@ -76,7 +66,7 @@ export const deleteArticlesOlderThanXDays = async (days: number) => {
   const result = await prisma.article.deleteMany({
     where: {
       publicationDate: { lte: date },
-      readLater: false,
+      status: { not: "READ_LATER" },
       starred: false,
     },
   });
@@ -103,8 +93,7 @@ export const markArticlesOlderThanXDaysAsRead = async (
     {
       feedId: feedId,
       publicationDate: { lte: date },
-      readAt: null,
-      readLater: false,
+      status: "UNREAD",
     },
     "READ",
   );
@@ -128,8 +117,7 @@ export const markCategoryArticlesOlderThanXDaysAsRead = async (
   const { count } = await setArticleStatusMany(
     {
       publicationDate: { lte: date },
-      readAt: null,
-      readLater: false,
+      status: "UNREAD",
       userId,
       feed: { is: { feedCategoryId: categoryId } },
     },

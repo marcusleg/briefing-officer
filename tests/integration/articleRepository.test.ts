@@ -39,8 +39,6 @@ describe("articleRepository", () => {
       where: { id: article.id },
     });
     expect(updated.status).toBe("READ");
-    expect(updated.readAt).not.toBeNull();
-    expect(updated.readLater).toBe(false);
   });
 
   it("marks an article as read later", async () => {
@@ -52,7 +50,6 @@ describe("articleRepository", () => {
       where: { id: article.id },
     });
     expect(updated.status).toBe("READ_LATER");
-    expect(updated.readLater).toBe(true);
   });
 
   it("returns an article to the inbox", async () => {
@@ -64,7 +61,6 @@ describe("articleRepository", () => {
       where: { id: article.id },
     });
     expect(updated.status).toBe("UNREAD");
-    expect(updated.readAt).toBeNull();
   });
 
   it("moves statusChangedAt forward on every status change", async () => {
@@ -106,5 +102,52 @@ describe("articleRepository", () => {
     await expect(
       createArticle({ userId, feedId, link: "https://example.com/dup" }),
     ).rejects.toThrow();
+  });
+
+  it("orders read articles most-recently-read first", async () => {
+    const oldest = await createArticle({
+      userId,
+      feedId,
+      status: "READ",
+      statusChangedAt: new Date("2026-01-01T00:00:00.000Z"),
+    });
+    const newest = await createArticle({
+      userId,
+      feedId,
+      status: "READ",
+      statusChangedAt: new Date("2026-03-01T00:00:00.000Z"),
+    });
+    const middle = await createArticle({
+      userId,
+      feedId,
+      status: "READ",
+      statusChangedAt: new Date("2026-02-01T00:00:00.000Z"),
+    });
+    await createArticle({ userId, feedId, status: "UNREAD" });
+    await createArticle({ userId, feedId, status: "READ_LATER" });
+
+    const history = await prisma.article.findMany({
+      where: { status: "READ", userId },
+      orderBy: { statusChangedAt: "desc" },
+    });
+
+    expect(history.map((a) => a.id)).toEqual([newest.id, middle.id, oldest.id]);
+  });
+
+  it("does not move statusChangedAt when only starred changes", async () => {
+    const readAtTime = new Date("2026-01-01T00:00:00.000Z");
+    const article = await createArticle({
+      userId,
+      feedId,
+      status: "READ",
+      statusChangedAt: readAtTime,
+    });
+
+    await markArticleAsStarred(article.id);
+
+    const updated = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(updated.statusChangedAt.getTime()).toBe(readAtTime.getTime());
   });
 });

@@ -37,8 +37,7 @@ const MyFeeds = async () => {
       user: true,
     },
     where: {
-      readAt: null,
-      readLater: false,
+      status: "UNREAD",
       userId: session.user.id,
     },
     orderBy: {

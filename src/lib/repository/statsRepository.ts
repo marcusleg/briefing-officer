@@ -13,7 +13,7 @@ export const getNumberOfReadLaterArticles = async () => {
   const userId = await getUserId();
   return prisma.article.count({
     where: {
-      readLater: true,
+      status: "READ_LATER",
       userId,
     },
   });
@@ -23,8 +23,7 @@ export const getNumberOfUnreadArticles = async () => {
   const userId = await getUserId();
   return prisma.article.count({
     where: {
-      readAt: null,
-      readLater: false,
+      status: "UNREAD",
       userId,
     },
   });
@@ -36,7 +35,7 @@ export const getUnreadArticlesPerFeed = async () => {
     include: {
       _count: {
         select: {
-          articles: { where: { readAt: null } },
+          articles: { where: { status: "UNREAD" } },
         },
       },
     },
@@ -118,7 +117,8 @@ export const getWeeklyArticlesRead = async (from: Date, to: Date) => {
           _all: true,
         },
         where: {
-          readAt: {
+          status: "READ",
+          statusChangedAt: {
             gte: `${date}T00:00:00.000Z`,
             lte: `${date}T23:59:59.999Z`,
           },

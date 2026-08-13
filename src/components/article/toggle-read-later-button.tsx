@@ -20,6 +20,8 @@ const ToggleReadLaterButton = ({
   article: Article;
   variant?: "secondary" | "ghost";
 }) => {
+  const isReadLater = article.status === "READ_LATER";
+
   const handleReadLaterClick = async () => {
     await markArticleAsReadLater(article.id);
 
@@ -52,19 +54,19 @@ const ToggleReadLaterButton = ({
             variant={variant}
             size="icon"
             onClick={
-              article.readLater
+              isReadLater
                 ? handleRemoveFromReadLaterClick
                 : handleReadLaterClick
             }
             className="cursor-pointer"
           >
             <BookmarkIcon
-              className={`size-4 ${article.readLater ? "fill-black dark:fill-white" : "fill-transparent"}`}
+              className={`size-4 ${isReadLater ? "fill-black dark:fill-white" : "fill-transparent"}`}
             />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          {article.readLater ? "Remove from Read Later" : "Read Later"}
+          {isReadLater ? "Remove from Read Later" : "Read Later"}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
