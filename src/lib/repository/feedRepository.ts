@@ -4,7 +4,6 @@ import { Article, Feed } from "@/generated/prisma/client";
 import { generateAiLead } from "@/lib/ai/services/leadService";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
-import { filterFeedItemsByTitle } from "@/lib/repository/feedFilter";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { getUserId } from "@/lib/repository/userRepository";
 import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
@@ -83,11 +82,6 @@ export const refreshFeed = async (feedId: number) => {
 
   const feedItems = await scrapeFeed(feed);
 
-  const filteredFeedItems = filterFeedItemsByTitle(
-    feedItems,
-    feed.titleFilterExpressions,
-  );
-
   const existingLinks = new Set(
     (
       await prisma.article.findMany({
@@ -97,7 +91,7 @@ export const refreshFeed = async (feedId: number) => {
     ).map((a) => a.link),
   );
 
-  const createArticlePromises = filteredFeedItems.map((item) =>
+  const createArticlePromises = feedItems.map((item) =>
     prisma.article.upsert({
       where: {
         userId_feedId_link: {
