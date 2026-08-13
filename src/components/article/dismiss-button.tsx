@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Article } from "@/generated/prisma/client";
+import { isInInbox } from "@/lib/article";
 import {
   markArticleAsRead,
   restoreArticleStatus,
@@ -20,7 +21,7 @@ const DismissButton = ({
   onAfterDismiss?: () => void;
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isInbox = article.status === "UNREAD";
+  const isInbox = isInInbox(article.status);
 
   const handleMarkAsRead = async () => {
     const previous = article.status;

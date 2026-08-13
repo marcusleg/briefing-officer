@@ -62,6 +62,15 @@ describe("DismissButton", () => {
     },
   );
 
+  it("offers Dismiss, not Restore, for a READ_LATER article", () => {
+    render(
+      <DismissButton article={{ ...unreadArticle, status: "READ_LATER" }} />,
+    );
+
+    expect(screen.getByRole("button", { name: /dismiss/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /restore/i })).not.toBeTruthy();
+  });
+
   it("undoes a restore back to the status the article actually held", async () => {
     const filtered = { ...unreadArticle, status: "FILTERED" };
     render(<DismissButton article={filtered} />);

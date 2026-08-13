@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Prisma } from "@/generated/prisma/client";
 import { generateAiLead } from "@/lib/ai/services/leadService";
-import { articleAuthor } from "@/lib/article";
+import { articleAuthor, isInInbox } from "@/lib/article";
 import {
   markArticleAsRead,
   restoreArticleToInbox,
@@ -76,10 +76,10 @@ const ArticleCard = (props: ArticleCardProps) => {
   useHotkeys(
     "m",
     createHotkeyHandler(async () => {
-      if (props.article.status !== "UNREAD") {
-        await restoreArticleToInbox(props.article.id);
-      } else {
+      if (isInInbox(props.article.status)) {
         await markArticleAsRead(props.article.id);
+      } else {
+        await restoreArticleToInbox(props.article.id);
       }
     }),
   );
@@ -107,7 +107,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     className +=
       " border-foreground scale-101 border shadow-lg transition-all duration-200";
   }
-  if (props.article.status !== "UNREAD") {
+  if (!isInInbox(props.article.status)) {
     className += " opacity-65";
   }
 
@@ -145,8 +145,10 @@ const ArticleCard = (props: ArticleCardProps) => {
         {(props.article.status === "FILTERED" ||
           props.article.status === "NOT_INTERESTED") && (
           <p className="text-muted-foreground border-l-2 pl-3 text-sm italic">
-            {props.article.filterReason ??
-              "You marked this as not interesting."}
+            {props.article.status === "NOT_INTERESTED"
+              ? "You marked this as not interesting."
+              : props.article.filterReason ||
+                "You marked this as not interesting."}
           </p>
         )}
         {description()}

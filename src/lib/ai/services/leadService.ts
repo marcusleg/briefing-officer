@@ -58,9 +58,10 @@ export const generateAiLead = async (articleId: number) => {
     interestProfile,
   );
 
-  // Hoisted into two full calls, rather than picking the schema with a
-  // ternary, so `object` keeps the precise shape of the schema that produced
-  // it instead of collapsing to a union `generateObject` can't narrow.
+  // Each branch makes its own full `generateObject` call, rather than picking
+  // the schema with a ternary and calling once, so `object` keeps the precise
+  // shape of the schema that produced it instead of collapsing to a union
+  // `generateObject` can't narrow.
   const { object, usage, filtered, filterReason } = filtering
     ? await (async () => {
         const { object, usage } = await generateObject({
@@ -73,6 +74,10 @@ export const generateAiLead = async (articleId: number) => {
           object,
           usage,
           filtered: !object.matchesInterests,
+          // Widens `relevanceReason` from `string` to `string | null` so this
+          // branch's return type unifies with the non-filtering branch below,
+          // which has no reason to report. The schema never actually produces
+          // null here.
           filterReason: object.relevanceReason as string | null,
         };
       })()
@@ -100,13 +105,23 @@ export const generateAiLead = async (articleId: number) => {
   // as the chokepoint does. Do not add a second exception without revisiting
   // the design.
 
+  // This function is not only called at ingest, where the design intends
+  // filtering to happen. `article-card.tsx` also calls it lazily from the
+  // client to backfill a lead for any rendered article that is missing one —
+  // including a `READ` or `READ_LATER` article whose lead generation failed
+  // the first time around. Without this guard, a late verdict could flip an
+  // article the reader already acted on into `FILTERED`, silently pulling it
+  // out of Read Later or clobbering its read timestamp. Only an article still
+  // sitting in the inbox (`UNREAD`) is eligible to be filtered.
+  const shouldApplyFilterVerdict = filtered && article.status === "UNREAD";
+
   // One nested write, so the language cannot drift out of step with the lead
   // it was determined alongside, nor the verdict from the reason for it.
   await prisma.article.update({
     where: { id: articleId },
     data: {
       language,
-      ...(filtered
+      ...(shouldApplyFilterVerdict
         ? {
             status: "FILTERED" as const,
             statusChangedAt: new Date(),
