@@ -30,18 +30,30 @@ const leadSchema = z.object({
   lead: z.string(),
 });
 
-// `relevanceReason` precedes `matchesInterests` for the same reason `language`
+// `exclusionReason` precedes `excludeArticle` for the same reason `language`
 // precedes `lead`: structured output is generated field by field, so the model
 // reasons and then commits. A boolean declared first would be a guess the
 // reasoning is written to justify.
+//
+// The boolean is named for exclusion, not for matching. Structured output is
+// steered by key names as much as by the prompt, and `matchesInterests` — what
+// this was called first — inverts against the common "everything except X"
+// profile: an article about none of the named topics is not a "match", so the
+// model sets false and the article is filtered. Naming the decision after the
+// action it triggers removes that trap.
 const filteringLeadSchema = leadSchema.extend({
-  relevanceReason: z
+  exclusionReason: z
     .string()
     .describe(
-      "One sentence explaining why the article does or does not match the " +
-        "reader's stated interests. Write it in the same language as the lead.",
+      "One sentence explaining the decision, naming the part of the reader's " +
+        "preferences you applied. Write it in the same language as the lead.",
     ),
-  matchesInterests: z.boolean(),
+  excludeArticle: z
+    .boolean()
+    .describe(
+      "True only if the reader's preferences give a clear, positive reason to " +
+        "keep this article out of their inbox. When in doubt, false.",
+    ),
 });
 
 export const generateAiLead = async (articleId: number) => {
@@ -73,12 +85,12 @@ export const generateAiLead = async (articleId: number) => {
         return {
           object,
           usage,
-          filtered: !object.matchesInterests,
-          // Widens `relevanceReason` from `string` to `string | null` so this
+          filtered: object.excludeArticle,
+          // Widens `exclusionReason` from `string` to `string | null` so this
           // branch's return type unifies with the non-filtering branch below,
           // which has no reason to report. The schema never actually produces
           // null here.
-          filterReason: object.relevanceReason as string | null,
+          filterReason: object.exclusionReason as string | null,
         };
       })()
     : await (async () => {

@@ -15,21 +15,49 @@ export const systemPrompt =
  * The relevance block is appended only when the feed has an interest profile,
  * so a feed without one produces exactly the prompt it produced before this
  * feature existed — same text, same token count.
+ *
+ * The decision is framed as "should this be excluded", never as "does this
+ * match the reader's interests". Most profiles are written as exclusions —
+ * "everything except X" — and against one of those, a match test inverts: an
+ * article that mentions nothing the reader named scores as "no match" and gets
+ * filtered, which is precisely backwards. A model asked the match question
+ * produced exactly that, reasoning that an article "does not overlap with the
+ * reader's stated interests of avoiding coverage about KDE and Apple hardware"
+ * and then filtering it. The reasoning was right and the question was wrong.
+ *
+ * Keeping is therefore the default, and exclusion needs positive grounds.
  */
 const relevanceDirective = (interestProfile: string) =>
   interestProfile === ""
     ? ""
     : `
 
-The reader has described what they want from this feed:
+The reader has described, in their own words, what they do and do not want to
+read from this feed:
 
-<interests>
+<reader_preferences>
 ${interestProfile}
-</interests>
+</reader_preferences>
 
-After writing the lead, judge whether this article matches those interests.
-Report one sentence of reasoning as \`relevanceReason\`, then your verdict as
-\`matchesInterests\`. Write the reasoning in the same language as the lead.`;
+Read that description for its polarity before deciding. Most readers describe
+what they do NOT want: a preference like "everything except X" means keep every
+article that is not about X — the named topics are exclusions, not the only
+acceptable subjects. Some readers instead name only what they do want, and some
+do both. The wording tells you which.
+
+Your decision is whether to exclude this article from the reader's inbox.
+Keeping it is the default. Set \`excludeArticle\` to true only when the
+preferences give a clear, positive reason to exclude this specific article —
+that is, when the article is plainly about something the reader said they do
+not want.
+
+If the preferences do not speak to this article's subject at all, keep it. If
+you are unsure, keep it. Hiding an article the reader wanted is far worse than
+showing one they did not: whenever the two risks are close, keep it.
+
+Report one sentence of reasoning as \`exclusionReason\`, naming the part of the
+preferences you applied, then your decision as \`excludeArticle\`. Write the
+reasoning in the same language as the lead.`;
 
 export const buildLeadPrompt = (
   title: string,
