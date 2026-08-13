@@ -22,19 +22,19 @@ enum ArticleStatus {
 }
 
 model Feed {
-  id                     Int           @id @default(autoincrement())
-  title                  String
-  link                   String
-  lastFetched            DateTime
-  titleFilterExpressions String        @default("")
-  autoRefresh            Boolean       @default(true)
-  createdAt              DateTime      @default(now())
-  updatedAt              DateTime      @updatedAt
-  articles               Article[]
-  userId                 String
-  user                   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  FeedCategory           FeedCategory? @relation(fields: [feedCategoryId], references: [id])
-  feedCategoryId         Int?
+  id              Int           @id @default(autoincrement())
+  title           String
+  link            String
+  lastFetched     DateTime
+  interestProfile String        @default("")
+  autoRefresh     Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  articles        Article[]
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  FeedCategory    FeedCategory? @relation(fields: [feedCategoryId], references: [id])
+  feedCategoryId  Int?
 
   @@unique([userId, link])
 }

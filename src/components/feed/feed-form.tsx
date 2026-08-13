@@ -5,6 +5,7 @@ import { DialogClose } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -39,14 +40,14 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
       ? {
           title: editFeed.title,
           link: editFeed.link,
-          titleFilterExpressions: editFeed.titleFilterExpressions,
+          interestProfile: editFeed.interestProfile,
           feedCategoryId: editFeed.feedCategoryId ?? undefined,
           autoRefresh: editFeed.autoRefresh,
         }
       : {
           title: "",
           link: "",
-          titleFilterExpressions: "",
+          interestProfile: "",
           feedCategoryId: undefined,
           autoRefresh: true,
         },
@@ -149,20 +150,23 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
 
           <FormField
             control={form.control}
-            name="titleFilterExpressions"
+            name="interestProfile"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title Filter Expressions</FormLabel>
+                <FormLabel>Interest Profile</FormLabel>
                 <FormControl>
                   <Textarea
                     className="resize-none"
                     disabled={submitting}
-                    placeholder={`^(Advertisement: |Sponsored: ).+$
-^.*NSFW.*$`}
+                    placeholder="I care about database internals, distributed systems, and language design. Skip funding rounds, executive hires, and conference announcements."
                     rows={5}
                     {...field}
                   />
                 </FormControl>
+                <FormDescription>
+                  Articles from this feed that do not match are kept out of your
+                  inbox. Leave empty to see everything.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

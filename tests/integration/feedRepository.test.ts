@@ -91,8 +91,11 @@ describe("feedRepository.refreshFeed", () => {
     expect(await prisma.article.count({ where: { feedId: feed.id } })).toBe(1);
   });
 
-  it("does not create articles whose title matches a filter expression", async () => {
-    const feed = await createFeed({ userId, titleFilterExpressions: "Sports" });
+  it("persists every fetched item now that regex filtering is gone", async () => {
+    const feed = await createFeed({
+      userId,
+      interestProfile: "Skip sports coverage",
+    });
     vi.mocked(scrapeFeed).mockResolvedValue([
       feedItem("Breaking", "https://example.com/a"),
       feedItem("Sports roundup", "https://example.com/b"),
@@ -103,7 +106,7 @@ describe("feedRepository.refreshFeed", () => {
     const titles = (
       await prisma.article.findMany({ where: { feedId: feed.id } })
     ).map((a) => a.title);
-    expect(titles).toEqual(["Breaking"]);
+    expect(titles).toEqual(["Breaking", "Sports roundup"]);
   });
 });
 
@@ -146,7 +149,7 @@ describe("feedRepository.createFeed", () => {
     await createFeedAction({
       title: "",
       link: "https://example.com/new.xml",
-      titleFilterExpressions: "",
+      interestProfile: "",
       autoRefresh: true,
     });
 
@@ -165,7 +168,7 @@ describe("feedRepository.updateFeed", () => {
     await updateFeed(feed.id, {
       title: "New",
       link: feed.link,
-      titleFilterExpressions: "",
+      interestProfile: "",
       autoRefresh: false,
     });
 

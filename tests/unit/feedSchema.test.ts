@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 const validFeed = {
   title: "Example",
   link: "https://example.com/feed.xml",
-  titleFilterExpressions: "",
+  interestProfile: "",
   autoRefresh: true,
 };
 
@@ -18,18 +18,10 @@ describe("feedSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects an invalid regex in titleFilterExpressions", () => {
+  it("accepts an interest profile that is not a valid regular expression", () => {
     const result = feedSchema.safeParse({
       ...validFeed,
-      titleFilterExpressions: "[unclosed",
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("accepts a multi-line titleFilterExpressions where all lines are valid", () => {
-    const result = feedSchema.safeParse({
-      ...validFeed,
-      titleFilterExpressions: "sport\n^Ad:\nbreaking",
+      interestProfile: "I like databases [and unclosed brackets",
     });
     expect(result.success).toBe(true);
   });
