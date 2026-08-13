@@ -221,8 +221,8 @@ deployment already cannot import `feedRepository` or refresh a feed.
 enum ArticleStatus {
   UNREAD
   READ_LATER
-  FILTERED        // the model kept it out
-  NOT_INTERESTED  // the reader rejected it by hand
+  FILTERED // the model kept it out
+  NOT_INTERESTED // the reader rejected it by hand
   READ
 }
 
@@ -231,7 +231,7 @@ model Article {
   status          ArticleStatus @default(UNREAD)
   statusChangedAt DateTime      @default(now())
   filterReason    String?
-  starred         Boolean       @default(false)   // unchanged
+  starred         Boolean       @default(false) // unchanged
   // ...
 }
 
