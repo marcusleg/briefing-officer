@@ -60,8 +60,6 @@ model Article {
   language        String?
   link            String
   commentsLink    String?
-  readAt          DateTime?
-  readLater       Boolean        @default(false)
   starred         Boolean        @default(false)
   status          ArticleStatus  @default(UNREAD)
   statusChangedAt DateTime       @default(now())
