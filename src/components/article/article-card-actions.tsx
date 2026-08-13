@@ -3,6 +3,7 @@
 import AudioSummaryButton from "@/components/article/audio-summary-button";
 import CommentsButton from "@/components/article/comments-button";
 import DismissButton from "@/components/article/dismiss-button";
+import NotInterestedButton from "@/components/article/not-interested-button";
 import TextSummaryButton from "@/components/article/text-summary-button";
 import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
 import ToggleStarredButton from "@/components/article/toggle-starred-button";
@@ -43,6 +44,9 @@ const IconActions = ({
   <>
     <ToggleReadLaterButton article={article} variant={variant} />
     <ToggleStarredButton article={article} variant={variant} />
+    {article.status !== "FILTERED" && article.status !== "NOT_INTERESTED" && (
+      <NotInterestedButton article={article} variant={variant} />
+    )}
     <CommentsButton article={article} variant={variant} />
     {currentPage !== "audio-summary" && (
       <AudioSummaryButton

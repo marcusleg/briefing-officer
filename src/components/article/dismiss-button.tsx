@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Article } from "@/generated/prisma/client";
 import {
   markArticleAsRead,
-  unmarkArticleAsRead,
+  restoreArticleStatus,
+  restoreArticleToInbox,
 } from "@/lib/repository/articleRepository";
 import { ArchiveRestoreIcon, CheckIcon } from "lucide-react";
 import { useState } from "react";
@@ -19,8 +20,10 @@ const DismissButton = ({
   onAfterDismiss?: () => void;
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isInbox = article.status === "UNREAD";
 
   const handleMarkAsRead = async () => {
+    const previous = article.status;
     setIsSubmitting(true);
     await markArticleAsRead(article.id);
     setIsSubmitting(false);
@@ -28,39 +31,44 @@ const DismissButton = ({
 
     toast("Article marked as read", {
       description: <span className="italic">{article.title}</span>,
-      action: { label: "Undo", onClick: () => handleMarkAsUnread() },
+      action: {
+        label: "Undo",
+        onClick: () => restoreArticleStatus(article.id, previous),
+      },
     });
   };
 
-  const handleMarkAsUnread = async () => {
+  const handleRestore = async () => {
+    const previous = article.status;
     setIsSubmitting(true);
-    await unmarkArticleAsRead(article.id);
+    await restoreArticleToInbox(article.id);
     setIsSubmitting(false);
 
-    toast("Article marked as unread", {
+    toast("Article restored to your inbox", {
       description: <span className="italic">{article.title}</span>,
-      action: { label: "Undo", onClick: () => handleMarkAsRead() },
+      action: {
+        label: "Undo",
+        onClick: () => restoreArticleStatus(article.id, previous),
+      },
     });
   };
-
-  const isRead = article.status !== "UNREAD";
 
   return (
     <Button
       className={className ?? "cursor-pointer justify-start text-sm"}
       disabled={isSubmitting}
-      onClick={isRead ? handleMarkAsUnread : handleMarkAsRead}
+      onClick={isInbox ? handleMarkAsRead : handleRestore}
       variant="secondary"
     >
-      {isRead ? (
-        <>
-          <ArchiveRestoreIcon className="size-4" />
-          Restore
-        </>
-      ) : (
+      {isInbox ? (
         <>
           <CheckIcon className="size-4" />
           Dismiss
+        </>
+      ) : (
+        <>
+          <ArchiveRestoreIcon className="size-4" />
+          Restore
         </>
       )}
     </Button>

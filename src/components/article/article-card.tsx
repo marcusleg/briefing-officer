@@ -14,7 +14,7 @@ import { generateAiLead } from "@/lib/ai/services/leadService";
 import { articleAuthor } from "@/lib/article";
 import {
   markArticleAsRead,
-  unmarkArticleAsRead,
+  restoreArticleToInbox,
 } from "@/lib/repository/articleRepository";
 import { LoaderCircleIcon } from "lucide-react";
 import Link from "next/link";
@@ -77,7 +77,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     "m",
     createHotkeyHandler(async () => {
       if (props.article.status !== "UNREAD") {
-        await unmarkArticleAsRead(props.article.id);
+        await restoreArticleToInbox(props.article.id);
       } else {
         await markArticleAsRead(props.article.id);
       }
@@ -141,7 +141,16 @@ const ArticleCard = (props: ArticleCardProps) => {
         </div>
       </CardHeader>
 
-      <CardContent className="px-4 md:px-6">{description()}</CardContent>
+      <CardContent className="flex flex-col gap-3 px-4 md:px-6">
+        {(props.article.status === "FILTERED" ||
+          props.article.status === "NOT_INTERESTED") && (
+          <p className="text-muted-foreground border-l-2 pl-3 text-sm italic">
+            {props.article.filterReason ??
+              "You marked this as not interesting."}
+          </p>
+        )}
+        {description()}
+      </CardContent>
 
       <CardFooter className="flex-col gap-3 border-t px-4 md:flex md:flex-row md:items-center md:gap-2 md:px-6">
         <ArticleCardActions article={props.article} />

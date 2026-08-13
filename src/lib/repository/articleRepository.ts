@@ -131,8 +131,31 @@ export const markCategoryArticlesOlderThanXDaysAsRead = async (
   return count;
 };
 
-export const unmarkArticleAsRead = async (articleId: number) => {
+export const restoreArticleToInbox = async (articleId: number) => {
   const updatedArticle = await setArticleStatus(articleId, "UNREAD");
+
+  revalidatePath(`/feed/${updatedArticle.feedId}`);
+  revalidatePath("/feed");
+  revalidatePath("/feed", "layout");
+};
+
+export const markArticleAsNotInteresting = async (articleId: number) => {
+  const updatedArticle = await setArticleStatus(articleId, "NOT_INTERESTED");
+
+  revalidatePath(`/feed/${updatedArticle.feedId}`);
+  revalidatePath("/feed");
+  revalidatePath("/feed", "layout");
+};
+
+/**
+ * Undo target. Takes the status the article held before the action being
+ * undone, rather than assuming that action's inverse.
+ */
+export const restoreArticleStatus = async (
+  articleId: number,
+  status: ArticleStatus,
+) => {
+  const updatedArticle = await setArticleStatus(articleId, status);
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/feed");

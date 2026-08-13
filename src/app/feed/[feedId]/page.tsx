@@ -1,6 +1,6 @@
 import DeleteFeedButton from "@/app/feed/[feedId]/delete-feed-button";
 import EditFeedButton from "@/app/feed/[feedId]/edit-feed-button";
-import FeedFilterButton from "@/app/feed/[feedId]/feed-filter-button";
+import FeedViewButton from "@/app/feed/[feedId]/feed-view-button";
 import MarkAsReadButton from "@/app/feed/[feedId]/mark-as-read-button";
 import NoUnreadArticles from "@/app/feed/[feedId]/no-unread-articles";
 import RefreshFeedButton from "@/app/feed/[feedId]/refresh-feed-button";
@@ -13,7 +13,7 @@ import { notFound } from "next/navigation";
 
 interface FeedByIdProps {
   params: Promise<{ feedId: string }>;
-  searchParams: Promise<{ show: "all" | "unread" }>;
+  searchParams: Promise<{ show: "all" | "unread" | "rejected" }>;
 }
 
 const FeedById = async (props: FeedByIdProps) => {
@@ -39,7 +39,12 @@ const FeedById = async (props: FeedByIdProps) => {
     },
     where: {
       feedId: feedId,
-      status: showSearchParam === "all" ? { in: ["UNREAD", "READ"] } : "UNREAD",
+      status:
+        showSearchParam === "all"
+          ? { in: ["UNREAD", "READ"] }
+          : showSearchParam === "rejected"
+            ? { in: ["FILTERED", "NOT_INTERESTED"] }
+            : "UNREAD",
       userId,
     },
     orderBy: { publicationDate: "desc" },
@@ -62,7 +67,7 @@ const FeedById = async (props: FeedByIdProps) => {
         <div className="grow" />
 
         <div className="flex flex-row flex-wrap items-center gap-2">
-          <FeedFilterButton />
+          <FeedViewButton />
           <RefreshFeedButton feedId={feedId} />
           <MarkAsReadButton disabled={articles.length === 0} feedId={feedId} />
           <EditFeedButton feed={feed} />

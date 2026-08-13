@@ -1,9 +1,10 @@
 import prisma from "@/lib/prismaClient";
 import {
+  markArticleAsNotInteresting,
   markArticleAsRead,
   markArticleAsReadLater,
   markArticleAsStarred,
-  unmarkArticleAsRead,
+  restoreArticleToInbox,
   unmarkArticleAsStarred,
 } from "@/lib/repository/articleRepository";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -52,15 +53,38 @@ describe("articleRepository", () => {
     expect(updated.status).toBe("READ_LATER");
   });
 
-  it("returns an article to the inbox", async () => {
-    const article = await createArticle({ userId, feedId, status: "READ" });
+  it.each(["READ", "FILTERED", "NOT_INTERESTED"] as const)(
+    "returns a %s article to the inbox",
+    async (status) => {
+      const article = await createArticle({
+        userId,
+        feedId,
+        status,
+        filterReason: status === "FILTERED" ? "Off topic." : null,
+      });
 
-    await unmarkArticleAsRead(article.id);
+      await restoreArticleToInbox(article.id);
+
+      const updated = await prisma.article.findUniqueOrThrow({
+        where: { id: article.id },
+      });
+      expect(updated.status).toBe("UNREAD");
+      if (status === "FILTERED") {
+        expect(updated.filterReason).toBe("Off topic.");
+      }
+    },
+  );
+
+  it("marks an article as not interesting without inventing a reason", async () => {
+    const article = await createArticle({ userId, feedId });
+
+    await markArticleAsNotInteresting(article.id);
 
     const updated = await prisma.article.findUniqueOrThrow({
       where: { id: article.id },
     });
-    expect(updated.status).toBe("UNREAD");
+    expect(updated.status).toBe("NOT_INTERESTED");
+    expect(updated.filterReason).toBeNull();
   });
 
   it("moves statusChangedAt forward on every status change", async () => {

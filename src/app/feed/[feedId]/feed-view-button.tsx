@@ -13,7 +13,7 @@ import { ChevronDownIcon, Filter } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-const FeedFilterButton = () => {
+const FeedViewButton = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
@@ -25,7 +25,7 @@ const FeedFilterButton = () => {
       <DropdownMenuTrigger asChild>
         <Button className="cursor-pointer" variant="outline">
           <Filter className="mr-2 size-4" />
-          Filter
+          View
           {isOpen ? (
             <ChevronDownIcon className="ml-2 size-4 rotate-180 transition-transform" />
           ) : (
@@ -34,7 +34,7 @@ const FeedFilterButton = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuLabel>Filter articles</DropdownMenuLabel>
+        <DropdownMenuLabel>Show articles</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={currentFilter}>
           <DropdownMenuRadioItem
             value="all"
@@ -48,10 +48,16 @@ const FeedFilterButton = () => {
           >
             Unread only
           </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem
+            value="rejected"
+            onClick={() => router.push(`?show=rejected`)}
+          >
+            Not interested
+          </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
-export default FeedFilterButton;
+export default FeedViewButton;
