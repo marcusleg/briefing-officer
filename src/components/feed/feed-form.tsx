@@ -158,7 +158,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                   <Textarea
                     className="resize-none"
                     disabled={submitting}
-                    placeholder="Everything except KDE news and Apple hardware.&#10;&#10;Or, to narrow it right down: only database internals, distributed systems, and language design."
+                    placeholder="Everything except press releases and sponsored posts.&#10;&#10;Or, to narrow it right down: only database internals, distributed systems, and language design."
                     rows={5}
                     {...field}
                   />
