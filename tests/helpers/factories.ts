@@ -1,3 +1,4 @@
+import { ArticleStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prismaClient";
 import { randomUUID } from "crypto";
 
@@ -59,6 +60,9 @@ export const createArticle = (overrides: {
   readAt?: Date | null;
   readLater?: boolean;
   starred?: boolean;
+  status?: ArticleStatus;
+  statusChangedAt?: Date;
+  filterReason?: string | null;
 }) => {
   return prisma.article.create({
     data: {
@@ -70,6 +74,9 @@ export const createArticle = (overrides: {
       readAt: overrides.readAt ?? null,
       readLater: overrides.readLater ?? false,
       starred: overrides.starred ?? false,
+      status: overrides.status ?? "UNREAD",
+      statusChangedAt: overrides.statusChangedAt ?? new Date(),
+      filterReason: overrides.filterReason ?? null,
     },
   });
 };
