@@ -834,8 +834,17 @@ Delete the `readAt` and `readLater` lines from `model Article` in
 - [ ] **Step 2: Generate and inspect the migration**
 
 ```bash
-npx prisma migrate dev --create-only --name drop_article_read_flags
+DIR="prisma/migrations/$(date +%Y%m%d%H%M%S)_drop_article_read_flags"
+mkdir -p "$DIR"
+npx prisma migrate diff --from-config-datasource \
+  --to-schema prisma/schema.prisma --script -o "$DIR/migration.sql"
+cat "$DIR/migration.sql"
 ```
+
+**Do not use `prisma migrate dev --create-only` here.** It requires a TTY and
+aborts with "environment is non-interactive" under any agent or CI runner.
+`migrate diff --from-config-datasource` produces the same `RedefineTables` block
+without one. Do not try to fake a TTY — if this command fails, stop.
 
 Expected: a `-- RedefineTables` block with a warning comment naming both dropped
 columns. No hand-editing needed this time — there is no data to preserve. Read
@@ -845,7 +854,7 @@ the generated `INSERT ... SELECT` and confirm it carries `status`,
 - [ ] **Step 3: Apply and verify no drift**
 
 ```bash
-npx prisma migrate dev && npx prisma generate
+npx prisma migrate deploy && npx prisma generate
 npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
 ```
 
@@ -935,8 +944,15 @@ interestProfile        String        @default("")
 - [ ] **Step 2: Generate the migration**
 
 ```bash
-npx prisma migrate dev --create-only --name replace_title_filter_with_interest_profile
+DIR="prisma/migrations/$(date +%Y%m%d%H%M%S)_replace_title_filter_with_interest_profile"
+mkdir -p "$DIR"
+npx prisma migrate diff --from-config-datasource \
+  --to-schema prisma/schema.prisma --script -o "$DIR/migration.sql"
+cat "$DIR/migration.sql"
 ```
+
+**Do not use `prisma migrate dev --create-only`** — it requires a TTY and aborts
+under any agent or CI runner. Do not try to fake one.
 
 - [ ] **Step 3: Edit it to carry the old expressions across**
 
@@ -958,7 +974,7 @@ reader's intent survives and they can rewrite it as prose later.
 - [ ] **Step 4: Apply, verify, and check the carry-over**
 
 ```bash
-npx prisma migrate dev && npx prisma generate
+npx prisma migrate deploy && npx prisma generate
 npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
 npx prisma db execute --url "file:./data/dev.db" --stdin <<'EOF'
 SELECT id, title, interestProfile FROM Feed WHERE interestProfile <> '';
