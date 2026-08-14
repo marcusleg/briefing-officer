@@ -1,7 +1,8 @@
-import { TokenUsage } from "@/generated/prisma/client";
+import { ArticleStatus, TokenUsage } from "@/generated/prisma/client";
 import {
   computeDailyAverage,
   shapeArticlesPerFeedPerDay,
+  shapeRejectedArticlesPerDay,
   shapeTokenUsage,
   type ArticlesPerFeedRow,
 } from "@/lib/repository/statsTransforms";
@@ -62,6 +63,95 @@ describe("shapeArticlesPerFeedPerDay", () => {
       { date: "d2", FeedA: 5 },
     ];
     expect(shapeArticlesPerFeedPerDay(rows).dailyAverage).toBe(5);
+  });
+});
+
+describe("shapeRejectedArticlesPerDay", () => {
+  const rejected = (status: ArticleStatus, iso: string) => ({
+    status,
+    statusChangedAt: new Date(iso),
+  });
+
+  it("returns a zeroed row for every day, even without any articles", () => {
+    expect(
+      shapeRejectedArticlesPerDay(["2026-03-01", "2026-03-02"], []),
+    ).toEqual([
+      { date: "2026-03-01", filtered: 0, notInterested: 0 },
+      { date: "2026-03-02", filtered: 0, notInterested: 0 },
+    ]);
+  });
+
+  it("counts the two rejection sources separately", () => {
+    const rows = shapeRejectedArticlesPerDay(
+      ["2026-03-01"],
+      [
+        rejected("FILTERED", "2026-03-01T08:00:00.000Z"),
+        rejected("FILTERED", "2026-03-01T20:00:00.000Z"),
+        rejected("NOT_INTERESTED", "2026-03-01T12:00:00.000Z"),
+      ],
+    );
+
+    expect(rows).toEqual([
+      { date: "2026-03-01", filtered: 2, notInterested: 1 },
+    ]);
+  });
+
+  it("keeps days without activity in place between busy ones", () => {
+    const rows = shapeRejectedArticlesPerDay(
+      ["2026-03-01", "2026-03-02", "2026-03-03"],
+      [
+        rejected("FILTERED", "2026-03-01T08:00:00.000Z"),
+        rejected("NOT_INTERESTED", "2026-03-03T08:00:00.000Z"),
+      ],
+    );
+
+    expect(rows).toEqual([
+      { date: "2026-03-01", filtered: 1, notInterested: 0 },
+      { date: "2026-03-02", filtered: 0, notInterested: 0 },
+      { date: "2026-03-03", filtered: 0, notInterested: 1 },
+    ]);
+  });
+
+  it("ignores articles whose day falls outside the range", () => {
+    const rows = shapeRejectedArticlesPerDay(
+      ["2026-03-02"],
+      [
+        rejected("FILTERED", "2026-03-01T23:59:59.000Z"),
+        rejected("FILTERED", "2026-03-02T00:00:00.000Z"),
+        rejected("FILTERED", "2026-03-03T00:00:00.000Z"),
+      ],
+    );
+
+    expect(rows).toEqual([
+      { date: "2026-03-02", filtered: 1, notInterested: 0 },
+    ]);
+  });
+
+  it("counts neither read nor unread articles as rejected", () => {
+    const rows = shapeRejectedArticlesPerDay(
+      ["2026-03-01"],
+      [
+        rejected("READ", "2026-03-01T08:00:00.000Z"),
+        rejected("UNREAD", "2026-03-01T09:00:00.000Z"),
+        rejected("READ_LATER", "2026-03-01T10:00:00.000Z"),
+      ],
+    );
+
+    expect(rows).toEqual([
+      { date: "2026-03-01", filtered: 0, notInterested: 0 },
+    ]);
+  });
+
+  it("buckets by UTC day, not by the host timezone", () => {
+    const rows = shapeRejectedArticlesPerDay(
+      ["2026-03-01", "2026-03-02"],
+      [rejected("FILTERED", "2026-03-01T23:30:00.000Z")],
+    );
+
+    expect(rows).toEqual([
+      { date: "2026-03-01", filtered: 1, notInterested: 0 },
+      { date: "2026-03-02", filtered: 0, notInterested: 0 },
+    ]);
   });
 });
 

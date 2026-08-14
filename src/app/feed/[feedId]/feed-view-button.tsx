@@ -49,10 +49,10 @@ const FeedViewButton = () => {
             Unread only
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem
-            value="rejected"
-            onClick={() => router.push(`?show=rejected`)}
+            value="filtered"
+            onClick={() => router.push(`?show=filtered`)}
           >
-            Not interested
+            Filtered
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>

@@ -5,6 +5,7 @@ import {
   ArticlesPerFeedRow,
   computeDailyAverage,
   shapeArticlesPerFeedPerDay,
+  shapeRejectedArticlesPerDay,
   shapeTokenUsage,
 } from "@/lib/repository/statsTransforms";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -134,6 +135,42 @@ export const getWeeklyArticlesRead = async (from: Date, to: Date) => {
   }));
 
   return { rows, dailyAverage: computeDailyAverage(rows) };
+};
+
+/**
+ * Articles that never made it to the reader, per day, split by who rejected
+ * them: the model against the interest profile (`FILTERED`) or the reader by
+ * hand (`NOT_INTERESTED`). This matches what the Filtered view lists.
+ *
+ * The daily average covers both sources together.
+ */
+export const getFilteredArticlesPerDay = async (from: Date, to: Date) => {
+  const userId = await getUserId();
+
+  const dates = getDaysInDateRange(from, to);
+
+  const rejectedArticles = await prisma.article.findMany({
+    select: { status: true, statusChangedAt: true },
+    where: {
+      status: { in: ["FILTERED", "NOT_INTERESTED"] },
+      statusChangedAt: {
+        gte: `${dates[0]}T00:00:00.000Z`,
+        lte: `${dates[dates.length - 1]}T23:59:59.999Z`,
+      },
+      userId,
+    },
+  });
+
+  const rows = shapeRejectedArticlesPerDay(dates, rejectedArticles);
+
+  const dailyAverage = computeDailyAverage(
+    rows.map((row) => ({
+      date: row.date,
+      count: row.filtered + row.notInterested,
+    })),
+  );
+
+  return { rows, dailyAverage };
 };
 
 export const getTokenUsageHistory = async (from: Date, to: Date) => {

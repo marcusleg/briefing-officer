@@ -12,11 +12,17 @@ import { expect, test } from "./fixtures";
     linkText: "Starred",
     expectedUrl: "/feed/starred-articles",
   },
+  {
+    linkText: "Filtered",
+    expectedUrl: "/feed/filtered",
+  },
 ].forEach(({ linkText, expectedUrl }) => {
   test(`navigation item ${linkText}`, async ({ page }) => {
     await page.goto("/feed");
 
-    await page.getByText(linkText).click();
+    // Target the link rather than any text: "Filtered" also appears as the
+    // dashboard chart's title, which would make a bare text locator ambiguous.
+    await page.getByRole("link", { name: linkText }).click();
 
     await expect(page).toHaveURL(expectedUrl);
 
