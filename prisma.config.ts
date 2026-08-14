@@ -2,6 +2,12 @@ import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 export default defineConfig({
+  migrations: {
+    // Prisma 7 reads the seed command from here; the `prisma.seed` key in
+    // package.json is ignored, and `prisma db seed` exits 0 without running
+    // anything when this is missing.
+    seed: "tsx prisma/seed.ts",
+  },
   datasource: {
     // Use process.env with a fallback rather than Prisma's `env()` helper,
     // which throws when the variable is unset. `prisma generate` does not
