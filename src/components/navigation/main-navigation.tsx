@@ -13,6 +13,7 @@ import {
 } from "@/lib/repository/statsRepository";
 import {
   BookmarkIcon,
+  FilterIcon,
   HistoryIcon,
   NewspaperIcon,
   StarIcon,
@@ -42,6 +43,9 @@ const MainNavigation = async () => {
       icon: StarIcon,
       label: "Starred Articles",
     },
+    // No badge: unlike Read Later this is not a queue to work down, and the
+    // count only ever grows.
+    { href: "/feed/filtered", icon: FilterIcon, label: "Filtered" },
   ];
 
   return (

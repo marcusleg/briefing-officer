@@ -3,6 +3,9 @@
 import DailyActivityChart, {
   DailyActivityData,
 } from "@/app/feed/daily-activity-chart";
+import DailyFilteredArticlesChart, {
+  DailyFilteredArticlesData,
+} from "@/app/feed/daily-filtered-articles-chart";
 import DailyNewArticlesChart, {
   DailyNewArticlesData,
 } from "@/app/feed/daily-new-articles-chart";
@@ -13,6 +16,7 @@ import UnreadArticlesPieChart, {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
+  getFilteredArticlesPerDay,
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
   getWeeklyArticleCountPerFeed,
@@ -64,6 +68,8 @@ const Dashboard = () => {
     useState<DailyNewArticlesData>();
   const [dailyActivityData, setDailyActivityData] =
     useState<DailyActivityData>();
+  const [dailyFilteredArticlesData, setDailyFilteredArticlesData] =
+    useState<DailyFilteredArticlesData>();
 
   useEffect(() => {
     const dateRange = getDateRangeFromPreset(selectedRange);
@@ -80,6 +86,10 @@ const Dashboard = () => {
 
     getWeeklyArticlesRead(dateRange.from, dateRange.to).then((data) =>
       setDailyActivityData(data),
+    );
+
+    getFilteredArticlesPerDay(dateRange.from, dateRange.to).then((data) =>
+      setDailyFilteredArticlesData(data),
     );
   }, [selectedRange]);
 
@@ -101,11 +111,28 @@ const Dashboard = () => {
         </ToggleGroup>
       )}
 
-      <div className="mx-auto hidden w-full max-w-7xl grid-cols-1 gap-4 md:visible md:grid md:grid-cols-2 lg:grid-cols-4">
-        <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
-        <TokenUsageChart data={tokenUsageData} />
-        <DailyNewArticlesChart data={dailyNewArticlesData} />
-        <DailyActivityChart data={dailyActivityData} />
+      {/*
+        Five charts across two breakpoints: a six-column grid fits three per row
+        (`col-span-2` each), and starting the fourth card at column 2 centers the
+        two-card second row instead of leaving it hanging on the left. From 2xl
+        the row is wide enough to hold all five side by side.
+      */}
+      <div className="mx-auto hidden w-full max-w-7xl grid-cols-1 gap-4 md:grid md:grid-cols-6 2xl:max-w-[96rem] 2xl:grid-cols-5">
+        <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
+          <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
+        </div>
+        <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
+          <TokenUsageChart data={tokenUsageData} />
+        </div>
+        <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
+          <DailyNewArticlesChart data={dailyNewArticlesData} />
+        </div>
+        <div className="md:col-span-2 md:col-start-2 2xl:col-span-1 2xl:col-start-auto [&>*]:h-full">
+          <DailyActivityChart data={dailyActivityData} />
+        </div>
+        <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
+          <DailyFilteredArticlesChart data={dailyFilteredArticlesData} />
+        </div>
       </div>
     </>
   );

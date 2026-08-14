@@ -8,11 +8,11 @@ import {
 import { Feed } from "@/generated/prisma/client";
 import { ShieldCheckIcon } from "lucide-react";
 
-interface NoRejectedArticlesProps {
+interface NoFilteredArticlesProps {
   feed: Feed;
 }
 
-const NoRejectedArticles = ({ feed }: NoRejectedArticlesProps) => {
+const NoFilteredArticles = ({ feed }: NoFilteredArticlesProps) => {
   return (
     <Empty>
       <EmptyHeader>
@@ -29,4 +29,4 @@ const NoRejectedArticles = ({ feed }: NoRejectedArticlesProps) => {
   );
 };
 
-export default NoRejectedArticles;
+export default NoFilteredArticles;

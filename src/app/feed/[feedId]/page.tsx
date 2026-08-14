@@ -2,7 +2,7 @@ import DeleteFeedButton from "@/app/feed/[feedId]/delete-feed-button";
 import EditFeedButton from "@/app/feed/[feedId]/edit-feed-button";
 import FeedViewButton from "@/app/feed/[feedId]/feed-view-button";
 import MarkAsReadButton from "@/app/feed/[feedId]/mark-as-read-button";
-import NoRejectedArticles from "@/app/feed/[feedId]/no-rejected-articles";
+import NoFilteredArticles from "@/app/feed/[feedId]/no-filtered-articles";
 import NoUnreadArticles from "@/app/feed/[feedId]/no-unread-articles";
 import RefreshFeedButton from "@/app/feed/[feedId]/refresh-feed-button";
 import FeedTitle from "@/app/feed/feed-title";
@@ -14,7 +14,7 @@ import { notFound } from "next/navigation";
 
 interface FeedByIdProps {
   params: Promise<{ feedId: string }>;
-  searchParams: Promise<{ show: "all" | "unread" | "rejected" }>;
+  searchParams: Promise<{ show: "all" | "unread" | "filtered" }>;
 }
 
 const FeedById = async (props: FeedByIdProps) => {
@@ -43,7 +43,7 @@ const FeedById = async (props: FeedByIdProps) => {
       status:
         showSearchParam === "all"
           ? { in: ["UNREAD", "READ"] }
-          : showSearchParam === "rejected"
+          : showSearchParam === "filtered"
             ? { in: ["FILTERED", "NOT_INTERESTED"] }
             : "UNREAD",
       userId,
@@ -71,7 +71,7 @@ const FeedById = async (props: FeedByIdProps) => {
           <FeedViewButton />
           <RefreshFeedButton feedId={feedId} />
           <MarkAsReadButton
-            disabled={showSearchParam === "rejected" || articles.length === 0}
+            disabled={showSearchParam === "filtered" || articles.length === 0}
             feedId={feedId}
           />
           <EditFeedButton feed={feed} />
@@ -82,8 +82,8 @@ const FeedById = async (props: FeedByIdProps) => {
       <div className="flex flex-col gap-4">
         {articles.length > 0 ? (
           <ArticleList articles={articles} />
-        ) : showSearchParam === "rejected" ? (
-          <NoRejectedArticles feed={feed} />
+        ) : showSearchParam === "filtered" ? (
+          <NoFilteredArticles feed={feed} />
         ) : (
           <NoUnreadArticles feed={feed} />
         )}
