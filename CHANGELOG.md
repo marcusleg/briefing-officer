@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.14.0](https://github.com/marcusleg/briefing-officer/compare/v0.13.0...v0.14.0) (2026-08-14)
+
+
+### Features
+
+* add a Filtered view and a daily chart of what never reached you ([dc1cb03](https://github.com/marcusleg/briefing-officer/commit/dc1cb039b491f335e073e1e6d8efddb4751f1bd9))
+* add a Not interested action and a view to review hidden articles ([e60424a](https://github.com/marcusleg/briefing-officer/commit/e60424a16b6aaba084ac2e24427cabbe6fdfc4b7))
+* hide articles that do not match a feed's interest profile ([fdfe90f](https://github.com/marcusleg/briefing-officer/commit/fdfe90fd3b215e9d226bbadbdaff105a9c87998a))
+* replace title filter expressions with an interest profile ([51eea32](https://github.com/marcusleg/briefing-officer/commit/51eea3250be48ef0ece1ce9638a5fa1f8f8b6796))
+
+
+### Bug Fixes
+
+* keep the reader in control of Read Later and already-read articles ([985c72f](https://github.com/marcusleg/briefing-officer/commit/985c72f3c318e74096729fc516a183013623092f))
+* run the configured seed script again on prisma db seed ([e42d4d3](https://github.com/marcusleg/briefing-officer/commit/e42d4d3876eca99aed91a19dffea801d7cdfc7c8))
+* stop counting read-later articles as unread ([5b72a38](https://github.com/marcusleg/briefing-officer/commit/5b72a383fe65ee23a6c74045a624fd9137916ee6))
+* stop filtering articles when your interest profile says "everything except" ([31cd779](https://github.com/marcusleg/briefing-officer/commit/31cd779632134c93b5be7b955250eea872e04e8f))
+
 ## [0.13.0](https://github.com/marcusleg/briefing-officer/compare/v0.12.0...v0.13.0) (2026-08-08)
 
 
