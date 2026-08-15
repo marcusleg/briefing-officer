@@ -142,13 +142,10 @@ const ArticleCard = (props: ArticleCardProps) => {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-3 px-4 md:px-6">
-        {(props.article.status === "FILTERED" ||
-          props.article.status === "NOT_INTERESTED") && (
+        {props.article.status === "FILTERED" && (
           <p className="text-muted-foreground border-l-2 pl-3 text-sm italic">
-            {props.article.status === "NOT_INTERESTED"
-              ? "You marked this as not interesting."
-              : props.article.filterReason ||
-                "You marked this as not interesting."}
+            {props.article.filterReason ||
+              "Filtered against this feed's keywords."}
           </p>
         )}
         {description()}

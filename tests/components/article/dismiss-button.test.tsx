@@ -53,7 +53,7 @@ describe("DismissButton", () => {
     expect(onAfterDismiss).not.toHaveBeenCalled();
   });
 
-  it.each(["READ", "FILTERED", "NOT_INTERESTED"] as const)(
+  it.each(["READ", "FILTERED"] as const)(
     "offers Restore for a %s article",
     (status) => {
       render(<DismissButton article={{ ...unreadArticle, status }} />);

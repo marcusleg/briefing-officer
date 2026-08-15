@@ -138,11 +138,9 @@ export const getWeeklyArticlesRead = async (from: Date, to: Date) => {
 };
 
 /**
- * Articles that never made it to the reader, per day, split by who rejected
- * them: the model against the interest profile (`FILTERED`) or the reader by
- * hand (`NOT_INTERESTED`). This matches what the Filtered view lists.
- *
- * The daily average covers both sources together.
+ * Articles that never made it to the reader, per day — whether the model
+ * filtered them against the feed's keywords or the reader rejected them by
+ * hand. This matches what the Filtered view lists.
  */
 export const getFilteredArticlesPerDay = async (from: Date, to: Date) => {
   const userId = await getUserId();
@@ -152,7 +150,7 @@ export const getFilteredArticlesPerDay = async (from: Date, to: Date) => {
   const rejectedArticles = await prisma.article.findMany({
     select: { status: true, statusChangedAt: true },
     where: {
-      status: { in: ["FILTERED", "NOT_INTERESTED"] },
+      status: "FILTERED",
       statusChangedAt: {
         gte: `${dates[0]}T00:00:00.000Z`,
         lte: `${dates[dates.length - 1]}T23:59:59.999Z`,
@@ -166,7 +164,7 @@ export const getFilteredArticlesPerDay = async (from: Date, to: Date) => {
   const dailyAverage = computeDailyAverage(
     rows.map((row) => ({
       date: row.date,
-      count: row.filtered + row.notInterested,
+      count: row.filtered,
     })),
   );
 

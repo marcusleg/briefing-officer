@@ -44,7 +44,7 @@ const IconActions = ({
   <>
     <ToggleReadLaterButton article={article} variant={variant} />
     <ToggleStarredButton article={article} variant={variant} />
-    {article.status !== "FILTERED" && article.status !== "NOT_INTERESTED" && (
+    {article.status !== "FILTERED" && (
       <NotInterestedButton article={article} variant={variant} />
     )}
     <CommentsButton article={article} variant={variant} />

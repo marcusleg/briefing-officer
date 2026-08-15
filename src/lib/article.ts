@@ -22,9 +22,16 @@ export const articleAuthor = (article: {
  * yet dismissed to a terminal state.
  *
  * `READ_LATER` belongs here alongside `UNREAD`: saving an article for later
- * does not remove it from the reader's queue, it just defers it. `READ`,
- * `FILTERED`, and `NOT_INTERESTED` are the states an article leaves the inbox
- * for.
+ * does not remove it from the reader's queue, it just defers it. `READ` and
+ * `FILTERED` are the states an article leaves the inbox for.
  */
 export const isInInbox = (status: ArticleStatus): boolean =>
   status === "UNREAD" || status === "READ_LATER";
+
+/**
+ * Written to `filterReason` when the reader rejects an article by hand.
+ *
+ * It lives here rather than in `articleRepository.ts` because that module is
+ * `"use server"`, and a server-action module may only export async functions.
+ */
+export const READER_FILTER_REASON = "You marked this as not interested.";

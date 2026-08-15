@@ -44,7 +44,7 @@ const FeedById = async (props: FeedByIdProps) => {
         showSearchParam === "all"
           ? { in: ["UNREAD", "READ"] }
           : showSearchParam === "filtered"
-            ? { in: ["FILTERED", "NOT_INTERESTED"] }
+            ? "FILTERED"
             : "UNREAD",
       userId,
     },

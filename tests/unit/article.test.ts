@@ -35,7 +35,6 @@ describe("isInInbox", () => {
     ["READ_LATER", true],
     ["READ", false],
     ["FILTERED", false],
-    ["NOT_INTERESTED", false],
   ] as const)("for status %s, returns %s", (status, expected) => {
     expect(isInInbox(status)).toBe(expected);
   });

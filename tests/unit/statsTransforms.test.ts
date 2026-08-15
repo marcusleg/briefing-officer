@@ -76,24 +76,22 @@ describe("shapeRejectedArticlesPerDay", () => {
     expect(
       shapeRejectedArticlesPerDay(["2026-03-01", "2026-03-02"], []),
     ).toEqual([
-      { date: "2026-03-01", filtered: 0, notInterested: 0 },
-      { date: "2026-03-02", filtered: 0, notInterested: 0 },
+      { date: "2026-03-01", filtered: 0 },
+      { date: "2026-03-02", filtered: 0 },
     ]);
   });
 
-  it("counts the two rejection sources separately", () => {
+  it("counts every rejected article for the day", () => {
     const rows = shapeRejectedArticlesPerDay(
       ["2026-03-01"],
       [
         rejected("FILTERED", "2026-03-01T08:00:00.000Z"),
         rejected("FILTERED", "2026-03-01T20:00:00.000Z"),
-        rejected("NOT_INTERESTED", "2026-03-01T12:00:00.000Z"),
+        rejected("FILTERED", "2026-03-01T12:00:00.000Z"),
       ],
     );
 
-    expect(rows).toEqual([
-      { date: "2026-03-01", filtered: 2, notInterested: 1 },
-    ]);
+    expect(rows).toEqual([{ date: "2026-03-01", filtered: 3 }]);
   });
 
   it("keeps days without activity in place between busy ones", () => {
@@ -101,14 +99,14 @@ describe("shapeRejectedArticlesPerDay", () => {
       ["2026-03-01", "2026-03-02", "2026-03-03"],
       [
         rejected("FILTERED", "2026-03-01T08:00:00.000Z"),
-        rejected("NOT_INTERESTED", "2026-03-03T08:00:00.000Z"),
+        rejected("FILTERED", "2026-03-03T08:00:00.000Z"),
       ],
     );
 
     expect(rows).toEqual([
-      { date: "2026-03-01", filtered: 1, notInterested: 0 },
-      { date: "2026-03-02", filtered: 0, notInterested: 0 },
-      { date: "2026-03-03", filtered: 0, notInterested: 1 },
+      { date: "2026-03-01", filtered: 1 },
+      { date: "2026-03-02", filtered: 0 },
+      { date: "2026-03-03", filtered: 1 },
     ]);
   });
 
@@ -122,9 +120,7 @@ describe("shapeRejectedArticlesPerDay", () => {
       ],
     );
 
-    expect(rows).toEqual([
-      { date: "2026-03-02", filtered: 1, notInterested: 0 },
-    ]);
+    expect(rows).toEqual([{ date: "2026-03-02", filtered: 1 }]);
   });
 
   it("counts neither read nor unread articles as rejected", () => {
@@ -137,9 +133,7 @@ describe("shapeRejectedArticlesPerDay", () => {
       ],
     );
 
-    expect(rows).toEqual([
-      { date: "2026-03-01", filtered: 0, notInterested: 0 },
-    ]);
+    expect(rows).toEqual([{ date: "2026-03-01", filtered: 0 }]);
   });
 
   it("buckets by UTC day, not by the host timezone", () => {
@@ -149,8 +143,8 @@ describe("shapeRejectedArticlesPerDay", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-03-01", filtered: 1, notInterested: 0 },
-      { date: "2026-03-02", filtered: 0, notInterested: 0 },
+      { date: "2026-03-01", filtered: 1 },
+      { date: "2026-03-02", filtered: 0 },
     ]);
   });
 });

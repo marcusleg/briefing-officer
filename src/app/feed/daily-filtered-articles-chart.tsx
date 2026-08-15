@@ -13,7 +13,6 @@ import { RejectedArticlesRow } from "@/lib/repository/statsTransforms";
 
 const chartConfig = {
   filtered: { label: "Filtered", color: "var(--chart-2)" },
-  notInterested: { label: "Not interested", color: "var(--chart-4)" },
 } satisfies ChartConfig;
 
 export interface DailyFilteredArticlesData {
@@ -33,7 +32,7 @@ const DailyFilteredArticlesChart = ({
   return (
     <ChartCard
       title="Filtered Articles"
-      description="Number of articles that never reached you each day, by your interest profile or your own hand"
+      description="Number of articles that never reached you each day, filtered by your keywords or rejected by hand"
       config={chartConfig}
       data={data}
       footer={data && `${data.dailyAverage.toFixed(2)} articles per day`}
@@ -56,12 +55,7 @@ const DailyFilteredArticlesChart = ({
           content={<ChartTooltipContent indicator="dot" />}
           labelFormatter={(value) => long.format(new Date(String(value)))}
         />
-        <Bar dataKey="filtered" fill={chartConfig.filtered.color} stackId="a" />
-        <Bar
-          dataKey="notInterested"
-          fill={chartConfig.notInterested.color}
-          stackId="a"
-        />
+        <Bar dataKey="filtered" fill={chartConfig.filtered.color} />
       </BarChart>
     </ChartCard>
   );
