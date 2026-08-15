@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Feed, FeedCategory } from "@/generated/prisma/client";
-import { describeFilters } from "@/lib/feedFilters";
+import { DEFAULT_DISINTERESTS, describeFilters } from "@/lib/feedFilters";
 import {
   createFeed,
   getFeedFilters,
@@ -52,7 +52,9 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
           title: "",
           link: "",
           interests: [],
-          disinterests: [],
+          // Shown, not just written server-side, so the reader can remove one
+          // before the feed exists — createFeed no longer adds these itself.
+          disinterests: [...DEFAULT_DISINTERESTS],
           feedCategoryId: undefined,
           autoRefresh: true,
         },
