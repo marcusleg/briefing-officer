@@ -390,6 +390,19 @@ describe("feedRepository.addFeedFilter", () => {
     );
   });
 
+  it("is idempotent case-insensitively: adding a different-cased spelling leaves the original row", async () => {
+    const feed = await createFeed({ userId });
+
+    await addFeedFilter(feed.id, "INTEREST", "politics");
+    await addFeedFilter(feed.id, "INTEREST", "Politics");
+
+    const filters = await prisma.feedFilter.findMany({
+      where: { feedId: feed.id },
+    });
+    expect(filters).toHaveLength(1);
+    expect(filters[0].text).toBe("politics");
+  });
+
   it("treats INTEREST and DISINTEREST as distinct for the same text", async () => {
     const feed = await createFeed({ userId });
 

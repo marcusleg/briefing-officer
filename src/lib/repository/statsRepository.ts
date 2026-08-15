@@ -148,7 +148,7 @@ export const getFilteredArticlesPerDay = async (from: Date, to: Date) => {
   const dates = getDaysInDateRange(from, to);
 
   const rejectedArticles = await prisma.article.findMany({
-    select: { status: true, statusChangedAt: true },
+    select: { statusChangedAt: true },
     where: {
       status: "FILTERED",
       statusChangedAt: {

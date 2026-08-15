@@ -323,12 +323,30 @@ export const getFeedFilters = async (feedId: number) => {
  * `createMany({ skipDuplicates: true })`, which Prisma's SQLite connector does
  * not support. Adding an entry that is already present is something the reader
  * meant, not an error to report.
+ *
+ * The upsert's `where` only catches an exact-text match; SQLite's unique
+ * index is case-sensitive, and Prisma's SQLite connector does not support
+ * `mode: "insensitive"`. So a case-insensitive match against this feed's
+ * existing rows of the same kind is checked in JavaScript first — matching
+ * how `dedupeKeywords` in feedFilters.ts already treats "Politics" and
+ * "politics" as the same entry elsewhere in this feature.
  */
 export const addFeedFilter = async (
   feedId: number,
   kind: FeedFilterKind,
   text: string,
 ) => {
+  const existing = await prisma.feedFilter.findMany({
+    where: { feedId, kind },
+    select: { text: true },
+  });
+
+  if (
+    existing.some((filter) => filter.text.toLowerCase() === text.toLowerCase())
+  ) {
+    return;
+  }
+
   await prisma.feedFilter.upsert({
     where: { feedId_kind_text: { feedId, kind, text } },
     create: { feedId, kind, text },

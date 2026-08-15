@@ -1,4 +1,4 @@
-import { ArticleStatus, TokenUsage } from "@/generated/prisma/client";
+import { TokenUsage } from "@/generated/prisma/client";
 import {
   computeDailyAverage,
   shapeArticlesPerFeedPerDay,
@@ -67,8 +67,10 @@ describe("shapeArticlesPerFeedPerDay", () => {
 });
 
 describe("shapeRejectedArticlesPerDay", () => {
-  const rejected = (status: ArticleStatus, iso: string) => ({
-    status,
+  // The caller (getFilteredArticlesPerDay) already constrains its query to
+  // status: "FILTERED", so every article this function receives is one —
+  // there is no status field left to check here.
+  const rejected = (iso: string) => ({
     statusChangedAt: new Date(iso),
   });
 
@@ -85,9 +87,9 @@ describe("shapeRejectedArticlesPerDay", () => {
     const rows = shapeRejectedArticlesPerDay(
       ["2026-03-01"],
       [
-        rejected("FILTERED", "2026-03-01T08:00:00.000Z"),
-        rejected("FILTERED", "2026-03-01T20:00:00.000Z"),
-        rejected("FILTERED", "2026-03-01T12:00:00.000Z"),
+        rejected("2026-03-01T08:00:00.000Z"),
+        rejected("2026-03-01T20:00:00.000Z"),
+        rejected("2026-03-01T12:00:00.000Z"),
       ],
     );
 
@@ -98,8 +100,8 @@ describe("shapeRejectedArticlesPerDay", () => {
     const rows = shapeRejectedArticlesPerDay(
       ["2026-03-01", "2026-03-02", "2026-03-03"],
       [
-        rejected("FILTERED", "2026-03-01T08:00:00.000Z"),
-        rejected("FILTERED", "2026-03-03T08:00:00.000Z"),
+        rejected("2026-03-01T08:00:00.000Z"),
+        rejected("2026-03-03T08:00:00.000Z"),
       ],
     );
 
@@ -114,32 +116,19 @@ describe("shapeRejectedArticlesPerDay", () => {
     const rows = shapeRejectedArticlesPerDay(
       ["2026-03-02"],
       [
-        rejected("FILTERED", "2026-03-01T23:59:59.000Z"),
-        rejected("FILTERED", "2026-03-02T00:00:00.000Z"),
-        rejected("FILTERED", "2026-03-03T00:00:00.000Z"),
+        rejected("2026-03-01T23:59:59.000Z"),
+        rejected("2026-03-02T00:00:00.000Z"),
+        rejected("2026-03-03T00:00:00.000Z"),
       ],
     );
 
     expect(rows).toEqual([{ date: "2026-03-02", filtered: 1 }]);
   });
 
-  it("counts neither read nor unread articles as rejected", () => {
-    const rows = shapeRejectedArticlesPerDay(
-      ["2026-03-01"],
-      [
-        rejected("READ", "2026-03-01T08:00:00.000Z"),
-        rejected("UNREAD", "2026-03-01T09:00:00.000Z"),
-        rejected("READ_LATER", "2026-03-01T10:00:00.000Z"),
-      ],
-    );
-
-    expect(rows).toEqual([{ date: "2026-03-01", filtered: 0 }]);
-  });
-
   it("buckets by UTC day, not by the host timezone", () => {
     const rows = shapeRejectedArticlesPerDay(
       ["2026-03-01", "2026-03-02"],
-      [rejected("FILTERED", "2026-03-01T23:30:00.000Z")],
+      [rejected("2026-03-01T23:30:00.000Z")],
     );
 
     expect(rows).toEqual([
