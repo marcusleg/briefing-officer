@@ -17,6 +17,15 @@ vi.mock("sonner", () => ({
   toast: vi.fn(),
 }));
 
+vi.mock("@/lib/ai/services/filterSuggestionService", () => ({
+  suggestFilterKeywords: vi.fn(),
+}));
+
+vi.mock("@/lib/repository/feedRepository", () => ({
+  addFeedFilter: vi.fn().mockResolvedValue(undefined),
+  removeFeedFilter: vi.fn().mockResolvedValue(undefined),
+}));
+
 const article = {
   id: 1,
   feedId: 1,
