@@ -154,3 +154,51 @@ ${textContent}
 </content>
 </article>`;
 };
+
+/**
+ * Three suggestions at deliberately different breadths, because breadth is
+ * what decides a conflict between the two lists: an entry that is narrower
+ * than an opposing one wins. Three near-synonyms would leave the reader one
+ * usable choice.
+ *
+ * Fed the stored lead rather than the scraped article. Naming what a piece is
+ * about needs eighty words, and the ingest call already paid for the long read.
+ */
+export const buildFilterSuggestionPrompt = (
+  title: string,
+  summary: string,
+  existingDisinterests: string[],
+) => {
+  const alreadyExcluded =
+    existingDisinterests.length === 0
+      ? ""
+      : `
+
+The reader already excludes these, so do not repeat them or propose a close
+rewording of one:
+
+<already_excluded>
+${existingDisinterests.map((entry) => `- ${entry}`).join("\n")}
+</already_excluded>`;
+
+  return `A reader has just rejected the article below. Propose exactly three topic
+descriptions they could add to a list of subjects they do not want from this
+feed.
+
+Give the three at different breadths, from narrow to broad:
+
+1. narrow — the specific subject of this article
+2. medium — the wider category it belongs to
+3. broad — the general area, which would exclude a good deal more
+
+Each must be a short noun phrase describing a subject, not an instruction and
+not a sentence. Write them in the same language as the summary below. Describe
+what the article is about, never the fact that the reader disliked it.${alreadyExcluded}
+
+<article>
+<title>${title}</title>
+<summary>
+${summary}
+</summary>
+</article>`;
+};

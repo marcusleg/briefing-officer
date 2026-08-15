@@ -1,5 +1,6 @@
 import {
   buildAudioScriptPrompt,
+  buildFilterSuggestionPrompt,
   buildLeadPrompt,
   buildSummaryPrompt,
 } from "@/lib/ai/prompts";
@@ -183,5 +184,36 @@ describe("buildAudioScriptPrompt", () => {
     expect(buildAudioScriptPrompt(args)).toContain(
       "Write entirely in English.",
     );
+  });
+});
+
+describe("buildFilterSuggestionPrompt", () => {
+  it("includes the title and the summary", () => {
+    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", []);
+
+    expect(prompt).toContain("A Title");
+    expect(prompt).toContain("A summary.");
+  });
+
+  it("asks for three topics at different breadths", () => {
+    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", []);
+
+    expect(prompt).toContain("exactly three");
+    expect(prompt).toContain("narrow");
+    expect(prompt).toContain("broad");
+  });
+
+  it("lists the entries the reader already has, to avoid repeating them", () => {
+    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", [
+      "advertisements",
+    ]);
+
+    expect(prompt).toContain("- advertisements");
+  });
+
+  it("omits the existing-entries block when there are none", () => {
+    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", []);
+
+    expect(prompt).not.toContain("already_excluded");
   });
 });
