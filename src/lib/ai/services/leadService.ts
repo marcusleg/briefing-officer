@@ -1,5 +1,6 @@
 "use server";
 
+import { FeedFilterKind } from "@/generated/prisma/client";
 import { buildLeadPrompt, systemPrompt } from "@/lib/ai/prompts";
 import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
 import { normalizeLanguage } from "@/lib/language";
@@ -58,16 +59,24 @@ const filteringLeadSchema = leadSchema.extend({
 
 export const generateAiLead = async (articleId: number) => {
   const article = await prisma.article.findUniqueOrThrow({
-    include: { feed: true, scrape: true },
+    include: { feed: { include: { filters: true } }, scrape: true },
     where: { id: articleId },
   });
 
-  const interestProfile = article.feed.interestProfile;
-  const filtering = interestProfile !== "";
+  const keywordsOfKind = (kind: FeedFilterKind) =>
+    article.feed.filters
+      .filter((filter) => filter.kind === kind)
+      .map((filter) => filter.text);
+
+  const interests = keywordsOfKind("INTEREST");
+  const disinterests = keywordsOfKind("DISINTEREST");
+
+  const filtering = interests.length > 0 || disinterests.length > 0;
   const prompt = buildLeadPrompt(
     article.title,
     article.scrape?.textContent ?? "",
-    interestProfile,
+    interests,
+    disinterests,
   );
 
   // Each branch makes its own full `generateObject` call, rather than picking

@@ -11,62 +11,79 @@ const languageDirective = (language: string | null) =>
 export const systemPrompt =
   "You are a professional news editor writing article previews for a time-pressed professional readership. Write in a neutral, factual tone. Do not editorialize, express opinions, or draw conclusions not explicitly stated in the source material.";
 
-/**
- * The relevance block is appended only when the feed has an interest profile,
- * so a feed without one produces exactly the prompt it produced before this
- * feature existed — same text, same token count.
- *
- * The decision is framed as "should this be excluded", never as "does this
- * match the reader's interests". Most profiles are written as exclusions —
- * "everything except X" — and against one of those, a match test inverts: an
- * article that mentions nothing the reader named scores as "no match" and gets
- * filtered, which is precisely backwards. A model asked the match question
- * produced exactly that, reasoning that an article "does not overlap with the
- * reader's stated interests of avoiding coverage about KDE and Apple hardware"
- * and then filtering it. The reasoning was right and the question was wrong.
- *
- * Keeping is therefore the default, and exclusion needs positive grounds.
- */
-const relevanceDirective = (interestProfile: string) =>
-  interestProfile === ""
+const filterList = (name: string, entries: string[]) =>
+  entries.length === 0
     ? ""
     : `
+<reader_${name}>
+${entries.map((entry) => `- ${entry}`).join("\n")}
+</reader_${name}>
+`;
 
-The reader has described, in their own words, what they do and do not want to
-read from this feed:
+/**
+ * Appended only when the feed has at least one keyword, so a feed with neither
+ * list produces exactly the prompt it produced before filtering existed.
+ *
+ * The lists are rendered as structure rather than prose because the free-text
+ * profile this replaced had to be read for its polarity first: "everything
+ * except X" and "only X" lived in the same field and were told apart by
+ * wording, which a model got backwards. Two named lists cannot be misread for
+ * each other.
+ *
+ * Clause 2 is the load-bearing one. A reader may write a broad interest with a
+ * narrow exception ("kernel development" but not "USB drivers") or a broad
+ * disinterest with a narrow exception ("politics" but yes to "politics in the
+ * Faroe Islands"). No fixed precedence between the lists satisfies both;
+ * specificity satisfies both.
+ *
+ * Clause 4 is the only thing that produces "only…" behaviour. There is no mode
+ * flag anywhere — a non-empty interest list is the mode.
+ */
+const relevanceDirective = (interests: string[], disinterests: string[]) => {
+  if (interests.length === 0 && disinterests.length === 0) {
+    return "";
+  }
 
-<reader_preferences>
-${interestProfile}
-</reader_preferences>
+  // Only the applicable sentence is rendered, so the model is never reasoning
+  // about a branch that cannot fire.
+  const unmatched =
+    interests.length === 0
+      ? "If neither list speaks to this article, keep it."
+      : "If neither list speaks to this article, exclude it — the reader named what they want, and this is not it.";
 
-Read that description for its polarity before deciding. Most readers describe
-what they do NOT want: a preference like "everything except X" means keep every
-article that is not about X — the named topics are exclusions, not the only
-acceptable subjects. Some readers instead name only what they do want, and some
-do both. The wording tells you which.
+  return `
 
-Your decision is whether to exclude this article from the reader's inbox.
-Keeping it is the default. Set \`excludeArticle\` to true only when the
-preferences give a clear, positive reason to exclude this specific article —
-that is, when the article is plainly about something the reader said they do
-not want.
+The reader has named topics they want from this feed and topics they do not.
+${filterList("interests", interests)}${filterList("disinterests", disinterests)}
+Your decision is whether to exclude this article from the reader's inbox. Apply
+these rules in order:
 
-If the preferences do not speak to this article's subject at all, keep it. If
-you are unsure, keep it. Hiding an article the reader wanted is far worse than
-showing one they did not: whenever the two risks are close, keep it.
+1. If only one list speaks to this article, that list decides.
+2. If both lists speak to it and one entry is a narrower case of the other, the
+   narrower entry decides — whichever list it is in. "USB driver development"
+   is narrower than "Linux kernel development"; "politics in the Faroe Islands"
+   is narrower than "politics".
+3. If both lists speak to it independently, neither entry refining the other,
+   exclude it.
+4. ${unmatched}
 
-Report one sentence of reasoning as \`exclusionReason\`, naming the part of the
-preferences you applied, then your decision as \`excludeArticle\`. Write the
-reasoning in the same language as the lead.`;
+Judge what the article is about, not which words appear in it. An article that
+merely mentions a named topic in passing is not about it.
+
+Report one sentence of reasoning as \`exclusionReason\`, naming the entry you
+applied, then your decision as \`excludeArticle\`. Write the reasoning in the
+same language as the lead.`;
+};
 
 export const buildLeadPrompt = (
   title: string,
   textContent: string,
-  interestProfile: string,
+  interests: string[],
+  disinterests: string[],
 ) =>
   `Write a single paragraph summarizing what the article covers and why it is significant or timely. Be factual and objective. The summary must be no longer than 80 words. Do not copy the article's opening lines verbatim, and do not add introductory phrases, headings, or filler.
 
-First determine the language the article is written in and report it as a two-letter ISO 639-1 code, for example "de" for German. If the language cannot be established, report "und". Write the lead in the language you reported.${relevanceDirective(interestProfile)}
+First determine the language the article is written in and report it as a two-letter ISO 639-1 code, for example "de" for German. If the language cannot be established, report "und". Write the lead in the language you reported.${relevanceDirective(interests, disinterests)}
 
 <article>
 <title>${title}</title>
