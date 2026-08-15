@@ -4,6 +4,7 @@ import { markArticleAsNotInteresting } from "@/lib/repository/articleRepository"
 import { addFeedFilter } from "@/lib/repository/feedRepository";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useRouter } from "next/navigation";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/repository/articleRepository", () => ({
@@ -103,5 +104,43 @@ describe("NotInterestedButton", () => {
     await openPopover();
 
     expect(screen.getByText(/applies to future articles/i)).toBeTruthy();
+  });
+
+  // Regression test for the popover unmounting itself: markArticleAsNotInteresting
+  // used to revalidate the inbox list as a side effect, which — outside this
+  // mocked-server-action test, in the real app — drops the just-dismissed
+  // article out of the UNREAD query and unmounts this component's ArticleCard
+  // (and the popover with it) before the reader can see the suggestions. The
+  // fix defers revalidation to `router.refresh()`, called only when the
+  // popover closes. This test proves the popover is still open and usable
+  // — suggestion chips rendered, manual input present — after both
+  // `markArticleAsNotInteresting` and `suggestFilterKeywords` have resolved,
+  // and that no refresh (which would only belong on close) has happened yet.
+  it("keeps the popover open and usable after the dismissal and suggestion fetch resolve", async () => {
+    const refresh = vi.fn();
+    vi.mocked(useRouter).mockReturnValue({
+      push: vi.fn(),
+      back: vi.fn(),
+      refresh,
+    } as unknown as ReturnType<typeof useRouter>);
+    vi.mocked(suggestFilterKeywords).mockResolvedValue([
+      "USB driver development",
+      "device drivers",
+      "kernel internals",
+    ]);
+
+    await openPopover();
+
+    expect(markArticleAsNotInteresting).toHaveBeenCalledWith(1);
+    expect(
+      await screen.findByRole("button", { name: "USB driver development" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "device drivers" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "kernel internals" }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText("Add a keyword")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Not interested" })).toBeTruthy();
+    expect(refresh).not.toHaveBeenCalled();
   });
 });

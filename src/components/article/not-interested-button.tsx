@@ -20,6 +20,7 @@ import {
   removeFeedFilter,
 } from "@/lib/repository/feedRepository";
 import { ThumbsDownIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type SuggestionState =
@@ -34,6 +35,7 @@ const NotInterestedButton = ({
   article: Article;
   variant?: "secondary" | "ghost";
 }) => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [previousStatus, setPreviousStatus] = useState(article.status);
   const [suggestions, setSuggestions] = useState<SuggestionState>({
@@ -45,10 +47,20 @@ const NotInterestedButton = ({
   // Escaping the popover therefore leaves the article dismissed and the filter
   // untouched, which is the intended split: the popover is about the filter,
   // never about the article.
+  //
+  // markArticleAsNotInteresting does not revalidate on its own — see the
+  // comment on it in articleRepository.ts. Revalidating the list is deferred
+  // to here, when the popover actually closes, so the dismissed article's
+  // ArticleCard (and this popover with it) survives long enough for the
+  // reader to see the suggestions and use the manual input. The Undo button
+  // takes its own path: restoreArticleStatus revalidates itself and closes
+  // the popover directly (not through this handler), so this refresh never
+  // fires on top of it.
   const handleOpenChange = async (nextOpen: boolean) => {
     setOpen(nextOpen);
 
     if (!nextOpen) {
+      router.refresh();
       return;
     }
 
