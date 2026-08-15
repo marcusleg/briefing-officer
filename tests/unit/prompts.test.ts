@@ -189,14 +189,14 @@ describe("buildAudioScriptPrompt", () => {
 
 describe("buildFilterSuggestionPrompt", () => {
   it("includes the title and the summary", () => {
-    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", []);
+    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", [], []);
 
     expect(prompt).toContain("A Title");
     expect(prompt).toContain("A summary.");
   });
 
   it("asks for three topics at different breadths", () => {
-    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", []);
+    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", [], []);
 
     expect(prompt).toContain("exactly three");
     expect(prompt).toContain("narrow");
@@ -204,16 +204,39 @@ describe("buildFilterSuggestionPrompt", () => {
   });
 
   it("lists the entries the reader already has, to avoid repeating them", () => {
-    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", [
-      "advertisements",
-    ]);
+    const prompt = buildFilterSuggestionPrompt(
+      "A Title",
+      "A summary.",
+      ["advertisements"],
+      [],
+    );
 
     expect(prompt).toContain("- advertisements");
   });
 
   it("omits the existing-entries block when there are none", () => {
-    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", []);
+    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", [], []);
 
     expect(prompt).not.toContain("already_excluded");
+  });
+
+  it("lists the reader's existing interests, to avoid contradicting them", () => {
+    const prompt = buildFilterSuggestionPrompt(
+      "A Title",
+      "A summary.",
+      [],
+      ["Linux kernel development"],
+    );
+
+    expect(prompt).toContain("- Linux kernel development");
+    expect(prompt).toContain(
+      "do not propose a broader topic that would obviously swallow one of",
+    );
+  });
+
+  it("omits the interests block entirely when there are none", () => {
+    const prompt = buildFilterSuggestionPrompt("A Title", "A summary.", [], []);
+
+    expect(prompt).not.toContain("already_wanted");
   });
 });
