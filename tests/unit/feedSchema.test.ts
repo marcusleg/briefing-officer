@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 const validFeed = {
   title: "Example",
   link: "https://example.com/feed.xml",
-  interestProfile: "",
   autoRefresh: true,
 };
 
@@ -17,13 +16,41 @@ describe("feedSchema", () => {
     const result = feedSchema.safeParse({ ...validFeed, link: "not-a-url" });
     expect(result.success).toBe(false);
   });
+});
 
-  it("accepts an interest profile that is not a valid regular expression", () => {
-    const result = feedSchema.safeParse({
-      ...validFeed,
-      interestProfile: "I like databases [and unclosed brackets",
+describe("feedSchema keyword lists", () => {
+  const base = {
+    title: "T",
+    link: "https://example.com/feed.xml",
+    autoRefresh: true,
+  };
+
+  it("defaults both lists to empty", () => {
+    const parsed = feedSchema.parse(base);
+
+    expect(parsed.interests).toEqual([]);
+    expect(parsed.disinterests).toEqual([]);
+  });
+
+  it("trims entries", () => {
+    const parsed = feedSchema.parse({ ...base, interests: ["  kernel  "] });
+
+    expect(parsed.interests).toEqual(["kernel"]);
+  });
+
+  it("rejects an entry that is empty once trimmed", () => {
+    expect(() => feedSchema.parse({ ...base, interests: ["   "] })).toThrow();
+  });
+
+  it("keeps entries containing spaces intact", () => {
+    const parsed = feedSchema.parse({
+      ...base,
+      disinterests: ["long form opinion pieces about football"],
     });
-    expect(result.success).toBe(true);
+
+    expect(parsed.disinterests).toEqual([
+      "long form opinion pieces about football",
+    ]);
   });
 });
 

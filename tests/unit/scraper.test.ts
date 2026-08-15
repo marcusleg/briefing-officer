@@ -44,7 +44,6 @@ const makeFeed = (link = "https://example.com/feed.xml"): Feed =>
     lastFetched: new Date(0),
     createdAt: new Date(),
     updatedAt: new Date(),
-    interestProfile: "",
     feedCategoryId: null,
   }) as Feed;
 

@@ -1,7 +1,13 @@
 "use server";
 
-import { Article, Feed } from "@/generated/prisma/client";
+import {
+  Article,
+  Feed,
+  FeedFilterKind,
+  Prisma,
+} from "@/generated/prisma/client";
 import { generateAiLead } from "@/lib/ai/services/leadService";
+import { DEFAULT_DISINTERESTS, dedupeKeywords } from "@/lib/feedFilters";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
@@ -10,6 +16,28 @@ import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+/**
+ * Deduplicated in JavaScript rather than with `createMany({ skipDuplicates })`,
+ * which Prisma's SQLite connector does not support. The database's unique
+ * constraint remains the backstop.
+ */
+const filterRows = (
+  feedId: number,
+  interests: string[],
+  disinterests: string[],
+) => [
+  ...dedupeKeywords(interests).map((text) => ({
+    feedId,
+    kind: "INTEREST" as FeedFilterKind,
+    text,
+  })),
+  ...dedupeKeywords(disinterests).map((text) => ({
+    feedId,
+    kind: "DISINTEREST" as FeedFilterKind,
+    text,
+  })),
+];
 
 export const createFeed = async (feed: FeedSchema) => {
   const fetchedFeed = await fetch(feed.link).then((res) => res.text());
@@ -23,11 +51,23 @@ export const createFeed = async (feed: FeedSchema) => {
 
   const createdFeed = await prisma.feed.create({
     data: {
-      ...feed,
       title: feed.title || parsedFeed.title,
+      link: feed.link,
+      autoRefresh: feed.autoRefresh,
+      feedCategoryId: feed.feedCategoryId ?? null,
       lastFetched: new Date(0),
       userId: userId,
     },
+  });
+
+  // Seeded only on create. An update that arrives with an empty disinterest
+  // list means the reader removed the defaults, and re-adding them here would
+  // make them unremovable.
+  await prisma.feedFilter.createMany({
+    data: filterRows(createdFeed.id, feed.interests, [
+      ...feed.disinterests,
+      ...DEFAULT_DISINTERESTS,
+    ]),
   });
 
   revalidatePath("/feed", "layout");
@@ -181,11 +221,21 @@ export const refreshFeeds = async () => {
 export const updateFeed = async (feedId: number, feed: FeedSchema) => {
   const userId = await getUserId();
 
-  await prisma.feed.update({
-    where: { id: feedId, userId },
-    data: {
-      ...feed,
-    },
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    await tx.feed.update({
+      where: { id: feedId, userId },
+      data: {
+        title: feed.title,
+        link: feed.link,
+        autoRefresh: feed.autoRefresh,
+        feedCategoryId: feed.feedCategoryId ?? null,
+      },
+    });
+
+    await tx.feedFilter.deleteMany({ where: { feedId } });
+    await tx.feedFilter.createMany({
+      data: filterRows(feedId, feed.interests, feed.disinterests),
+    });
   });
 
   revalidatePath("/feed", "layout");
@@ -251,4 +301,19 @@ export const deleteCategory = async (categoryId: number) => {
   });
 
   revalidatePath("/feed", "layout");
+};
+
+export const getFeedFilters = async (feedId: number) => {
+  const filters = await prisma.feedFilter.findMany({
+    where: { feedId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const textsOfKind = (kind: FeedFilterKind) =>
+    filters.filter((filter) => filter.kind === kind).map((f) => f.text);
+
+  return {
+    interests: textsOfKind("INTEREST"),
+    disinterests: textsOfKind("DISINTEREST"),
+  };
 };

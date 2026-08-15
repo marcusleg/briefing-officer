@@ -1,7 +1,12 @@
 import type { Feed } from "@/generated/prisma/client";
 import prisma from "@/lib/prismaClient";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createCategory, createFeed, createUser } from "../helpers/factories";
+import {
+  createCategory,
+  createFeed,
+  createFeedFilter,
+  createUser,
+} from "../helpers/factories";
 
 // --- Boundary mocks (hoisted by Vitest) ---
 vi.mock("@/lib/repository/userRepository", () => ({
@@ -92,10 +97,7 @@ describe("feedRepository.refreshFeed", () => {
   });
 
   it("persists every fetched item now that regex filtering is gone", async () => {
-    const feed = await createFeed({
-      userId,
-      interestProfile: "Skip sports coverage",
-    });
+    const feed = await createFeed({ userId });
     vi.mocked(scrapeFeed).mockResolvedValue([
       feedItem("Breaking", "https://example.com/a"),
       feedItem("Sports roundup", "https://example.com/b"),
@@ -149,7 +151,8 @@ describe("feedRepository.createFeed", () => {
     await createFeedAction({
       title: "",
       link: "https://example.com/new.xml",
-      interestProfile: "",
+      interests: [],
+      disinterests: [],
       autoRefresh: true,
     });
 
@@ -168,7 +171,8 @@ describe("feedRepository.updateFeed", () => {
     await updateFeed(feed.id, {
       title: "New",
       link: feed.link,
-      interestProfile: "",
+      interests: [],
+      disinterests: [],
       autoRefresh: false,
     });
 
@@ -273,5 +277,86 @@ describe("feedRepository.refreshCategoryFeeds", () => {
     expect(
       await prisma.article.count({ where: { feedId: outOfCategory.id } }),
     ).toBe(0);
+  });
+});
+
+describe("feed keyword filters", () => {
+  it("seeds the default disinterests when creating a feed", async () => {
+    // Mirrors the fetch stub in "feedRepository.createFeed" above: createFeed
+    // fetches and parses the feed URL before it writes anything.
+    const xml = `<?xml version="1.0"?><rss version="2.0"><channel><title>T</title></channel></rss>`;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
+    vi.mocked(scrapeFeed).mockResolvedValue([]);
+
+    await createFeedAction({
+      title: "",
+      link: "https://example.com/seeded.xml",
+      interests: [],
+      disinterests: [],
+      autoRefresh: true,
+    });
+
+    const feed = await prisma.feed.findFirstOrThrow({
+      where: { userId },
+      include: { filters: true },
+    });
+
+    expect(
+      feed.filters
+        .filter((filter) => filter.kind === "DISINTEREST")
+        .map((filter) => filter.text),
+    ).toEqual(["advertisements", "sponsored posts"]);
+
+    vi.unstubAllGlobals();
+  });
+
+  it("replaces the whole filter set on update", async () => {
+    const userId = (await createUser()).id;
+    vi.mocked(getUserId).mockResolvedValue(userId);
+    const feed = await createFeed({ userId });
+    await createFeedFilter({
+      feedId: feed.id,
+      kind: "INTEREST",
+      text: "gone after update",
+    });
+
+    await updateFeed(feed.id, {
+      title: feed.title,
+      link: feed.link,
+      autoRefresh: feed.autoRefresh,
+      interests: ["kernel"],
+      disinterests: ["usb"],
+    });
+
+    const filters = await prisma.feedFilter.findMany({
+      where: { feedId: feed.id },
+      orderBy: { text: "asc" },
+    });
+
+    expect(filters.map((filter) => `${filter.kind}:${filter.text}`)).toEqual([
+      "INTEREST:kernel",
+      "DISINTEREST:usb",
+    ]);
+  });
+
+  it("does not re-seed the defaults on update", async () => {
+    const userId = (await createUser()).id;
+    vi.mocked(getUserId).mockResolvedValue(userId);
+    const feed = await createFeed({ userId });
+
+    await updateFeed(feed.id, {
+      title: feed.title,
+      link: feed.link,
+      autoRefresh: feed.autoRefresh,
+      interests: [],
+      disinterests: [],
+    });
+
+    expect(await prisma.feedFilter.count({ where: { feedId: feed.id } })).toBe(
+      0,
+    );
   });
 });

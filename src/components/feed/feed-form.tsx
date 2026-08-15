@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { Feed, FeedCategory } from "@/generated/prisma/client";
 import {
   createFeed,
+  getFeedFilters,
   getUserCategories,
   updateFeed,
 } from "@/lib/repository/feedRepository";
@@ -25,6 +25,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface FeedFormProps {
   editFeed?: Feed;
@@ -34,20 +35,22 @@ interface FeedFormProps {
 const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
   const [categories, setCategories] = useState<FeedCategory[]>([]);
 
-  const form = useForm<FeedSchema>({
+  const form = useForm<z.input<typeof feedSchema>, unknown, FeedSchema>({
     resolver: zodResolver(feedSchema),
     defaultValues: editFeed
       ? {
           title: editFeed.title,
           link: editFeed.link,
-          interestProfile: editFeed.interestProfile,
+          interests: [],
+          disinterests: [],
           feedCategoryId: editFeed.feedCategoryId ?? undefined,
           autoRefresh: editFeed.autoRefresh,
         }
       : {
           title: "",
           link: "",
-          interestProfile: "",
+          interests: [],
+          disinterests: [],
           feedCategoryId: undefined,
           autoRefresh: true,
         },
@@ -67,6 +70,20 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
 
     fetchCategories();
   }, []);
+
+  // TODO(task 5): replace with the KeywordListField wiring — this only keeps
+  // the form on the new schema so it still compiles and edits load their
+  // existing lists.
+  useEffect(() => {
+    if (!editFeed) {
+      return;
+    }
+
+    getFeedFilters(editFeed.id).then(({ interests, disinterests }) => {
+      form.setValue("interests", interests);
+      form.setValue("disinterests", disinterests);
+    });
+  }, [editFeed, form]);
 
   const submitHandler = async (values: FeedSchema) => {
     setSubmitting(true);
@@ -148,26 +165,59 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
             )}
           />
 
+          {/* TODO(task 5): swap these for KeywordListField-backed chip inputs. */}
           <FormField
             control={form.control}
-            name="interestProfile"
+            name="interests"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Interest Profile</FormLabel>
+                <FormLabel>Interested in</FormLabel>
                 <FormControl>
-                  <Textarea
-                    className="resize-none"
+                  <Input
                     disabled={submitting}
-                    placeholder="Everything except press releases and sponsored posts.&#10;&#10;Or, to narrow it right down: only database internals, distributed systems, and language design."
-                    rows={5}
-                    {...field}
+                    placeholder="Linux kernel development, distributed systems"
+                    value={(field.value ?? []).join(", ")}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value
+                          .split(",")
+                          .map((entry) => entry.trim())
+                          .filter((entry) => entry !== ""),
+                      )
+                    }
                   />
                 </FormControl>
                 <FormDescription>
-                  Describe what you do or don&apos;t want from this feed, in
-                  your own words. Articles are kept unless you&apos;ve ruled
-                  them out. Leave empty to see everything.
+                  Comma-separated. Leave empty to keep everything from this feed
+                  unless ruled out below.
                 </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="disinterests"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Not interested in</FormLabel>
+                <FormControl>
+                  <Input
+                    disabled={submitting}
+                    placeholder="USB driver development, press releases"
+                    value={(field.value ?? []).join(", ")}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value
+                          .split(",")
+                          .map((entry) => entry.trim())
+                          .filter((entry) => entry !== ""),
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormDescription>Comma-separated.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

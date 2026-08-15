@@ -1,4 +1,5 @@
 import { PrismaClient } from "@/generated/prisma/client";
+import { DEFAULT_DISINTERESTS, dedupeKeywords } from "@/lib/feedFilters";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { hashPassword } from "better-auth/crypto";
 import { randomUUID } from "crypto";
@@ -192,8 +193,12 @@ async function main() {
       title: "Hacker News",
       link: "https://hnrss.org/newest?points=500",
       categoryId: tech.id,
-      interestProfile:
-        "Software engineering, distributed systems, and developer tooling. Not interested in funding announcements or crypto.",
+      interests: [
+        "software engineering",
+        "distributed systems",
+        "developer tooling",
+      ],
+      disinterests: ["funding announcements", "crypto"],
     },
     {
       title: "CNCF Blog",
@@ -228,6 +233,12 @@ async function main() {
   ];
 
   for (const def of feedDefs) {
+    const interests = dedupeKeywords(def.interests ?? []);
+    const disinterests = dedupeKeywords([
+      ...(def.disinterests ?? []),
+      ...DEFAULT_DISINTERESTS,
+    ]);
+
     const feed = await prisma.feed.create({
       data: {
         userId,
@@ -235,7 +246,15 @@ async function main() {
         link: def.link,
         lastFetched: new Date(),
         feedCategoryId: def.categoryId,
-        interestProfile: def.interestProfile ?? "",
+        filters: {
+          create: [
+            ...interests.map((text) => ({ kind: "INTEREST" as const, text })),
+            ...disinterests.map((text) => ({
+              kind: "DISINTEREST" as const,
+              text,
+            })),
+          ],
+        },
       },
     });
 
