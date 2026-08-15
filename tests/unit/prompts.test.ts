@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 
 describe("buildLeadPrompt", () => {
   it("includes the title and the article text", () => {
-    const prompt = buildLeadPrompt("My Title", "Body text here", "");
+    const prompt = buildLeadPrompt("My Title", "Body text here", [], []);
     expect(prompt).toContain("My Title");
     expect(prompt).toContain("Body text here");
     expect(prompt).toContain("no longer than 80 words");
@@ -16,60 +16,86 @@ describe("buildLeadPrompt", () => {
   it("asks the model to report the language as an ISO 639-1 code", () => {
     // The lead is the one call that determines the language; everything
     // downstream reads what it stored.
-    const prompt = buildLeadPrompt("My Title", "Body text here", "");
+    const prompt = buildLeadPrompt("My Title", "Body text here", [], []);
     expect(prompt).toContain("ISO 639-1");
     expect(prompt).toContain('"und"');
   });
 
   it("asks for the lead in the language it reports", () => {
-    const prompt = buildLeadPrompt("My Title", "Body text here", "");
+    const prompt = buildLeadPrompt("My Title", "Body text here", [], []);
     expect(prompt).toContain("in the language you reported");
   });
 
-  it("leaves the lead prompt unchanged when no interest profile is set", () => {
-    const prompt = buildLeadPrompt("Title", "Body", "");
+  it("leaves the lead prompt unchanged when both lists are empty", () => {
+    const prompt = buildLeadPrompt("Title", "Body", [], []);
 
-    expect(prompt).not.toContain("reader_preferences");
+    expect(prompt).not.toContain("reader_interests");
+    expect(prompt).not.toContain("reader_disinterests");
     expect(prompt).not.toContain("excludeArticle");
     expect(prompt).toContain("no longer than 80 words");
   });
 
-  it("states the reader's preferences and asks for a verdict when one is set", () => {
-    const prompt = buildLeadPrompt("Title", "Body", "Only database internals");
+  it("renders only the list that has entries", () => {
+    const prompt = buildLeadPrompt("Title", "Body", [], ["press releases"]);
 
-    expect(prompt).toContain("Only database internals");
+    expect(prompt).toContain("<reader_disinterests>");
+    expect(prompt).toContain("- press releases");
+    expect(prompt).not.toContain("<reader_interests>");
+  });
+
+  it("renders both lists when both have entries", () => {
+    const prompt = buildLeadPrompt(
+      "Title",
+      "Body",
+      ["Linux kernel development"],
+      ["USB driver development"],
+    );
+
+    expect(prompt).toContain("- Linux kernel development");
+    expect(prompt).toContain("- USB driver development");
     expect(prompt).toContain("excludeArticle");
   });
 
-  // The prompt asks whether to EXCLUDE, never whether the article "matches"
-  // the reader's interests. Against the common "everything except X" profile a
-  // match test inverts — an article about none of the named topics reads as
-  // "no match" and gets filtered, which is backwards. These assertions are the
-  // guard on that framing, so a future reword cannot quietly reintroduce it.
-  it("frames the decision as exclusion rather than as matching interests", () => {
+  // Specificity, not list precedence, is what settles a conflict. Both of the
+  // examples that motivated the rule pull in opposite directions under any
+  // fixed precedence, so this instruction is the whole design in one sentence
+  // and a reword must not lose it.
+  it("tells the model that the narrower entry wins, whichever list it is in", () => {
     const prompt = buildLeadPrompt(
       "Title",
       "Body",
-      "I'm interested in everything, except news about KDE and Apple hardware",
-    );
-
-    expect(prompt).not.toContain("matches those interests");
-    expect(prompt).not.toContain("matchesInterests");
-    expect(prompt).toContain("everything except");
-  });
-
-  it("tells the model to keep the article when the preferences are unclear", () => {
-    // Collapsed so the assertions survive the prompt being rewrapped.
-    const prompt = buildLeadPrompt(
-      "Title",
-      "Body",
-      "No Apple hardware",
+      ["politics"],
+      ["sport"],
     ).replace(/\s+/g, " ");
 
-    expect(prompt).toContain("Keeping it is the default");
-    expect(prompt).toContain("If you are unsure, keep it");
     expect(prompt).toContain(
-      "Hiding an article the reader wanted is far worse than showing one they did not",
+      "the narrower entry decides — whichever list it is in",
+    );
+  });
+
+  it("keeps an unmatched article when the interest list is empty", () => {
+    const prompt = buildLeadPrompt("Title", "Body", [], ["sport"]).replace(
+      /\s+/g,
+      " ",
+    );
+
+    expect(prompt).toContain("If neither list speaks to this article, keep it");
+    expect(prompt).not.toContain(
+      "exclude it — the reader named what they want",
+    );
+  });
+
+  it("excludes an unmatched article when the interest list is not empty", () => {
+    const prompt = buildLeadPrompt("Title", "Body", ["kernel"], []).replace(
+      /\s+/g,
+      " ",
+    );
+
+    expect(prompt).toContain(
+      "If neither list speaks to this article, exclude it",
+    );
+    expect(prompt).not.toContain(
+      "If neither list speaks to this article, keep it",
     );
   });
 });

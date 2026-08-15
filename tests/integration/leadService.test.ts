@@ -1,7 +1,13 @@
+import { FeedFilterKind } from "@/generated/prisma/client";
 import prisma from "@/lib/prismaClient";
 import { generateObject } from "ai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createArticle, createFeed, createUser } from "../helpers/factories";
+import {
+  createArticle,
+  createFeed,
+  createFeedFilter,
+  createUser,
+} from "../helpers/factories";
 
 // Mock the AI registry's top-level model and the `ai` SDK BEFORE importing the service.
 vi.mock("@/lib/ai/registry", () => ({
@@ -41,6 +47,12 @@ beforeEach(async () => {
   userId = (await createUser()).id;
   feedId = (await createFeed({ userId })).id;
 });
+
+const feedWithKeyword = async (kind: FeedFilterKind, text: string) => {
+  const feed = await createFeed({ userId });
+  await createFeedFilter({ feedId: feed.id, kind, text });
+  return feed.id;
+};
 
 describe("generateAiLead", () => {
   it("stores the generated lead and records token usage", async () => {
@@ -141,10 +153,21 @@ describe("relevance filtering", () => {
     expect(stored.filterReason).toBeNull();
   });
 
+  it("does not ask for a verdict when the feed has no keywords", async () => {
+    const article = await createArticle({ userId, feedId });
+    mockGeneration("en");
+
+    await generateAiLead(article.id);
+
+    const [call] = vi.mocked(generateObject).mock.calls;
+    expect(Object.keys((call[0] as any).schema.shape)).toEqual([
+      "language",
+      "lead",
+    ]);
+  });
+
   it("filters the article and records the reason when it is excluded", async () => {
-    const filteredFeedId = (
-      await createFeed({ userId, interestProfile: "Only databases" })
-    ).id;
+    const filteredFeedId = await feedWithKeyword("INTEREST", "databases");
     const article = await createArticle({ userId, feedId: filteredFeedId });
     mockVerdict(true, "This is a funding round announcement.");
 
@@ -160,9 +183,7 @@ describe("relevance filtering", () => {
   });
 
   it("sets statusChangedAt when it filters", async () => {
-    const filteredFeedId = (
-      await createFeed({ userId, interestProfile: "Only databases" })
-    ).id;
+    const filteredFeedId = await feedWithKeyword("INTEREST", "databases");
     const longAgo = new Date("2020-01-01T00:00:00.000Z");
     const article = await createArticle({
       userId,
@@ -180,9 +201,7 @@ describe("relevance filtering", () => {
   });
 
   it("leaves the article unread when the model call throws", async () => {
-    const filteredFeedId = (
-      await createFeed({ userId, interestProfile: "Only databases" })
-    ).id;
+    const filteredFeedId = await feedWithKeyword("INTEREST", "databases");
     const article = await createArticle({ userId, feedId: filteredFeedId });
     vi.mocked(generateObject).mockRejectedValueOnce(new Error("provider down"));
 
@@ -195,9 +214,7 @@ describe("relevance filtering", () => {
   });
 
   it("leaves the article unread when it is not excluded", async () => {
-    const filteredFeedId = (
-      await createFeed({ userId, interestProfile: "Only databases" })
-    ).id;
+    const filteredFeedId = await feedWithKeyword("INTEREST", "databases");
     const article = await createArticle({ userId, feedId: filteredFeedId });
     mockVerdict(false, "Directly about query planners.");
 
@@ -218,13 +235,17 @@ describe("relevance filtering", () => {
   // interests. Nothing at this layer can stop a model returning the wrong
   // boolean, so this pins the layer that can: `false` means keep, always.
   it("keeps an article the model did not exclude, under an exclusion-style profile", async () => {
-    const feedWithExclusions = (
-      await createFeed({
-        userId,
-        interestProfile:
-          "I'm interested in everything, except news about KDE and Apple hardware",
-      })
-    ).id;
+    const feedWithExclusions = (await createFeed({ userId })).id;
+    await createFeedFilter({
+      feedId: feedWithExclusions,
+      kind: "DISINTEREST",
+      text: "KDE",
+    });
+    await createFeedFilter({
+      feedId: feedWithExclusions,
+      kind: "DISINTEREST",
+      text: "Apple hardware",
+    });
     const article = await createArticle({
       userId,
       feedId: feedWithExclusions,
@@ -248,9 +269,7 @@ describe("relevance filtering", () => {
     // generation failed at ingest. article-card.tsx backfills it lazily on
     // render, which must not let a late "does not match" verdict flip the
     // article into FILTERED — it should stay exactly where the reader put it.
-    const filteredFeedId = (
-      await createFeed({ userId, interestProfile: "Only databases" })
-    ).id;
+    const filteredFeedId = await feedWithKeyword("INTEREST", "databases");
     const article = await createArticle({
       userId,
       feedId: filteredFeedId,
