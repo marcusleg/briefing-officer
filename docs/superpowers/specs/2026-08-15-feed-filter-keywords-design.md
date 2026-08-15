@@ -14,8 +14,14 @@ and "no politics, except Faroese politics" with the same mechanism.
 The "not interested" button, which today only sets
 `ArticleStatus.NOT_INTERESTED` and stops there, becomes the entry point to that
 mechanism. Clicking it dismisses the article and opens a popover offering three
-model-generated keyword suggestions at different breadths, plus a free-text
-field, all of which write into the feed's disinterest list.
+model-generated keyword suggestions at different breadths, alongside an
+always-available free-text field, all of which write into the feed's disinterest
+list.
+
+`ArticleStatus.NOT_INTERESTED` is removed along the way. Once a rejection
+teaches the filter a keyword, a status recording that the reader rejected
+something has nothing left to say that `FILTERED` plus `filterReason` does not,
+and the state it existed to enable is now reached through the keyword instead.
 
 Every feed starts with "advertisements" and "sponsored posts" in its disinterest
 list, seeded as ordinary rows so the reader can delete them.
@@ -51,8 +57,9 @@ go.
 - A single, statable rule for how the lists interact, covering the case where
   one entry is a narrower version of another.
 - The "not interested" button writes into the disinterest list, with model-
-  generated suggestions and a manual fallback.
+  generated suggestions and an always-available manual input beside them.
 - Sensible defaults, deletable.
+- One terminal state for rejected articles instead of two.
 
 ## Non-goals
 
@@ -153,10 +160,10 @@ becomes `include: { feed: { include: { filters: true } }, scrape: true }`.
 
 ### The popover opens on click, and the dismissal commits first
 
-Clicking "not interested" sets `NOT_INTERESTED` immediately, then opens the
-popover. Dismissing the popover with Escape leaves the article dismissed and
-teaches the filter nothing — the popover is about the filter, never about the
-article, so closing it cannot lose the reader's action.
+Clicking "not interested" sets `FILTERED` immediately, then opens the popover.
+Dismissing the popover with Escape leaves the article dismissed and teaches the
+filter nothing — the popover is about the filter, never about the article, so
+closing it cannot lose the reader's action.
 
 **Alternative rejected: keeping the dismissal a single instant click, with the
 suggestion flow behind a "teach the filter" action on the undo toast.** It
@@ -167,6 +174,43 @@ on the common case. Toast actions are also transient: look away and the chance
 to teach is gone.
 
 The accepted cost is a model call and a decision on every dismissal.
+
+### `ArticleStatus.NOT_INTERESTED` is removed
+
+Reader rejections become `FILTERED`, the same state a model verdict produces,
+with `filterReason` carrying "You marked this as not interested."
+
+The previous design gave two reasons for keeping the two states apart: recording
+rejections separately "is what will later let the filter learn from them", and
+"keeping the two apart is what makes the model's precision measurable". This
+design consumes the first — the learning signal is now the keyword the reader
+writes at rejection time, not the status left behind, and a rejection that
+teaches a keyword needs no separate state to be useful later.
+
+The second reason is not consumed, and removing the state costs it. See
+"Accepted regressions".
+
+With the state gone, a reader rejection and a model verdict differ only in what
+`filterReason` says, which is what the Filtered view was already showing.
+
+## Accepted regressions
+
+**The rejected-articles chart loses its split.** `shapeRejectedArticlesPerDay`
+currently returns `{ date, filtered, notInterested }` and the chart stacks the
+two, so the total answers "how much never reached me" while the lower segment
+alone shows how the filter itself is doing. With one status there is nothing to
+split on, so the chart becomes a single series and that second reading is gone.
+It shipped one release ago, in d9b0329.
+
+What is lost specifically is the answer to "how often does the filter miss
+something I then have to reject by hand" — the one number that says whether the
+keyword lists are working. Nothing in this design replaces it.
+
+There is a natural replacement, and it is deliberately not in scope here:
+`FeedFilter.createdAt` makes "keywords added per day" available, which measures
+teaching events rather than rejections and is arguably the better signal for
+keyword-based filtering. Charting it is a separate change against a table that
+does not exist yet.
 
 ## Schema
 
@@ -191,6 +235,9 @@ model FeedFilter {
 `Feed` loses `interestProfile String @default("")` and gains
 `filters FeedFilter[]`.
 
+`ArticleStatus` loses `NOT_INTERESTED`, leaving `UNREAD`, `READ_LATER`,
+`FILTERED`, `READ`.
+
 `DISINTEREST` is retained as the internal name for symmetry with `INTEREST`,
 notwithstanding that "disinterest" strictly means impartiality. The user-facing
 labels are "Interested in" and "Not interested in", which match the button that
@@ -204,6 +251,14 @@ feeds the second list.
 2. Insert `DISINTEREST` rows for "advertisements" and "sponsored posts" against
    every existing feed.
 3. Drop `Feed.interestProfile`.
+4. Backfill `filterReason` with "You marked this as not interested." for every
+   article whose status is `NOT_INTERESTED` and whose `filterReason` is null,
+   then set those articles' status to `FILTERED`.
+
+Step 4 runs in that order deliberately: the reason must be written before the
+status that identified those rows is overwritten, or the rows can no longer be
+found. SQLite stores the enum as `TEXT` with a check constraint, so the data
+migration has to precede the constraint change within the same migration.
 
 Existing profile prose is not converted. There is no honest automatic
 translation from a paragraph into two keyword lists, and the two alternatives
@@ -302,6 +357,13 @@ then `createMany`.
 `NotInterestedButton` becomes a popover trigger. On click it calls
 `markArticleAsNotInteresting` as it does today, then opens.
 
+`markArticleAsNotInteresting` keeps its name — it is still what the reader is
+expressing — but now sets `FILTERED` and writes `filterReason`. `filterReason`
+is not part of `setArticleStatus`'s signature, so this becomes the second write
+to bypass the chokepoint, after the one in `generateAiLead`. Rather than add a
+third exception later, `setArticleStatus` takes an optional `filterReason` and
+both callers go through it.
+
 The popover header carries "Marked as not interested" and an Undo for the
 dismissal — relocated from the toast rather than removed, because the dismissal
 is a single-step action that can be hit by accident, and firing a toast beneath
@@ -336,13 +398,27 @@ Suggestions are written in the lead's language, consistent with
 
 ### Rendering
 
-Suggestions are chips, inserted on click, multi-selectable, showing an added
-state. A skeleton occupies their place while generating. Below them sits the
-same keyword input as the feed form.
+The popover has two parts, and the second is always present.
 
-If no model is configured or the call fails, the chips are replaced by a quiet
-note and the text input continues to work. The manual path must not depend on
-the model path — a reader who cannot reach the AI must still be able to filter.
+**Suggestions**, when available: three chips, inserted on click,
+multi-selectable, showing an added state. A skeleton occupies their place while
+generating.
+
+**A free-text keyword input**, unconditionally. It is the same
+`KeywordListField` input the feed form uses, and it is rendered in every state
+of the popover — while the suggestions are still generating, after they arrive,
+when the reader has already accepted one or more of them, and when there are no
+suggestions at all. It is not a fallback shown only when the model path fails. A
+reader who wants to type "quarterly earnings roundups" instead of picking a chip
+can always do so, and can do it without waiting for the generation to finish.
+
+The three states of the suggestion area, then, are: generating (skeleton),
+generated (chips), and unavailable (a quiet note, when no model is configured or
+the call failed). The input sits below all three, unchanged.
+
+That the manual path never depends on the model path is the point: a reader who
+cannot reach the AI must still be able to filter, and a reader who can reach it
+must still be able to ignore it.
 
 The popover writes `DISINTEREST` rows only.
 
@@ -350,7 +426,8 @@ The popover writes `DISINTEREST` rows only.
 
 - `suggestFilterKeywords` failing is not an error the reader must act on. The
   suggestion area degrades to the note described above; the dismissal has
-  already been committed and the manual input is unaffected.
+  already been committed and the manual input, being unconditional, is
+  unaffected.
 - Adding an entry that already exists is not an error either. The unique
   constraint makes the insert idempotent; the UI shows the entry as present.
 - A feed edit saved while a popover added an entry: the form submits the list as
@@ -376,8 +453,18 @@ defaults in `createFeed`, and cascade deletion with the feed. In
 and non-filtering schemas as the lists change.
 
 A component test for the popover following the existing
-`tests/components/article/` pattern: dismissal commits on open, the manual input
-works when suggestions fail, chips insert on click.
+`tests/components/article/` pattern: dismissal commits on open, chips insert on
+click, and the manual input is present and usable in all three suggestion states
+— generating, generated, and unavailable — not merely when suggestions fail.
+
+The existing tests that enumerate statuses need narrowing rather than deleting:
+`tests/unit/article.test.ts`, `tests/integration/articleRepository.test.ts`, and
+`tests/components/article/dismiss-button.test.tsx` all iterate
+`["READ", "FILTERED", "NOT_INTERESTED"]`, and
+`tests/unit/statsTransforms.test.ts` and
+`tests/integration/statsRepository.test.ts` assert the two-series shape
+throughout. Their assertions about `FILTERED` still hold and should survive the
+edit intact; only the `NOT_INTERESTED` arm and the `notInterested` field go.
 
 The four arbitration clauses are model behaviour rather than code paths.
 Asserting them against a mocked model would prove only that the mock returns
@@ -386,6 +473,8 @@ regressions in them will surface as filtering complaints rather than as red
 tests. This is a known gap, not an oversight.
 
 ## Files touched
+
+Keyword lists:
 
 - `prisma/schema.prisma` — `FeedFilterKind`, `FeedFilter`, `Feed.filters`, drop
   `Feed.interestProfile`
@@ -403,4 +492,27 @@ tests. This is a known gap, not an oversight.
 - `src/components/feed/keyword-list-field.tsx` — new
 - `src/components/feed/feed-form.tsx` — replace the textarea
 - `src/components/article/not-interested-button.tsx` — popover
-- tests as enumerated above
+
+Removing `NOT_INTERESTED`:
+
+- `prisma/schema.prisma` — drop the enum member
+- `src/lib/repository/articleRepository.ts:143` — `markArticleAsNotInteresting`
+  sets `FILTERED` with a reason; `setArticleStatus` gains the optional
+  `filterReason`
+- `src/lib/article.ts:26` — the `isInInbox` comment names the terminal states
+- `src/components/article/article-card.tsx:145–152` — the reason block collapses
+  to a single `FILTERED` branch. Its current fallback for a `FILTERED` article
+  with no `filterReason` reads "You marked this as not interesting.", which was
+  already wrong — that branch is a model verdict, not a reader one — and becomes
+  conspicuously so once reader rejections always carry a reason. Replace it with
+  wording that fits an unexplained model verdict.
+- `src/components/article/article-card-actions.tsx:47` — the guard becomes
+  `status !== "FILTERED"`
+- `src/lib/repository/statsTransforms.ts` — `RejectedArticlesRow` loses
+  `notInterested`; the doc comment explaining the split goes with it
+- `src/app/feed/daily-filtered-articles-chart.tsx` — one series
+- `src/lib/repository/statsRepository.ts:143,155,169` — single status
+- `src/app/feed/filtered/page.tsx:27`, `src/app/feed/[feedId]/page.tsx:47` —
+  `status: "FILTERED"`
+
+Tests as enumerated above.
