@@ -143,4 +143,46 @@ describe("NotInterestedButton", () => {
     expect(screen.getByRole("button", { name: "Not interested" })).toBeTruthy();
     expect(refresh).not.toHaveBeenCalled();
   });
+
+  // Regression test for the popover closing itself after the FIRST accepted
+  // suggestion: addFeedFilter/removeFeedFilter used to revalidate the inbox
+  // list as a side effect too, which — outside this mocked-server-action
+  // test, in the real app — drops the just-dismissed article out of the
+  // UNREAD query and unmounts this component's ArticleCard (and the popover
+  // with it) as soon as a reader accepts one suggestion, before they can add
+  // a second one, type a custom keyword, or reach Undo. The fix removes that
+  // revalidation from both functions, deferring it to `router.refresh()` on
+  // close, same as markArticleAsNotInteresting.
+  //
+  // Limitation: this test mocks addFeedFilter/removeFeedFilter, so it cannot
+  // reproduce the server-side revalidation that actually caused the bug. It
+  // only guards the component's own state handling — that accepting a chip
+  // does not itself close the popover — not the server action's behaviour.
+  it("keeps the popover open with remaining suggestions and manual input after a chip is accepted", async () => {
+    vi.mocked(suggestFilterKeywords).mockResolvedValue([
+      "USB driver development",
+      "device drivers",
+      "kernel internals",
+    ]);
+
+    await openPopover();
+    await userEvent.click(
+      await screen.findByRole("button", { name: "USB driver development" }),
+    );
+
+    expect(addFeedFilter).toHaveBeenCalledWith(
+      7,
+      "DISINTEREST",
+      "USB driver development",
+    );
+    expect(
+      screen.queryByRole("button", { name: "USB driver development" }),
+    ).toBeNull();
+    expect(screen.getByRole("button", { name: "device drivers" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "kernel internals" }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText("Add a keyword")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
+  });
 });
