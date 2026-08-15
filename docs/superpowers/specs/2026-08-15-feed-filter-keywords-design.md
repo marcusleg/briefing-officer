@@ -416,9 +416,17 @@ The three states of the suggestion area, then, are: generating (skeleton),
 generated (chips), and unavailable (a quiet note, when no model is configured or
 the call failed). The input sits below all three, unchanged.
 
-That the manual path never depends on the model path is the point: a reader who
-cannot reach the AI must still be able to filter, and a reader who can reach it
-must still be able to ignore it.
+The point is that a reader who can reach the model is never obliged to wait for
+it or to use what it offers — the input is live from the moment the popover
+opens, and a generation that fails degrades to a note rather than to a dead end.
+
+What this does **not** claim is that the popover works with no AI provider
+configured at all. It does not: the suggestion service resolves its model at
+module scope, so importing it throws, and the component cannot render. That is
+accepted. This application depends on a language model throughout — without one,
+most of it is already broken — so it is reasonable for this feature to go with
+it, provided a configured-but-failing model degrades gracefully. That is the
+case the three states above cover.
 
 The popover writes `DISINTEREST` rows only.
 
