@@ -1,4 +1,4 @@
-import { ArticleStatus } from "@/generated/prisma/client";
+import { ArticleStatus, FeedFilterKind } from "@/generated/prisma/client";
 import prisma from "@/lib/prismaClient";
 import { randomUUID } from "crypto";
 
@@ -73,6 +73,20 @@ export const createArticle = (overrides: {
       status: overrides.status ?? "UNREAD",
       statusChangedAt: overrides.statusChangedAt ?? new Date(),
       filterReason: overrides.filterReason ?? null,
+    },
+  });
+};
+
+export const createFeedFilter = (overrides: {
+  feedId: number;
+  kind: FeedFilterKind;
+  text: string;
+}) => {
+  return prisma.feedFilter.create({
+    data: {
+      feedId: overrides.feedId,
+      kind: overrides.kind,
+      text: overrides.text,
     },
   });
 };

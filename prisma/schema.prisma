@@ -21,6 +21,11 @@ enum ArticleStatus {
   READ
 }
 
+enum FeedFilterKind {
+  INTEREST
+  DISINTEREST
+}
+
 model Feed {
   id              Int           @id @default(autoincrement())
   title           String
@@ -31,6 +36,7 @@ model Feed {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   articles        Article[]
+  filters         FeedFilter[]
   userId          String
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   FeedCategory    FeedCategory? @relation(fields: [feedCategoryId], references: [id])
@@ -48,6 +54,17 @@ model FeedCategory {
   feeds     Feed[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model FeedFilter {
+  id        Int            @id @default(autoincrement())
+  feedId    Int
+  feed      Feed           @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  kind      FeedFilterKind
+  text      String
+  createdAt DateTime       @default(now())
+
+  @@unique([feedId, kind, text])
 }
 
 model Article {

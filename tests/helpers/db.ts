@@ -9,6 +9,7 @@ export const resetDb = async () => {
   await prisma.articleScrape.deleteMany();
   await prisma.tokenUsage.deleteMany();
   await prisma.article.deleteMany();
+  await prisma.feedFilter.deleteMany();
   await prisma.feed.deleteMany();
   await prisma.feedCategory.deleteMany();
   await prisma.session.deleteMany();
