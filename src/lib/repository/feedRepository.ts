@@ -317,3 +317,33 @@ export const getFeedFilters = async (feedId: number) => {
     disinterests: textsOfKind("DISINTEREST"),
   };
 };
+
+/**
+ * Idempotent by way of `upsert` rather than
+ * `createMany({ skipDuplicates: true })`, which Prisma's SQLite connector does
+ * not support. Adding an entry that is already present is something the reader
+ * meant, not an error to report.
+ */
+export const addFeedFilter = async (
+  feedId: number,
+  kind: FeedFilterKind,
+  text: string,
+) => {
+  await prisma.feedFilter.upsert({
+    where: { feedId_kind_text: { feedId, kind, text } },
+    create: { feedId, kind, text },
+    update: {},
+  });
+
+  revalidatePath("/feed", "layout");
+};
+
+export const removeFeedFilter = async (
+  feedId: number,
+  kind: FeedFilterKind,
+  text: string,
+) => {
+  await prisma.feedFilter.deleteMany({ where: { feedId, kind, text } });
+
+  revalidatePath("/feed", "layout");
+};
