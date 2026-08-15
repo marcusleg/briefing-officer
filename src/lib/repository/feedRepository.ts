@@ -353,7 +353,12 @@ export const addFeedFilter = async (
     update: {},
   });
 
-  revalidatePath("/feed", "layout");
+  // Deliberately does not revalidate: the only caller keeps a popover open
+  // over the article that triggered this filter, so the reader can add more
+  // keywords or use Undo. Revalidating here would refresh the inbox list out
+  // from under it — the article drops out of the UNREAD query, its
+  // ArticleCard unmounts, and the popover vanishes mid-interaction. The
+  // caller revalidates itself once the popover closes instead.
 };
 
 export const removeFeedFilter = async (
@@ -363,5 +368,7 @@ export const removeFeedFilter = async (
 ) => {
   await prisma.feedFilter.deleteMany({ where: { feedId, kind, text } });
 
-  revalidatePath("/feed", "layout");
+  // Deliberately does not revalidate — same reasoning as addFeedFilter above:
+  // the only caller keeps a popover open over the affected article, and
+  // revalidating would unmount it mid-interaction.
 };
