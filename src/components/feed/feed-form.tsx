@@ -1,5 +1,6 @@
 "use client";
 
+import KeywordListField from "@/components/feed/keyword-list-field";
 import { Button } from "@/components/ui/button";
 import { DialogClose } from "@/components/ui/dialog";
 import {
@@ -14,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Feed, FeedCategory } from "@/generated/prisma/client";
+import { describeFilters } from "@/lib/feedFilters";
 import {
   createFeed,
   getFeedFilters,
@@ -71,9 +73,6 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
     fetchCategories();
   }, []);
 
-  // TODO(task 5): replace with the KeywordListField wiring — this only keeps
-  // the form on the new schema so it still compiles and edits load their
-  // existing lists.
   useEffect(() => {
     if (!editFeed) {
       return;
@@ -165,7 +164,6 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
             )}
           />
 
-          {/* TODO(task 5): swap these for KeywordListField-backed chip inputs. */}
           <FormField
             control={form.control}
             name="interests"
@@ -173,24 +171,14 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
               <FormItem>
                 <FormLabel>Interested in</FormLabel>
                 <FormControl>
-                  <Input
+                  <KeywordListField
                     disabled={submitting}
-                    placeholder="Linux kernel development, distributed systems"
-                    value={(field.value ?? []).join(", ")}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value
-                          .split(",")
-                          .map((entry) => entry.trim())
-                          .filter((entry) => entry !== ""),
-                      )
-                    }
+                    inputLabel="Add an interest"
+                    onChange={field.onChange}
+                    placeholder="Linux kernel development"
+                    value={field.value ?? []}
                   />
                 </FormControl>
-                <FormDescription>
-                  Comma-separated. Leave empty to keep everything from this feed
-                  unless ruled out below.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -203,21 +191,22 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
               <FormItem>
                 <FormLabel>Not interested in</FormLabel>
                 <FormControl>
-                  <Input
+                  <KeywordListField
                     disabled={submitting}
-                    placeholder="USB driver development, press releases"
-                    value={(field.value ?? []).join(", ")}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value
-                          .split(",")
-                          .map((entry) => entry.trim())
-                          .filter((entry) => entry !== ""),
-                      )
-                    }
+                    inputLabel="Add a disinterest"
+                    onChange={field.onChange}
+                    placeholder="USB driver development"
+                    value={field.value ?? []}
                   />
                 </FormControl>
-                <FormDescription>Comma-separated.</FormDescription>
+                <FormDescription>
+                  {describeFilters(
+                    form.watch("interests") ?? [],
+                    form.watch("disinterests") ?? [],
+                  )}{" "}
+                  When both lists speak to an article, the more specific entry
+                  wins.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
