@@ -27,10 +27,49 @@ Testing Library.
 - **Commits:** Conventional Commits, no scopes. `feat:`/`fix:` wording is
   user-facing — it goes in the changelog.
 - **Never** use `git commit --no-verify`. The Husky hook runs `lint-staged`.
-- **Branch:** work on `feat/feed-filter-keywords`, branched from `main`. Do not
-  push to `main`.
+- **Branch:** work on `feat/feed-filter-keywords`. Do not push to `main`.
 - **Before pushing:** `npm run format`, `npm run lint`, `npm run typecheck`,
   `npm run test`, `npm run build` must all pass.
+- **Never** run Bash with `dangerouslyDisableSandbox`, and never edit
+  `.claude/settings.json` or `.claude/settings.local.json`. If a command is
+  denied, stop and report BLOCKED — do not retry through another mechanism.
+
+## Environment: three commands that do not work here
+
+Carried over from the previous feature's execution. Each was learned the hard
+way; do not rediscover them.
+
+- **`prisma migrate dev` requires a TTY and aborts under any agent.** Generate
+  and apply migrations with this pair instead, from the repo root:
+
+  ```bash
+  mkdir -p prisma/migrations/$(date +%Y%m%d%H%M%S)_<name>
+  npx prisma migrate diff --from-config-datasource \
+    --to-schema prisma/schema.prisma --script \
+    -o prisma/migrations/<the-dir-just-created>/migration.sql
+  npx prisma migrate deploy && npx prisma generate
+  ```
+
+  `migrate diff` has no `--shadow-database-url` flag in 7.9.1. Never fake a TTY
+  to get around this.
+
+- **Every test command needs a consent variable.** `vitest.setup.ts:39` runs
+  `prisma db push`, which Prisma 7.9.1 blocks for AI agents. The target is
+  forced to `.tmp/test-<worker>.db` by `vitest.setup.ts:12`, so real databases
+  are unreachable from it. Prefix every run:
+
+  ```bash
+  PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npm run test
+  ```
+
+  The same prefix is needed for any
+  `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run …` invocation
+  in this plan.
+
+- **`npx tsx prisma/seed.ts` is broken in this repo.** `package.json` declares
+  `prisma.seed`, but Prisma 7 reads `migrations.seed` from `prisma.config.ts`,
+  which has no such key. Use `npx tsx prisma/seed.ts`. This also means
+  `npm run update-screenshots` is broken; it is out of scope here.
 - **Prisma SQLite limits, both load-bearing here:** no `String[]` scalar lists,
   and `createMany` does **not** support `skipDuplicates`. Deduplicate in
   JavaScript before `createMany`, and use `upsert` for idempotent single
@@ -140,7 +179,8 @@ describe("DEFAULT_DISINTERESTS", () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `npx vitest run --project node tests/unit/feedFilters.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/unit/feedFilters.test.ts`
 
 Expected: FAIL — `Failed to resolve import "@/lib/feedFilters"`.
 
@@ -215,7 +255,8 @@ export const describeFilters = (
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `npx vitest run --project node tests/unit/feedFilters.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/unit/feedFilters.test.ts`
 
 Expected: PASS, 7 tests.
 
@@ -285,12 +326,25 @@ filters         FeedFilter[]
 
 - [ ] **Step 2: Generate and apply the migration**
 
-Run: `npx prisma migrate dev --name add_feed_filters`
+`prisma migrate dev` needs a TTY and will abort. Use the diff-and-deploy pair:
 
-Expected: a new folder under `prisma/migrations/` containing
-`CREATE TABLE "FeedFilter"` and a
-`CREATE UNIQUE INDEX "FeedFilter_feedId_kind_text_key"`, and the Prisma client
-regenerates into `src/generated/prisma`.
+```bash
+DIR=prisma/migrations/$(date +%Y%m%d%H%M%S)_add_feed_filters
+mkdir -p "$DIR"
+npx prisma migrate diff --from-config-datasource \
+  --to-schema prisma/schema.prisma --script -o "$DIR/migration.sql"
+npx prisma migrate deploy && npx prisma generate
+```
+
+Expected: `$DIR/migration.sql` contains `CREATE TABLE "FeedFilter"` and
+`CREATE UNIQUE INDEX "FeedFilter_feedId_kind_text_key"`, `migrate deploy`
+reports one migration applied, and the client regenerates into
+`src/generated/prisma`.
+
+Read the generated SQL before applying it. If it contains anything beyond the
+new table and index — a table rebuild, a drop — stop and report BLOCKED: the
+datasource has drifted from the migration history and applying it could lose
+data.
 
 - [ ] **Step 3: Teach the test database reset about the new table**
 
@@ -349,7 +403,8 @@ describe("FeedFilter", () => {
 
 - [ ] **Step 5: Run the test to verify it fails**
 
-Run: `npx vitest run --project node tests/integration/feedFilters.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/integration/feedFilters.test.ts`
 
 Expected: FAIL — `createFeedFilter is not a function`.
 
@@ -382,7 +437,8 @@ export const createFeedFilter = (overrides: {
 
 - [ ] **Step 7: Run the test to verify it passes**
 
-Run: `npx vitest run --project node tests/integration/feedFilters.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/integration/feedFilters.test.ts`
 
 Expected: PASS, 3 tests.
 
@@ -520,7 +576,8 @@ describe("buildLeadPrompt", () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `npx vitest run --project node tests/unit/prompts.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/unit/prompts.test.ts`
 
 Expected: FAIL — the new list assertions fail because the third argument is
 still treated as a string.
@@ -615,7 +672,8 @@ ${textContent}
 
 - [ ] **Step 4: Run the prompt tests to verify they pass**
 
-Run: `npx vitest run --project node tests/unit/prompts.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/unit/prompts.test.ts`
 
 Expected: PASS.
 
@@ -713,7 +771,8 @@ it("does not ask for a verdict when the feed has no keywords", async () => {
 
 - [ ] **Step 7: Run the full node suite**
 
-Run: `npx vitest run --project node`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node`
 
 Expected: PASS. If a lead service test still references `interestProfile`, fix
 it now — the column is not removed until Task 4, so this is a test-only fix.
@@ -799,7 +858,8 @@ describe("feedSchema keyword lists", () => {
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx vitest run --project node tests/unit/feedSchema.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/unit/feedSchema.test.ts`
 
 Expected: FAIL — `parsed.interests` is `undefined`.
 
@@ -815,7 +875,8 @@ In `src/lib/repository/feedSchema.ts`, replace the `interestProfile` line in
 
 - [ ] **Step 4: Run it to verify it passes**
 
-Run: `npx vitest run --project node tests/unit/feedSchema.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/unit/feedSchema.test.ts`
 
 Expected: PASS.
 
@@ -921,7 +982,8 @@ differently.
 
 - [ ] **Step 6: Run it to verify it fails**
 
-Run: `npx vitest run --project node tests/integration/feedRepository.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/integration/feedRepository.test.ts`
 
 Expected: FAIL — `updateFeed` rejects the unknown `interests` property, or the
 filters table is empty.
@@ -1036,7 +1098,8 @@ export const getFeedFilters = async (feedId: number) => {
 
 - [ ] **Step 8: Run it to verify it passes**
 
-Run: `npx vitest run --project node tests/integration/feedRepository.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/integration/feedRepository.test.ts`
 
 Expected: PASS.
 
@@ -1064,15 +1127,28 @@ it with a `filters: { create: [...] }` block, for example:
       },
 ```
 
-Then run: `npx prisma migrate dev --name drop_feed_interest_profile`
+Then generate and apply the migration:
+
+```bash
+DIR=prisma/migrations/$(date +%Y%m%d%H%M%S)_drop_feed_interest_profile
+mkdir -p "$DIR"
+npx prisma migrate diff --from-config-datasource \
+  --to-schema prisma/schema.prisma --script -o "$DIR/migration.sql"
+npx prisma migrate deploy && npx prisma generate
+```
 
 Expected: a migration that rebuilds the `Feed` table without the column. SQLite
-has no `DROP COLUMN` in older versions, so Prisma may emit a create-copy-drop-
-rename sequence. That is expected.
+has no `DROP COLUMN` in older versions, so Prisma emits a
+create-copy-drop-rename sequence. That is expected here — unlike in Task 2,
+where a rebuild would have signalled drift.
+
+Read the SQL and confirm the copy step lists every surviving `Feed` column. A
+rebuild that silently omits one loses that column's data.
 
 - [ ] **Step 10: Verify the whole suite and the types**
 
-Run: `npm run typecheck && npx vitest run --project node`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npm run typecheck && npx vitest run --project node`
 
 Expected: PASS. Any remaining `interestProfile` reference is a compile error;
 `grep -rn "interestProfile" src tests prisma` should return nothing.
@@ -1200,7 +1276,7 @@ describe("KeywordListField", () => {
 - [ ] **Step 2: Run it to verify it fails**
 
 Run:
-`npx vitest run --project components tests/components/feed/keyword-list-field.test.tsx`
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project components tests/components/feed/keyword-list-field.test.tsx`
 
 Expected: FAIL — cannot resolve `@/components/feed/keyword-list-field`.
 
@@ -1314,7 +1390,7 @@ export default KeywordListField;
 - [ ] **Step 4: Run it to verify it passes**
 
 Run:
-`npx vitest run --project components tests/components/feed/keyword-list-field.test.tsx`
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project components tests/components/feed/keyword-list-field.test.tsx`
 
 Expected: PASS, 7 tests.
 
@@ -1500,7 +1576,8 @@ this file to `it.each(["READ", "FILTERED"] as const)`.
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx vitest run --project node tests/integration/articleRepository.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/integration/articleRepository.test.ts`
 
 Expected: FAIL — status is `NOT_INTERESTED`, `filterReason` is null.
 
@@ -1580,7 +1657,8 @@ import { READER_FILTER_REASON } from "@/lib/article";
 
 - [ ] **Step 5: Run it to verify it passes**
 
-Run: `npx vitest run --project node tests/integration/articleRepository.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/integration/articleRepository.test.ts`
 
 Expected: PASS.
 
@@ -1680,7 +1758,7 @@ expect(shapeRejectedArticlesPerDay(["2026-03-01", "2026-03-02"], [])).toEqual([
 Apply the same two shapes to the remaining cases in both files.
 
 Run:
-`npx vitest run --project node tests/unit/statsTransforms.test.ts tests/integration/statsRepository.test.ts`
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/unit/statsTransforms.test.ts tests/integration/statsRepository.test.ts`
 
 Expected: PASS.
 
@@ -1764,7 +1842,8 @@ In `tests/components/article/article-card-actions.test.tsx`, change any
 `NOT_INTERESTED` fixture in the "hides the not-interested action for an
 already-rejected article" test to `FILTERED`.
 
-Run: `npx vitest run --project components`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project components`
 
 Expected: PASS.
 
@@ -1772,11 +1851,18 @@ Expected: PASS.
 
 Remove `NOT_INTERESTED` from the `ArticleStatus` enum in `prisma/schema.prisma`.
 
-Run: `npx prisma migrate dev --create-only --name drop_not_interested_status`
+Generate the SQL without applying it:
 
-Prisma stores enums as `TEXT` on SQLite, so the generated migration body may be
-empty or a plain table rebuild. Either way, open the generated `migration.sql`
-and put these two statements at the **top**, before anything Prisma generated:
+```bash
+DIR=prisma/migrations/$(date +%Y%m%d%H%M%S)_drop_not_interested_status
+mkdir -p "$DIR"
+npx prisma migrate diff --from-config-datasource \
+  --to-schema prisma/schema.prisma --script -o "$DIR/migration.sql"
+```
+
+Prisma stores enums as `TEXT` on SQLite, so the generated body may be empty or a
+plain table rebuild. Either way, open `$DIR/migration.sql` and put these two
+statements at the **top**, before anything Prisma generated:
 
 ```sql
 -- Write the reason before the status that identifies these rows is
@@ -1790,13 +1876,29 @@ SET "status" = 'FILTERED'
 WHERE "status" = 'NOT_INTERESTED';
 ```
 
-Then run: `npx prisma migrate dev`
+If the generated body was empty, the file must still end up containing the two
+`UPDATE` statements — an empty migration would leave `NOT_INTERESTED` rows
+stranded in a status the enum no longer has.
 
-Expected: the migration applies and the client regenerates.
+Then apply it:
+
+```bash
+npx prisma migrate deploy && npx prisma generate
+```
+
+Expected: the migration applies and the client regenerates. Verify the data
+moved:
+
+```bash
+npx tsx -e 'import p from "./src/lib/prismaClient"; p.article.groupBy({ by: ["status"], _count: true }).then(console.log)'
+```
+
+Expected: no `NOT_INTERESTED` row in the output.
 
 - [ ] **Step 12: Verify everything**
 
-Run: `npm run typecheck && npm run test && npm run lint`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npm run typecheck && npm run test && npm run lint`
 
 Expected: PASS. `grep -rn "NOT_INTERESTED\|notInterested" src tests prisma`
 should return nothing outside `src/generated/`.
@@ -1869,7 +1971,8 @@ describe("buildFilterSuggestionPrompt", () => {
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx vitest run --project node tests/unit/prompts.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/unit/prompts.test.ts`
 
 Expected: FAIL — no export named `buildFilterSuggestionPrompt`.
 
@@ -1929,7 +2032,8 @@ ${summary}
 
 - [ ] **Step 4: Run it to verify it passes**
 
-Run: `npx vitest run --project node tests/unit/prompts.test.ts`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/unit/prompts.test.ts`
 
 Expected: PASS.
 
@@ -2024,7 +2128,7 @@ describe("suggestFilterKeywords", () => {
 - [ ] **Step 6: Run it to verify it fails**
 
 Run:
-`npx vitest run --project node tests/integration/filterSuggestionService.test.ts`
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/integration/filterSuggestionService.test.ts`
 
 Expected: FAIL — cannot resolve `@/lib/ai/services/filterSuggestionService`.
 
@@ -2096,7 +2200,7 @@ export const suggestFilterKeywords = async (articleId: number) => {
 - [ ] **Step 8: Run it to verify it passes**
 
 Run:
-`npx vitest run --project node tests/integration/filterSuggestionService.test.ts`
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project node tests/integration/filterSuggestionService.test.ts`
 
 Expected: PASS, 4 tests.
 
@@ -2138,7 +2242,8 @@ export const removeFeedFilter = async (
 
 - [ ] **Step 10: Verify types and commit**
 
-Run: `npm run typecheck && npx vitest run --project node`
+Run:
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npm run typecheck && npx vitest run --project node`
 
 Expected: PASS.
 
@@ -2282,7 +2387,7 @@ describe("NotInterestedButton", () => {
 - [ ] **Step 2: Run it to verify it fails**
 
 Run:
-`npx vitest run --project components tests/components/article/not-interested-button.test.tsx`
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project components tests/components/article/not-interested-button.test.tsx`
 
 Expected: FAIL — no popover renders; the button still fires a toast.
 
@@ -2468,7 +2573,7 @@ export default NotInterestedButton;
 - [ ] **Step 4: Run it to verify it passes**
 
 Run:
-`npx vitest run --project components tests/components/article/not-interested-button.test.tsx`
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npx vitest run --project components tests/components/article/not-interested-button.test.tsx`
 
 Expected: PASS, 6 tests.
 
@@ -2478,7 +2583,7 @@ accessible name, query by text instead of by role in that one test.
 - [ ] **Step 5: Run everything**
 
 Run:
-`npm run format && npm run lint && npm run typecheck && npm run test && npm run build`
+`PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=Yes npm run format && npm run lint && npm run typecheck && npm run test && npm run build`
 
 Expected: all PASS.
 
@@ -2505,7 +2610,7 @@ they are checked by hand once, here.
 - [ ] **Step 1: Reseed and start the app**
 
 ```bash
-npx prisma db seed
+npx tsx prisma/seed.ts
 npm run dev
 ```
 
