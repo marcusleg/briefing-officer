@@ -152,16 +152,14 @@ export const restoreArticleToInbox = async (articleId: number) => {
   revalidatePath("/feed", "layout");
 };
 
+// Deliberately does not revalidate. Its only caller (NotInterestedButton)
+// keeps a popover open over the article this just dismissed, so that the
+// reader can teach the feed's filter; revalidating here would refresh the
+// inbox list out from under it — the article drops out of the UNREAD query,
+// its ArticleCard unmounts, and the popover vanishes before the reader can
+// use it. The caller revalidates itself once the popover closes instead.
 export const markArticleAsNotInteresting = async (articleId: number) => {
-  const updatedArticle = await setArticleStatus(
-    articleId,
-    "FILTERED",
-    READER_FILTER_REASON,
-  );
-
-  revalidatePath(`/feed/${updatedArticle.feedId}`);
-  revalidatePath("/feed");
-  revalidatePath("/feed", "layout");
+  await setArticleStatus(articleId, "FILTERED", READER_FILTER_REASON);
 };
 
 /**

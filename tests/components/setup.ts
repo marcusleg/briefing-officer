@@ -20,7 +20,7 @@ class ResizeObserverStub implements ResizeObserver {
 globalThis.ResizeObserver = ResizeObserverStub;
 
 vi.mock("next/navigation", () => ({
-  useRouter: vi.fn(() => ({ push: vi.fn(), back: vi.fn() })),
+  useRouter: vi.fn(() => ({ push: vi.fn(), back: vi.fn(), refresh: vi.fn() })),
   usePathname: vi.fn(() => "/"),
 }));
 
