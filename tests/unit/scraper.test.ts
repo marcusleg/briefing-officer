@@ -15,6 +15,7 @@ vi.mock("@/lib/prismaClient", () => {
       articleScrape: { deleteMany },
       tokenUsage: { deleteMany },
       article: { deleteMany },
+      feedFilter: { deleteMany },
       feed: { deleteMany },
       feedCategory: { deleteMany },
       session: { deleteMany },
