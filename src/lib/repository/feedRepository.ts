@@ -7,7 +7,7 @@ import {
   Prisma,
 } from "@/generated/prisma/client";
 import { generateAiLead } from "@/lib/ai/services/leadService";
-import { DEFAULT_DISINTERESTS, dedupeKeywords } from "@/lib/feedFilters";
+import { dedupeKeywords } from "@/lib/feedFilters";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
@@ -60,14 +60,11 @@ export const createFeed = async (feed: FeedSchema) => {
     },
   });
 
-  // Seeded only on create. An update that arrives with an empty disinterest
-  // list means the reader removed the defaults, and re-adding them here would
-  // make them unremovable.
+  // DEFAULT_DISINTERESTS is no longer merged in here: the form prefills them
+  // into feed.disinterests so the reader can delete one before the feed
+  // exists. Merging them here too would put a removed default right back.
   await prisma.feedFilter.createMany({
-    data: filterRows(createdFeed.id, feed.interests, [
-      ...feed.disinterests,
-      ...DEFAULT_DISINTERESTS,
-    ]),
+    data: filterRows(createdFeed.id, feed.interests, feed.disinterests),
   });
 
   revalidatePath("/feed", "layout");

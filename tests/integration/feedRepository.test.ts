@@ -283,9 +283,15 @@ describe("feedRepository.refreshCategoryFeeds", () => {
 });
 
 describe("feed keyword filters", () => {
-  it("seeds the default disinterests when creating a feed", async () => {
+  it("writes exactly the disinterests it is given, adding none of its own", async () => {
     // Mirrors the fetch stub in "feedRepository.createFeed" above: createFeed
     // fetches and parses the feed URL before it writes anything.
+    //
+    // DEFAULT_DISINTERESTS is no longer merged in by createFeed itself — the
+    // feed form prefills them into the submitted values instead, so the
+    // reader can remove one before the feed exists. This proves createFeed
+    // no longer adds them back: a feed created with only one disinterest, and
+    // none of the defaults, ends up with only that one.
     const xml = `<?xml version="1.0"?><rss version="2.0"><channel><title>T</title></channel></rss>`;
     vi.stubGlobal(
       "fetch",
@@ -297,7 +303,7 @@ describe("feed keyword filters", () => {
       title: "",
       link: "https://example.com/seeded.xml",
       interests: [],
-      disinterests: [],
+      disinterests: ["USB driver development"],
       autoRefresh: true,
     });
 
@@ -310,7 +316,7 @@ describe("feed keyword filters", () => {
       feed.filters
         .filter((filter) => filter.kind === "DISINTEREST")
         .map((filter) => filter.text),
-    ).toEqual(["advertisements", "sponsored posts"]);
+    ).toEqual(["USB driver development"]);
 
     vi.unstubAllGlobals();
   });
