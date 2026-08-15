@@ -1,4 +1,4 @@
-import { ArticleStatus, TokenUsage } from "@/generated/prisma/client";
+import { TokenUsage } from "@/generated/prisma/client";
 
 export type ArticlesPerFeedRow = Record<string, string | number>;
 
@@ -70,17 +70,21 @@ export interface RejectedArticlesRow {
  * There is one row per day in `dates`, so quiet days render as a gap rather
  * than being skipped. Days are the UTC calendar days used everywhere else in
  * the stats layer.
+ *
+ * Takes only `statusChangedAt` — no `status` field — because the caller
+ * (`getFilteredArticlesPerDay` in statsRepository.ts) already constrains its
+ * query to `status: "FILTERED"`, so every article passed in here is one.
  */
 export function shapeRejectedArticlesPerDay(
   dates: string[],
-  articles: Array<{ status: ArticleStatus; statusChangedAt: Date }>,
+  articles: Array<{ statusChangedAt: Date }>,
 ): RejectedArticlesRow[] {
   const rows = new Map(dates.map((date) => [date, { date, filtered: 0 }]));
 
   articles.forEach((article) => {
     const row = rows.get(article.statusChangedAt.toISOString().split("T")[0]);
 
-    if (row && article.status === "FILTERED") {
+    if (row) {
       row.filtered += 1;
     }
   });

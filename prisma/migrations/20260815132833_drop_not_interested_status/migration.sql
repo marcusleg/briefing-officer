@@ -7,5 +7,3 @@ WHERE "status" = 'NOT_INTERESTED' AND "filterReason" IS NULL;
 UPDATE "Article"
 SET "status" = 'FILTERED'
 WHERE "status" = 'NOT_INTERESTED';
-
--- This is an empty migration.
