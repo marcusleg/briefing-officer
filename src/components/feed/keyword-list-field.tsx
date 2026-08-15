@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { sortKeywords } from "@/lib/feedFilters";
 import { XIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -38,17 +39,19 @@ const KeywordListField = ({
     );
 
     if (!duplicate) {
-      onChange([...value, text]);
+      onChange(sortKeywords([...value, text]));
     }
 
     setDraft("");
   };
 
+  const sortedValue = sortKeywords(value);
+
   return (
     <div className="flex flex-col gap-2">
-      {value.length > 0 && (
+      {sortedValue.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {value.map((entry) => (
+          {sortedValue.map((entry) => (
             <Badge key={entry} variant="secondary" className="gap-1 pr-1">
               {entry}
               <button

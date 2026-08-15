@@ -2,6 +2,7 @@ import {
   DEFAULT_DISINTERESTS,
   dedupeKeywords,
   describeFilters,
+  sortKeywords,
 } from "@/lib/feedFilters";
 import { describe, expect, it } from "vitest";
 
@@ -42,6 +43,29 @@ describe("dedupeKeywords", () => {
 
   it("preserves the order entries were given in", () => {
     expect(dedupeKeywords(["b", "a", "b"])).toEqual(["b", "a"]);
+  });
+});
+
+describe("sortKeywords", () => {
+  it("orders entries alphabetically", () => {
+    expect(sortKeywords(["kernel", "USB", "advertisements"])).toEqual([
+      "advertisements",
+      "kernel",
+      "USB",
+    ]);
+  });
+
+  it("sorts case-insensitively, so an uppercase entry doesn't jump to the front", () => {
+    expect(sortKeywords(["Zebra", "apple"])).toEqual(["apple", "Zebra"]);
+  });
+
+  it("does not mutate the input array", () => {
+    const entries = ["b", "a"];
+
+    const sorted = sortKeywords(entries);
+
+    expect(entries).toEqual(["b", "a"]);
+    expect(sorted).toEqual(["a", "b"]);
   });
 });
 

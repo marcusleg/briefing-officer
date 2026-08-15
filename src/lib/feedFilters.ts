@@ -35,6 +35,20 @@ export const dedupeKeywords = (entries: string[]): string[] => {
 };
 
 /**
+ * A keyword list is a set the reader scans, not a history of when each entry
+ * was added — insertion order carries no meaning, and it makes a particular
+ * entry hard to find once the list grows. Sorting alphabetically gives the
+ * reader a fixed place to look.
+ *
+ * Case-insensitive and locale-aware, so "Zebra" sorts next to "apple" rather
+ * than before it. Returns a new array; the input is left untouched.
+ */
+export const sortKeywords = (entries: string[]): string[] =>
+  [...entries].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
+
+/**
  * The two lists in one sentence, shown under the fields that produce them.
  *
  * It exists because the mode is derived rather than selected: adding a first

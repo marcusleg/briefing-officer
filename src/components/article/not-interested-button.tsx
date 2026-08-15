@@ -11,6 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Article } from "@/generated/prisma/client";
 import { suggestFilterKeywords } from "@/lib/ai/services/filterSuggestionService";
+import { sortKeywords } from "@/lib/feedFilters";
 import {
   markArticleAsNotInteresting,
   restoreArticleStatus,
@@ -154,7 +155,9 @@ const NotInterestedButton = ({
                 <button
                   type="button"
                   className="cursor-pointer"
-                  onClick={() => handleKeywordsChange([...added, suggestion])}
+                  onClick={() =>
+                    handleKeywordsChange(sortKeywords([...added, suggestion]))
+                  }
                 >
                   {suggestion}
                 </button>
