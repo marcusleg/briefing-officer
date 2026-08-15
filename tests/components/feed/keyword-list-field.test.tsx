@@ -1,6 +1,7 @@
 import KeywordListField from "@/components/feed/keyword-list-field";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { FormEvent } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 const setup = (value: string[] = []) => {
@@ -85,5 +86,27 @@ describe("KeywordListField", () => {
     await userEvent.type(input, "kernel{Enter}");
 
     expect((input as HTMLInputElement).value).toBe("");
+  });
+
+  it("adds the entry on Enter without submitting a surrounding form", async () => {
+    const onChange = vi.fn();
+    const onSubmit = vi.fn((event: FormEvent) => event.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <KeywordListField
+          value={[]}
+          onChange={onChange}
+          inputLabel="Add a keyword"
+        />
+      </form>,
+    );
+
+    await userEvent.type(
+      screen.getByLabelText("Add a keyword"),
+      "kernel{Enter}",
+    );
+
+    expect(onChange).toHaveBeenCalledWith(["kernel"]);
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });
