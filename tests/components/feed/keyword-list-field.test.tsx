@@ -71,6 +71,23 @@ describe("KeywordListField", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it("renders an out-of-order value alphabetically and emits a newly added entry in alphabetical position", async () => {
+    const { onChange } = setup(["zebra", "mango"]);
+
+    const badges = screen.getAllByText(/zebra|mango/);
+    expect(badges.map((badge) => badge.textContent)).toEqual([
+      "mango",
+      "zebra",
+    ]);
+
+    await userEvent.type(
+      screen.getByLabelText("Add a keyword"),
+      "apple{Enter}",
+    );
+
+    expect(onChange).toHaveBeenCalledWith(["apple", "mango", "zebra"]);
+  });
+
   it("removes an entry when its remove button is clicked", async () => {
     const { onChange } = setup(["kernel", "usb"]);
 

@@ -7,7 +7,7 @@ import {
   Prisma,
 } from "@/generated/prisma/client";
 import { generateAiLead } from "@/lib/ai/services/leadService";
-import { dedupeKeywords } from "@/lib/feedFilters";
+import { dedupeKeywords, sortKeywords } from "@/lib/feedFilters";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
@@ -310,8 +310,8 @@ export const getFeedFilters = async (feedId: number) => {
     filters.filter((filter) => filter.kind === kind).map((f) => f.text);
 
   return {
-    interests: textsOfKind("INTEREST"),
-    disinterests: textsOfKind("DISINTEREST"),
+    interests: sortKeywords(textsOfKind("INTEREST")),
+    disinterests: sortKeywords(textsOfKind("DISINTEREST")),
   };
 };
 
