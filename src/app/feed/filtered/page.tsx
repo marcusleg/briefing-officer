@@ -24,7 +24,7 @@ const FilteredPage = async () => {
       scrape: true,
     },
     where: {
-      status: { in: ["FILTERED", "NOT_INTERESTED"] },
+      status: "FILTERED",
       userId: session.user.id,
     },
     orderBy: {

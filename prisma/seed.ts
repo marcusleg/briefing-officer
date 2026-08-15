@@ -323,11 +323,11 @@ async function main() {
           description: lorem(50 + Math.floor(Math.random() * 11)),
           link: `https://example.com/article/${randomUUID()}`,
           publicationDate: new Date(rejectedAt.getTime() - 3600_000),
-          status: byModel ? "FILTERED" : "NOT_INTERESTED",
+          status: "FILTERED",
           statusChangedAt: rejectedAt,
           filterReason: byModel
             ? "This is a funding round announcement, not a technical article."
-            : null,
+            : "You marked this as not interested.",
         },
       });
       const textContent = lorem(300 + Math.floor(Math.random() * 1201));

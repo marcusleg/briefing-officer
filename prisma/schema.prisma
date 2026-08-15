@@ -17,7 +17,6 @@ enum ArticleStatus {
   UNREAD
   READ_LATER
   FILTERED
-  NOT_INTERESTED
   READ
 }
 

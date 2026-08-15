@@ -53,7 +53,7 @@ describe("articleRepository", () => {
     expect(updated.status).toBe("READ_LATER");
   });
 
-  it.each(["READ", "FILTERED", "NOT_INTERESTED"] as const)(
+  it.each(["READ", "FILTERED"] as const)(
     "returns a %s article to the inbox",
     async (status) => {
       const article = await createArticle({
@@ -75,7 +75,7 @@ describe("articleRepository", () => {
     },
   );
 
-  it("marks an article as not interesting without inventing a reason", async () => {
+  it("files a reader rejection as FILTERED with a reason", async () => {
     const article = await createArticle({ userId, feedId });
 
     await markArticleAsNotInteresting(article.id);
@@ -83,8 +83,9 @@ describe("articleRepository", () => {
     const updated = await prisma.article.findUniqueOrThrow({
       where: { id: article.id },
     });
-    expect(updated.status).toBe("NOT_INTERESTED");
-    expect(updated.filterReason).toBeNull();
+
+    expect(updated.status).toBe("FILTERED");
+    expect(updated.filterReason).toBe("You marked this as not interested.");
   });
 
   it("moves statusChangedAt forward on every status change", async () => {

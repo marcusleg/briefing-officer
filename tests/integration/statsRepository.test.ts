@@ -61,7 +61,7 @@ describe("statsRepository counts", () => {
     await createArticle({
       userId,
       feedId,
-      status: "NOT_INTERESTED",
+      status: "FILTERED",
       statusChangedAt: day,
     });
 
@@ -73,7 +73,7 @@ describe("statsRepository counts", () => {
     expect(rows).toEqual([{ date: "2026-02-10", count: 1 }]);
   });
 
-  it("splits rejected articles per day by model and by hand", async () => {
+  it("counts every rejected article for the day", async () => {
     const day = new Date("2026-02-10T12:00:00.000Z");
     await createArticle({
       userId,
@@ -90,7 +90,7 @@ describe("statsRepository counts", () => {
     await createArticle({
       userId,
       feedId,
-      status: "NOT_INTERESTED",
+      status: "FILTERED",
       statusChangedAt: day,
     });
 
@@ -99,9 +99,7 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([
-      { date: "2026-02-10", filtered: 2, notInterested: 1 },
-    ]);
+    expect(rows).toEqual([{ date: "2026-02-10", filtered: 3 }]);
     expect(dailyAverage).toBe(3);
   });
 
@@ -126,13 +124,11 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([
-      { date: "2026-02-10", filtered: 0, notInterested: 0 },
-    ]);
+    expect(rows).toEqual([{ date: "2026-02-10", filtered: 0 }]);
     expect(dailyAverage).toBe(0);
   });
 
-  it("averages the combined total across every day in the range", async () => {
+  it("averages the total across every day in the range", async () => {
     await createArticle({
       userId,
       feedId,
@@ -142,7 +138,7 @@ describe("statsRepository counts", () => {
     await createArticle({
       userId,
       feedId,
-      status: "NOT_INTERESTED",
+      status: "FILTERED",
       statusChangedAt: new Date("2026-02-12T12:00:00.000Z"),
     });
 
@@ -152,9 +148,9 @@ describe("statsRepository counts", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-02-10", filtered: 1, notInterested: 0 },
-      { date: "2026-02-11", filtered: 0, notInterested: 0 },
-      { date: "2026-02-12", filtered: 0, notInterested: 1 },
+      { date: "2026-02-10", filtered: 1 },
+      { date: "2026-02-11", filtered: 0 },
+      { date: "2026-02-12", filtered: 1 },
     ]);
     expect(dailyAverage).toBeCloseTo(2 / 3);
   });
@@ -175,9 +171,7 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([
-      { date: "2026-02-10", filtered: 0, notInterested: 0 },
-    ]);
+    expect(rows).toEqual([{ date: "2026-02-10", filtered: 0 }]);
   });
 
   it("reports token usage history by date and model", async () => {

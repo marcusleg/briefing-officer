@@ -1,6 +1,7 @@
 "use server";
 
 import { ArticleStatus, Prisma } from "@/generated/prisma/client";
+import { READER_FILTER_REASON } from "@/lib/article";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -11,11 +12,23 @@ import { revalidatePath } from "next/cache";
  * here is what lets History treat `statusChangedAt` as the read timestamp: for
  * a READ article it is, by construction, the moment it became read. Anything
  * that writes one without the other breaks that.
+ *
+ * `filterReason` is optional and only ever set alongside `FILTERED`. It is
+ * accepted here rather than written separately so a rejection cannot land as a
+ * status without its explanation.
  */
-const setArticleStatus = (articleId: number, status: ArticleStatus) =>
+const setArticleStatus = (
+  articleId: number,
+  status: ArticleStatus,
+  filterReason?: string,
+) =>
   prisma.article.update({
     where: { id: articleId },
-    data: { status, statusChangedAt: new Date() },
+    data: {
+      status,
+      statusChangedAt: new Date(),
+      ...(filterReason === undefined ? {} : { filterReason }),
+    },
   });
 
 const setArticleStatusMany = (
@@ -140,7 +153,11 @@ export const restoreArticleToInbox = async (articleId: number) => {
 };
 
 export const markArticleAsNotInteresting = async (articleId: number) => {
-  const updatedArticle = await setArticleStatus(articleId, "NOT_INTERESTED");
+  const updatedArticle = await setArticleStatus(
+    articleId,
+    "FILTERED",
+    READER_FILTER_REASON,
+  );
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/feed");

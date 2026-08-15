@@ -57,14 +57,15 @@ export function shapeTokenUsage(raw: TokenUsage[]): {
 export interface RejectedArticlesRow {
   date: string;
   filtered: number;
-  notInterested: number;
 }
 
 /**
- * Counts rejected articles per day, split by who rejected them: the model
- * (`FILTERED`) or the reader (`NOT_INTERESTED`). Keeping the two apart lets the
- * chart stack them, so the total answers "how much never reached me" while the
- * lower segment alone still shows how the interest profile is doing.
+ * Counts rejected articles per day.
+ *
+ * This used to split model verdicts from reader rejections, which is what made
+ * the filter's precision readable off the chart. With one terminal state there
+ * is nothing to split on. `FeedFilter.createdAt` — keywords added per day — is
+ * the natural replacement and is deliberately not implemented here.
  *
  * There is one row per day in `dates`, so quiet days render as a gap rather
  * than being skipped. Days are the UTC calendar days used everywhere else in
@@ -74,26 +75,17 @@ export function shapeRejectedArticlesPerDay(
   dates: string[],
   articles: Array<{ status: ArticleStatus; statusChangedAt: Date }>,
 ): RejectedArticlesRow[] {
-  const rows = new Map(
-    dates.map((date) => [date, { date, filtered: 0, notInterested: 0 }]),
-  );
+  const rows = new Map(dates.map((date) => [date, { date, filtered: 0 }]));
 
   articles.forEach((article) => {
     const row = rows.get(article.statusChangedAt.toISOString().split("T")[0]);
-    if (!row) {
-      return;
-    }
 
-    if (article.status === "FILTERED") {
+    if (row && article.status === "FILTERED") {
       row.filtered += 1;
-    } else if (article.status === "NOT_INTERESTED") {
-      row.notInterested += 1;
     }
   });
 
-  return dates.map(
-    (date) => rows.get(date) ?? { date, filtered: 0, notInterested: 0 },
-  );
+  return dates.map((date) => rows.get(date) ?? { date, filtered: 0 });
 }
 
 export function computeDailyAverage(
