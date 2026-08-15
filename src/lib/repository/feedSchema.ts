@@ -3,7 +3,8 @@ import { z } from "zod";
 export const feedSchema = z.object({
   title: z.string(),
   link: z.string().url(),
-  interestProfile: z.string(),
+  interests: z.array(z.string().trim().min(1)).default([]),
+  disinterests: z.array(z.string().trim().min(1)).default([]),
   feedCategoryId: z.number().optional(),
   autoRefresh: z.boolean(),
 });

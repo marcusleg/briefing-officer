@@ -35,7 +35,6 @@ export const createFeed = (overrides: {
   title?: string;
   link?: string;
   autoRefresh?: boolean;
-  interestProfile?: string;
   feedCategoryId?: number | null;
 }) => {
   return prisma.feed.create({
@@ -44,7 +43,6 @@ export const createFeed = (overrides: {
       title: overrides.title ?? "Test Feed",
       link: overrides.link ?? `https://example.com/${randomUUID()}.xml`,
       autoRefresh: overrides.autoRefresh ?? true,
-      interestProfile: overrides.interestProfile ?? "",
       lastFetched: new Date(0),
       feedCategoryId: overrides.feedCategoryId ?? null,
     },
