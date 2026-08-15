@@ -59,6 +59,11 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
   });
 
   const [submitting, setSubmitting] = useState(false);
+  // Gates submit on edit only: updateFeed replaces the whole filter set, and
+  // submitting before getFeedFilters below has landed would overwrite a
+  // feed's keywords with the empty arrays the form still holds. Creating a
+  // new feed has nothing to load, so it starts (and stays) true for that case.
+  const [filtersLoaded, setFiltersLoaded] = useState(!editFeed);
 
   const interests = useWatch({ control: form.control, name: "interests" });
   const disinterests = useWatch({
@@ -84,10 +89,22 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
       return;
     }
 
-    getFeedFilters(editFeed.id).then(({ interests, disinterests }) => {
-      form.setValue("interests", interests);
-      form.setValue("disinterests", disinterests);
-    });
+    getFeedFilters(editFeed.id)
+      .then(({ interests, disinterests }) => {
+        form.setValue("interests", interests);
+        form.setValue("disinterests", disinterests);
+      })
+      .catch((error) => {
+        // Same handling as getUserCategories below: not an error the reader
+        // has to act on. Letting the reader proceed (rather than leaving
+        // submit disabled forever) risks losing filters they can't see yet,
+        // but that is still better than a form stuck disabled with no
+        // explanation.
+        console.error("Failed to fetch feed filters:", error);
+      })
+      .finally(() => {
+        setFiltersLoaded(true);
+      });
   }, [editFeed, form]);
 
   const submitHandler = async (values: FeedSchema) => {
@@ -249,7 +266,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
             </DialogClose>
             <Button
               className="w-24 cursor-pointer"
-              disabled={submitting}
+              disabled={submitting || !filtersLoaded}
               type="submit"
             >
               {submitting ? (
