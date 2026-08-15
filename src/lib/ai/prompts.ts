@@ -163,11 +163,20 @@ ${textContent}
  *
  * Fed the stored lead rather than the scraped article. Naming what a piece is
  * about needs eighty words, and the ingest call already paid for the long read.
+ *
+ * Existing interests are fed alongside the existing disinterests so the model
+ * never proposes a disinterest that contradicts a topic the reader already
+ * said they want from this feed. A broad suggestion is the likeliest way to
+ * collide with one: "operating system internals" would swallow an interest of
+ * "Linux kernel development" just as surely as proposing that phrase
+ * verbatim, so the instruction covers both an exact match and a broader topic
+ * that would obviously subsume one.
  */
 export const buildFilterSuggestionPrompt = (
   title: string,
   summary: string,
   existingDisinterests: string[],
+  existingInterests: string[],
 ) => {
   const alreadyExcluded =
     existingDisinterests.length === 0
@@ -181,6 +190,19 @@ rewording of one:
 ${existingDisinterests.map((entry) => `- ${entry}`).join("\n")}
 </already_excluded>`;
 
+  const alreadyWanted =
+    existingInterests.length === 0
+      ? ""
+      : `
+
+The reader explicitly wants these topics from this feed. Do not propose any of
+them, and do not propose a broader topic that would obviously swallow one of
+them:
+
+<already_wanted>
+${existingInterests.map((entry) => `- ${entry}`).join("\n")}
+</already_wanted>`;
+
   return `A reader has just rejected the article below. Propose exactly three topic
 descriptions they could add to a list of subjects they do not want from this
 feed.
@@ -193,7 +215,7 @@ Give the three at different breadths, from narrow to broad:
 
 Each must be a short noun phrase describing a subject, not an instruction and
 not a sentence. Write them in the same language as the summary below. Describe
-what the article is about, never the fact that the reader disliked it.${alreadyExcluded}
+what the article is about, never the fact that the reader disliked it.${alreadyExcluded}${alreadyWanted}
 
 <article>
 <title>${title}</title>

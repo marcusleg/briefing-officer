@@ -32,6 +32,10 @@ export const suggestFilterKeywords = async (articleId: number) => {
     .filter((filter) => filter.kind === "DISINTEREST")
     .map((filter) => filter.text);
 
+  const existingInterests = article.feed.filters
+    .filter((filter) => filter.kind === "INTEREST")
+    .map((filter) => filter.text);
+
   const { object, usage } = await generateObject({
     model,
     schema: suggestionSchema,
@@ -39,6 +43,7 @@ export const suggestFilterKeywords = async (articleId: number) => {
       article.title,
       article.lead?.text ?? article.description ?? "",
       existingDisinterests,
+      existingInterests,
     ),
   });
 

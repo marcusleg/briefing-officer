@@ -53,7 +53,7 @@ describe("suggestFilterKeywords", () => {
     expect((call[0] as any).prompt).toContain("The stored lead.");
   });
 
-  it("passes the feed's existing disinterests so they are not repeated", async () => {
+  it("passes the feed's existing disinterests and interests in their distinct roles", async () => {
     const article = await createArticle({ userId, feedId });
     await createFeedFilter({
       feedId,
@@ -65,8 +65,21 @@ describe("suggestFilterKeywords", () => {
     await suggestFilterKeywords(article.id);
 
     const [call] = vi.mocked(generateObject).mock.calls;
-    expect((call[0] as any).prompt).toContain("- advertisements");
-    expect((call[0] as any).prompt).not.toContain("- kernel");
+    const prompt = (call[0] as any).prompt as string;
+
+    const excludedBlock = prompt.slice(
+      prompt.indexOf("<already_excluded>"),
+      prompt.indexOf("</already_excluded>"),
+    );
+    const wantedBlock = prompt.slice(
+      prompt.indexOf("<already_wanted>"),
+      prompt.indexOf("</already_wanted>"),
+    );
+
+    expect(excludedBlock).toContain("- advertisements");
+    expect(excludedBlock).not.toContain("- kernel");
+    expect(wantedBlock).toContain("- kernel");
+    expect(wantedBlock).not.toContain("- advertisements");
   });
 
   it("records token usage", async () => {
