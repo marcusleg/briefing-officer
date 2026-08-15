@@ -22,6 +22,7 @@ vi.mock("@/lib/ai/services/leadService", () => ({
 
 import { generateAiLead } from "@/lib/ai/services/leadService";
 import {
+  addFeedFilter,
   createCategory as createCategoryAction,
   createFeed as createFeedAction,
   deleteCategory,
@@ -30,6 +31,7 @@ import {
   refreshCategoryFeeds,
   refreshFeed,
   refreshFeeds,
+  removeFeedFilter,
   updateCategory,
   updateFeed,
 } from "@/lib/repository/feedRepository";
@@ -358,5 +360,98 @@ describe("feed keyword filters", () => {
     expect(await prisma.feedFilter.count({ where: { feedId: feed.id } })).toBe(
       0,
     );
+  });
+});
+
+describe("feedRepository.addFeedFilter", () => {
+  it("creates the row with the given feedId, kind, and text", async () => {
+    const feed = await createFeed({ userId });
+
+    await addFeedFilter(feed.id, "INTEREST", "kernel");
+
+    const filter = await prisma.feedFilter.findFirstOrThrow({
+      where: { feedId: feed.id },
+    });
+    expect(filter.feedId).toBe(feed.id);
+    expect(filter.kind).toBe("INTEREST");
+    expect(filter.text).toBe("kernel");
+  });
+
+  it("is idempotent: adding the same filter twice leaves exactly one row", async () => {
+    const feed = await createFeed({ userId });
+
+    await addFeedFilter(feed.id, "INTEREST", "kernel");
+    await expect(
+      addFeedFilter(feed.id, "INTEREST", "kernel"),
+    ).resolves.not.toThrow();
+
+    expect(await prisma.feedFilter.count({ where: { feedId: feed.id } })).toBe(
+      1,
+    );
+  });
+
+  it("treats INTEREST and DISINTEREST as distinct for the same text", async () => {
+    const feed = await createFeed({ userId });
+
+    await addFeedFilter(feed.id, "INTEREST", "kernel");
+    await addFeedFilter(feed.id, "DISINTEREST", "kernel");
+
+    const filters = await prisma.feedFilter.findMany({
+      where: { feedId: feed.id },
+    });
+    expect(filters.map((filter) => filter.kind).sort()).toEqual([
+      "DISINTEREST",
+      "INTEREST",
+    ]);
+  });
+});
+
+describe("feedRepository.removeFeedFilter", () => {
+  it("deletes the matching row", async () => {
+    const feed = await createFeed({ userId });
+    await createFeedFilter({
+      feedId: feed.id,
+      kind: "INTEREST",
+      text: "kernel",
+    });
+
+    await removeFeedFilter(feed.id, "INTEREST", "kernel");
+
+    expect(await prisma.feedFilter.count({ where: { feedId: feed.id } })).toBe(
+      0,
+    );
+  });
+
+  it("is a no-op when nothing matches", async () => {
+    const feed = await createFeed({ userId });
+
+    await expect(
+      removeFeedFilter(feed.id, "INTEREST", "does-not-exist"),
+    ).resolves.not.toThrow();
+
+    expect(await prisma.feedFilter.count({ where: { feedId: feed.id } })).toBe(
+      0,
+    );
+  });
+
+  it("removes only the matching kind, leaving the other kind intact", async () => {
+    const feed = await createFeed({ userId });
+    await createFeedFilter({
+      feedId: feed.id,
+      kind: "INTEREST",
+      text: "kernel",
+    });
+    await createFeedFilter({
+      feedId: feed.id,
+      kind: "DISINTEREST",
+      text: "kernel",
+    });
+
+    await removeFeedFilter(feed.id, "DISINTEREST", "kernel");
+
+    const filters = await prisma.feedFilter.findMany({
+      where: { feedId: feed.id },
+    });
+    expect(filters.map((filter) => filter.kind)).toEqual(["INTEREST"]);
   });
 });
