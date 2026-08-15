@@ -26,7 +26,7 @@ import { feedSchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 interface FeedFormProps {
@@ -59,6 +59,12 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
   });
 
   const [submitting, setSubmitting] = useState(false);
+
+  const interests = useWatch({ control: form.control, name: "interests" });
+  const disinterests = useWatch({
+    control: form.control,
+    name: "disinterests",
+  });
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -200,12 +206,8 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                   />
                 </FormControl>
                 <FormDescription>
-                  {describeFilters(
-                    form.watch("interests") ?? [],
-                    form.watch("disinterests") ?? [],
-                  )}{" "}
-                  When both lists speak to an article, the more specific entry
-                  wins.
+                  {describeFilters(interests ?? [], disinterests ?? [])} When
+                  both lists speak to an article, the more specific entry wins.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
