@@ -3,20 +3,14 @@
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import ChartCard from "@/app/feed/chart-card";
-import {
-  ChartConfig,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useDateFormatters } from "@/hooks/use-date-formatters";
-import { RejectedArticlesRow } from "@/lib/repository/statsTransforms";
-
-const chartConfig = {
-  filtered: { label: "Filtered", color: "var(--chart-2)" },
-} satisfies ChartConfig;
+import { buildPalette } from "@/lib/charts/palette";
+import { ArticlesPerFeedRow } from "@/lib/repository/statsTransforms";
 
 export interface DailyFilteredArticlesData {
-  rows: RejectedArticlesRow[];
+  rows: ArticlesPerFeedRow[];
+  feedKeys: string[];
   dailyAverage: number;
 }
 
@@ -28,12 +22,13 @@ const DailyFilteredArticlesChart = ({
   data,
 }: DailyFilteredArticlesChartProps) => {
   const { short, long } = useDateFormatters();
+  const config = buildPalette(data?.feedKeys ?? []);
 
   return (
     <ChartCard
       title="Filtered Articles"
-      description="Number of articles that never reached you each day, filtered by your keywords or rejected by hand"
-      config={chartConfig}
+      description="Number of articles that never reached you each day, filtered by your keywords or rejected by hand, split by the feed they came from"
+      config={config}
       data={data}
       footer={data && `${data.dailyAverage.toFixed(2)} articles per day`}
     >
@@ -55,7 +50,15 @@ const DailyFilteredArticlesChart = ({
           content={<ChartTooltipContent indicator="dot" />}
           labelFormatter={(value) => long.format(new Date(String(value)))}
         />
-        <Bar dataKey="filtered" fill={chartConfig.filtered.color} />
+        {(data?.feedKeys ?? []).map((key) => (
+          <Bar
+            key={key}
+            dataKey={key}
+            fill={config[key]?.color}
+            stroke={config[key]?.color}
+            stackId="a"
+          />
+        ))}
       </BarChart>
     </ChartCard>
   );

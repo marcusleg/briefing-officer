@@ -70,7 +70,59 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", count: 1 }]);
+    expect(rows).toEqual([{ date: "2026-02-10", "Feed A": 1 }]);
+  });
+
+  it("splits the read articles of a day across their feeds", async () => {
+    const day = new Date("2026-02-10T12:00:00.000Z");
+    const otherFeedId = (await createFeed({ userId, title: "Feed B" })).id;
+    await createArticle({
+      userId,
+      feedId,
+      status: "READ",
+      statusChangedAt: day,
+    });
+    await createArticle({
+      userId,
+      feedId: otherFeedId,
+      status: "READ",
+      statusChangedAt: day,
+    });
+    await createArticle({
+      userId,
+      feedId: otherFeedId,
+      status: "READ",
+      statusChangedAt: day,
+    });
+
+    const { rows, feedKeys, dailyAverage } = await getWeeklyArticlesRead(
+      new Date("2026-02-10T00:00:00.000Z"),
+      new Date("2026-02-10T00:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([{ date: "2026-02-10", "Feed A": 1, "Feed B": 2 }]);
+    expect(new Set(feedKeys)).toEqual(new Set(["Feed A", "Feed B"]));
+    expect(dailyAverage).toBe(3);
+  });
+
+  it("does not count another user's read articles", async () => {
+    const day = new Date("2026-02-10T12:00:00.000Z");
+    const otherUser = await createUser();
+    const otherFeed = await createFeed({ userId: otherUser.id });
+    await createArticle({
+      userId: otherUser.id,
+      feedId: otherFeed.id,
+      status: "READ",
+      statusChangedAt: day,
+    });
+
+    const { rows, feedKeys } = await getWeeklyArticlesRead(
+      new Date("2026-02-10T00:00:00.000Z"),
+      new Date("2026-02-10T00:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([{ date: "2026-02-10" }]);
+    expect(feedKeys).toEqual([]);
   });
 
   it("counts every rejected article for the day", async () => {
@@ -99,8 +151,33 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", filtered: 3 }]);
+    expect(rows).toEqual([{ date: "2026-02-10", "Feed A": 3 }]);
     expect(dailyAverage).toBe(3);
+  });
+
+  it("splits the rejected articles of a day across their feeds", async () => {
+    const day = new Date("2026-02-10T12:00:00.000Z");
+    const otherFeedId = (await createFeed({ userId, title: "Feed B" })).id;
+    await createArticle({
+      userId,
+      feedId,
+      status: "FILTERED",
+      statusChangedAt: day,
+    });
+    await createArticle({
+      userId,
+      feedId: otherFeedId,
+      status: "FILTERED",
+      statusChangedAt: day,
+    });
+
+    const { rows, feedKeys } = await getFilteredArticlesPerDay(
+      new Date("2026-02-10T00:00:00.000Z"),
+      new Date("2026-02-10T00:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([{ date: "2026-02-10", "Feed A": 1, "Feed B": 1 }]);
+    expect(new Set(feedKeys)).toEqual(new Set(["Feed A", "Feed B"]));
   });
 
   it("leaves unread and read articles out of the rejected counts", async () => {
@@ -124,7 +201,7 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", filtered: 0 }]);
+    expect(rows).toEqual([{ date: "2026-02-10" }]);
     expect(dailyAverage).toBe(0);
   });
 
@@ -148,9 +225,9 @@ describe("statsRepository counts", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-02-10", filtered: 1 },
-      { date: "2026-02-11", filtered: 0 },
-      { date: "2026-02-12", filtered: 1 },
+      { date: "2026-02-10", "Feed A": 1 },
+      { date: "2026-02-11" },
+      { date: "2026-02-12", "Feed A": 1 },
     ]);
     expect(dailyAverage).toBeCloseTo(2 / 3);
   });
@@ -171,7 +248,7 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", filtered: 0 }]);
+    expect(rows).toEqual([{ date: "2026-02-10" }]);
   });
 
   it("reports token usage history by date and model", async () => {

@@ -1,8 +1,7 @@
 import { TokenUsage } from "@/generated/prisma/client";
 import {
-  computeDailyAverage,
   shapeArticlesPerFeedPerDay,
-  shapeRejectedArticlesPerDay,
+  shapeStatusChangesPerFeedPerDay,
   shapeTokenUsage,
   type ArticlesPerFeedRow,
 } from "@/lib/repository/statsTransforms";
@@ -19,21 +18,6 @@ const tu = (
   model,
   inputTokens: input,
   outputTokens: output,
-});
-
-describe("computeDailyAverage", () => {
-  it("returns 0 for empty input", () => {
-    expect(computeDailyAverage([])).toBe(0);
-  });
-
-  it("divides total count by the number of rows", () => {
-    expect(
-      computeDailyAverage([
-        { date: "d1", count: 4 },
-        { date: "d2", count: 6 },
-      ]),
-    ).toBe(5);
-  });
 });
 
 describe("shapeArticlesPerFeedPerDay", () => {
@@ -66,74 +50,102 @@ describe("shapeArticlesPerFeedPerDay", () => {
   });
 });
 
-describe("shapeRejectedArticlesPerDay", () => {
-  // The caller (getFilteredArticlesPerDay) already constrains its query to
-  // status: "FILTERED", so every article this function receives is one —
-  // there is no status field left to check here.
-  const rejected = (iso: string) => ({
+describe("shapeStatusChangesPerFeedPerDay", () => {
+  // The callers (getWeeklyArticlesRead, getFilteredArticlesPerDay) already
+  // constrain their query to a single status, so there is no status field left
+  // to check here.
+  const feedTitles = new Map([
+    [1, "Feed A"],
+    [2, "Feed B"],
+  ]);
+  const change = (iso: string, feedId = 1) => ({
+    feedId,
     statusChangedAt: new Date(iso),
   });
 
-  it("returns a zeroed row for every day, even without any articles", () => {
+  it("returns a bare row for every day, even without any articles", () => {
     expect(
-      shapeRejectedArticlesPerDay(["2026-03-01", "2026-03-02"], []),
-    ).toEqual([
-      { date: "2026-03-01", filtered: 0 },
-      { date: "2026-03-02", filtered: 0 },
-    ]);
+      shapeStatusChangesPerFeedPerDay(
+        ["2026-03-01", "2026-03-02"],
+        [],
+        feedTitles,
+      ),
+    ).toEqual({
+      rows: [{ date: "2026-03-01" }, { date: "2026-03-02" }],
+      feedKeys: [],
+      dailyAverage: 0,
+    });
   });
 
-  it("counts every rejected article for the day", () => {
-    const rows = shapeRejectedArticlesPerDay(
+  it("counts the day's articles under the title of their feed", () => {
+    const { rows, feedKeys, dailyAverage } = shapeStatusChangesPerFeedPerDay(
       ["2026-03-01"],
       [
-        rejected("2026-03-01T08:00:00.000Z"),
-        rejected("2026-03-01T20:00:00.000Z"),
-        rejected("2026-03-01T12:00:00.000Z"),
+        change("2026-03-01T08:00:00.000Z", 1),
+        change("2026-03-01T20:00:00.000Z", 2),
+        change("2026-03-01T12:00:00.000Z", 1),
       ],
+      feedTitles,
     );
 
-    expect(rows).toEqual([{ date: "2026-03-01", filtered: 3 }]);
+    expect(rows).toEqual([{ date: "2026-03-01", "Feed A": 2, "Feed B": 1 }]);
+    expect(new Set(feedKeys)).toEqual(new Set(["Feed A", "Feed B"]));
+    expect(dailyAverage).toBe(3);
   });
 
   it("keeps days without activity in place between busy ones", () => {
-    const rows = shapeRejectedArticlesPerDay(
+    const { rows, dailyAverage } = shapeStatusChangesPerFeedPerDay(
       ["2026-03-01", "2026-03-02", "2026-03-03"],
       [
-        rejected("2026-03-01T08:00:00.000Z"),
-        rejected("2026-03-03T08:00:00.000Z"),
+        change("2026-03-01T08:00:00.000Z", 1),
+        change("2026-03-03T08:00:00.000Z", 2),
       ],
+      feedTitles,
     );
 
     expect(rows).toEqual([
-      { date: "2026-03-01", filtered: 1 },
-      { date: "2026-03-02", filtered: 0 },
-      { date: "2026-03-03", filtered: 1 },
+      { date: "2026-03-01", "Feed A": 1 },
+      { date: "2026-03-02" },
+      { date: "2026-03-03", "Feed B": 1 },
     ]);
+    expect(dailyAverage).toBeCloseTo(2 / 3);
   });
 
   it("ignores articles whose day falls outside the range", () => {
-    const rows = shapeRejectedArticlesPerDay(
+    const { rows } = shapeStatusChangesPerFeedPerDay(
       ["2026-03-02"],
       [
-        rejected("2026-03-01T23:59:59.000Z"),
-        rejected("2026-03-02T00:00:00.000Z"),
-        rejected("2026-03-03T00:00:00.000Z"),
+        change("2026-03-01T23:59:59.000Z"),
+        change("2026-03-02T00:00:00.000Z"),
+        change("2026-03-03T00:00:00.000Z"),
       ],
+      feedTitles,
     );
 
-    expect(rows).toEqual([{ date: "2026-03-02", filtered: 1 }]);
+    expect(rows).toEqual([{ date: "2026-03-02", "Feed A": 1 }]);
+  });
+
+  it("drops articles of a feed without a known title", () => {
+    const { rows, feedKeys } = shapeStatusChangesPerFeedPerDay(
+      ["2026-03-01"],
+      [change("2026-03-01T08:00:00.000Z", 99)],
+      feedTitles,
+    );
+
+    expect(rows).toEqual([{ date: "2026-03-01" }]);
+    expect(feedKeys).toEqual([]);
   });
 
   it("buckets by UTC day, not by the host timezone", () => {
-    const rows = shapeRejectedArticlesPerDay(
+    const { rows } = shapeStatusChangesPerFeedPerDay(
       ["2026-03-01", "2026-03-02"],
-      [rejected("2026-03-01T23:30:00.000Z")],
+      [change("2026-03-01T23:30:00.000Z")],
+      feedTitles,
     );
 
     expect(rows).toEqual([
-      { date: "2026-03-01", filtered: 1 },
-      { date: "2026-03-02", filtered: 0 },
+      { date: "2026-03-01", "Feed A": 1 },
+      { date: "2026-03-02" },
     ]);
   });
 });

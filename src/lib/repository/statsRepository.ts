@@ -3,9 +3,8 @@
 import prisma from "@/lib/prismaClient";
 import {
   ArticlesPerFeedRow,
-  computeDailyAverage,
   shapeArticlesPerFeedPerDay,
-  shapeRejectedArticlesPerDay,
+  shapeStatusChangesPerFeedPerDay,
   shapeTokenUsage,
 } from "@/lib/repository/statsTransforms";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -67,16 +66,21 @@ const getDaysInDateRange = (from: Date, to: Date) => {
   return dates;
 };
 
+const getFeedTitleById = async (userId: string) => {
+  const feeds = await prisma.feed.findMany({
+    where: { userId },
+    select: { id: true, title: true },
+  });
+
+  return new Map(feeds.map((feed) => [feed.id, feed.title]));
+};
+
 export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
   const userId = await getUserId();
 
   const dates = getDaysInDateRange(from, to);
 
-  const feeds = await prisma.feed.findMany({
-    where: { userId },
-    select: { id: true, title: true },
-  });
-  const feedTitleById = new Map(feeds.map((f) => [f.id, f.title]));
+  const feedTitleById = await getFeedTitleById(userId);
 
   const perDayPerFeed: ArticlesPerFeedRow[] = await Promise.all(
     dates.map(async (date) => {
@@ -106,49 +110,44 @@ export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
   return shapeArticlesPerFeedPerDay(perDayPerFeed);
 };
 
+/**
+ * Articles the reader marked read, per day and per feed, so the chart can stack
+ * the day's total by where the articles came from.
+ */
 export const getWeeklyArticlesRead = async (from: Date, to: Date) => {
   const userId = await getUserId();
 
   const dates = getDaysInDateRange(from, to);
+  const feedTitleById = await getFeedTitleById(userId);
 
-  const articlesReadPerDay = await Promise.all(
-    dates.map((date) =>
-      prisma.article.aggregate({
-        _count: {
-          _all: true,
-        },
-        where: {
-          status: "READ",
-          statusChangedAt: {
-            gte: `${date}T00:00:00.000Z`,
-            lte: `${date}T23:59:59.999Z`,
-          },
-          userId,
-        },
-      }),
-    ),
-  );
+  const readArticles = await prisma.article.findMany({
+    select: { feedId: true, statusChangedAt: true },
+    where: {
+      status: "READ",
+      statusChangedAt: {
+        gte: `${dates[0]}T00:00:00.000Z`,
+        lte: `${dates[dates.length - 1]}T23:59:59.999Z`,
+      },
+      userId,
+    },
+  });
 
-  const rows = dates.map((date, index) => ({
-    date,
-    count: articlesReadPerDay[index]._count._all,
-  }));
-
-  return { rows, dailyAverage: computeDailyAverage(rows) };
+  return shapeStatusChangesPerFeedPerDay(dates, readArticles, feedTitleById);
 };
 
 /**
- * Articles that never made it to the reader, per day — whether the model
- * filtered them against the feed's keywords or the reader rejected them by
- * hand. This matches what the Filtered view lists.
+ * Articles that never made it to the reader, per day and per feed — whether the
+ * model filtered them against the feed's keywords or the reader rejected them
+ * by hand. This matches what the Filtered view lists.
  */
 export const getFilteredArticlesPerDay = async (from: Date, to: Date) => {
   const userId = await getUserId();
 
   const dates = getDaysInDateRange(from, to);
+  const feedTitleById = await getFeedTitleById(userId);
 
   const rejectedArticles = await prisma.article.findMany({
-    select: { statusChangedAt: true },
+    select: { feedId: true, statusChangedAt: true },
     where: {
       status: "FILTERED",
       statusChangedAt: {
@@ -159,16 +158,11 @@ export const getFilteredArticlesPerDay = async (from: Date, to: Date) => {
     },
   });
 
-  const rows = shapeRejectedArticlesPerDay(dates, rejectedArticles);
-
-  const dailyAverage = computeDailyAverage(
-    rows.map((row) => ({
-      date: row.date,
-      count: row.filtered,
-    })),
+  return shapeStatusChangesPerFeedPerDay(
+    dates,
+    rejectedArticles,
+    feedTitleById,
   );
-
-  return { rows, dailyAverage };
 };
 
 export const getTokenUsageHistory = async (from: Date, to: Date) => {
