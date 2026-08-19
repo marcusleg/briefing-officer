@@ -54,48 +54,40 @@ export function shapeTokenUsage(raw: TokenUsage[]): {
   return { rows, models };
 }
 
-export interface RejectedArticlesRow {
-  date: string;
-  filtered: number;
-}
-
 /**
- * Counts rejected articles per day.
- *
- * This used to split model verdicts from reader rejections, which is what made
- * the filter's precision readable off the chart. With one terminal state there
- * is nothing to split on. `FeedFilter.createdAt` — keywords added per day — is
- * the natural replacement and is deliberately not implemented here.
+ * Buckets articles into one row per day, with one key per feed, ready for a
+ * stacked bar chart.
  *
  * There is one row per day in `dates`, so quiet days render as a gap rather
  * than being skipped. Days are the UTC calendar days used everywhere else in
  * the stats layer.
  *
- * Takes only `statusChangedAt` — no `status` field — because the caller
- * (`getFilteredArticlesPerDay` in statsRepository.ts) already constrains its
- * query to `status: "FILTERED"`, so every article passed in here is one.
+ * Articles are bucketed by `statusChangedAt` — the moment they became read or
+ * filtered — because both callers (`getWeeklyArticlesRead` and
+ * `getFilteredArticlesPerDay` in statsRepository.ts) already constrain their
+ * query to a single status, so there is no status field left to check here.
+ *
+ * Feeds are keyed by title, matching `shapeArticlesPerFeedPerDay`, so the chart
+ * legend and tooltip read as feed names without a second lookup. Articles of a
+ * feed the caller did not pass a title for are dropped.
  */
-export function shapeRejectedArticlesPerDay(
+export function shapeStatusChangesPerFeedPerDay(
   dates: string[],
-  articles: Array<{ statusChangedAt: Date }>,
-): RejectedArticlesRow[] {
-  const rows = new Map(dates.map((date) => [date, { date, filtered: 0 }]));
+  articles: Array<{ feedId: number; statusChangedAt: Date }>,
+  feedTitleById: Map<number, string>,
+) {
+  const rows: ArticlesPerFeedRow[] = dates.map((date) => ({ date }));
+  const rowByDate = new Map(rows.map((row) => [row.date as string, row]));
 
-  articles.forEach((article) => {
-    const row = rows.get(article.statusChangedAt.toISOString().split("T")[0]);
+  articles.forEach(({ feedId, statusChangedAt }) => {
+    const row = rowByDate.get(statusChangedAt.toISOString().split("T")[0]);
+    const title = feedTitleById.get(feedId);
 
-    if (row) {
-      row.filtered += 1;
-    }
+    if (!row || title === undefined) return;
+
+    const current = row[title];
+    row[title] = (typeof current === "number" ? current : 0) + 1;
   });
 
-  return dates.map((date) => rows.get(date) ?? { date, filtered: 0 });
-}
-
-export function computeDailyAverage(
-  rows: Array<{ date: string; count: number }>,
-): number {
-  if (rows.length === 0) return 0;
-  const total = rows.reduce((sum, r) => sum + r.count, 0);
-  return total / rows.length;
+  return shapeArticlesPerFeedPerDay(rows);
 }
