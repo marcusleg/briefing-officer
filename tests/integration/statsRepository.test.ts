@@ -5,6 +5,7 @@ import {
   getNumberOfUnreadArticles,
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
+  getWeeklyArticleCountPerFeed,
   getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -48,6 +49,58 @@ describe("statsRepository counts", () => {
 
     const perFeed = await getUnreadArticlesPerFeed();
     expect(perFeed).toEqual([{ feedTitle: "Feed A", unread: 1 }]);
+  });
+
+  it("counts new articles per feed by their publication date", async () => {
+    const otherFeedId = (await createFeed({ userId, title: "Feed B" })).id;
+    await createArticle({
+      userId,
+      feedId,
+      publicationDate: new Date("2026-02-10T06:00:00.000Z"),
+    });
+    await createArticle({
+      userId,
+      feedId: otherFeedId,
+      publicationDate: new Date("2026-02-10T22:00:00.000Z"),
+    });
+    await createArticle({
+      userId,
+      feedId,
+      publicationDate: new Date("2026-02-12T06:00:00.000Z"),
+    });
+
+    const { rows, feedKeys, dailyAverage } = await getWeeklyArticleCountPerFeed(
+      new Date("2026-02-10T00:00:00.000Z"),
+      new Date("2026-02-12T00:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([
+      { date: "2026-02-10", "Feed A": 1, "Feed B": 1 },
+      { date: "2026-02-11" },
+      { date: "2026-02-12", "Feed A": 1 },
+    ]);
+    expect(new Set(feedKeys)).toEqual(new Set(["Feed A", "Feed B"]));
+    expect(dailyAverage).toBe(1);
+  });
+
+  it("leaves articles published outside the range out of the new-article counts", async () => {
+    await createArticle({
+      userId,
+      feedId,
+      publicationDate: new Date("2026-02-09T23:59:59.000Z"),
+    });
+    await createArticle({
+      userId,
+      feedId,
+      publicationDate: new Date("2026-02-11T00:00:00.000Z"),
+    });
+
+    const { rows } = await getWeeklyArticleCountPerFeed(
+      new Date("2026-02-10T00:00:00.000Z"),
+      new Date("2026-02-10T00:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([{ date: "2026-02-10" }]);
   });
 
   it("counts read articles but not hand-rejected ones as read that day", async () => {

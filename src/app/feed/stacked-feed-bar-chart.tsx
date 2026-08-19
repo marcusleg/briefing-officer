@@ -6,28 +6,30 @@ import ChartCard from "@/app/feed/chart-card";
 import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useDateFormatters } from "@/hooks/use-date-formatters";
 import { buildPalette } from "@/lib/charts/palette";
-import { ArticlesPerFeedRow } from "@/lib/repository/statsTransforms";
+import { ArticlesPerFeedData } from "@/lib/repository/statsTransforms";
 
-export interface DailyFilteredArticlesData {
-  rows: ArticlesPerFeedRow[];
-  feedKeys: string[];
-  dailyAverage: number;
+interface StackedFeedBarChartProps {
+  title: string;
+  description: string;
+  data?: ArticlesPerFeedData;
 }
 
-interface DailyFilteredArticlesChartProps {
-  data?: DailyFilteredArticlesData;
-}
-
-const DailyFilteredArticlesChart = ({
+/**
+ * One bar per day, stacked by the feed each article came from. Shared by every
+ * daily article count on the dashboard — they differ only in their copy.
+ */
+const StackedFeedBarChart = ({
+  title,
+  description,
   data,
-}: DailyFilteredArticlesChartProps) => {
+}: StackedFeedBarChartProps) => {
   const { short, long } = useDateFormatters();
   const config = buildPalette(data?.feedKeys ?? []);
 
   return (
     <ChartCard
-      title="Filtered Articles"
-      description="Number of articles that never reached you each day, filtered by your keywords or rejected by hand, split by the feed they came from"
+      title={title}
+      description={description}
       config={config}
       data={data}
       footer={data && `${data.dailyAverage.toFixed(2)} articles per day`}
@@ -64,4 +66,4 @@ const DailyFilteredArticlesChart = ({
   );
 };
 
-export default DailyFilteredArticlesChart;
+export default StackedFeedBarChart;
