@@ -1,9 +1,7 @@
 import { TokenUsage } from "@/generated/prisma/client";
 import {
   shapeArticlesPerFeedPerDay,
-  shapeStatusChangesPerFeedPerDay,
   shapeTokenUsage,
-  type ArticlesPerFeedRow,
 } from "@/lib/repository/statsTransforms";
 import { describe, expect, it } from "vitest";
 
@@ -21,55 +19,26 @@ const tu = (
 });
 
 describe("shapeArticlesPerFeedPerDay", () => {
-  it("returns empty result for empty input", () => {
-    expect(shapeArticlesPerFeedPerDay([])).toEqual({
+  const feedTitles = new Map([
+    [1, "Feed A"],
+    [2, "Feed B"],
+  ]);
+  const article = (iso: string, feedId = 1) => ({
+    feedId,
+    at: new Date(iso),
+  });
+
+  it("returns an empty result when the range holds no days", () => {
+    expect(shapeArticlesPerFeedPerDay([], [], feedTitles)).toEqual({
       rows: [],
       feedKeys: [],
       dailyAverage: 0,
     });
   });
 
-  it("collects feed keys across rows, excluding 'date'", () => {
-    const rows: ArticlesPerFeedRow[] = [
-      { date: "d1", FeedA: 2, FeedB: 3 },
-      { date: "d2", FeedA: 1, FeedC: 4 },
-    ];
-    const result = shapeArticlesPerFeedPerDay(rows);
-    expect(new Set(result.feedKeys)).toEqual(
-      new Set(["FeedA", "FeedB", "FeedC"]),
-    );
-    expect(result.rows).toBe(rows);
-  });
-
-  it("computes dailyAverage from numeric feed values only", () => {
-    const rows: ArticlesPerFeedRow[] = [
-      { date: "d1", FeedA: 2, FeedB: 3 },
-      { date: "d2", FeedA: 5 },
-    ];
-    expect(shapeArticlesPerFeedPerDay(rows).dailyAverage).toBe(5);
-  });
-});
-
-describe("shapeStatusChangesPerFeedPerDay", () => {
-  // The callers (getWeeklyArticlesRead, getFilteredArticlesPerDay) already
-  // constrain their query to a single status, so there is no status field left
-  // to check here.
-  const feedTitles = new Map([
-    [1, "Feed A"],
-    [2, "Feed B"],
-  ]);
-  const change = (iso: string, feedId = 1) => ({
-    feedId,
-    statusChangedAt: new Date(iso),
-  });
-
   it("returns a bare row for every day, even without any articles", () => {
     expect(
-      shapeStatusChangesPerFeedPerDay(
-        ["2026-03-01", "2026-03-02"],
-        [],
-        feedTitles,
-      ),
+      shapeArticlesPerFeedPerDay(["2026-03-01", "2026-03-02"], [], feedTitles),
     ).toEqual({
       rows: [{ date: "2026-03-01" }, { date: "2026-03-02" }],
       feedKeys: [],
@@ -78,12 +47,12 @@ describe("shapeStatusChangesPerFeedPerDay", () => {
   });
 
   it("counts the day's articles under the title of their feed", () => {
-    const { rows, feedKeys, dailyAverage } = shapeStatusChangesPerFeedPerDay(
+    const { rows, feedKeys, dailyAverage } = shapeArticlesPerFeedPerDay(
       ["2026-03-01"],
       [
-        change("2026-03-01T08:00:00.000Z", 1),
-        change("2026-03-01T20:00:00.000Z", 2),
-        change("2026-03-01T12:00:00.000Z", 1),
+        article("2026-03-01T08:00:00.000Z", 1),
+        article("2026-03-01T20:00:00.000Z", 2),
+        article("2026-03-01T12:00:00.000Z", 1),
       ],
       feedTitles,
     );
@@ -94,11 +63,11 @@ describe("shapeStatusChangesPerFeedPerDay", () => {
   });
 
   it("keeps days without activity in place between busy ones", () => {
-    const { rows, dailyAverage } = shapeStatusChangesPerFeedPerDay(
+    const { rows, dailyAverage } = shapeArticlesPerFeedPerDay(
       ["2026-03-01", "2026-03-02", "2026-03-03"],
       [
-        change("2026-03-01T08:00:00.000Z", 1),
-        change("2026-03-03T08:00:00.000Z", 2),
+        article("2026-03-01T08:00:00.000Z", 1),
+        article("2026-03-03T08:00:00.000Z", 2),
       ],
       feedTitles,
     );
@@ -112,12 +81,12 @@ describe("shapeStatusChangesPerFeedPerDay", () => {
   });
 
   it("ignores articles whose day falls outside the range", () => {
-    const { rows } = shapeStatusChangesPerFeedPerDay(
+    const { rows } = shapeArticlesPerFeedPerDay(
       ["2026-03-02"],
       [
-        change("2026-03-01T23:59:59.000Z"),
-        change("2026-03-02T00:00:00.000Z"),
-        change("2026-03-03T00:00:00.000Z"),
+        article("2026-03-01T23:59:59.000Z"),
+        article("2026-03-02T00:00:00.000Z"),
+        article("2026-03-03T00:00:00.000Z"),
       ],
       feedTitles,
     );
@@ -126,9 +95,9 @@ describe("shapeStatusChangesPerFeedPerDay", () => {
   });
 
   it("drops articles of a feed without a known title", () => {
-    const { rows, feedKeys } = shapeStatusChangesPerFeedPerDay(
+    const { rows, feedKeys } = shapeArticlesPerFeedPerDay(
       ["2026-03-01"],
-      [change("2026-03-01T08:00:00.000Z", 99)],
+      [article("2026-03-01T08:00:00.000Z", 99)],
       feedTitles,
     );
 
@@ -137,9 +106,9 @@ describe("shapeStatusChangesPerFeedPerDay", () => {
   });
 
   it("buckets by UTC day, not by the host timezone", () => {
-    const { rows } = shapeStatusChangesPerFeedPerDay(
+    const { rows } = shapeArticlesPerFeedPerDay(
       ["2026-03-01", "2026-03-02"],
-      [change("2026-03-01T23:30:00.000Z")],
+      [article("2026-03-01T23:30:00.000Z")],
       feedTitles,
     );
 

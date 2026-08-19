@@ -1,14 +1,6 @@
 "use client";
 
-import DailyActivityChart, {
-  DailyActivityData,
-} from "@/app/feed/daily-activity-chart";
-import DailyFilteredArticlesChart, {
-  DailyFilteredArticlesData,
-} from "@/app/feed/daily-filtered-articles-chart";
-import DailyNewArticlesChart, {
-  DailyNewArticlesData,
-} from "@/app/feed/daily-new-articles-chart";
+import StackedFeedBarChart from "@/app/feed/stacked-feed-bar-chart";
 import TokenUsageChart, { TokenUsageData } from "@/app/feed/token-usage-chart";
 import UnreadArticlesPieChart, {
   UnreadArticlesChartData,
@@ -22,6 +14,7 @@ import {
   getWeeklyArticleCountPerFeed,
   getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
+import { ArticlesPerFeedData } from "@/lib/repository/statsTransforms";
 import { useEffect, useState } from "react";
 
 export enum DateRangePreset {
@@ -65,16 +58,20 @@ const Dashboard = () => {
     useState<UnreadArticlesChartData[]>();
   const [tokenUsageData, setTokenUsageData] = useState<TokenUsageData>();
   const [dailyNewArticlesData, setDailyNewArticlesData] =
-    useState<DailyNewArticlesData>();
+    useState<ArticlesPerFeedData>();
   const [dailyActivityData, setDailyActivityData] =
-    useState<DailyActivityData>();
+    useState<ArticlesPerFeedData>();
   const [dailyFilteredArticlesData, setDailyFilteredArticlesData] =
-    useState<DailyFilteredArticlesData>();
+    useState<ArticlesPerFeedData>();
+
+  // The unread breakdown is a snapshot of right now, so it does not depend on
+  // the selected range and must not be refetched when that changes.
+  useEffect(() => {
+    getUnreadArticlesPerFeed().then((data) => setUnreadArticlesChartData(data));
+  }, []);
 
   useEffect(() => {
     const dateRange = getDateRangeFromPreset(selectedRange);
-
-    getUnreadArticlesPerFeed().then((data) => setUnreadArticlesChartData(data));
 
     getTokenUsageHistory(dateRange.from, dateRange.to).then((data) =>
       setTokenUsageData(data),
@@ -125,13 +122,25 @@ const Dashboard = () => {
           <TokenUsageChart data={tokenUsageData} />
         </div>
         <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
-          <DailyNewArticlesChart data={dailyNewArticlesData} />
+          <StackedFeedBarChart
+            title="Daily New Articles"
+            description="Number of new articles that appeared in your feed each day, split by the feed they came from"
+            data={dailyNewArticlesData}
+          />
         </div>
         <div className="md:col-span-2 md:col-start-2 2xl:col-span-1 2xl:col-start-auto [&>*]:h-full">
-          <DailyActivityChart data={dailyActivityData} />
+          <StackedFeedBarChart
+            title="Your Daily Activity"
+            description="Number of articles you read each day, split by the feed they came from"
+            data={dailyActivityData}
+          />
         </div>
         <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
-          <DailyFilteredArticlesChart data={dailyFilteredArticlesData} />
+          <StackedFeedBarChart
+            title="Filtered Articles"
+            description="Number of articles that never reached you each day, filtered by your keywords or rejected by hand, split by the feed they came from"
+            data={dailyFilteredArticlesData}
+          />
         </div>
       </div>
     </>

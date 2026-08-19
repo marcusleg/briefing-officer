@@ -2,33 +2,69 @@ import { TokenUsage } from "@/generated/prisma/client";
 
 export type ArticlesPerFeedRow = Record<string, string | number>;
 
-export function shapeArticlesPerFeedPerDay(rows: ArticlesPerFeedRow[]): {
+export interface ArticlesPerFeedData {
   rows: ArticlesPerFeedRow[];
   feedKeys: string[];
   dailyAverage: number;
-} {
-  const feedKeys = Array.from(
-    rows.reduce((set, row) => {
-      Object.keys(row).forEach((k) => {
-        if (k !== "date") set.add(k);
-      });
-      return set;
-    }, new Set<string>()),
+}
+
+/** An article reduced to the two fields the daily-per-feed charts need. */
+export interface DatedArticle {
+  feedId: number;
+  at: Date;
+}
+
+/**
+ * Buckets articles into one row per day, with one key per feed, ready for a
+ * stacked bar chart.
+ *
+ * There is one row per day in `dates`, so quiet days render as a gap rather
+ * than being skipped. Days are the UTC calendar days used everywhere else in
+ * the stats layer.
+ *
+ * Callers pick which date an article is filed under — its publication date, or
+ * the moment it became read or filtered — by mapping it into `at`.
+ *
+ * Feeds are keyed by title so the chart legend and tooltip read as feed names
+ * without a second lookup. Articles of a feed the caller did not pass a title
+ * for are dropped.
+ */
+export function shapeArticlesPerFeedPerDay(
+  dates: string[],
+  articles: DatedArticle[],
+  feedTitleById: Map<number, string>,
+): ArticlesPerFeedData {
+  const countsPerDay = new Map(
+    dates.map((date) => [date, new Map<string, number>()]),
   );
 
-  const total = rows.reduce((sum, row) => {
-    return (
-      sum +
-      feedKeys.reduce((s, k) => {
-        const v = row[k];
-        return s + (typeof v === "number" ? v : 0);
-      }, 0)
-    );
-  }, 0);
+  articles.forEach(({ feedId, at }) => {
+    const counts = countsPerDay.get(at.toISOString().split("T")[0]);
+    const title = feedTitleById.get(feedId);
 
-  const dailyAverage = rows.length === 0 ? 0 : total / rows.length;
+    if (!counts || title === undefined) return;
 
-  return { rows, feedKeys, dailyAverage };
+    counts.set(title, (counts.get(title) ?? 0) + 1);
+  });
+
+  const days = [...countsPerDay.values()];
+
+  const feedKeys = [...new Set(days.flatMap((counts) => [...counts.keys()]))];
+
+  const total = days.reduce(
+    (sum, counts) => sum + [...counts.values()].reduce((s, n) => s + n, 0),
+    0,
+  );
+
+  const rows: ArticlesPerFeedRow[] = [...countsPerDay].map(
+    ([date, counts]) => ({ date, ...Object.fromEntries(counts) }),
+  );
+
+  return {
+    rows,
+    feedKeys,
+    dailyAverage: dates.length === 0 ? 0 : total / dates.length,
+  };
 }
 
 export type TokenUsageRow = Record<string, string | number>;
@@ -52,42 +88,4 @@ export function shapeTokenUsage(raw: TokenUsage[]): {
   const models = [...new Set(raw.map((entry) => entry.model))];
 
   return { rows, models };
-}
-
-/**
- * Buckets articles into one row per day, with one key per feed, ready for a
- * stacked bar chart.
- *
- * There is one row per day in `dates`, so quiet days render as a gap rather
- * than being skipped. Days are the UTC calendar days used everywhere else in
- * the stats layer.
- *
- * Articles are bucketed by `statusChangedAt` — the moment they became read or
- * filtered — because both callers (`getWeeklyArticlesRead` and
- * `getFilteredArticlesPerDay` in statsRepository.ts) already constrain their
- * query to a single status, so there is no status field left to check here.
- *
- * Feeds are keyed by title, matching `shapeArticlesPerFeedPerDay`, so the chart
- * legend and tooltip read as feed names without a second lookup. Articles of a
- * feed the caller did not pass a title for are dropped.
- */
-export function shapeStatusChangesPerFeedPerDay(
-  dates: string[],
-  articles: Array<{ feedId: number; statusChangedAt: Date }>,
-  feedTitleById: Map<number, string>,
-) {
-  const rows: ArticlesPerFeedRow[] = dates.map((date) => ({ date }));
-  const rowByDate = new Map(rows.map((row) => [row.date as string, row]));
-
-  articles.forEach(({ feedId, statusChangedAt }) => {
-    const row = rowByDate.get(statusChangedAt.toISOString().split("T")[0]);
-    const title = feedTitleById.get(feedId);
-
-    if (!row || title === undefined) return;
-
-    const current = row[title];
-    row[title] = (typeof current === "number" ? current : 0) + 1;
-  });
-
-  return shapeArticlesPerFeedPerDay(rows);
 }
