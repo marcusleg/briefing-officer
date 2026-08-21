@@ -103,6 +103,32 @@ describe("statsRepository counts", () => {
     expect(rows).toEqual([{ date: "2026-02-10" }]);
   });
 
+  it("counts new articles sitting exactly on the range bounds", async () => {
+    // SQLite keeps these as text with a "+00:00" offset, so a hand-rolled
+    // string comparison against a "...Z" bound would sort the midnight article
+    // below it and drop it. Prisma normalizes both sides; this pins that.
+    await createArticle({
+      userId,
+      feedId,
+      publicationDate: new Date("2026-02-10T00:00:00.000Z"),
+    });
+    await createArticle({
+      userId,
+      feedId,
+      publicationDate: new Date("2026-02-11T23:59:59.999Z"),
+    });
+
+    const { rows } = await getWeeklyArticleCountPerFeed(
+      new Date("2026-02-10T00:00:00.000Z"),
+      new Date("2026-02-11T00:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([
+      { date: "2026-02-10", "feed:Feed A": 1 },
+      { date: "2026-02-11", "feed:Feed A": 1 },
+    ]);
+  });
+
   it("counts read articles but not hand-rejected ones as read that day", async () => {
     const day = new Date("2026-02-10T12:00:00.000Z");
     await createArticle({
