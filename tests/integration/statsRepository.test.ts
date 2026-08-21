@@ -75,11 +75,11 @@ describe("statsRepository counts", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-02-10", "Feed A": 1, "Feed B": 1 },
+      { date: "2026-02-10", "feed:Feed A": 1, "feed:Feed B": 1 },
       { date: "2026-02-11" },
-      { date: "2026-02-12", "Feed A": 1 },
+      { date: "2026-02-12", "feed:Feed A": 1 },
     ]);
-    expect(new Set(feedKeys)).toEqual(new Set(["Feed A", "Feed B"]));
+    expect(new Set(feedKeys)).toEqual(new Set(["feed:Feed A", "feed:Feed B"]));
     expect(dailyAverage).toBe(1);
   });
 
@@ -123,7 +123,7 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", "Feed A": 1 }]);
+    expect(rows).toEqual([{ date: "2026-02-10", "feed:Feed A": 1 }]);
   });
 
   it("splits the read articles of a day across their feeds", async () => {
@@ -153,8 +153,10 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", "Feed A": 1, "Feed B": 2 }]);
-    expect(new Set(feedKeys)).toEqual(new Set(["Feed A", "Feed B"]));
+    expect(rows).toEqual([
+      { date: "2026-02-10", "feed:Feed A": 1, "feed:Feed B": 2 },
+    ]);
+    expect(new Set(feedKeys)).toEqual(new Set(["feed:Feed A", "feed:Feed B"]));
     expect(dailyAverage).toBe(3);
   });
 
@@ -204,7 +206,7 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", "Feed A": 3 }]);
+    expect(rows).toEqual([{ date: "2026-02-10", "feed:Feed A": 3 }]);
     expect(dailyAverage).toBe(3);
   });
 
@@ -229,8 +231,10 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", "Feed A": 1, "Feed B": 1 }]);
-    expect(new Set(feedKeys)).toEqual(new Set(["Feed A", "Feed B"]));
+    expect(rows).toEqual([
+      { date: "2026-02-10", "feed:Feed A": 1, "feed:Feed B": 1 },
+    ]);
+    expect(new Set(feedKeys)).toEqual(new Set(["feed:Feed A", "feed:Feed B"]));
   });
 
   it("leaves unread and read articles out of the rejected counts", async () => {
@@ -278,9 +282,9 @@ describe("statsRepository counts", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-02-10", "Feed A": 1 },
+      { date: "2026-02-10", "feed:Feed A": 1 },
       { date: "2026-02-11" },
-      { date: "2026-02-12", "Feed A": 1 },
+      { date: "2026-02-12", "feed:Feed A": 1 },
     ]);
     expect(dailyAverage).toBeCloseTo(2 / 3);
   });

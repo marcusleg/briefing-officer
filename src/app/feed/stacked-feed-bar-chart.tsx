@@ -6,7 +6,10 @@ import ChartCard from "@/app/feed/chart-card";
 import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useDateFormatters } from "@/hooks/use-date-formatters";
 import { buildPalette } from "@/lib/charts/palette";
-import { ArticlesPerFeedData } from "@/lib/repository/statsTransforms";
+import {
+  ArticlesPerFeedData,
+  feedLabel,
+} from "@/lib/repository/statsTransforms";
 
 interface StackedFeedBarChartProps {
   title: string;
@@ -24,7 +27,7 @@ const StackedFeedBarChart = ({
   data,
 }: StackedFeedBarChartProps) => {
   const { short, long } = useDateFormatters();
-  const config = buildPalette(data?.feedKeys ?? []);
+  const config = buildPalette(data?.feedKeys ?? [], feedLabel);
 
   return (
     <ChartCard
