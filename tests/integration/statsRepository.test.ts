@@ -304,6 +304,27 @@ describe("statsRepository counts", () => {
     expect(rows).toEqual([{ date: "2026-02-10" }]);
   });
 
+  it("returns an empty chart when the range covers no days", async () => {
+    await createArticle({
+      userId,
+      feedId,
+      publicationDate: new Date("2026-02-10T06:00:00.000Z"),
+    });
+
+    const invalid = new Date("not a date");
+    const empty = { rows: [], feedKeys: [], dailyAverage: 0 };
+
+    await expect(
+      getWeeklyArticleCountPerFeed(invalid, invalid),
+    ).resolves.toEqual(empty);
+    await expect(getWeeklyArticlesRead(invalid, invalid)).resolves.toEqual(
+      empty,
+    );
+    await expect(getFilteredArticlesPerDay(invalid, invalid)).resolves.toEqual(
+      empty,
+    );
+  });
+
   it("reports token usage history by date and model", async () => {
     await prisma.tokenUsage.create({
       data: {

@@ -3,6 +3,7 @@
 import { ArticleStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prismaClient";
 import {
+  ArticlesPerFeedData,
   shapeArticlesPerFeedPerDay,
   shapeTokenUsage,
 } from "@/lib/repository/statsTransforms";
@@ -65,10 +66,23 @@ const getDaysInDateRange = (from: Date, to: Date) => {
   return dates;
 };
 
-/** The UTC span covering every day in `dates`, as a Prisma date filter. */
+/**
+ * The UTC span covering every day in `dates`, as a Prisma date filter. Callers
+ * must rule out an empty `dates` first — there is no span to build then.
+ */
 const utcRangeOf = (dates: string[]) => ({
   gte: `${dates[0]}T00:00:00.000Z`,
   lte: `${dates[dates.length - 1]}T23:59:59.999Z`,
+});
+
+/**
+ * What the daily-per-feed charts render for a range that covers no days, which
+ * `getDaysInDateRange` returns for an unparseable `from` or `to`.
+ */
+const noArticlesPerFeed = (): ArticlesPerFeedData => ({
+  rows: [],
+  feedKeys: [],
+  dailyAverage: 0,
 });
 
 const getFeedTitleById = async (userId: string) => {
@@ -86,6 +100,8 @@ const getFeedTitleById = async (userId: string) => {
 export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
   const userId = await getUserId();
   const dates = getDaysInDateRange(from, to);
+
+  if (dates.length === 0) return noArticlesPerFeed();
 
   const [feedTitleById, articles] = await Promise.all([
     getFeedTitleById(userId),
@@ -116,6 +132,8 @@ const getStatusChangesPerFeedPerDay = async (
 ) => {
   const userId = await getUserId();
   const dates = getDaysInDateRange(from, to);
+
+  if (dates.length === 0) return noArticlesPerFeed();
 
   const [feedTitleById, articles] = await Promise.all([
     getFeedTitleById(userId),
