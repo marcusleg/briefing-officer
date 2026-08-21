@@ -11,11 +11,19 @@ export const CHART_COLORS = [
   "var(--chart-8)",
 ] as const;
 
-export function buildPalette(keys: string[]): ChartConfig {
+/**
+ * A color per key, in `CHART_COLORS` order and wrapping around once the colors
+ * run out. Keys that are not meant to be read — a namespaced feed key, say —
+ * pass a `labelOf` to say what the legend and tooltip should show instead.
+ */
+export function buildPalette(
+  keys: string[],
+  labelOf: (key: string) => string = (key) => key,
+): ChartConfig {
   const config: Record<string, { label: string; color: string }> = {};
   keys.forEach((key, i) => {
     config[key] = {
-      label: key,
+      label: labelOf(key),
       color: CHART_COLORS[i % CHART_COLORS.length],
     };
   });

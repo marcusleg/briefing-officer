@@ -1,5 +1,7 @@
 import { TokenUsage } from "@/generated/prisma/client";
 import {
+  feedKey,
+  feedLabel,
   shapeArticlesPerFeedPerDay,
   shapeTokenUsage,
 } from "@/lib/repository/statsTransforms";
@@ -57,8 +59,10 @@ describe("shapeArticlesPerFeedPerDay", () => {
       feedTitles,
     );
 
-    expect(rows).toEqual([{ date: "2026-03-01", "Feed A": 2, "Feed B": 1 }]);
-    expect(new Set(feedKeys)).toEqual(new Set(["Feed A", "Feed B"]));
+    expect(rows).toEqual([
+      { date: "2026-03-01", "feed:Feed A": 2, "feed:Feed B": 1 },
+    ]);
+    expect(new Set(feedKeys)).toEqual(new Set(["feed:Feed A", "feed:Feed B"]));
     expect(dailyAverage).toBe(3);
   });
 
@@ -73,9 +77,9 @@ describe("shapeArticlesPerFeedPerDay", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-03-01", "Feed A": 1 },
+      { date: "2026-03-01", "feed:Feed A": 1 },
       { date: "2026-03-02" },
-      { date: "2026-03-03", "Feed B": 1 },
+      { date: "2026-03-03", "feed:Feed B": 1 },
     ]);
     expect(dailyAverage).toBeCloseTo(2 / 3);
   });
@@ -91,7 +95,7 @@ describe("shapeArticlesPerFeedPerDay", () => {
       feedTitles,
     );
 
-    expect(rows).toEqual([{ date: "2026-03-02", "Feed A": 1 }]);
+    expect(rows).toEqual([{ date: "2026-03-02", "feed:Feed A": 1 }]);
   });
 
   it("drops articles of a feed without a known title", () => {
@@ -105,6 +109,17 @@ describe("shapeArticlesPerFeedPerDay", () => {
     expect(feedKeys).toEqual([]);
   });
 
+  it('keeps a feed titled "date" out of the row\'s own date key', () => {
+    const { rows, feedKeys } = shapeArticlesPerFeedPerDay(
+      ["2026-03-01"],
+      [article("2026-03-01T08:00:00.000Z", 3)],
+      new Map([[3, "date"]]),
+    );
+
+    expect(rows).toEqual([{ date: "2026-03-01", "feed:date": 1 }]);
+    expect(feedKeys).toEqual(["feed:date"]);
+  });
+
   it("buckets by UTC day, not by the host timezone", () => {
     const { rows } = shapeArticlesPerFeedPerDay(
       ["2026-03-01", "2026-03-02"],
@@ -113,9 +128,20 @@ describe("shapeArticlesPerFeedPerDay", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-03-01", "Feed A": 1 },
+      { date: "2026-03-01", "feed:Feed A": 1 },
       { date: "2026-03-02" },
     ]);
+  });
+});
+
+describe("feedKey / feedLabel", () => {
+  it("round-trips a title through its row key", () => {
+    expect(feedLabel(feedKey("Feed A"))).toBe("Feed A");
+  });
+
+  it("round-trips a title that collides with the date key", () => {
+    expect(feedKey("date")).not.toBe("date");
+    expect(feedLabel(feedKey("date"))).toBe("date");
   });
 });
 

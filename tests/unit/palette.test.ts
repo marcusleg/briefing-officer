@@ -30,6 +30,15 @@ describe("buildPalette", () => {
     });
   });
 
+  it("labels each key with labelOf when one is given", () => {
+    const palette = buildPalette(["feed:a", "feed:b"], (key) => key.slice(5));
+    expect(palette["feed:a"]).toEqual({
+      label: "a",
+      color: "var(--chart-1)",
+    });
+    expect(palette["feed:b"].label).toBe("b");
+  });
+
   it("wraps around when there are more keys than colors", () => {
     const keys = Array.from({ length: 10 }, (_, i) => `k${i}`);
     const palette = buildPalette(keys);

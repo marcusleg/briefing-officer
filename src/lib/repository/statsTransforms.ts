@@ -8,6 +8,19 @@ export interface ArticlesPerFeedData {
   dailyAverage: number;
 }
 
+/**
+ * Feed titles share a row with the row's `date`, so they live behind a prefix
+ * no date key can collide with. `feedKey` and `feedLabel` are the only places
+ * that spell it out.
+ */
+const FEED_KEY_PREFIX = "feed:";
+
+/** The row key a feed's daily counts are filed under. */
+export const feedKey = (title: string) => `${FEED_KEY_PREFIX}${title}`;
+
+/** The feed title behind a row key, for chart legends and tooltips. */
+export const feedLabel = (key: string) => key.slice(FEED_KEY_PREFIX.length);
+
 /** An article reduced to the two fields the daily-per-feed charts need. */
 export interface DatedArticle {
   feedId: number;
@@ -25,9 +38,10 @@ export interface DatedArticle {
  * Callers pick which date an article is filed under — its publication date, or
  * the moment it became read or filtered — by mapping it into `at`.
  *
- * Feeds are keyed by title so the chart legend and tooltip read as feed names
- * without a second lookup. Articles of a feed the caller did not pass a title
- * for are dropped.
+ * Feeds are keyed by their title behind a prefix, so that a feed titled "date"
+ * cannot land on the row's own date key. Charts turn a key back into the title
+ * with `feedLabel`. Articles of a feed the caller did not pass a title for are
+ * dropped.
  */
 export function shapeArticlesPerFeedPerDay(
   dates: string[],
@@ -44,7 +58,9 @@ export function shapeArticlesPerFeedPerDay(
 
     if (!counts || title === undefined) return;
 
-    counts.set(title, (counts.get(title) ?? 0) + 1);
+    const key = feedKey(title);
+
+    counts.set(key, (counts.get(key) ?? 0) + 1);
   });
 
   const days = [...countsPerDay.values()];
