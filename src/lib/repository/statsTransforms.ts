@@ -9,17 +9,20 @@ export interface ArticlesPerFeedData {
 }
 
 /**
- * Feed titles share a row with the row's `date`, so they live behind a prefix
- * no date key can collide with. `feedKey` and `feedLabel` are the only places
- * that spell it out.
+ * Feed keys share a row with the row's `date`, so they live behind a prefix no
+ * date key can collide with. `feedKey` is the only place that spells it out.
  */
 const FEED_KEY_PREFIX = "feed:";
 
-/** The row key a feed's daily counts are filed under. */
-export const feedKey = (title: string) => `${FEED_KEY_PREFIX}${title}`;
-
-/** The feed title behind a row key, for chart legends and tooltips. */
-export const feedLabel = (key: string) => key.slice(FEED_KEY_PREFIX.length);
+/**
+ * The row key a feed's daily counts are filed under.
+ *
+ * Keyed by id rather than by title: `Feed` is unique only on
+ * `[userId, link]`, so two feeds the reader named the same would otherwise
+ * collapse into one stacked segment, and renaming a feed would silently
+ * re-key its data. Charts get their display text from `ChartConfig.label`.
+ */
+export const feedKey = (feedId: number) => `${FEED_KEY_PREFIX}${feedId}`;
 
 /** An article reduced to the two fields the daily-per-feed charts need. */
 export interface DatedArticle {
@@ -38,15 +41,12 @@ export interface DatedArticle {
  * Callers pick which date an article is filed under — its publication date, or
  * the moment it became read or filtered — by mapping it into `at`.
  *
- * Feeds are keyed by their title behind a prefix, so that a feed titled "date"
- * cannot land on the row's own date key. Charts turn a key back into the title
- * with `feedLabel`. Articles of a feed the caller did not pass a title for are
- * dropped.
+ * Articles of a feed missing from `knownFeedIds` are dropped.
  */
 export function shapeArticlesPerFeedPerDay(
   dates: string[],
   articles: DatedArticle[],
-  feedTitleById: Map<number, string>,
+  knownFeedIds: Set<number>,
 ): ArticlesPerFeedData {
   const countsPerDay = new Map(
     dates.map((date) => [date, new Map<string, number>()]),
@@ -54,11 +54,10 @@ export function shapeArticlesPerFeedPerDay(
 
   articles.forEach(({ feedId, at }) => {
     const counts = countsPerDay.get(at.toISOString().split("T")[0]);
-    const title = feedTitleById.get(feedId);
 
-    if (!counts || title === undefined) return;
+    if (!counts || !knownFeedIds.has(feedId)) return;
 
-    const key = feedKey(title);
+    const key = feedKey(feedId);
 
     counts.set(key, (counts.get(key) ?? 0) + 1);
   });

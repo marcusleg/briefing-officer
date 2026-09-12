@@ -3,17 +3,20 @@
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import ChartCard from "@/app/feed/chart-card";
-import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useDateFormatters } from "@/hooks/use-date-formatters";
-import { buildPalette } from "@/lib/charts/palette";
 import {
-  ArticlesPerFeedData,
-  feedLabel,
-} from "@/lib/repository/statsTransforms";
+  ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { useDateFormatters } from "@/hooks/use-date-formatters";
+import { ArticlesPerFeedData } from "@/lib/repository/statsTransforms";
 
 interface StackedFeedBarChartProps {
   title: string;
   description: string;
+  /** The dashboard's feed-to-color map. Passed in rather than derived here, so
+   *  that a feed reads as the same color in every chart of the row. */
+  config: ChartConfig;
   data?: ArticlesPerFeedData;
 }
 
@@ -24,10 +27,10 @@ interface StackedFeedBarChartProps {
 const StackedFeedBarChart = ({
   title,
   description,
+  config,
   data,
 }: StackedFeedBarChartProps) => {
   const { short, long } = useDateFormatters();
-  const config = buildPalette(data?.feedKeys ?? [], feedLabel);
 
   return (
     <ChartCard

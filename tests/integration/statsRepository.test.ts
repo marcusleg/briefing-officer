@@ -1,5 +1,6 @@
 import prisma from "@/lib/prismaClient";
 import {
+  getChartFeeds,
   getFilteredArticlesPerDay,
   getNumberOfReadLaterArticles,
   getNumberOfUnreadArticles,
@@ -8,6 +9,7 @@ import {
   getWeeklyArticleCountPerFeed,
   getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
+import { feedKey } from "@/lib/repository/statsTransforms";
 import { getUserId } from "@/lib/repository/userRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createArticle, createFeed, createUser } from "../helpers/factories";
@@ -48,7 +50,7 @@ describe("statsRepository counts", () => {
     await createArticle({ userId, feedId, status: "READ_LATER" });
 
     const perFeed = await getUnreadArticlesPerFeed();
-    expect(perFeed).toEqual([{ feedTitle: "Feed A", unread: 1 }]);
+    expect(perFeed).toEqual([{ feedId, feedTitle: "Feed A", unread: 1 }]);
   });
 
   it("counts new articles per feed by their publication date", async () => {
@@ -75,11 +77,13 @@ describe("statsRepository counts", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-02-10", "feed:Feed A": 1, "feed:Feed B": 1 },
+      { date: "2026-02-10", [feedKey(feedId)]: 1, [feedKey(otherFeedId)]: 1 },
       { date: "2026-02-11" },
-      { date: "2026-02-12", "feed:Feed A": 1 },
+      { date: "2026-02-12", [feedKey(feedId)]: 1 },
     ]);
-    expect(new Set(feedKeys)).toEqual(new Set(["feed:Feed A", "feed:Feed B"]));
+    expect(new Set(feedKeys)).toEqual(
+      new Set([feedKey(feedId), feedKey(otherFeedId)]),
+    );
     expect(dailyAverage).toBe(1);
   });
 
@@ -124,8 +128,8 @@ describe("statsRepository counts", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-02-10", "feed:Feed A": 1 },
-      { date: "2026-02-11", "feed:Feed A": 1 },
+      { date: "2026-02-10", [feedKey(feedId)]: 1 },
+      { date: "2026-02-11", [feedKey(feedId)]: 1 },
     ]);
   });
 
@@ -149,7 +153,7 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", "feed:Feed A": 1 }]);
+    expect(rows).toEqual([{ date: "2026-02-10", [feedKey(feedId)]: 1 }]);
   });
 
   it("splits the read articles of a day across their feeds", async () => {
@@ -180,9 +184,11 @@ describe("statsRepository counts", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-02-10", "feed:Feed A": 1, "feed:Feed B": 2 },
+      { date: "2026-02-10", [feedKey(feedId)]: 1, [feedKey(otherFeedId)]: 2 },
     ]);
-    expect(new Set(feedKeys)).toEqual(new Set(["feed:Feed A", "feed:Feed B"]));
+    expect(new Set(feedKeys)).toEqual(
+      new Set([feedKey(feedId), feedKey(otherFeedId)]),
+    );
     expect(dailyAverage).toBe(3);
   });
 
@@ -232,7 +238,7 @@ describe("statsRepository counts", () => {
       new Date("2026-02-10T00:00:00.000Z"),
     );
 
-    expect(rows).toEqual([{ date: "2026-02-10", "feed:Feed A": 3 }]);
+    expect(rows).toEqual([{ date: "2026-02-10", [feedKey(feedId)]: 3 }]);
     expect(dailyAverage).toBe(3);
   });
 
@@ -258,9 +264,11 @@ describe("statsRepository counts", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-02-10", "feed:Feed A": 1, "feed:Feed B": 1 },
+      { date: "2026-02-10", [feedKey(feedId)]: 1, [feedKey(otherFeedId)]: 1 },
     ]);
-    expect(new Set(feedKeys)).toEqual(new Set(["feed:Feed A", "feed:Feed B"]));
+    expect(new Set(feedKeys)).toEqual(
+      new Set([feedKey(feedId), feedKey(otherFeedId)]),
+    );
   });
 
   it("leaves unread and read articles out of the rejected counts", async () => {
@@ -308,9 +316,9 @@ describe("statsRepository counts", () => {
     );
 
     expect(rows).toEqual([
-      { date: "2026-02-10", "feed:Feed A": 1 },
+      { date: "2026-02-10", [feedKey(feedId)]: 1 },
       { date: "2026-02-11" },
-      { date: "2026-02-12", "feed:Feed A": 1 },
+      { date: "2026-02-12", [feedKey(feedId)]: 1 },
     ]);
     expect(dailyAverage).toBeCloseTo(2 / 3);
   });
@@ -353,6 +361,57 @@ describe("statsRepository counts", () => {
     await expect(getFilteredArticlesPerDay(invalid, invalid)).resolves.toEqual(
       empty,
     );
+  });
+
+  it("keeps two feeds sharing a title apart in the per-feed counts", async () => {
+    const otherFeedId = (await createFeed({ userId, title: "Feed A" })).id;
+    await createArticle({
+      userId,
+      feedId,
+      publicationDate: new Date("2026-02-10T06:00:00.000Z"),
+    });
+    await createArticle({
+      userId,
+      feedId: otherFeedId,
+      publicationDate: new Date("2026-02-10T06:00:00.000Z"),
+    });
+
+    const { rows, feedKeys } = await getWeeklyArticleCountPerFeed(
+      new Date("2026-02-10T00:00:00.000Z"),
+      new Date("2026-02-10T00:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([
+      { date: "2026-02-10", [feedKey(feedId)]: 1, [feedKey(otherFeedId)]: 1 },
+    ]);
+    expect(feedKeys).toHaveLength(2);
+  });
+
+  it("keeps two feeds sharing a title apart in the unread breakdown", async () => {
+    const otherFeedId = (await createFeed({ userId, title: "Feed A" })).id;
+    await createArticle({ userId, feedId });
+    await createArticle({ userId, feedId: otherFeedId });
+
+    expect(await getUnreadArticlesPerFeed()).toEqual([
+      { feedId, feedTitle: "Feed A", unread: 1 },
+      { feedId: otherFeedId, feedTitle: "Feed A", unread: 1 },
+    ]);
+  });
+
+  it("lists the user's feeds for the charts in a stable order", async () => {
+    const otherFeedId = (await createFeed({ userId, title: "Feed B" })).id;
+
+    expect(await getChartFeeds()).toEqual([
+      { id: feedId, title: "Feed A" },
+      { id: otherFeedId, title: "Feed B" },
+    ]);
+  });
+
+  it("leaves another user's feeds out of the chart feed list", async () => {
+    const otherUser = await createUser();
+    await createFeed({ userId: otherUser.id, title: "Not Mine" });
+
+    expect(await getChartFeeds()).toEqual([{ id: feedId, title: "Feed A" }]);
   });
 
   it("reports token usage history by date and model", async () => {
