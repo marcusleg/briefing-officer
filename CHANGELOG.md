@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.15.0](https://github.com/marcusleg/briefing-officer/compare/v0.14.0...v0.15.0) (2026-09-12)
+
+
+### Features
+
+* break down daily read and filtered articles by feed ([cf64136](https://github.com/marcusleg/briefing-officer/commit/cf641363bb3a25e27e011c0a8b70a0c6ef85ae32))
+* describe a feed's keyword filters in plain English ([1b3df78](https://github.com/marcusleg/briefing-officer/commit/1b3df78ca258813c4ca6ba650733917b6937baac))
+* file articles you reject by hand alongside filtered ones ([b46ec40](https://github.com/marcusleg/briefing-officer/commit/b46ec40e1df3b7d8d3ec00b4581a82572cdc7b37))
+* filter articles against separate interest and disinterest keywords ([e9cddc6](https://github.com/marcusleg/briefing-officer/commit/e9cddc6096c5f0eb2dafdf5682e7129b6edf5701))
+* manage feed keywords as two editable lists ([932c711](https://github.com/marcusleg/briefing-officer/commit/932c7117a8bdfeb4064831f1cfac10a222322e36))
+* order keyword lists alphabetically ([3b98993](https://github.com/marcusleg/briefing-officer/commit/3b98993599f09cbe9e712e61d3b3963d050414cf))
+* prefill default disinterests in the Add Feed form ([1d7f269](https://github.com/marcusleg/briefing-officer/commit/1d7f269ad2c5ebb69edede0529b11662abde4ea6))
+* replace the free-text interest profile with keyword lists ([2ea53de](https://github.com/marcusleg/briefing-officer/commit/2ea53defb0ea7d9d12084ea31b64a2234150455b))
+* store per-feed interest and disinterest keywords ([3c8d6f3](https://github.com/marcusleg/briefing-officer/commit/3c8d6f3bca9a277865519ca70cdfb70aced8da28))
+* suggest keywords for ignoring similar articles ([6934256](https://github.com/marcusleg/briefing-officer/commit/6934256044fee28e99a4661f7bed69f62cb49f5b))
+* teach a feed's filter when you reject an article ([7e78056](https://github.com/marcusleg/briefing-officer/commit/7e7805689a6a72513b8335e7e31b7ddf5e3408d6))
+
+
+### Bug Fixes
+
+* address remaining minor review findings ([beef505](https://github.com/marcusleg/briefing-officer/commit/beef505a3c10f5ac4629fb766938bc993d642cae))
+* gate feed-edit submit until filter keywords finish loading ([d556317](https://github.com/marcusleg/briefing-officer/commit/d556317eaf92abdc3543a3722a9935eb69d46bd0))
+* guard the daily article charts against an empty date range ([#757](https://github.com/marcusleg/briefing-officer/issues/757)) ([27d569f](https://github.com/marcusleg/briefing-officer/commit/27d569f153081beb5943bc5dc34c24fc8c179601))
+* keep each feed's dashboard colour stable and stop same-named feeds merging ([46e654f](https://github.com/marcusleg/briefing-officer/commit/46e654f5c620ae6287fb4962910569d41bf242f0)), closes [#754](https://github.com/marcusleg/briefing-officer/issues/754) [#755](https://github.com/marcusleg/briefing-officer/issues/755)
+* keep filter suggestions from contradicting existing interests ([7970a47](https://github.com/marcusleg/briefing-officer/commit/7970a470b915eccaf109329335b94e3ba8b45118))
+* keep not-interested popover open past the first accepted keyword ([41708c1](https://github.com/marcusleg/briefing-officer/commit/41708c1149f795d8c66628467e0ee79bdf46cac6))
+* keep the not-interested popover open through dismissal ([a160994](https://github.com/marcusleg/briefing-officer/commit/a160994bb88c06d38b677eb419013d9b8aa46bd8))
+* namespace the feed keys in the daily article rows ([b4425d9](https://github.com/marcusleg/briefing-officer/commit/b4425d9d364e45844978a0e412dc6dc8f631a27f))
+* seed default disinterest keywords for pre-existing feeds ([4982cf6](https://github.com/marcusleg/briefing-officer/commit/4982cf656d7fd2aedb13212b047a2a18914c7378))
+
 ## [0.14.0](https://github.com/marcusleg/briefing-officer/compare/v0.13.0...v0.14.0) (2026-08-14)
 
 
