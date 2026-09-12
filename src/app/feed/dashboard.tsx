@@ -1,6 +1,6 @@
 "use client";
 
-import StackedFeedBarChart from "@/app/feed/stacked-feed-bar-chart";
+import StackedBarChart from "@/app/feed/stacked-bar-chart";
 import TokenUsageChart, { TokenUsageData } from "@/app/feed/token-usage-chart";
 import UnreadArticlesPieChart, {
   UnreadArticlesChartData,
@@ -81,10 +81,13 @@ const Dashboard = () => {
   // another's.
   const feedConfig = useMemo(() => buildFeedPalette(feeds ?? []), [feeds]);
 
-  // Holds a per-feed chart on its skeleton until the palette is there, so a
+  // Hold every per-feed chart on its skeleton until the palette is there, so a
   // chart never renders a feed the config has no color for.
-  const oncePaletted = (data?: ArticlesPerFeedData) =>
-    feeds ? data : undefined;
+  const feedSeries = (data?: ArticlesPerFeedData) =>
+    feeds && data ? { rows: data.rows, keys: data.feedKeys } : undefined;
+
+  const articlesPerDay = (data?: ArticlesPerFeedData) =>
+    data && `${data.dailyAverage.toFixed(2)} articles per day`;
 
   useEffect(() => {
     const dateRange = getDateRangeFromPreset(selectedRange);
@@ -141,27 +144,30 @@ const Dashboard = () => {
           <TokenUsageChart data={tokenUsageData} />
         </div>
         <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
-          <StackedFeedBarChart
+          <StackedBarChart
             title="Daily New Articles"
             description="Number of new articles that appeared in your feed each day, split by the feed they came from"
             config={feedConfig}
-            data={oncePaletted(dailyNewArticlesData)}
+            data={feedSeries(dailyNewArticlesData)}
+            footer={articlesPerDay(dailyNewArticlesData)}
           />
         </div>
         <div className="md:col-span-2 md:col-start-2 2xl:col-span-1 2xl:col-start-auto [&>*]:h-full">
-          <StackedFeedBarChart
+          <StackedBarChart
             title="Your Daily Activity"
             description="Number of articles you read each day, split by the feed they came from"
             config={feedConfig}
-            data={oncePaletted(dailyActivityData)}
+            data={feedSeries(dailyActivityData)}
+            footer={articlesPerDay(dailyActivityData)}
           />
         </div>
         <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
-          <StackedFeedBarChart
+          <StackedBarChart
             title="Filtered Articles"
             description="Number of articles that never reached you each day, filtered by your keywords or rejected by hand, split by the feed they came from"
             config={feedConfig}
-            data={oncePaletted(dailyFilteredArticlesData)}
+            data={feedSeries(dailyFilteredArticlesData)}
+            footer={articlesPerDay(dailyFilteredArticlesData)}
           />
         </div>
       </div>

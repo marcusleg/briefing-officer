@@ -1,19 +1,11 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-
-import ChartCard from "@/app/feed/chart-card";
-import {
-  ChartConfig,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { useDateFormatters } from "@/hooks/use-date-formatters";
+import StackedBarChart, { StackedBarRow } from "@/app/feed/stacked-bar-chart";
+import { ChartConfig } from "@/components/ui/chart";
 import { CHART_COLORS } from "@/lib/charts/palette";
-import { TokenUsageRow } from "@/lib/repository/statsTransforms";
 
 export interface TokenUsageData {
-  rows: TokenUsageRow[];
+  rows: StackedBarRow[];
   models: string[];
 }
 
@@ -21,14 +13,22 @@ interface TokenUsageChartProps {
   data?: TokenUsageData;
 }
 
+/** The two series a model contributes, input below output in the stack. */
+const seriesOf = (model: string) => [`${model}_input`, `${model}_output`];
+
+/**
+ * Every model's input series first, then every model's output series, so the
+ * two halves of the stack stay visually distinct once there are several models.
+ */
 const buildModelTokenConfig = (models: string[]): ChartConfig => {
   const config: Record<string, { label: string; color: string }> = {};
   models.forEach((model, index) => {
-    config[`${model}_input`] = {
+    const [input, output] = seriesOf(model);
+    config[input] = {
       label: `${model} Input`,
       color: CHART_COLORS[index % CHART_COLORS.length],
     };
-    config[`${model}_output`] = {
+    config[output] = {
       label: `${model} Output`,
       color: CHART_COLORS[(index + models.length) % CHART_COLORS.length],
     };
@@ -36,52 +36,13 @@ const buildModelTokenConfig = (models: string[]): ChartConfig => {
   return config;
 };
 
-const TokenUsageChart = ({ data }: TokenUsageChartProps) => {
-  const { short, long } = useDateFormatters();
-  const config = buildModelTokenConfig(data?.models ?? []);
-
-  return (
-    <ChartCard
-      title="Token Usage"
-      description="Daily total of LLM tokens used by your AI Briefing Officer"
-      config={config}
-      data={data}
-    >
-      <BarChart
-        accessibilityLayer
-        data={data?.rows}
-        margin={{ left: 12, right: 12 }}
-      >
-        <CartesianGrid vertical={false} />
-        <XAxis
-          dataKey="date"
-          tickLine={false}
-          axisLine={false}
-          tickMargin={8}
-          tickFormatter={(value) => short.format(new Date(value))}
-        />
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent indicator="dot" />}
-          labelFormatter={(value) => long.format(new Date(String(value)))}
-        />
-        {(data?.models ?? []).flatMap((model) => [
-          <Bar
-            key={`${model}_input`}
-            dataKey={`${model}_input`}
-            fill={config[`${model}_input`].color}
-            stackId="a"
-          />,
-          <Bar
-            key={`${model}_output`}
-            dataKey={`${model}_output`}
-            fill={config[`${model}_output`].color}
-            stackId="a"
-          />,
-        ])}
-      </BarChart>
-    </ChartCard>
-  );
-};
+const TokenUsageChart = ({ data }: TokenUsageChartProps) => (
+  <StackedBarChart
+    title="Token Usage"
+    description="Daily total of LLM tokens used by your AI Briefing Officer"
+    config={buildModelTokenConfig(data?.models ?? [])}
+    data={data && { rows: data.rows, keys: data.models.flatMap(seriesOf) }}
+  />
+);
 
 export default TokenUsageChart;
