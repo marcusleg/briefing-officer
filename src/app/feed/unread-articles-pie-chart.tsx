@@ -6,33 +6,43 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { CHART_COLORS } from "@/lib/charts/palette";
+import { feedKey } from "@/lib/repository/statsTransforms";
 import { Cell, Label, Pie, PieChart } from "recharts";
 
-const chartConfig: ChartConfig = {
-  feedTitle: { label: "Feed" },
-};
-
 export interface UnreadArticlesChartData {
+  feedId: number;
   feedTitle: string;
   unread: number;
 }
 
 interface UnreadArticlesChartProps {
+  /** The dashboard's feed-to-color map, shared with the bar charts so a feed
+   *  reads as the same color across the row. */
+  config: ChartConfig;
   chartData?: UnreadArticlesChartData[];
 }
 
-const UnreadArticlesPieChart = ({ chartData }: UnreadArticlesChartProps) => {
+const UnreadArticlesPieChart = ({
+  config,
+  chartData,
+}: UnreadArticlesChartProps) => {
   const unreadArticlesInTotal = (chartData ?? []).reduce(
     (acc, feed) => acc + feed.unread,
     0,
   );
 
+  // `nameKey` points recharts at the field holding the config key, which is how
+  // each slice finds its label and its color.
+  const slices = (chartData ?? []).map(({ feedId, unread }) => ({
+    feed: feedKey(feedId),
+    unread,
+  }));
+
   return (
     <ChartCard
       title="Articles to Explore"
       description="Articles you haven’t dismissed or read yet"
-      config={chartConfig}
+      config={config}
       data={chartData}
       containerClassName="mx-auto aspect-square max-h-[250px]"
     >
@@ -42,17 +52,14 @@ const UnreadArticlesPieChart = ({ chartData }: UnreadArticlesChartProps) => {
           content={<ChartTooltipContent hideLabel />}
         />
         <Pie
-          data={chartData}
+          data={slices}
           dataKey="unread"
-          nameKey="feedTitle"
+          nameKey="feed"
           innerRadius="50%"
           strokeWidth={5}
         >
-          {(chartData ?? []).map((entry, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={CHART_COLORS[index % CHART_COLORS.length]}
-            />
+          {slices.map((slice) => (
+            <Cell key={slice.feed} fill={config[slice.feed]?.color} />
           ))}
           <Label
             content={({ viewBox }) => {

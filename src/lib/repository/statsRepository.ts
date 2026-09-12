@@ -40,13 +40,32 @@ export const getUnreadArticlesPerFeed = async () => {
       },
     },
     where: { userId },
+    orderBy: { id: "asc" },
   });
 
   return feedWithUnreadArticleCount.map((feed) => {
     return {
+      feedId: feed.id,
       feedTitle: feed.title,
       unread: feed._count.articles,
     };
+  });
+};
+
+/**
+ * Every feed of the user, in the order the dashboard hands its charts.
+ *
+ * The charts sit side by side, so a feed has to keep the same color in each of
+ * them. Colors follow this list's order, and `id` only ever grows, so adding a
+ * feed appends rather than re-coloring the ones already there.
+ */
+export const getChartFeeds = async () => {
+  const userId = await getUserId();
+
+  return prisma.feed.findMany({
+    select: { id: true, title: true },
+    where: { userId },
+    orderBy: { id: "asc" },
   });
 };
 
@@ -85,13 +104,14 @@ const noArticlesPerFeed = (): ArticlesPerFeedData => ({
   dailyAverage: 0,
 });
 
-const getFeedTitleById = async (userId: string) => {
+/** The ids of the user's feeds, to key the per-feed series by. */
+const getFeedIds = async (userId: string) => {
   const feeds = await prisma.feed.findMany({
     where: { userId },
-    select: { id: true, title: true },
+    select: { id: true },
   });
 
-  return new Map(feeds.map((feed) => [feed.id, feed.title]));
+  return new Set(feeds.map((feed) => feed.id));
 };
 
 /**
@@ -103,8 +123,8 @@ export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
 
   if (dates.length === 0) return noArticlesPerFeed();
 
-  const [feedTitleById, articles] = await Promise.all([
-    getFeedTitleById(userId),
+  const [feedIds, articles] = await Promise.all([
+    getFeedIds(userId),
     prisma.article.findMany({
       select: { feedId: true, publicationDate: true },
       where: { publicationDate: utcRangeOf(dates), userId },
@@ -117,7 +137,7 @@ export const getWeeklyArticleCountPerFeed = async (from: Date, to: Date) => {
       feedId,
       at: publicationDate,
     })),
-    feedTitleById,
+    feedIds,
   );
 };
 
@@ -135,8 +155,8 @@ const getStatusChangesPerFeedPerDay = async (
 
   if (dates.length === 0) return noArticlesPerFeed();
 
-  const [feedTitleById, articles] = await Promise.all([
-    getFeedTitleById(userId),
+  const [feedIds, articles] = await Promise.all([
+    getFeedIds(userId),
     prisma.article.findMany({
       select: { feedId: true, statusChangedAt: true },
       where: { status, statusChangedAt: utcRangeOf(dates), userId },
@@ -149,7 +169,7 @@ const getStatusChangesPerFeedPerDay = async (
       feedId,
       at: statusChangedAt,
     })),
-    feedTitleById,
+    feedIds,
   );
 };
 

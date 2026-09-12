@@ -7,7 +7,9 @@ import UnreadArticlesPieChart, {
 } from "@/app/feed/unread-articles-pie-chart";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { buildFeedPalette } from "@/lib/charts/palette";
 import {
+  getChartFeeds,
   getFilteredArticlesPerDay,
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
@@ -15,7 +17,7 @@ import {
   getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
 import { ArticlesPerFeedData } from "@/lib/repository/statsTransforms";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export enum DateRangePreset {
   Last7Days = "Last 7 Days",
@@ -54,6 +56,7 @@ const Dashboard = () => {
     DateRangePreset.Last7Days,
   );
 
+  const [feeds, setFeeds] = useState<{ id: number; title: string }[]>();
   const [unreadArticlesChartData, setUnreadArticlesChartData] =
     useState<UnreadArticlesChartData[]>();
   const [tokenUsageData, setTokenUsageData] = useState<TokenUsageData>();
@@ -64,11 +67,24 @@ const Dashboard = () => {
   const [dailyFilteredArticlesData, setDailyFilteredArticlesData] =
     useState<ArticlesPerFeedData>();
 
-  // The unread breakdown is a snapshot of right now, so it does not depend on
-  // the selected range and must not be refetched when that changes.
+  // Neither the feed list nor the unread breakdown depends on the selected
+  // range — the breakdown is a snapshot of right now — so they must not be
+  // refetched when it changes.
   useEffect(() => {
+    getChartFeeds().then((data) => setFeeds(data));
     getUnreadArticlesPerFeed().then((data) => setUnreadArticlesChartData(data));
   }, []);
+
+  // One color per feed for the whole row of charts. Deriving it per chart from
+  // that chart's own series would give the same feed a different color in each
+  // of them, since a feed with no rows drops out of one chart's series but not
+  // another's.
+  const feedConfig = useMemo(() => buildFeedPalette(feeds ?? []), [feeds]);
+
+  // Holds a per-feed chart on its skeleton until the palette is there, so a
+  // chart never renders a feed the config has no color for.
+  const oncePaletted = (data?: ArticlesPerFeedData) =>
+    feeds ? data : undefined;
 
   useEffect(() => {
     const dateRange = getDateRangeFromPreset(selectedRange);
@@ -116,7 +132,10 @@ const Dashboard = () => {
       */}
       <div className="mx-auto hidden w-full max-w-7xl grid-cols-1 gap-4 md:grid md:grid-cols-6 2xl:max-w-[96rem] 2xl:grid-cols-5">
         <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
-          <UnreadArticlesPieChart chartData={unreadArticlesChartData} />
+          <UnreadArticlesPieChart
+            config={feedConfig}
+            chartData={feeds && unreadArticlesChartData}
+          />
         </div>
         <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
           <TokenUsageChart data={tokenUsageData} />
@@ -125,21 +144,24 @@ const Dashboard = () => {
           <StackedFeedBarChart
             title="Daily New Articles"
             description="Number of new articles that appeared in your feed each day, split by the feed they came from"
-            data={dailyNewArticlesData}
+            config={feedConfig}
+            data={oncePaletted(dailyNewArticlesData)}
           />
         </div>
         <div className="md:col-span-2 md:col-start-2 2xl:col-span-1 2xl:col-start-auto [&>*]:h-full">
           <StackedFeedBarChart
             title="Your Daily Activity"
             description="Number of articles you read each day, split by the feed they came from"
-            data={dailyActivityData}
+            config={feedConfig}
+            data={oncePaletted(dailyActivityData)}
           />
         </div>
         <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
           <StackedFeedBarChart
             title="Filtered Articles"
             description="Number of articles that never reached you each day, filtered by your keywords or rejected by hand, split by the feed they came from"
-            data={dailyFilteredArticlesData}
+            config={feedConfig}
+            data={oncePaletted(dailyFilteredArticlesData)}
           />
         </div>
       </div>

@@ -1,7 +1,6 @@
 import { TokenUsage } from "@/generated/prisma/client";
 import {
   feedKey,
-  feedLabel,
   shapeArticlesPerFeedPerDay,
   shapeTokenUsage,
 } from "@/lib/repository/statsTransforms";
@@ -21,17 +20,14 @@ const tu = (
 });
 
 describe("shapeArticlesPerFeedPerDay", () => {
-  const feedTitles = new Map([
-    [1, "Feed A"],
-    [2, "Feed B"],
-  ]);
+  const knownFeeds = new Set([1, 2]);
   const article = (iso: string, feedId = 1) => ({
     feedId,
     at: new Date(iso),
   });
 
   it("returns an empty result when the range holds no days", () => {
-    expect(shapeArticlesPerFeedPerDay([], [], feedTitles)).toEqual({
+    expect(shapeArticlesPerFeedPerDay([], [], knownFeeds)).toEqual({
       rows: [],
       feedKeys: [],
       dailyAverage: 0,
@@ -40,7 +36,7 @@ describe("shapeArticlesPerFeedPerDay", () => {
 
   it("returns a bare row for every day, even without any articles", () => {
     expect(
-      shapeArticlesPerFeedPerDay(["2026-03-01", "2026-03-02"], [], feedTitles),
+      shapeArticlesPerFeedPerDay(["2026-03-01", "2026-03-02"], [], knownFeeds),
     ).toEqual({
       rows: [{ date: "2026-03-01" }, { date: "2026-03-02" }],
       feedKeys: [],
@@ -48,7 +44,7 @@ describe("shapeArticlesPerFeedPerDay", () => {
     });
   });
 
-  it("counts the day's articles under the title of their feed", () => {
+  it("counts the day's articles under the id of their feed", () => {
     const { rows, feedKeys, dailyAverage } = shapeArticlesPerFeedPerDay(
       ["2026-03-01"],
       [
@@ -56,14 +52,26 @@ describe("shapeArticlesPerFeedPerDay", () => {
         article("2026-03-01T20:00:00.000Z", 2),
         article("2026-03-01T12:00:00.000Z", 1),
       ],
-      feedTitles,
+      knownFeeds,
     );
 
-    expect(rows).toEqual([
-      { date: "2026-03-01", "feed:Feed A": 2, "feed:Feed B": 1 },
-    ]);
-    expect(new Set(feedKeys)).toEqual(new Set(["feed:Feed A", "feed:Feed B"]));
+    expect(rows).toEqual([{ date: "2026-03-01", "feed:1": 2, "feed:2": 1 }]);
+    expect(new Set(feedKeys)).toEqual(new Set(["feed:1", "feed:2"]));
     expect(dailyAverage).toBe(3);
+  });
+
+  it("keeps two feeds sharing a title apart", () => {
+    const { rows, feedKeys } = shapeArticlesPerFeedPerDay(
+      ["2026-03-01"],
+      [
+        article("2026-03-01T08:00:00.000Z", 1),
+        article("2026-03-01T09:00:00.000Z", 2),
+      ],
+      knownFeeds,
+    );
+
+    expect(rows).toEqual([{ date: "2026-03-01", "feed:1": 1, "feed:2": 1 }]);
+    expect(feedKeys).toHaveLength(2);
   });
 
   it("keeps days without activity in place between busy ones", () => {
@@ -73,13 +81,13 @@ describe("shapeArticlesPerFeedPerDay", () => {
         article("2026-03-01T08:00:00.000Z", 1),
         article("2026-03-03T08:00:00.000Z", 2),
       ],
-      feedTitles,
+      knownFeeds,
     );
 
     expect(rows).toEqual([
-      { date: "2026-03-01", "feed:Feed A": 1 },
+      { date: "2026-03-01", "feed:1": 1 },
       { date: "2026-03-02" },
-      { date: "2026-03-03", "feed:Feed B": 1 },
+      { date: "2026-03-03", "feed:2": 1 },
     ]);
     expect(dailyAverage).toBeCloseTo(2 / 3);
   });
@@ -92,56 +100,44 @@ describe("shapeArticlesPerFeedPerDay", () => {
         article("2026-03-02T00:00:00.000Z"),
         article("2026-03-03T00:00:00.000Z"),
       ],
-      feedTitles,
+      knownFeeds,
     );
 
-    expect(rows).toEqual([{ date: "2026-03-02", "feed:Feed A": 1 }]);
+    expect(rows).toEqual([{ date: "2026-03-02", "feed:1": 1 }]);
   });
 
-  it("drops articles of a feed without a known title", () => {
+  it("drops articles of a feed the caller did not list", () => {
     const { rows, feedKeys } = shapeArticlesPerFeedPerDay(
       ["2026-03-01"],
       [article("2026-03-01T08:00:00.000Z", 99)],
-      feedTitles,
+      knownFeeds,
     );
 
     expect(rows).toEqual([{ date: "2026-03-01" }]);
     expect(feedKeys).toEqual([]);
   });
 
-  it('keeps a feed titled "date" out of the row\'s own date key', () => {
-    const { rows, feedKeys } = shapeArticlesPerFeedPerDay(
-      ["2026-03-01"],
-      [article("2026-03-01T08:00:00.000Z", 3)],
-      new Map([[3, "date"]]),
-    );
-
-    expect(rows).toEqual([{ date: "2026-03-01", "feed:date": 1 }]);
-    expect(feedKeys).toEqual(["feed:date"]);
-  });
-
   it("buckets by UTC day, not by the host timezone", () => {
     const { rows } = shapeArticlesPerFeedPerDay(
       ["2026-03-01", "2026-03-02"],
       [article("2026-03-01T23:30:00.000Z")],
-      feedTitles,
+      knownFeeds,
     );
 
     expect(rows).toEqual([
-      { date: "2026-03-01", "feed:Feed A": 1 },
+      { date: "2026-03-01", "feed:1": 1 },
       { date: "2026-03-02" },
     ]);
   });
 });
 
-describe("feedKey / feedLabel", () => {
-  it("round-trips a title through its row key", () => {
-    expect(feedLabel(feedKey("Feed A"))).toBe("Feed A");
+describe("feedKey", () => {
+  it("keys a feed by its id, not by its title", () => {
+    expect(feedKey(7)).toBe("feed:7");
   });
 
-  it("round-trips a title that collides with the date key", () => {
-    expect(feedKey("date")).not.toBe("date");
-    expect(feedLabel(feedKey("date"))).toBe("date");
+  it("cannot collide with the row's own date key", () => {
+    expect(feedKey(1)).not.toBe("date");
   });
 });
 
