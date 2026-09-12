@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import ChartCard from "@/app/feed/chart-card";
@@ -9,27 +10,37 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useDateFormatters } from "@/hooks/use-date-formatters";
-import { ArticlesPerFeedData } from "@/lib/repository/statsTransforms";
 
-interface StackedFeedBarChartProps {
+export type StackedBarRow = Record<string, string | number>;
+
+/** The stacked series of one chart: a row per day, and the keys to stack. */
+export interface StackedBarData {
+  rows: StackedBarRow[];
+  keys: string[];
+}
+
+interface StackedBarChartProps {
   title: string;
   description: string;
-  /** The dashboard's feed-to-color map. Passed in rather than derived here, so
-   *  that a feed reads as the same color in every chart of the row. */
+  /** A label and a color per key. Callers build their own, so that charts
+   *  sharing a series — the same feed in two of them — can share one map. */
   config: ChartConfig;
-  data?: ArticlesPerFeedData;
+  data?: StackedBarData;
+  footer?: ReactNode;
 }
 
 /**
- * One bar per day, stacked by the feed each article came from. Shared by every
- * daily article count on the dashboard — they differ only in their copy.
+ * One bar per day, stacked by whatever the caller keys its rows on. Shared by
+ * every daily chart on the dashboard — they differ only in their copy, their
+ * series and their config.
  */
-const StackedFeedBarChart = ({
+const StackedBarChart = ({
   title,
   description,
   config,
   data,
-}: StackedFeedBarChartProps) => {
+  footer,
+}: StackedBarChartProps) => {
   const { short, long } = useDateFormatters();
 
   return (
@@ -38,7 +49,7 @@ const StackedFeedBarChart = ({
       description={description}
       config={config}
       data={data}
-      footer={data && `${data.dailyAverage.toFixed(2)} articles per day`}
+      footer={footer}
     >
       <BarChart
         accessibilityLayer
@@ -58,7 +69,7 @@ const StackedFeedBarChart = ({
           content={<ChartTooltipContent indicator="dot" />}
           labelFormatter={(value) => long.format(new Date(String(value)))}
         />
-        {(data?.feedKeys ?? []).map((key) => (
+        {(data?.keys ?? []).map((key) => (
           <Bar
             key={key}
             dataKey={key}
@@ -72,4 +83,4 @@ const StackedFeedBarChart = ({
   );
 };
 
-export default StackedFeedBarChart;
+export default StackedBarChart;
