@@ -43,7 +43,7 @@ export type OpmlImportResult =
   | {
       ok: true;
       imported: number;
-      /** Already subscribed, or listed more than once in the file. */
+      /** Already subscribed before this import. */
       skipped: number;
       categoriesCreated: number;
       /** Titles of entries whose xmlUrl was not an absolute http(s) URL. */
@@ -138,7 +138,9 @@ const XML_ESCAPES: Record<string, string> = {
 };
 
 const escapeXml = (value: string) =>
-  value.replace(/[&<>"']/g, (character) => XML_ESCAPES[character]);
+  value
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")
+    .replace(/[&<>"']/g, (character) => XML_ESCAPES[character]);
 
 const compareText = (a: string, b: string) =>
   a.localeCompare(b, undefined, { sensitivity: "base" });

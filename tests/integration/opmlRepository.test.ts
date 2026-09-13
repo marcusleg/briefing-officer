@@ -15,7 +15,8 @@ vi.mock("@/lib/ai/services/leadService", () => ({
 }));
 // after() only works inside a Next request; run the callback right away so
 // the test can await the refreshes it schedules.
-vi.mock("next/server", () => ({
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
   after: vi.fn((callback: () => unknown) => callback()),
 }));
 
@@ -182,8 +183,23 @@ describe("opmlRepository.importOpml", () => {
       ),
     );
 
-    expect(result).toMatchObject({ ok: true, imported: 1, skipped: 1 });
+    expect(result).toMatchObject({ ok: true, imported: 1, skipped: 0 });
     expect(await prisma.feed.count({ where: { userId } })).toBe(1);
+  });
+
+  it("counts an already-subscribed URL listed twice in the file as skipped once", async () => {
+    await createFeed({ userId, link: "https://dup.example/feed" });
+
+    const result = await importOpml(
+      formWith(
+        opml(
+          feedOutline("First", "https://dup.example/feed") +
+            feedOutline("Second", "https://dup.example/feed"),
+        ),
+      ),
+    );
+
+    expect(result).toMatchObject({ ok: true, imported: 0, skipped: 1 });
   });
 
   it("reports entries whose URL is not http(s) and imports the rest", async () => {
