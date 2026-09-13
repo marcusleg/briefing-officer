@@ -78,6 +78,7 @@ export default defineConfig({
             DATABASE_URL: "file:/tmp/briefing-officer-test.sqlite",
             NODE_ENV: "test",
             AUTH_SECRET: generateRandomAlphanumeric(32),
+            BACKGROUND_WORKER_DISABLED: "true",
           },
           url: "http://localhost:3000",
           reuseExistingServer: !process.env.CI,

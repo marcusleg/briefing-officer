@@ -20,6 +20,7 @@ export default defineConfig({
     command: "npm run dev",
     env: {
       DATABASE_URL: "file:./data/database.sqlite",
+      BACKGROUND_WORKER_DISABLED: "true",
     },
     url: "http://localhost:3000",
     reuseExistingServer: true,
