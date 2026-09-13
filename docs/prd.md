@@ -152,8 +152,6 @@ Screenshots of the main screens live in `docs/screenshots/`.
 
 ## 7. Open questions and known gaps
 
-- The README quick-start names auth variables the code does not read. The
-  documented `docker run` example needs correcting.
 - Feed categories have an icon field in the schema that no UI uses.
 - No OPML import or export. This is a common expectation for a feed reader.
 - The theme toggle is desktop-only; on mobile the system theme applies.
