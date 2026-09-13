@@ -70,11 +70,12 @@ including scraping and AI lead generation for every new article. For one feed
 that is acceptable; for fifty it would hold the dialog open for many minutes and
 likely exceed the action's timeout. Import therefore inserts feed rows with
 `lastFetched` at epoch and the default disinterests seeded, exactly as
-`createFeed` would leave them, then starts a refresh of the imported feeds
-without awaiting it, the way the cron endpoint already does. The sidebar shows
-the new feeds immediately and their articles arrive as refreshes finish. A feed
-whose URL turns out not to be a feed logs an error on refresh and sits empty,
-which is the same failure mode a feed that dies after subscription has today.
+`createFeed` would leave them, then queues a `REFRESH_FEED` job per imported
+feed for the background worker, the same as "refresh all" does. The sidebar
+shows the new feeds immediately and their articles arrive as the worker gets to
+each refresh. A feed whose URL turns out not to be a feed fails its refresh job
+and sits empty, which is the same failure mode a feed that dies after
+subscription has today.
 
 The alternative of leaving new feeds for the next cron run was rejected: a
 reader who has just imported wants to see something happen, and cron may be
@@ -211,9 +212,9 @@ export const exportOpml = async (): Promise<string>;
 4. In one transaction, creates missing categories and inserts feed rows plus
    default disinterest filters for every usable, not-yet-subscribed entry.
 5. Calls `revalidatePath("/feed", "layout")`.
-6. Schedules `refreshFeed` for each created feed with `after()` from
-   `next/server`, so the refreshes run once the response has been sent. Failures
-   are logged. Refreshes run concurrently, the same as `refreshFeeds` does.
+6. Queues a `REFRESH_FEED` job for every created feed with `enqueueMany` and
+   wakes the worker, the same as `refreshFeeds` does. The worker fetches them
+   within its concurrency cap and retries failures with backoff.
 7. Returns the summary.
 
 `exportOpml` loads the user's feeds with their categories and calls `buildOpml`.
@@ -254,8 +255,8 @@ Gains two sidebar items after "Add Feed": "Import OPML" (opens the dialog) and
 - Individual bad entries: reported in `unusable`, the rest imports.
 - Database failure mid-import: the transaction rolls back, the action throws,
   the dialog shows "Importing failed. Please try again."
-- Refresh failures after import: logged, not surfaced. The feed exists and the
-  reader can refresh it by hand from its page.
+- Refresh failures after import: retried by the worker, then logged, not
+  surfaced. The feed exists and the reader can refresh it by hand from its page.
 
 ## Testing
 

@@ -6,25 +6,10 @@ import { createCategory, createFeed, createUser } from "../helpers/factories";
 vi.mock("@/lib/repository/userRepository", () => ({
   getUserId: vi.fn(),
 }));
-vi.mock("@/lib/scraper", () => ({
-  scrapeFeed: vi.fn(),
-  scrapeArticle: vi.fn(),
-}));
-vi.mock("@/lib/ai/services/leadService", () => ({
-  generateAiLead: vi.fn(),
-}));
-// after() only works inside a Next request; run the callback right away so
-// the test can await the refreshes it schedules.
-vi.mock("next/server", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/server")>()),
-  after: vi.fn((callback: () => unknown) => callback()),
-}));
 
 import { DEFAULT_DISINTERESTS } from "@/lib/feedFilters";
 import { exportOpml, importOpml } from "@/lib/repository/opmlRepository";
 import { getUserId } from "@/lib/repository/userRepository";
-import { scrapeFeed } from "@/lib/scraper";
-import { after } from "next/server";
 
 let userId: string;
 
@@ -40,16 +25,18 @@ const formWith = (content: string, name = "feeds.opml") => {
 const feedOutline = (title: string, xmlUrl: string) =>
   `<outline type="rss" text="${title}" title="${title}" xmlUrl="${xmlUrl}"/>`;
 
-// The refreshes are scheduled with after(); awaiting its mock's return value
-// waits for them.
-const settleRefreshes = () =>
-  Promise.all(vi.mocked(after).mock.results.map((result) => result.value));
+const queuedRefreshes = async () =>
+  (
+    await prisma.job.findMany({
+      where: { kind: "REFRESH_FEED" },
+      orderBy: { targetId: "asc" },
+    })
+  ).map((job) => job.targetId);
 
 beforeEach(async () => {
   const user = await createUser();
   userId = user.id;
   vi.mocked(getUserId).mockResolvedValue(userId);
-  vi.mocked(scrapeFeed).mockResolvedValue([]);
 });
 
 describe("opmlRepository.importOpml", () => {
@@ -222,7 +209,7 @@ describe("opmlRepository.importOpml", () => {
     });
   });
 
-  it("refreshes every imported feed after the response", async () => {
+  it("queues a refresh for every imported feed and returns at once", async () => {
     await importOpml(
       formWith(
         opml(
@@ -231,14 +218,15 @@ describe("opmlRepository.importOpml", () => {
         ),
       ),
     );
-    await settleRefreshes();
 
-    expect(scrapeFeed).toHaveBeenCalledTimes(2);
-    const links = vi
-      .mocked(scrapeFeed)
-      .mock.calls.map(([feed]) => feed.link)
-      .sort();
-    expect(links).toEqual(["https://a.example/feed", "https://b.example/feed"]);
+    const imported = await prisma.feed.findMany({
+      where: { userId },
+      orderBy: { id: "asc" },
+    });
+    expect(await queuedRefreshes()).toEqual(imported.map((feed) => feed.id));
+    expect(imported.every((feed) => feed.lastFetched.getTime() === 0)).toBe(
+      true,
+    );
   });
 
   it("does not see another user's feeds as already subscribed", async () => {
@@ -262,7 +250,7 @@ describe("opmlRepository.importOpml", () => {
       error: "This file is not an OPML document.",
     });
     expect(await prisma.feed.count({ where: { userId } })).toBe(0);
-    expect(after).not.toHaveBeenCalled();
+    expect(await prisma.job.count()).toBe(0);
   });
 
   it("rejects a missing or empty file", async () => {
