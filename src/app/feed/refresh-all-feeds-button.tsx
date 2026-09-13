@@ -1,19 +1,24 @@
 "use client";
 
+import { useLiveUpdates } from "@/components/live-updates";
 import { Button } from "@/components/ui/button";
 import { refreshFeeds } from "@/lib/repository/feedRepository";
 import { LoaderCircleIcon, RotateCwIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+export const REFRESH_STARTED_MESSAGE =
+  "Refresh started. New articles will appear as they arrive.";
+
 const RefreshAllFeedsButton = () => {
+  const { noteUserRefresh } = useLiveUpdates();
   const [refreshInProgress, setRefreshInProgress] = useState(false);
 
   const handleClick = async () => {
     setRefreshInProgress(true);
     try {
       await refreshFeeds();
-    } catch (error) {
+    } catch {
       toast.error("An error occurred refreshing your feeds.", {
         description: "Please check the server logs to find out more.",
         action: {
@@ -21,13 +26,13 @@ const RefreshAllFeedsButton = () => {
           onClick: () => handleClick(),
         },
       });
-
       setRefreshInProgress(false);
       return;
     }
     setRefreshInProgress(false);
 
-    toast.message("All feeds refreshed");
+    noteUserRefresh();
+    toast.message(REFRESH_STARTED_MESSAGE);
   };
 
   return (

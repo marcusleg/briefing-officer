@@ -1,5 +1,7 @@
 "use client";
 
+import { REFRESH_STARTED_MESSAGE } from "@/app/feed/refresh-all-feeds-button";
+import { useLiveUpdates } from "@/components/live-updates";
 import { Button } from "@/components/ui/button";
 import { refreshFeed } from "@/lib/repository/feedRepository";
 import { LoaderCircle, RotateCw } from "lucide-react";
@@ -11,27 +13,29 @@ interface RefreshFeedButtonProps {
 }
 
 const RefreshFeedButton = ({ feedId }: RefreshFeedButtonProps) => {
+  const { noteUserRefresh } = useLiveUpdates();
   const [refreshInProgress, setRefreshInProgress] = useState(false);
 
-  const handleCLick = async () => {
+  const handleClick = async () => {
     setRefreshInProgress(true);
     try {
       await refreshFeed(feedId);
-    } catch (error) {
+      noteUserRefresh();
+      toast.message(REFRESH_STARTED_MESSAGE);
+    } catch {
       toast.error("An error occurred refreshing this feed.", {
         description: "Please check the server logs to learn more.",
       });
+    } finally {
+      setRefreshInProgress(false);
     }
-    setRefreshInProgress(false);
-
-    toast.message("Your feed has been refreshed.");
   };
 
   return (
     <Button
       className="cursor-pointer"
       disabled={refreshInProgress}
-      onClick={handleCLick}
+      onClick={handleClick}
       variant="outline"
     >
       {refreshInProgress ? (

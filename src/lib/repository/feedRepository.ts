@@ -1,18 +1,12 @@
 "use server";
 
-import {
-  Article,
-  Feed,
-  FeedFilterKind,
-  Prisma,
-} from "@/generated/prisma/client";
-import { generateAiLead } from "@/lib/ai/services/leadService";
+import { FeedFilterKind, Prisma } from "@/generated/prisma/client";
 import { dedupeKeywords, sortKeywords } from "@/lib/feedFilters";
-import logger from "@/lib/logger";
+import { enqueue } from "@/lib/jobs/jobRepository";
+import { wakeWorker } from "@/lib/jobs/worker";
 import prisma from "@/lib/prismaClient";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
 import { getUserId } from "@/lib/repository/userRepository";
-import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
 import { parseFeed } from "htmlparser2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -82,137 +76,45 @@ export const deleteFeed = async (feedId: number) => {
   redirect("/");
 };
 
-const processArticle = async (article: Article) => {
-  try {
-    await scrapeArticle(article.id, article.link);
-  } catch (error) {
-    logger.error(
-      {
-        err: error,
-        article: { id: article.id, title: article.title, link: article.link },
-      },
-      "Failed to scrape article.",
-    );
+/**
+ * Queues a fetch of one feed. The reader asked, so `autoRefresh` does not
+ * matter here. The worker picks the job up within milliseconds; open pages
+ * learn about new articles over the event stream.
+ */
+export const refreshFeed = async (feedId: number) => {
+  const userId = await getUserId();
+  const feed = await prisma.feed.findFirst({
+    where: { id: feedId, userId },
+    select: { id: true },
+  });
+  if (!feed) {
+    throw new Error("Feed not found");
   }
 
-  try {
-    await generateAiLead(article.id);
-  } catch (error) {
-    logger.error(
-      {
-        err: error,
-        article: { id: article.id, title: article.title, link: article.link },
-      },
-      "Failed to generate AI lead.",
-    );
-  }
-
-  revalidatePath(`/feed/${article.feedId}`);
+  await enqueue("REFRESH_FEED", feed.id);
+  wakeWorker();
 };
 
-export const refreshFeed = async (feedId: number) => {
-  const feed = await prisma.feed.findUniqueOrThrow({
-    where: { id: feedId },
+const queueRefreshes = async (where: Prisma.FeedWhereInput) => {
+  const feeds = await prisma.feed.findMany({
+    where: { ...where, autoRefresh: true },
+    select: { id: true },
   });
 
-  logger.debug({ feedId, feedTitle: feed.title }, "Refreshing feed.");
-
-  const feedItems = await scrapeFeed(feed);
-
-  const existingLinks = new Set(
-    (
-      await prisma.article.findMany({
-        where: { feedId: feed.id, userId: feed.userId },
-        select: { link: true },
-      })
-    ).map((a) => a.link),
-  );
-
-  const createArticlePromises = feedItems.map((item) =>
-    prisma.article.upsert({
-      where: {
-        userId_feedId_link: {
-          userId: feed.userId,
-          feedId: feed.id,
-          link: item.link,
-        },
-      },
-      create: {
-        ...item,
-        feedId: feed.id,
-        userId: feed.userId,
-      },
-      update: {
-        commentsLink: item.commentsLink,
-        author: item.author,
-      },
-    }),
-  );
-
-  const createArticleResults = await Promise.allSettled(createArticlePromises);
-  // TODO check whether articles that already exist have changed
-  const createdArticles = createArticleResults
-    .filter((result) => result.status === "fulfilled")
-    .map((result) => result.value)
-    .filter((article) => !existingLinks.has(article.link));
-
-  const processedArticles = createdArticles.map((article) =>
-    processArticle(article),
-  );
-  await Promise.allSettled(processedArticles);
-
-  await updateLastFetchedToNow(feed);
-
-  revalidatePath(`/feed/${feedId}`);
-
-  logger.info(
-    {
-      feed: { id: feed.id, title: feed.title, link: feed.link },
-      numberOfNewArticles: createdArticles.length,
-    },
-    "Feed refreshed. Processing new articles in the background.",
-  );
+  for (const feed of feeds) {
+    await enqueue("REFRESH_FEED", feed.id);
+  }
+  wakeWorker();
 };
 
 export const refreshCategoryFeeds = async (categoryId: number) => {
-  const feeds = await prisma.feed.findMany({
-    where: { feedCategoryId: categoryId, autoRefresh: true },
-    select: { id: true },
-  });
-
-  const promises = feeds.map(async (feed) => {
-    await refreshFeed(feed.id);
-    revalidatePath(`/feed/${feed.id}`);
-  });
-  const results = await Promise.allSettled(promises);
-
-  revalidatePath("/feed");
-  revalidatePath(`/feed/category/${categoryId}`);
-
-  if (results.filter((result) => result.status === "rejected").length > 0) {
-    throw new Error("Failed to refresh one or more feeds.");
-  }
+  const userId = await getUserId();
+  await queueRefreshes({ userId, feedCategoryId: categoryId });
 };
 
 export const refreshFeeds = async () => {
-  logger.debug("Refreshing all feeds.");
-
-  const feeds = await prisma.feed.findMany({
-    where: { autoRefresh: true },
-    select: { id: true },
-  });
-
-  const promises = feeds.map(async (feed) => {
-    await refreshFeed(feed.id);
-    revalidatePath(`/feed/${feed.id}`);
-  });
-  const results = await Promise.allSettled(promises);
-
-  revalidatePath("/feed");
-
-  if (results.filter((result) => result.status === "rejected").length > 0) {
-    throw new Error("Failed to refresh one or more feeds.");
-  }
+  const userId = await getUserId();
+  await queueRefreshes({ userId });
 };
 
 export const updateFeed = async (feedId: number, feed: FeedSchema) => {
@@ -238,15 +140,6 @@ export const updateFeed = async (feedId: number, feed: FeedSchema) => {
   revalidatePath("/feed", "layout");
 
   await refreshFeed(feedId);
-};
-
-const updateLastFetchedToNow = async (feed: Feed) => {
-  await prisma.feed.update({
-    where: { id: feed.id },
-    data: {
-      lastFetched: new Date(),
-    },
-  });
 };
 
 export const getUserCategories = async () => {

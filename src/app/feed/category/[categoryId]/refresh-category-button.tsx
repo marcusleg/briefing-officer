@@ -1,5 +1,7 @@
 "use client";
 
+import { REFRESH_STARTED_MESSAGE } from "@/app/feed/refresh-all-feeds-button";
+import { useLiveUpdates } from "@/components/live-updates";
 import { Button } from "@/components/ui/button";
 import { refreshCategoryFeeds } from "@/lib/repository/feedRepository";
 import { LoaderCircle, RotateCw } from "lucide-react";
@@ -11,14 +13,16 @@ interface RefreshCategoryButtonProps {
 }
 
 const RefreshCategoryButton = ({ categoryId }: RefreshCategoryButtonProps) => {
+  const { noteUserRefresh } = useLiveUpdates();
   const [refreshInProgress, setRefreshInProgress] = useState(false);
 
   const handleClick = async () => {
     setRefreshInProgress(true);
     try {
       await refreshCategoryFeeds(categoryId);
-      toast.message("Your category's feeds have been refreshed.");
-    } catch (error) {
+      noteUserRefresh();
+      toast.message(REFRESH_STARTED_MESSAGE);
+    } catch {
       toast.error("An error occurred refreshing this category.", {
         description: "Please check the server logs to learn more.",
       });
