@@ -5,6 +5,7 @@ import prisma from "@/lib/prismaClient";
  * Using prisma.deleteMany avoids depending on physical table names.
  */
 export const resetDb = async () => {
+  await prisma.job.deleteMany();
   await prisma.articleLead.deleteMany();
   await prisma.articleScrape.deleteMany();
   await prisma.tokenUsage.deleteMany();

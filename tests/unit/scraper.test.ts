@@ -11,6 +11,7 @@ vi.mock("@/lib/prismaClient", () => {
   const deleteMany = vi.fn().mockResolvedValue({ count: 0 });
   return {
     default: {
+      job: { deleteMany },
       articleLead: { deleteMany },
       articleScrape: { deleteMany },
       tokenUsage: { deleteMany },
