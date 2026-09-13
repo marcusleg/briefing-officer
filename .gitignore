@@ -50,3 +50,6 @@ shadow.db
 
 # Prisma
 /src/generated/
+
+# Claude Code worktrees
+/.claude/worktrees/
