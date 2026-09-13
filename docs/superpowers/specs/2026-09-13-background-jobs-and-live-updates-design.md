@@ -186,10 +186,10 @@ to re-render over SSE instead.
 - **Completion.** On success the job row is deleted and the owning user is
   notified on the event bus. On failure `attempts` is incremented. If it is
   below five, the job goes back to `PENDING` with `runAfter` set to now plus one
-  minute doubled per previous attempt (1, 2, 4, 8, 16 minutes). On the fifth
-  failure it becomes `FAILED` with the error message in `lastError`. The user is
-  notified either way, so a card whose lead failed permanently stops showing a
-  spinner and the page reflects the state the database has.
+  minute doubled per previous failure (1, 2, 4, 8 minutes). On the fifth failure
+  it becomes `FAILED` with the error message in `lastError`. A failed job does
+  not notify anyone: the handler threw before it could say whose work it was,
+  and there is nothing new on the page to show.
 - **Ticking.** The loop uses a timer chain with a five second poll interval.
   `wakeWorker()` cancels the pending timer and ticks at once. A tick that is
   already running is not re-entered; a wake during a tick schedules one more
@@ -211,8 +211,9 @@ A separate timer that fires every minute and runs, in order:
    the article card's client-side backfill. After 24 hours an article without a
    lead is left alone.
 3. **Hourly cleanup**, tracked in memory and run on the first tick after start:
-   purge articles past `ARTICLE_RETENTION_DAYS` through the existing
-   `deleteArticlesOlderThanXDays`, and delete `FAILED` jobs older than one hour.
+   purge articles past `ARTICLE_RETENTION_DAYS` (the purge moves out of the
+   server-action file `articleRepository.ts`, where any signed-in user could
+   call it, into the scheduler), and delete `FAILED` jobs older than one hour.
    Deleting a failed job lets the next sweep create a fresh one, so a feed that
    is down is retried about hourly rather than abandoned, while a job that keeps
    failing never retries more often than that.
@@ -260,7 +261,7 @@ The route is force-dynamic.
 throttled so that a burst of finished jobs causes at most one refresh every two
 seconds, with a trailing call so the last event is never dropped. The browser
 reconnects on its own if the stream drops. It also provides a context with
-`lastUserRefreshAt` and `noteUserRefresh()`, described next.
+`userRefreshActive` and `noteUserRefresh()`, described next.
 
 **Sidebar counts** update as a side effect: `router.refresh()` re-renders the
 whole server component tree, including `FeedNavigation`.
@@ -279,10 +280,11 @@ When `heldCount` is positive, a button above the list reads "Show N new
 articles". Clicking it adds every current id to the set, which merges the held
 articles in. Keyboard selection stays index-based over `visible`.
 
-One exception adds ids to the set without a click: if `lastUserRefreshAt` from
-the `LiveUpdates` context is within the last five minutes, new ids are merged as
-they arrive, because the reader asked for this refresh. Refresh buttons call
-`noteUserRefresh()` after enqueueing.
+One exception adds ids to the set without a click: while `userRefreshActive`
+from the `LiveUpdates` context is true, which it is for five minutes after
+`noteUserRefresh()` was called, new ids are merged as they arrive, because the
+reader asked for this refresh. Refresh buttons call `noteUserRefresh()` after
+enqueueing.
 
 The pages render an empty-state component instead of the list when there are no
 articles, so a list always mounts with something to show and never holds back
