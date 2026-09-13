@@ -1,7 +1,7 @@
 # Briefing Officer — Product Requirements
 
-Status: draft, documents the product as built in version 0.15.0. Last updated:
-2026-09-13.
+Status: draft, documents the product as built in version 0.15.0 plus OPML import
+and export. Last updated: 2026-09-13.
 
 This is a lean, as-built PRD. It records what the application already does so
 that later work has a shared baseline. The section layout follows the "Problem
@@ -63,7 +63,6 @@ Non-goals (as of this version):
 - Being a full-text reading app. Reading the article happens on the source site;
   Briefing Officer only summarises.
 - Social features: sharing, commenting, or public profiles.
-- Importing or exporting feed lists (no OPML support).
 - Server-side text-to-speech. Audio briefings use the browser's own voices.
 - Offline reading.
 
@@ -74,7 +73,8 @@ Ordered by importance to the core job of triaging news.
 1. **Feed reading.** Subscribe to RSS and Atom feeds by URL, group them into
    categories, pause and resume automatic refresh per feed, and refresh a feed,
    a category, or everything on demand. The sidebar shows unread counts per
-   feed.
+   feed. The feed list can be exported as OPML and imported from an OPML file
+   written by another reader, with categories carried over as folders.
 2. **AI lead.** Every ingested article gets a lead of at most 80 words that says
    what it covers and why it matters. It is written to inform, not to spark
    interest: for many articles the lead is all the reader needs. It is shown on
@@ -123,6 +123,10 @@ Ordered by importance to the core job of triaging news.
 - **Adding a feed.** Paste a URL in the sidebar form, optionally set a title and
   category, adjust the prefilled "not interested in" defaults, save. The feed is
   fetched and its articles get leads and filter decisions.
+- **Moving in from another reader.** Export an OPML file there, choose "Import
+  OPML" in the sidebar, pick the file. Folders become categories, feeds already
+  subscribed are skipped, and the new feeds are fetched in the background. A
+  summary says what was added and what could not be used.
 - **Teaching the filter.** Click "not interested" on an article, pick one of the
   suggested keywords or type your own, and the feed's filter updates. Review the
   Filtered view occasionally and restore anything caught wrongly.
@@ -153,7 +157,6 @@ Screenshots of the main screens live in `docs/screenshots/`.
 ## 7. Open questions and known gaps
 
 - Feed categories have an icon field in the schema that no UI uses.
-- No OPML import or export. This is a common expectation for a feed reader.
 - The theme toggle is desktop-only; on mobile the system theme applies.
 - Success metrics are not defined yet. Candidates: share of articles filtered
   versus restored, share of inbox articles dismissed without a summary, token
