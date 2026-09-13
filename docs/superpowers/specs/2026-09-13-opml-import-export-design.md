@@ -170,43 +170,60 @@ Export output shape:
 ```
 
 Uncategorised feeds are emitted before categories. Within a group, feeds are
-sorted by title; categories are sorted by name, matching the sidebar.
+sorted by title; categories are sorted by name, matching the sidebar. A category
+with no feeds is left out: an empty folder would only make another reader create
+an empty category, which this application never does on import either.
+
+The import result type also lives here, because a `"use server"` module may only
+export async functions:
+
+```ts
+export type OpmlImportResult =
+  | {
+      ok: true;
+      imported: number;
+      skipped: number; // already subscribed, or duplicated within the file
+      categoriesCreated: number;
+      unusable: string[]; // titles of entries that could not be used
+    }
+  | { ok: false; error: string };
+```
+
+Expected failures are returned, not thrown: Next.js masks the message of any
+error thrown by a server action in production, so a thrown "This file is not an
+OPML document." would reach the dialog as a generic error. Throwing is reserved
+for the unexpected.
 
 ### `src/lib/repository/opmlRepository.ts` — server actions
 
 ```ts
-export interface OpmlImportResult {
-  imported: number;
-  skipped: number; // already subscribed, or duplicated within the file
-  categoriesCreated: number;
-  unusable: string[]; // titles or URLs of entries that could not be used
-}
-
 export const importOpml = async (formData: FormData): Promise<OpmlImportResult>;
 export const exportOpml = async (): Promise<string>;
 ```
 
 `importOpml`:
 
-1. Reads the `file` field, rejects a missing file, and reads it as text.
-2. Calls `parseOpml`. An `InvalidOpmlError` is rethrown with a reader-facing
-   message; the dialog shows it.
+1. Reads the `file` field. A missing or empty file returns
+   `{ ok: false, error: "Choose an OPML file to import." }`.
+2. Calls `parseOpml`. An `InvalidOpmlError` becomes
+   `{ ok: false, error: "This file is not an OPML document." }`.
 3. Loads the user's categories and feed links.
 4. In one transaction, creates missing categories and inserts feed rows plus
    default disinterest filters for every usable, not-yet-subscribed entry.
 5. Calls `revalidatePath("/feed", "layout")`.
-6. Starts `refreshFeed` for each created feed, not awaited, with failures
-   logged. Refreshes run concurrently, the same as `refreshFeeds` does.
+6. Schedules `refreshFeed` for each created feed with `after()` from
+   `next/server`, so the refreshes run once the response has been sent. Failures
+   are logged. Refreshes run concurrently, the same as `refreshFeeds` does.
 7. Returns the summary.
 
 `exportOpml` loads the user's feeds with their categories and calls `buildOpml`.
 
 ### `src/app/api/opml/route.ts` — export download
 
-`GET` resolves the user via `getUserId`, which throws when there is no session;
-the handler turns that into a 401. On success it returns the OPML text with
-`Content-Type: text/x-opml; charset=utf-8` and
-`Content-Disposition: attachment; filename="briefing-officer.opml"`.
+`GET` checks the session directly and returns 401 when there is none, so that a
+missing session and a database failure do not collapse into one status. On
+success it returns the OPML text with `Content-Type: text/x-opml; charset=utf-8`
+and `Content-Disposition: attachment; filename="briefing-officer.opml"`.
 
 ### `src/components/navigation/import-opml-dialog-trigger.tsx`
 
@@ -226,12 +243,13 @@ Gains two sidebar items after "Add Feed": "Import OPML" (opens the dialog) and
 ## Error handling
 
 - No session on the export route: 401 with an empty body.
-- No file or an empty file on import: the action throws "Choose an OPML file to
+- No file or an empty file on import: the action returns "Choose an OPML file to
   import."; the dialog shows it.
-- Not OPML: "This file is not an OPML document."; nothing is written.
+- Not OPML: the action returns "This file is not an OPML document."; nothing is
+  written.
 - Individual bad entries: reported in `unusable`, the rest imports.
 - Database failure mid-import: the transaction rolls back, the action throws,
-  the dialog shows a generic failure message.
+  the dialog shows "Importing failed. Please try again."
 - Refresh failures after import: logged, not surfaced. The feed exists and the
   reader can refresh it by hand from its page.
 
