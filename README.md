@@ -15,6 +15,7 @@ AI summaries for your favorite news feeds.
 ## Features
 
 - News reader with RSS and Atom support.
+- Import and export your feed list as OPML.
 - Three types of AI summaries:
   - **Lead**: A single paragraph summarizing what the article covers and why it
     is significant or timely, capped at 80 words.
