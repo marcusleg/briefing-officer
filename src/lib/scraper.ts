@@ -1,5 +1,3 @@
-"use server";
-
 import { Article, Feed } from "@/generated/prisma/client";
 import { ARTICLE_RETENTION_DAYS } from "@/lib/constants";
 import logger from "@/lib/logger";

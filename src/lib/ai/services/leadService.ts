@@ -1,5 +1,3 @@
-"use server";
-
 import { FeedFilterKind } from "@/generated/prisma/client";
 import { buildLeadPrompt, systemPrompt } from "@/lib/ai/prompts";
 import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
