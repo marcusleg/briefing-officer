@@ -81,7 +81,7 @@ const FeedById = async (props: FeedByIdProps) => {
 
       <div className="flex flex-col gap-4">
         {articles.length > 0 ? (
-          <ArticleList articles={articles} />
+          <ArticleList key={showSearchParam} articles={articles} />
         ) : showSearchParam === "filtered" ? (
           <NoFilteredArticles feed={feed} />
         ) : (
