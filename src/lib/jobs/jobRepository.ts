@@ -22,6 +22,48 @@ const createIfAbsent = async (kind: JobKind, targetId: number) => {
 };
 
 /**
+ * Inserts the rows that are missing in one statement. SQLite has no
+ * `skipDuplicates`, so a unique-constraint violation means at least one target
+ * gained a row between the caller's check and this insert; the statement is
+ * atomic, so nothing was written and the targets are retried one at a time.
+ */
+const createManyIfAbsent = async (kind: JobKind, targetIds: number[]) => {
+  if (targetIds.length === 0) {
+    return;
+  }
+
+  try {
+    await prisma.job.createMany({
+      data: targetIds.map((targetId) => ({ kind, targetId })),
+    });
+  } catch (error) {
+    if (!isUniqueViolation(error)) {
+      throw error;
+    }
+    for (const targetId of targetIds) {
+      await createIfAbsent(kind, targetId);
+    }
+  }
+};
+
+const existingTargets = async (kind: JobKind, targetIds: number[]) =>
+  new Set(
+    (
+      await prisma.job.findMany({
+        where: { kind, targetId: { in: targetIds } },
+        select: { targetId: true },
+      })
+    ).map((job) => job.targetId),
+  );
+
+const resetToPending = () => ({
+  status: "PENDING" as const,
+  attempts: 0,
+  runAfter: new Date(),
+  lastError: null,
+});
+
+/**
  * Queue the job to run now. A pending or failed row is reset so that a reader
  * who asks for a refresh is not made to wait out a backoff or a give-up. A
  * running row is left alone: the work is already happening.
@@ -29,12 +71,7 @@ const createIfAbsent = async (kind: JobKind, targetId: number) => {
 export const enqueue = async (kind: JobKind, targetId: number) => {
   const reset = await prisma.job.updateMany({
     where: { kind, targetId, status: { in: ["PENDING", "FAILED"] } },
-    data: {
-      status: "PENDING",
-      attempts: 0,
-      runAfter: new Date(),
-      lastError: null,
-    },
+    data: resetToPending(),
   });
 
   if (reset.count === 0) {
@@ -43,11 +80,50 @@ export const enqueue = async (kind: JobKind, targetId: number) => {
 };
 
 /**
- * Queue the job only if nothing is queued, running, or failed for it. Used by
- * periodic sweeps so they never reset the attempt count of a retrying job.
+ * `enqueue` for many targets in a fixed number of statements instead of one
+ * or two per target, so that "refresh all" over a long feed list returns as
+ * fast as a single refresh does.
  */
-export const enqueueIfAbsent = (kind: JobKind, targetId: number) =>
-  createIfAbsent(kind, targetId);
+export const enqueueMany = async (kind: JobKind, targetIds: number[]) => {
+  if (targetIds.length === 0) {
+    return;
+  }
+
+  await prisma.job.updateMany({
+    where: {
+      kind,
+      targetId: { in: targetIds },
+      status: { in: ["PENDING", "FAILED"] },
+    },
+    data: resetToPending(),
+  });
+
+  const existing = await existingTargets(kind, targetIds);
+  await createManyIfAbsent(
+    kind,
+    targetIds.filter((targetId) => !existing.has(targetId)),
+  );
+};
+
+/**
+ * Queue a job for each target that has nothing queued, running, or failed for
+ * it. Used by periodic sweeps so they never reset the attempt count of a
+ * retrying job. Same fixed number of statements as `enqueueMany`.
+ */
+export const enqueueManyIfAbsent = async (
+  kind: JobKind,
+  targetIds: number[],
+) => {
+  if (targetIds.length === 0) {
+    return;
+  }
+
+  const existing = await existingTargets(kind, targetIds);
+  await createManyIfAbsent(
+    kind,
+    targetIds.filter((targetId) => !existing.has(targetId)),
+  );
+};
 
 /**
  * Marks up to `limit` due pending jobs of `kind` as running and returns them.

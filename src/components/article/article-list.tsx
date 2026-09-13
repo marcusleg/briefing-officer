@@ -27,7 +27,9 @@ const idsOf = (articles: ListedArticle[]) =>
  */
 const ArticleList = ({ articles }: ArticleListProps) => {
   const { userRefreshActive } = useLiveUpdates();
-  const [selectedArticle, setSelectedArticle] = useState<number>();
+  // Selection is by id, not position: showing held articles prepends to the
+  // list, and the highlight has to stay on the article the reader chose.
+  const [selectedId, setSelectedId] = useState<number>();
   const [seenIds, setSeenIds] = useState(() => new Set(idsOf(articles)));
 
   const unseen = articles.filter((article) => !seenIds.has(article.id));
@@ -41,35 +43,42 @@ const ArticleList = ({ articles }: ArticleListProps) => {
 
   const visible = articles.filter((article) => seenIds.has(article.id));
   const heldCount = articles.length - visible.length;
+  const selectedIndex = visible.findIndex(
+    (article) => article.id === selectedId,
+  );
 
   const showNewArticles = () => {
     setSeenIds(new Set([...seenIds, ...idsOf(articles)]));
   };
 
+  const selectAt = (index: number) => {
+    setSelectedId(visible[index]?.id);
+  };
+
   useHotkeys("p", () => {
-    if (selectedArticle === undefined) {
+    if (selectedIndex === -1) {
       return;
     }
 
-    if (selectedArticle === 0) {
-      setSelectedArticle(undefined);
+    if (selectedIndex === 0) {
+      setSelectedId(undefined);
       return;
     }
 
-    setSelectedArticle(selectedArticle - 1);
+    selectAt(selectedIndex - 1);
   });
 
   useHotkeys("n", () => {
-    if (selectedArticle === undefined) {
-      setSelectedArticle(0);
+    if (selectedIndex === -1) {
+      selectAt(0);
       return;
     }
 
-    if (selectedArticle === visible.length - 1) {
+    if (selectedIndex === visible.length - 1) {
       return;
     }
 
-    setSelectedArticle(selectedArticle + 1);
+    selectAt(selectedIndex + 1);
   });
 
   return (
@@ -85,12 +94,12 @@ const ArticleList = ({ articles }: ArticleListProps) => {
         </Button>
       )}
 
-      {visible.map((article, index) => (
+      {visible.map((article) => (
         <ArticleCard
           key={article.id}
           article={article}
-          onClick={() => setSelectedArticle(index)}
-          selected={index === selectedArticle}
+          onClick={() => setSelectedId(article.id)}
+          selected={article.id === selectedId}
         />
       ))}
     </div>

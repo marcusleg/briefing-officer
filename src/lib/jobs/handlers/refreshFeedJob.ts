@@ -1,4 +1,4 @@
-import { enqueue } from "@/lib/jobs/jobRepository";
+import { enqueueMany } from "@/lib/jobs/jobRepository";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { scrapeFeed } from "@/lib/scraper";
@@ -49,9 +49,10 @@ export const refreshFeedJob = async (feedId: number) => {
     .map((result) => result.value)
     .filter((article) => !existingLinks.has(article.link));
 
-  for (const article of createdArticles) {
-    await enqueue("PROCESS_ARTICLE", article.id);
-  }
+  await enqueueMany(
+    "PROCESS_ARTICLE",
+    createdArticles.map((article) => article.id),
+  );
 
   await prisma.feed.update({
     where: { id: feed.id },

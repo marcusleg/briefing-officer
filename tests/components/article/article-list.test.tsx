@@ -84,6 +84,24 @@ describe("ArticleList", () => {
     expect(screen.queryByRole("button", { name: /new article/ })).toBeNull();
   });
 
+  it("keeps the highlighted article when held articles are shown", async () => {
+    const { rerender } = render(
+      <ArticleList articles={[article(2), article(1)]} />,
+    );
+    await userEvent.click(screen.getByText("Article 1"));
+    rerender(<ArticleList articles={[article(3), article(2), article(1)]} />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Show 1 new article" }),
+    );
+
+    const cardOf = (title: string) =>
+      screen.getByText(title).closest('[data-slot="card"]');
+    expect(cardOf("Article 1")).toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
+    expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
+  });
+
   it("updates an article already on screen in place", () => {
     const { rerender } = render(<ArticleList articles={[article(1)]} />);
 
