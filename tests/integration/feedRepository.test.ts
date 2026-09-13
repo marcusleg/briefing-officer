@@ -1,4 +1,3 @@
-import type { Feed } from "@/generated/prisma/client";
 import prisma from "@/lib/prismaClient";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -12,15 +11,7 @@ import {
 vi.mock("@/lib/repository/userRepository", () => ({
   getUserId: vi.fn(),
 }));
-vi.mock("@/lib/scraper", () => ({
-  scrapeFeed: vi.fn(),
-  scrapeArticle: vi.fn(),
-}));
-vi.mock("@/lib/ai/services/leadService", () => ({
-  generateAiLead: vi.fn(),
-}));
 
-import { generateAiLead } from "@/lib/ai/services/leadService";
 import {
   addFeedFilter,
   createCategory as createCategoryAction,
@@ -36,119 +27,73 @@ import {
   updateFeed,
 } from "@/lib/repository/feedRepository";
 import { getUserId } from "@/lib/repository/userRepository";
-import { scrapeArticle, scrapeFeed } from "@/lib/scraper";
 
 let userId: string;
 
-const feedItem = (title: string, link: string) => ({
-  title,
-  link,
-  description: null,
-  publicationDate: new Date(),
-  commentsLink: null,
-  author: null,
-});
+const queuedRefreshes = async () =>
+  (
+    await prisma.job.findMany({
+      where: { kind: "REFRESH_FEED" },
+      orderBy: { targetId: "asc" },
+    })
+  ).map((job) => job.targetId);
 
 beforeEach(async () => {
   const user = await createUser();
   userId = user.id;
   vi.mocked(getUserId).mockResolvedValue(userId);
-  vi.mocked(scrapeArticle).mockResolvedValue(undefined as never);
-  vi.mocked(generateAiLead).mockResolvedValue(undefined as never);
-  vi.mocked(scrapeFeed).mockResolvedValue([]);
 });
 
 describe("feedRepository.refreshFeed", () => {
-  it("creates articles returned by the scraper and updates lastFetched", async () => {
-    const feed = await createFeed({ userId });
-    vi.mocked(scrapeFeed).mockResolvedValue([
-      feedItem("First", "https://example.com/1"),
-      feedItem("Second", "https://example.com/2"),
-    ]);
+  it("queues a refresh job for the reader's feed and returns at once", async () => {
+    const feed = await createFeed({ userId, autoRefresh: false });
 
     await refreshFeed(feed.id);
 
-    expect(await prisma.article.count({ where: { feedId: feed.id } })).toBe(2);
-    const refreshed = await prisma.feed.findUniqueOrThrow({
+    expect(await queuedRefreshes()).toEqual([feed.id]);
+    const untouched = await prisma.feed.findUniqueOrThrow({
       where: { id: feed.id },
     });
-    expect(refreshed.lastFetched.getTime()).toBeGreaterThan(
-      new Date(0).getTime(),
-    );
+    expect(untouched.lastFetched.getTime()).toBe(0);
   });
 
-  it("updates commentsLink on an existing article when the feed is refreshed", async () => {
-    const feed = await createFeed({ userId });
-    vi.mocked(scrapeFeed).mockResolvedValue([
-      feedItem("Article", "https://example.com/1"),
-    ]);
-    await refreshFeed(feed.id);
+  it("refuses a feed that belongs to someone else", async () => {
+    const other = await createUser();
+    const feed = await createFeed({ userId: other.id });
 
-    const withComments = {
-      ...feedItem("Article", "https://example.com/1"),
-      commentsLink: "https://example.com/1#comments",
-    };
-    vi.mocked(scrapeFeed).mockResolvedValue([withComments]);
-    await refreshFeed(feed.id);
-
-    const article = await prisma.article.findFirstOrThrow({
-      where: { feedId: feed.id },
-    });
-    expect(article.commentsLink).toBe("https://example.com/1#comments");
-    expect(await prisma.article.count({ where: { feedId: feed.id } })).toBe(1);
-  });
-
-  it("persists every fetched item now that regex filtering is gone", async () => {
-    const feed = await createFeed({ userId });
-    vi.mocked(scrapeFeed).mockResolvedValue([
-      feedItem("Breaking", "https://example.com/a"),
-      feedItem("Sports roundup", "https://example.com/b"),
-    ]);
-
-    await refreshFeed(feed.id);
-
-    const titles = (
-      await prisma.article.findMany({ where: { feedId: feed.id } })
-    ).map((a) => a.title);
-    expect(titles).toEqual(["Breaking", "Sports roundup"]);
+    await expect(refreshFeed(feed.id)).rejects.toThrow("Feed not found");
+    expect(await prisma.job.count()).toBe(0);
   });
 });
 
 describe("feedRepository.refreshFeeds", () => {
-  it("refreshes only auto-refresh feeds", async () => {
+  it("queues only the reader's auto-refresh feeds", async () => {
     const autoRefreshed = await createFeed({
       userId,
       autoRefresh: true,
       link: "https://example.com/on.xml",
     });
-    const paused = await createFeed({
+    await createFeed({
       userId,
       autoRefresh: false,
       link: "https://example.com/off.xml",
     });
-    vi.mocked(scrapeFeed).mockImplementation(async (feed: Feed) => [
-      feedItem(`Item for ${feed.id}`, `https://example.com/item-${feed.id}`),
-    ]);
+    const other = await createUser();
+    await createFeed({ userId: other.id, autoRefresh: true });
 
     await refreshFeeds();
 
-    expect(
-      await prisma.article.count({ where: { feedId: autoRefreshed.id } }),
-    ).toBe(1);
-    expect(await prisma.article.count({ where: { feedId: paused.id } })).toBe(
-      0,
-    );
+    expect(await queuedRefreshes()).toEqual([autoRefreshed.id]);
   });
 });
 
 describe("feedRepository.createFeed", () => {
-  it("fetches+parses the feed link, creates the row, then refreshes", async () => {
+  it("fetches+parses the feed link, creates the row, then queues a refresh", async () => {
     const xml = `<?xml version="1.0"?><rss version="2.0"><channel><title>Parsed Title</title></channel></rss>`;
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response(xml)),
     );
-    vi.mocked(scrapeFeed).mockResolvedValue([]);
 
     await createFeedAction({
       title: "",
@@ -160,15 +105,14 @@ describe("feedRepository.createFeed", () => {
 
     const created = await prisma.feed.findFirstOrThrow({ where: { userId } });
     expect(created.title).toBe("Parsed Title");
-    expect(vi.mocked(scrapeFeed)).toHaveBeenCalled();
+    expect(await queuedRefreshes()).toEqual([created.id]);
     vi.unstubAllGlobals();
   });
 });
 
 describe("feedRepository.updateFeed", () => {
-  it("updates fields and triggers a refresh", async () => {
+  it("updates fields and queues a refresh", async () => {
     const feed = await createFeed({ userId, title: "Old" });
-    vi.mocked(scrapeFeed).mockResolvedValue([]);
 
     await updateFeed(feed.id, {
       title: "New",
@@ -183,6 +127,7 @@ describe("feedRepository.updateFeed", () => {
     });
     expect(updated.title).toBe("New");
     expect(updated.autoRefresh).toBe(false);
+    expect(await queuedRefreshes()).toEqual([feed.id]);
   });
 });
 
@@ -241,7 +186,7 @@ describe("feedRepository categories", () => {
 });
 
 describe("feedRepository.refreshCategoryFeeds", () => {
-  it("refreshes only auto-refresh feeds in the given category", async () => {
+  it("queues only auto-refresh feeds in the given category", async () => {
     const category = await createCategory({ userId, name: "Tech" });
     const inCategoryEnabled = await createFeed({
       userId,
@@ -249,36 +194,22 @@ describe("feedRepository.refreshCategoryFeeds", () => {
       feedCategoryId: category.id,
       link: "https://example.com/cat-on.xml",
     });
-    const inCategoryDisabled = await createFeed({
+    await createFeed({
       userId,
       autoRefresh: false,
       feedCategoryId: category.id,
       link: "https://example.com/cat-off.xml",
     });
-    const outOfCategory = await createFeed({
+    await createFeed({
       userId,
       autoRefresh: true,
       feedCategoryId: null,
       link: "https://example.com/no-cat.xml",
     });
-    vi.mocked(scrapeFeed).mockImplementation(async (feed: Feed) => [
-      feedItem(
-        `Item for ${feed.id}`,
-        `https://example.com/cat-item-${feed.id}`,
-      ),
-    ]);
 
     await refreshCategoryFeeds(category.id);
 
-    expect(
-      await prisma.article.count({ where: { feedId: inCategoryEnabled.id } }),
-    ).toBe(1);
-    expect(
-      await prisma.article.count({ where: { feedId: inCategoryDisabled.id } }),
-    ).toBe(0);
-    expect(
-      await prisma.article.count({ where: { feedId: outOfCategory.id } }),
-    ).toBe(0);
+    expect(await queuedRefreshes()).toEqual([inCategoryEnabled.id]);
   });
 });
 
@@ -297,7 +228,6 @@ describe("feed keyword filters", () => {
       "fetch",
       vi.fn(async () => new Response(xml)),
     );
-    vi.mocked(scrapeFeed).mockResolvedValue([]);
 
     await createFeedAction({
       title: "",
