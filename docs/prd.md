@@ -55,7 +55,8 @@ Goals:
   informs; it does not tease.
 - Keep the inbox to articles the reader actually wants to see.
 - Work equally well on a phone and on a desktop, in light and dark mode.
-- Stay simple to self-host: one container, one database file, one cron call.
+- Stay simple to self-host: one container, one database file, no external
+  trigger.
 - Let the operator choose their AI provider.
 
 Non-goals (as of this version):
@@ -74,7 +75,9 @@ Ordered by importance to the core job of triaging news.
    categories, pause and resume automatic refresh per feed, and refresh a feed,
    a category, or everything on demand. The sidebar shows unread counts per
    feed. The feed list can be exported as OPML and imported from an OPML file
-   written by another reader, with categories carried over as folders.
+   written by another reader, with categories carried over as folders. Refreshes
+   run in the background; open pages update themselves as leads arrive and offer
+   a "Show N new articles" button when new articles land.
 2. **AI lead.** Every ingested article gets a lead of at most 80 words that says
    what it covers and why it matters. It is written to inform, not to spark
    interest: for many articles the lead is all the reader needs. It is shown on
@@ -131,8 +134,8 @@ Ordered by importance to the core job of triaging news.
   suggested keywords or type your own, and the feed's filter updates. Review the
   Filtered view occasionally and restore anything caught wrongly.
 - **Operator setup.** Run the container with a database path, one AI provider's
-  credentials, an auth secret, a base URL, and a cron token. Schedule a call to
-  the cron endpoint every 15 minutes.
+  credentials, an auth secret, and a base URL. Feeds refresh on their own every
+  15 minutes by default.
 
 Screenshots of the main screens live in `docs/screenshots/`.
 
@@ -141,8 +144,8 @@ Screenshots of the main screens live in `docs/screenshots/`.
 - Article state is a single status (unread, read later, read, filtered) plus an
   independent star flag. The state machine is documented in
   `docs/reference/article-status.md`.
-- Articles older than 365 days are purged on each cron run, except starred and
-  read-later articles.
+- Articles older than 365 days are purged hourly by the background worker,
+  except starred and read-later articles.
 - The lead and the filter decision come from one AI call per article at ingest.
   Text and audio summaries are generated on demand and streamed.
 - The AI provider is chosen by environment variables; the first configured
@@ -151,12 +154,17 @@ Screenshots of the main screens live in `docs/screenshots/`.
 - The sign-up page is always reachable. With self-registration disabled, new
   accounts start disabled and an administrator enables them to approve. Sign-in
   to a disabled account tells the user that approval is pending.
-- Storage is SQLite. Refresh is driven externally via a token-protected cron
-  endpoint. Liveness and readiness endpoints exist for Kubernetes probes.
+- Storage is SQLite. A background worker in the application process refreshes
+  feeds, scrapes articles, and generates leads from a job table in the same
+  database, with bounded concurrency and retries. Open pages are told about
+  finished work over Server-Sent Events. Liveness and readiness endpoints exist
+  for Kubernetes probes.
 
 ## 7. Open questions and known gaps
 
 - Feed categories have an icon field in the schema that no UI uses.
+- Failed background jobs are visible only in the database and the logs; there is
+  no admin view of them yet.
 - The theme toggle is desktop-only; on mobile the system theme applies.
 - Success metrics are not defined yet. Candidates: share of articles filtered
   versus restored, share of inbox articles dismissed without a summary, token
