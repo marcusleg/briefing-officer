@@ -1,6 +1,8 @@
 "use server";
 
 import { DEFAULT_DISINTERESTS } from "@/lib/feedFilters";
+import { enqueueMany } from "@/lib/jobs/jobRepository";
+import { wakeWorker } from "@/lib/jobs/worker";
 import logger from "@/lib/logger";
 import {
   buildOpml,
@@ -12,10 +14,8 @@ import {
   parseOpml,
 } from "@/lib/opml";
 import prisma from "@/lib/prismaClient";
-import { refreshFeed } from "@/lib/repository/feedRepository";
 import { getUserId } from "@/lib/repository/userRepository";
 import { revalidatePath } from "next/cache";
-import { after } from "next/server";
 
 const EXPORT_TITLE = "Briefing Officer feeds";
 
@@ -31,9 +31,10 @@ const readUpload = async (formData: FormData): Promise<string | null> => {
  * Inserts feed rows the way createFeed leaves them — lastFetched at epoch,
  * auto refresh on, default disinterests seeded — but does not fetch anything
  * first. A file may list a hundred feeds, and fetching each one before the
- * dialog can close would take minutes. Refreshes run after the response
- * instead; a URL that turns out not to be a feed logs an error on refresh and
- * sits empty, the same as a feed that dies after subscription does today.
+ * dialog can close would take minutes. A refresh job is queued per feed for
+ * the background worker instead; a URL that turns out not to be a feed fails
+ * its refresh job and sits empty, the same as a feed that dies after
+ * subscription does today.
  */
 export const importOpml = async (
   formData: FormData,
@@ -148,20 +149,8 @@ export const importOpml = async (
 
   revalidatePath("/feed", "layout");
 
-  if (createdFeedIds.length > 0) {
-    after(() =>
-      Promise.all(
-        createdFeedIds.map((feedId) =>
-          refreshFeed(feedId).catch((error) =>
-            logger.error(
-              { err: error, feedId },
-              "Failed to refresh a feed imported from OPML.",
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  await enqueueMany("REFRESH_FEED", createdFeedIds);
+  wakeWorker();
 
   logger.info(
     {
