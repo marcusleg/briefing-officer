@@ -3,7 +3,8 @@ import {
   completeJob,
   deleteStaleFailedJobs,
   enqueue,
-  enqueueIfAbsent,
+  enqueueMany,
+  enqueueManyIfAbsent,
   failJob,
   resetRunningJobs,
 } from "@/lib/jobs/jobRepository";
@@ -11,6 +12,104 @@ import prisma from "@/lib/prismaClient";
 import { describe, expect, it } from "vitest";
 
 const jobs = () => prisma.job.findMany({ orderBy: { id: "asc" } });
+
+describe("enqueueMany", () => {
+  it("creates a pending job per target in one go", async () => {
+    await enqueueMany("REFRESH_FEED", [1, 2, 3]);
+
+    const created = await jobs();
+    expect(created.map((job) => job.targetId)).toEqual([1, 2, 3]);
+    expect(created.every((job) => job.status === "PENDING")).toBe(true);
+  });
+
+  it("resets existing pending or failed jobs and creates the missing ones", async () => {
+    await prisma.job.create({
+      data: {
+        kind: "REFRESH_FEED",
+        targetId: 1,
+        status: "FAILED",
+        attempts: 5,
+        lastError: "boom",
+      },
+    });
+    await prisma.job.create({
+      data: {
+        kind: "REFRESH_FEED",
+        targetId: 2,
+        attempts: 2,
+        runAfter: new Date(Date.now() + 60_000),
+      },
+    });
+
+    await enqueueMany("REFRESH_FEED", [1, 2, 3]);
+
+    const all = await jobs();
+    expect(all.map((job) => job.targetId)).toEqual([1, 2, 3]);
+    for (const job of all) {
+      expect(job.status).toBe("PENDING");
+      expect(job.attempts).toBe(0);
+      expect(job.lastError).toBeNull();
+      expect(job.runAfter.getTime()).toBeLessThanOrEqual(Date.now());
+    }
+  });
+
+  it("leaves a running job alone", async () => {
+    await prisma.job.create({
+      data: {
+        kind: "REFRESH_FEED",
+        targetId: 1,
+        status: "RUNNING",
+        attempts: 1,
+      },
+    });
+
+    await enqueueMany("REFRESH_FEED", [1, 2]);
+
+    const all = await jobs();
+    expect(all.map((job) => [job.targetId, job.status])).toEqual([
+      [1, "RUNNING"],
+      [2, "PENDING"],
+    ]);
+    expect(all[0].attempts).toBe(1);
+  });
+
+  it("does nothing for an empty list", async () => {
+    await enqueueMany("REFRESH_FEED", []);
+
+    expect(await prisma.job.count()).toBe(0);
+  });
+});
+
+describe("enqueueManyIfAbsent", () => {
+  it("creates only the jobs that do not exist yet", async () => {
+    await prisma.job.create({
+      data: {
+        kind: "PROCESS_ARTICLE",
+        targetId: 1,
+        status: "FAILED",
+        attempts: 5,
+      },
+    });
+    await prisma.job.create({
+      data: { kind: "PROCESS_ARTICLE", targetId: 2, attempts: 2 },
+    });
+
+    await enqueueManyIfAbsent("PROCESS_ARTICLE", [1, 2, 3]);
+
+    const all = await jobs();
+    expect(all.map((job) => [job.targetId, job.status, job.attempts])).toEqual([
+      [1, "FAILED", 5],
+      [2, "PENDING", 2],
+      [3, "PENDING", 0],
+    ]);
+  });
+
+  it("does nothing for an empty list", async () => {
+    await enqueueManyIfAbsent("PROCESS_ARTICLE", []);
+
+    expect(await prisma.job.count()).toBe(0);
+  });
+});
 
 describe("enqueue", () => {
   it("creates a pending job", async () => {
@@ -85,30 +184,6 @@ describe("enqueue", () => {
     const [job] = await jobs();
     expect(job.status).toBe("RUNNING");
     expect(job.attempts).toBe(1);
-  });
-});
-
-describe("enqueueIfAbsent", () => {
-  it("creates a job when none exists", async () => {
-    await enqueueIfAbsent("PROCESS_ARTICLE", 7);
-    expect(await prisma.job.count()).toBe(1);
-  });
-
-  it("does not touch an existing job of any status", async () => {
-    await prisma.job.create({
-      data: {
-        kind: "PROCESS_ARTICLE",
-        targetId: 7,
-        status: "FAILED",
-        attempts: 5,
-      },
-    });
-
-    await enqueueIfAbsent("PROCESS_ARTICLE", 7);
-
-    const [job] = await jobs();
-    expect(job.status).toBe("FAILED");
-    expect(job.attempts).toBe(5);
   });
 });
 

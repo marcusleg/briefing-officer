@@ -51,7 +51,9 @@ const ArticleSearchResultsPage = async ({
 
       <FeedTitle title="Search Results" articleCount={articleCount} />
 
-      <ArticleList articles={articles} />
+      {/* A new query is a new list: without the key the mounted list would
+          hold every result behind "Show N new articles". */}
+      <ArticleList key={query} articles={articles} />
     </div>
   );
 };

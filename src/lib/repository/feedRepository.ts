@@ -2,7 +2,7 @@
 
 import { FeedFilterKind, Prisma } from "@/generated/prisma/client";
 import { dedupeKeywords, sortKeywords } from "@/lib/feedFilters";
-import { enqueue } from "@/lib/jobs/jobRepository";
+import { enqueue, enqueueMany } from "@/lib/jobs/jobRepository";
 import { wakeWorker } from "@/lib/jobs/worker";
 import prisma from "@/lib/prismaClient";
 import { CategorySchema, FeedSchema } from "@/lib/repository/feedSchema";
@@ -101,9 +101,10 @@ const queueRefreshes = async (where: Prisma.FeedWhereInput) => {
     select: { id: true },
   });
 
-  for (const feed of feeds) {
-    await enqueue("REFRESH_FEED", feed.id);
-  }
+  await enqueueMany(
+    "REFRESH_FEED",
+    feeds.map((feed) => feed.id),
+  );
   wakeWorker();
 };
 

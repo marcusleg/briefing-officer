@@ -142,14 +142,22 @@ Two entry points, differing in what they do when a row already exists:
   to `PENDING` with `attempts = 0`, `runAfter = now`, and `lastError = null`. A
   `RUNNING` row is left alone. This is what makes a click on Refresh run a feed
   now even if a previous attempt is waiting out its backoff or has given up.
-- **`enqueueIfAbsent(kind, targetId)`** is used by the scheduler. It creates a
-  row only when none exists, so periodic sweeps never reset the attempt count of
-  a job that is retrying or has failed.
+- **`enqueueManyIfAbsent(kind, targetIds)`** is used by the scheduler. It
+  creates rows only for targets that have none, so periodic sweeps never reset
+  the attempt count of a job that is retrying or has failed.
 
-Both are implemented as an `updateMany` guarded by status followed by a `create`
-that treats a unique-constraint violation as "someone got there first". With one
+`enqueue` is an `updateMany` guarded by status followed by a `create` that
+treats a unique-constraint violation as "someone got there first". With one
 process the only concurrent writers are parallel server actions, and the unique
 index settles those.
+
+Every place that queues more than one target — "refresh all", a category
+refresh, the feed handler's per-article fan-out, and the scheduler's sweeps —
+goes through the batch form, **`enqueueMany`** or `enqueueManyIfAbsent`, which
+does the same in a fixed number of statements (one `updateMany`, one `findMany`
+for the rows that exist, one `createMany` for the rest) instead of one or two
+per target. SQLite has no `skipDuplicates`, so if the `createMany` hits the
+unique index the batch falls back to creating the targets one at a time.
 
 After enqueueing, callers call `wakeWorker()` so the job starts within
 milliseconds instead of at the next poll.
@@ -203,13 +211,16 @@ A separate timer that fires every minute and runs, in order:
 
 1. **Due feed refreshes.** For every feed with `autoRefresh = true` and
    `lastFetched` older than the refresh interval,
-   `enqueueIfAbsent(REFRESH_FEED)`. Keying off each feed's own timestamp needs
-   no persisted "last run" and self-heals after downtime: whatever is overdue is
-   refreshed on the first tick after start.
-2. **Missing leads.** For every `UNREAD` article created in the last 24 hours
-   that has no `ArticleLead`, `enqueueIfAbsent(PROCESS_ARTICLE)`. This replaces
-   the article card's client-side backfill. After 24 hours an article without a
-   lead is left alone.
+   `enqueueManyIfAbsent(REFRESH_FEED)`. Keying off each feed's own timestamp
+   needs no persisted "last run" and self-heals after downtime: whatever is
+   overdue is refreshed on the first tick after start.
+2. **Missing leads.** For every article created in the last 24 hours that has no
+   `ArticleLead`, whatever its status, `enqueueManyIfAbsent(PROCESS_ARTICLE)`.
+   This replaces the article card's client-side backfill, which ran for any
+   status; the card shows a placeholder for a missing lead on the read-later,
+   history and filtered pages too, so an article moved out of the inbox before
+   its lead landed needs the retry as much as an unread one. After 24 hours an
+   article without a lead is left alone.
 3. **Hourly cleanup**, tracked in memory and run on the first tick after start:
    purge articles past `ARTICLE_RETENTION_DAYS` (the purge moves out of the
    server-action file `articleRepository.ts`, where any signed-in user could
@@ -354,7 +365,7 @@ today. The worker itself is never started in tests; `instrumentation.ts` is not
 loaded by Vitest.
 
 - **`jobRepository`** (integration): `enqueue` creates, resets `PENDING` and
-  `FAILED`, leaves `RUNNING`; `enqueueIfAbsent` creates only when absent;
+  `FAILED`, leaves `RUNNING`; `enqueueManyIfAbsent` creates only when absent;
   claiming returns only due `PENDING` jobs up to the limit; completing deletes;
   failing applies the backoff schedule and flips to `FAILED` on the fifth
   attempt; startup reset; stale `FAILED` cleanup.
@@ -367,7 +378,7 @@ loaded by Vitest.
   process handler skips scraping when a scrape exists, proceeds on scrape
   failure, and returns without work for a missing article.
 - **Scheduler** (integration): selects only auto-refresh feeds past the
-  interval; sweeps only unread, lead-less articles from the last day; cleanup
+  interval; sweeps lead-less articles of any status from the last day; cleanup
   purges and deletes stale failures.
 - **`feedRepository`** (integration): the refresh actions enqueue rather than
   process; `createFeed` and `updateFeed` enqueue a refresh.

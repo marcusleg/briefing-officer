@@ -8,7 +8,7 @@ import {
 } from "@/lib/jobs/config";
 import {
   deleteStaleFailedJobs,
-  enqueueIfAbsent,
+  enqueueManyIfAbsent,
 } from "@/lib/jobs/jobRepository";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
@@ -25,27 +25,33 @@ export const enqueueDueFeedRefreshes = async (now = new Date()) => {
     select: { id: true },
   });
 
-  for (const feed of feeds) {
-    await enqueueIfAbsent("REFRESH_FEED", feed.id);
-  }
+  await enqueueManyIfAbsent(
+    "REFRESH_FEED",
+    feeds.map((feed) => feed.id),
+  );
 
   return feeds.length;
 };
 
 /**
- * Queues processing for recent inbox articles that still have no lead, which
- * covers leads whose job failed for good. Older ones are left alone.
+ * Queues processing for recent articles that still have no lead, which covers
+ * leads whose job failed for good. Status is deliberately not a filter: the
+ * card shows a placeholder for a missing lead on the read-later, history and
+ * filtered pages too, so an article the reader moved out of the inbox before
+ * its lead landed needs the retry as much as an unread one. Older articles are
+ * left alone.
  */
 export const enqueueMissingLeads = async (now = new Date()) => {
   const since = new Date(now.getTime() - MISSING_LEAD_LOOKBACK_MS);
   const articles = await prisma.article.findMany({
-    where: { status: "UNREAD", lead: null, createdAt: { gte: since } },
+    where: { lead: null, createdAt: { gte: since } },
     select: { id: true },
   });
 
-  for (const article of articles) {
-    await enqueueIfAbsent("PROCESS_ARTICLE", article.id);
-  }
+  await enqueueManyIfAbsent(
+    "PROCESS_ARTICLE",
+    articles.map((article) => article.id),
+  );
 
   return articles.length;
 };

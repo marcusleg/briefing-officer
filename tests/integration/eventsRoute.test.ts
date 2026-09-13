@@ -35,6 +35,7 @@ describe("GET /api/events", () => {
     );
 
     expect(response.headers.get("Content-Type")).toBe("text/event-stream");
+    expect(response.headers.get("X-Accel-Buffering")).toBe("no");
     const reader = response.body!.getReader();
     expect(await readChunk(reader)).toBe(": connected\n\n");
 

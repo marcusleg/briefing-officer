@@ -79,14 +79,23 @@ describe("enqueueDueFeedRefreshes", () => {
 });
 
 describe("enqueueMissingLeads", () => {
-  it("queues recent unread articles that have no lead", async () => {
+  it("queues recent articles that have no lead, whatever their status", async () => {
     const feed = await createFeed({ userId });
-    const missing = await createArticle({ userId, feedId: feed.id });
+    const unread = await createArticle({ userId, feedId: feed.id });
+    const readLater = await createArticle({
+      userId,
+      feedId: feed.id,
+      status: "READ_LATER",
+    });
+    const read = await createArticle({
+      userId,
+      feedId: feed.id,
+      status: "READ",
+    });
     const withLead = await createArticle({ userId, feedId: feed.id });
     await prisma.articleLead.create({
       data: { articleId: withLead.id, text: "lead" },
     });
-    await createArticle({ userId, feedId: feed.id, status: "READ" });
     const old = await createArticle({ userId, feedId: feed.id });
     await prisma.article.update({
       where: { id: old.id },
@@ -95,13 +104,18 @@ describe("enqueueMissingLeads", () => {
 
     const queued = await enqueueMissingLeads();
 
-    expect(queued).toBe(1);
-    const jobs = await prisma.job.findMany();
-    expect(jobs).toHaveLength(1);
-    expect(jobs[0]).toMatchObject({
-      kind: "PROCESS_ARTICLE",
-      targetId: missing.id,
-    });
+    expect(queued).toBe(3);
+    const jobs = await prisma.job.findMany({ orderBy: { targetId: "asc" } });
+    expect(jobs.map((job) => job.kind)).toEqual([
+      "PROCESS_ARTICLE",
+      "PROCESS_ARTICLE",
+      "PROCESS_ARTICLE",
+    ]);
+    expect(jobs.map((job) => job.targetId)).toEqual([
+      unread.id,
+      readLater.id,
+      read.id,
+    ]);
   });
 });
 

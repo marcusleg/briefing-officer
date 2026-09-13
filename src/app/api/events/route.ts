@@ -56,6 +56,9 @@ export const GET = async (request: Request) => {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      // Nginx buffers event streams by default, which would hold every event
+      // back until the next heartbeat. This header turns that off per response.
+      "X-Accel-Buffering": "no",
     },
   });
 };
