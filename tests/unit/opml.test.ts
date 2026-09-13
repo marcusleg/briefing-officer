@@ -28,7 +28,7 @@ describe("parseOpml", () => {
   it("uses the enclosing folder as the category", () => {
     const { entries } = parseOpml(
       wrap(
-        `<outline text="Tech" title="Tech">
+        `<outline text="Tech" title="Folder">
            <outline type="rss" text="One" xmlUrl="https://one.example/feed"/>
          </outline>
          <outline type="rss" text="Loose" xmlUrl="https://loose.example/feed"/>`,
@@ -167,6 +167,21 @@ describe("buildOpml", () => {
     expect(opml).toContain('text="A &amp; &quot;B&quot;"');
     expect(opml).toContain('text="&lt;b&gt;"');
     expect(opml).toContain('xmlUrl="https://x.example/?a=1&amp;b=2"');
+  });
+
+  it("strips characters that are illegal in XML 1.0 from titles", () => {
+    const opml = buildOpml(
+      "t",
+      [
+        {
+          name: null,
+          feeds: [{ title: "Bad\x0Btitle", xmlUrl: "https://x.example/feed" }],
+        },
+      ],
+      createdAt,
+    );
+
+    expect(opml).toContain('text="Badtitle"');
   });
 
   it("sorts categories by name and feeds by title, case-insensitively", () => {

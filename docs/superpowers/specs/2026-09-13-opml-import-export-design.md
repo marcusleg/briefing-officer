@@ -99,7 +99,7 @@ The schema already forbids the same `link` twice for one user. An entry whose
 `xmlUrl` the reader already subscribes to is counted as skipped and left exactly
 as it is, including its title, category, and filters. The file is not a source
 of truth for feeds the reader has already configured. The same URL listed twice
-in one file is imported once.
+in one file is imported once and is not counted as skipped.
 
 ### Entries that cannot be used are reported, not fatal
 
@@ -182,7 +182,7 @@ export type OpmlImportResult =
   | {
       ok: true;
       imported: number;
-      skipped: number; // already subscribed, or duplicated within the file
+      skipped: number; // already subscribed before this import
       categoriesCreated: number;
       unusable: string[]; // titles of entries that could not be used
     }
@@ -221,9 +221,12 @@ export const exportOpml = async (): Promise<string>;
 ### `src/app/api/opml/route.ts` — export download
 
 `GET` checks the session directly and returns 401 when there is none, so that a
-missing session and a database failure do not collapse into one status. On
-success it returns the OPML text with `Content-Type: text/x-opml; charset=utf-8`
-and `Content-Disposition: attachment; filename="briefing-officer.opml"`.
+missing session and a database failure do not collapse into one status. Since
+the sidebar anchor has `download`, the browser would otherwise save an empty
+file, so the 401 body is a one-line explanation instead. On success it returns
+the OPML text with `Content-Type: text/x-opml; charset=utf-8`,
+`Content-Disposition: attachment; filename="briefing-officer.opml"`, and
+`Cache-Control: private, no-store`.
 
 ### `src/components/navigation/import-opml-dialog-trigger.tsx`
 
@@ -242,7 +245,8 @@ Gains two sidebar items after "Add Feed": "Import OPML" (opens the dialog) and
 
 ## Error handling
 
-- No session on the export route: 401 with an empty body.
+- No session on the export route: 401 with a one-line plain-text explanation,
+  since the browser saves whatever comes back.
 - No file or an empty file on import: the action returns "Choose an OPML file to
   import."; the dialog shows it.
 - Not OPML: the action returns "This file is not an OPML document."; nothing is

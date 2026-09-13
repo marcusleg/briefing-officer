@@ -21,6 +21,10 @@ describe("GET /api/opml", () => {
     const response = await GET();
 
     expect(response.status).toBe(401);
+    expect(response.headers.get("Content-Type")).toBe(
+      "text/plain; charset=utf-8",
+    );
+    expect(await response.text()).toBe("Sign in to export your feeds.");
     expect(exportOpml).not.toHaveBeenCalled();
   });
 
@@ -39,6 +43,7 @@ describe("GET /api/opml", () => {
     expect(response.headers.get("Content-Disposition")).toBe(
       'attachment; filename="briefing-officer.opml"',
     );
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(await response.text()).toBe('<opml version="2.0"/>');
   });
 });

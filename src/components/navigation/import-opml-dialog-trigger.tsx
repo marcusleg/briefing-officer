@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import type { OpmlImportResult } from "@/lib/opml";
 import { importOpml } from "@/lib/repository/opmlRepository";
 import { LoaderCircle } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 
 interface ImportOpmlDialogTriggerProps {
   children: React.ReactNode;
@@ -39,10 +39,15 @@ const ImportOpmlDialogTrigger = ({
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<OpmlImportResult | null>(null);
+  // Identifies the current import so a dismissed dialog can ignore a result
+  // that resolves after the reader has already walked away, rather than
+  // showing a stale summary the next time the dialog opens.
+  const requestRef = useRef(0);
 
   const handleOpenChange = (open: boolean) => {
     setDialogOpen(open);
     if (!open) {
+      requestRef.current += 1;
       setFile(null);
       setResult(null);
       setImporting(false);
@@ -55,19 +60,27 @@ const ImportOpmlDialogTrigger = ({
       return;
     }
 
+    const token = ++requestRef.current;
     setImporting(true);
     setResult(null);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      setResult(await importOpml(formData));
+      const outcome = await importOpml(formData);
+      if (requestRef.current === token) {
+        setResult(outcome);
+      }
     } catch {
       // Next.js masks the message of an error thrown by a server action in
       // production, so there is nothing more specific to show here.
-      setResult({ ok: false, error: "Importing failed. Please try again." });
+      if (requestRef.current === token) {
+        setResult({ ok: false, error: "Importing failed. Please try again." });
+      }
     } finally {
-      setImporting(false);
+      if (requestRef.current === token) {
+        setImporting(false);
+      }
     }
   };
 
@@ -126,7 +139,6 @@ const ImportOpmlDialogTrigger = ({
               <DialogClose asChild>
                 <Button
                   className="w-24 cursor-pointer"
-                  disabled={importing}
                   type="button"
                   variant="secondary"
                 >

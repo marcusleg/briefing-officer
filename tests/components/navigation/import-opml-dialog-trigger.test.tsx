@@ -1,4 +1,5 @@
 import ImportOpmlDialogTrigger from "@/components/navigation/import-opml-dialog-trigger";
+import type { OpmlImportResult } from "@/lib/opml";
 import { importOpml } from "@/lib/repository/opmlRepository";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -111,5 +112,29 @@ describe("ImportOpmlDialogTrigger", () => {
     expect(
       await screen.findByText("Importing failed. Please try again."),
     ).toBeInTheDocument();
+  });
+
+  it("discards the result of an import that was dismissed mid-flight", async () => {
+    let resolveImport: (value: OpmlImportResult) => void = () => {};
+    vi.mocked(importOpml).mockImplementation(
+      () => new Promise((resolve) => (resolveImport = resolve)),
+    );
+    const user = await openDialog();
+
+    await user.upload(screen.getByLabelText("OPML file"), opmlFile());
+    await user.click(screen.getByRole("button", { name: "Import" }));
+    await user.keyboard("{Escape}");
+
+    resolveImport({
+      ok: true,
+      imported: 5,
+      skipped: 0,
+      categoriesCreated: 0,
+      unusable: [],
+    });
+    await user.click(screen.getByRole("button", { name: "Import OPML" }));
+
+    expect(screen.queryByText(/Imported 5 feeds/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Import" })).toBeDisabled();
   });
 });
