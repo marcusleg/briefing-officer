@@ -2,16 +2,18 @@
 
 import AddCategoryFormDialogTrigger from "@/components/category/add-category-form-dialog-trigger";
 import AddFeedFormDialogTrigger from "@/components/navigation/add-feed-form-dialog-trigger";
-import ImportOpmlDialogTrigger from "@/components/navigation/import-opml-dialog-trigger";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-import { DownloadIcon, PlusIcon, UploadIcon } from "lucide-react";
+import { FolderPlusIcon, PlusIcon } from "lucide-react";
 
+// Only the everyday actions live here. Import and export of OPML sit in the
+// user menu at the bottom of the sidebar (user-dropdown-menu.tsx), so the feed
+// list ends with two rows instead of a stack of management commands.
 const AddNavActions = () => (
   <>
     <SidebarMenuItem>
       <AddCategoryFormDialogTrigger>
         <SidebarMenuButton className="cursor-pointer">
-          <PlusIcon />
+          <FolderPlusIcon />
           <span className="truncate">Add Category</span>
         </SidebarMenuButton>
       </AddCategoryFormDialogTrigger>
@@ -23,24 +25,6 @@ const AddNavActions = () => (
           <span className="truncate">Add Feed</span>
         </SidebarMenuButton>
       </AddFeedFormDialogTrigger>
-    </SidebarMenuItem>
-    <SidebarMenuItem>
-      <ImportOpmlDialogTrigger>
-        <SidebarMenuButton className="cursor-pointer">
-          <UploadIcon />
-          <span className="truncate">Import OPML</span>
-        </SidebarMenuButton>
-      </ImportOpmlDialogTrigger>
-    </SidebarMenuItem>
-    <SidebarMenuItem>
-      {/* A plain link: the route handler sets Content-Disposition, so the
-          browser downloads rather than navigates. No client state needed. */}
-      <SidebarMenuButton asChild>
-        <a href="/api/opml" download="briefing-officer.opml">
-          <DownloadIcon />
-          <span className="truncate">Export OPML</span>
-        </a>
-      </SidebarMenuButton>
     </SidebarMenuItem>
   </>
 );
