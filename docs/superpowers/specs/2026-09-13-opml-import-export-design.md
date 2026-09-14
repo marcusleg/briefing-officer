@@ -13,6 +13,10 @@ lists, skips the ones the reader already has, and reports what it did.
 Both live in the sidebar next to "Add Feed", because that is where the reader
 manages subscriptions today. Neither needs a schema change.
 
+> Superseded for placement: since #776 both actions sit in the user menu at the
+> bottom of the sidebar, next to "Sign out", so the feed list keeps only "Add
+> Category" and "Add Feed".
+
 ## Motivation
 
 The PRD lists OPML as the one known gap that "is a common expectation for a feed

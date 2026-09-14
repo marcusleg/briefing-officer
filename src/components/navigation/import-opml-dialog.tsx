@@ -9,7 +9,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +17,9 @@ import { importOpml } from "@/lib/repository/opmlRepository";
 import { LoaderCircle } from "lucide-react";
 import { FormEvent, useRef, useState } from "react";
 
-interface ImportOpmlDialogTriggerProps {
-  children: React.ReactNode;
+interface ImportOpmlDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 const ACCEPTED_TYPES = ".opml,.xml,text/xml,application/xml,text/x-opml";
@@ -32,10 +32,12 @@ const summarise = (result: Extract<OpmlImportResult, { ok: true }>) =>
   `Skipped ${result.skipped} you already had. ` +
   `${count(result.categoriesCreated, "category", "categories")} created.`;
 
-const ImportOpmlDialogTrigger = ({
-  children,
-}: ImportOpmlDialogTriggerProps) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
+/**
+ * Controlled so it can live next to the menu that opens it rather than inside
+ * it: a Radix dropdown unmounts its items when it closes, which would take a
+ * dialog nested in a menu item down with it.
+ */
+const ImportOpmlDialog = ({ open, onOpenChange }: ImportOpmlDialogProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<OpmlImportResult | null>(null);
@@ -44,9 +46,9 @@ const ImportOpmlDialogTrigger = ({
   // showing a stale summary the next time the dialog opens.
   const requestRef = useRef(0);
 
-  const handleOpenChange = (open: boolean) => {
-    setDialogOpen(open);
-    if (!open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    onOpenChange(nextOpen);
+    if (!nextOpen) {
       requestRef.current += 1;
       setFile(null);
       setResult(null);
@@ -85,9 +87,7 @@ const ImportOpmlDialogTrigger = ({
   };
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Import OPML</DialogTitle>
@@ -164,4 +164,4 @@ const ImportOpmlDialogTrigger = ({
   );
 };
 
-export default ImportOpmlDialogTrigger;
+export default ImportOpmlDialog;

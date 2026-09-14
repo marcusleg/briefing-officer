@@ -1,8 +1,9 @@
-import ImportOpmlDialogTrigger from "@/components/navigation/import-opml-dialog-trigger";
+import ImportOpmlDialog from "@/components/navigation/import-opml-dialog";
 import type { OpmlImportResult } from "@/lib/opml";
 import { importOpml } from "@/lib/repository/opmlRepository";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/repository/opmlRepository", () => ({
@@ -13,13 +14,20 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+// Stands in for the user menu, which owns the open state in the app.
+const Harness = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Import OPML</button>
+      <ImportOpmlDialog open={open} onOpenChange={setOpen} />
+    </>
+  );
+};
+
 const openDialog = async () => {
   const user = userEvent.setup();
-  render(
-    <ImportOpmlDialogTrigger>
-      <button>Import OPML</button>
-    </ImportOpmlDialogTrigger>,
-  );
+  render(<Harness />);
   await user.click(screen.getByRole("button", { name: "Import OPML" }));
   return user;
 };
@@ -29,7 +37,7 @@ const opmlFile = () =>
     type: "text/xml",
   });
 
-describe("ImportOpmlDialogTrigger", () => {
+describe("ImportOpmlDialog", () => {
   it("keeps the Import button disabled until a file is chosen", async () => {
     const user = await openDialog();
 

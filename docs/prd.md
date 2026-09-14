@@ -74,10 +74,11 @@ Ordered by importance to the core job of triaging news.
 1. **Feed reading.** Subscribe to RSS and Atom feeds by URL, group them into
    categories, pause and resume automatic refresh per feed, and refresh a feed,
    a category, or everything on demand. The sidebar shows unread counts per
-   feed. The feed list can be exported as OPML and imported from an OPML file
-   written by another reader, with categories carried over as folders. Refreshes
-   run in the background; open pages update themselves as leads arrive and offer
-   a "Show N new articles" button when new articles land.
+   feed. Below the feed list sit "Add Category" and "Add Feed"; the user menu at
+   the bottom of the sidebar exports the feed list as OPML and imports an OPML
+   file written by another reader, with categories carried over as folders.
+   Refreshes run in the background; open pages update themselves as leads arrive
+   and offer a "Show N new articles" button when new articles land.
 2. **AI lead.** Every ingested article gets a lead of at most 80 words that says
    what it covers and why it matters. It is written to inform, not to spark
    interest: for many articles the lead is all the reader needs. It is shown on
@@ -126,10 +127,11 @@ Ordered by importance to the core job of triaging news.
 - **Adding a feed.** Paste a URL in the sidebar form, optionally set a title and
   category, adjust the prefilled "not interested in" defaults, save. The feed is
   fetched and its articles get leads and filter decisions.
-- **Moving in from another reader.** Export an OPML file there, choose "Import
-  OPML" in the sidebar, pick the file. Folders become categories, feeds already
-  subscribed are skipped, and the new feeds are fetched in the background. A
-  summary says what was added and what could not be used.
+- **Moving in from another reader.** Export an OPML file there, open the user
+  menu at the bottom of the sidebar, choose "Import OPML", pick the file.
+  Folders become categories, feeds already subscribed are skipped, and the new
+  feeds are fetched in the background. A summary says what was added and what
+  could not be used.
 - **Teaching the filter.** Click "not interested" on an article, pick one of the
   suggested keywords or type your own, and the feed's filter updates. Review the
   Filtered view occasionally and restore anything caught wrongly.
