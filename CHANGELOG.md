@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.16.0](https://github.com/marcusleg/briefing-officer/compare/v0.15.0...v0.16.0) (2026-09-15)
+
+
+### Features
+
+* add background worker loop with per-kind concurrency ([8a6ad16](https://github.com/marcusleg/briefing-officer/commit/8a6ad16414684763a65de377888e0e90b0e693e6))
+* add feed refresh and article processing job handlers ([d8da528](https://github.com/marcusleg/briefing-officer/commit/d8da5286ea9f0c37ec4ce2e5250a2b0c2d971d99))
+* add Import OPML and Export OPML to the sidebar ([04a6d0b](https://github.com/marcusleg/briefing-officer/commit/04a6d0bf567d66e7bba12f044a1ece9aa53748b3))
+* add in-memory per-user event bus ([2622aec](https://github.com/marcusleg/briefing-officer/commit/2622aecbf7ad4de939ae878578e50cea26bf68cf))
+* add job repository with retry and backoff ([d922733](https://github.com/marcusleg/briefing-officer/commit/d922733a74f064b79e7e5e7b9662d48771375421))
+* add job table for background work ([20f6f45](https://github.com/marcusleg/briefing-officer/commit/20f6f45e779943c5df4726fb8adbab50ed821b2c))
+* add scheduler for feed refreshes, lead sweeps, and cleanup ([e15f6fc](https://github.com/marcusleg/briefing-officer/commit/e15f6fc5a3077c605e58fb448fd9e9c39040d944))
+* announce new articles instead of inserting them into the open list ([bcc681d](https://github.com/marcusleg/briefing-officer/commit/bcc681d338bbd9d89a97ecc67055de6f59e46f94))
+* import feeds from an OPML file and export the feed list as OPML ([0b07a10](https://github.com/marcusleg/briefing-officer/commit/0b07a10167edf3c78f7e0906deb88e57d82f60ba))
+* move OPML import and export into the user menu ([883ab2e](https://github.com/marcusleg/briefing-officer/commit/883ab2ea062f476bf17c5c73ca5547d6d5b01385)), closes [#776](https://github.com/marcusleg/briefing-officer/issues/776)
+* parse and build OPML feed lists ([de4405f](https://github.com/marcusleg/briefing-officer/commit/de4405f4933f3ecf0ba67ff4aeec0adc33ce1add))
+* refresh feeds in the background instead of blocking the page ([df054af](https://github.com/marcusleg/briefing-officer/commit/df054af3c092b5fdfdb76b583f0a9a2a86d88f75))
+* refresh feeds on a schedule without an external cron job ([a1a8444](https://github.com/marcusleg/briefing-officer/commit/a1a8444c299d3d090f954accf7ba62fbb4d4a463))
+* refresh open feed pages when background work finishes ([861fadf](https://github.com/marcusleg/briefing-officer/commit/861fadf1e23861a8677f24040028faaa5aaa6b78))
+* serve the OPML export as a download at /api/opml ([e387568](https://github.com/marcusleg/briefing-officer/commit/e387568b3bb43fa8ae4f2bf5e4635f25b2c00d7e))
+* start the background worker with the server ([a8e65c2](https://github.com/marcusleg/briefing-officer/commit/a8e65c2fc9f3efca208c43a572dfb65170592b70))
+* stream change events to open pages ([1ec65aa](https://github.com/marcusleg/briefing-officer/commit/1ec65aab50699a8dd955a8e68725047e358a97e0))
+
+
+### Bug Fixes
+
+* address review findings on background jobs and live updates ([895ec37](https://github.com/marcusleg/briefing-officer/commit/895ec373f07c2ca8f8eae2c2e460e0f5cf2c80a7))
+* keep the keyboard selection moving when an article is marked as read ([c848736](https://github.com/marcusleg/briefing-officer/commit/c84873693abf47f1baab220beaa8f9f6c84080cf)), closes [#781](https://github.com/marcusleg/briefing-officer/issues/781)
+* make OPML import safer to dismiss and the export route friendlier when signed out ([1cb34ee](https://github.com/marcusleg/briefing-officer/commit/1cb34eebf263dfd3cdcfb7e53b661f3942684c05))
+* queue refreshes for OPML-imported feeds on the background worker ([58efe06](https://github.com/marcusleg/briefing-officer/commit/58efe06b3dc1808e75f0fb04e251f0955d6d1fee))
+
 ## [0.15.0](https://github.com/marcusleg/briefing-officer/compare/v0.14.0...v0.15.0) (2026-09-12)
 
 
