@@ -71,7 +71,8 @@ const ArticleList = ({ articles }: ArticleListProps) => {
       // top. Nothing left to highlight clears the selection.
       selectAt(Math.min(selection.index, visible.length - 1));
     } else if (selectedIndex !== selection.index) {
-      // Held articles were shown: same article, new row.
+      // The same article sits on a different row now, because held articles
+      // were shown or because something above it left the list.
       setSelection({ ...selection, index: selectedIndex });
     }
   }

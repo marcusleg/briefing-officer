@@ -181,13 +181,89 @@ describe("ArticleList", () => {
     expect(cardOf("Article 1")).toHaveClass("border-foreground");
   });
 
-  it("highlights nothing when the last remaining article is marked as read", async () => {
+  it("forgets the selection when the last remaining article is marked as read", async () => {
     const { rerender } = render(<ArticleList articles={[article(1)]} />);
     await userEvent.keyboard("n");
     await userEvent.keyboard("m");
-
     rerender(<ArticleList articles={[]} />);
 
-    expect(screen.queryByText("Article 1")).toBeNull();
+    // An article arriving after the list emptied must not inherit the
+    // highlight of the article that was marked as read.
+    rerender(<ArticleList articles={[article(2)]} />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Show 1 new article" }),
+    );
+
+    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
+
+    await userEvent.keyboard("n");
+
+    expect(cardOf("Article 2")).toHaveClass("border-foreground");
+  });
+
+  it("keeps the highlight when an article above it is marked as read", async () => {
+    const { rerender } = render(
+      <ArticleList articles={[article(1), article(2), article(3)]} />,
+    );
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("n");
+
+    rerender(<ArticleList articles={[article(2), article(3)]} />);
+
+    expect(cardOf("Article 2")).toHaveClass("border-foreground");
+
+    await userEvent.keyboard("n");
+
+    expect(cardOf("Article 3")).toHaveClass("border-foreground");
+  });
+
+  it("moves the highlight on while new articles are still held back", async () => {
+    const { rerender } = render(
+      <ArticleList articles={[article(1), article(2), article(3)]} />,
+    );
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("m");
+
+    rerender(
+      <ArticleList
+        articles={[article(9), article(8), article(1), article(3)]}
+      />,
+    );
+
+    expect(cardOf("Article 3")).toHaveClass("border-foreground");
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Show 2 new articles" }),
+    );
+
+    expect(cardOf("Article 3")).toHaveClass("border-foreground");
+    expect(cardOf("Article 9")).not.toHaveClass("border-foreground");
+  });
+
+  it("moves the highlight on while a user refresh merges new articles", async () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <LiveUpdatesContext.Provider
+        value={{ userRefreshActive: true, noteUserRefresh: () => {} }}
+      >
+        {children}
+      </LiveUpdatesContext.Provider>
+    );
+    const { rerender } = render(
+      <ArticleList articles={[article(1), article(2), article(3)]} />,
+      { wrapper },
+    );
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("m");
+
+    rerender(
+      <ArticleList
+        articles={[article(9), article(8), article(1), article(3)]}
+      />,
+    );
+
+    expect(cardOf("Article 3")).toHaveClass("border-foreground");
+    expect(cardOf("Article 9")).not.toHaveClass("border-foreground");
   });
 });
