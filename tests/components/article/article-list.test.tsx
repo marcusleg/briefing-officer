@@ -43,6 +43,9 @@ const article = (id: number, title = `Article ${id}`) =>
     scrape: { textContent: "body", author: "" },
   }) as any;
 
+const cardOf = (title: string) =>
+  screen.getByText(title).closest('[data-slot="card"]');
+
 describe("ArticleList", () => {
   it("shows every article it mounts with", () => {
     render(<ArticleList articles={[article(1), article(2)]} />);
@@ -95,8 +98,6 @@ describe("ArticleList", () => {
       screen.getByRole("button", { name: "Show 1 new article" }),
     );
 
-    const cardOf = (title: string) =>
-      screen.getByText(title).closest('[data-slot="card"]');
     expect(cardOf("Article 1")).toHaveClass("border-foreground");
     expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
     expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
@@ -138,5 +139,55 @@ describe("ArticleList", () => {
 
     expect(screen.getByText("Article 3")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /new article/ })).toBeNull();
+  });
+
+  it("highlights the article that took the place of one marked as read", async () => {
+    const { rerender } = render(
+      <ArticleList articles={[article(1), article(2), article(3)]} />,
+    );
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("m");
+
+    rerender(<ArticleList articles={[article(2), article(3)]} />);
+
+    expect(cardOf("Article 2")).toHaveClass("border-foreground");
+    expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
+  });
+
+  it("continues past the moved highlight when the reader presses n", async () => {
+    const { rerender } = render(
+      <ArticleList articles={[article(1), article(2), article(3)]} />,
+    );
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("m");
+    rerender(<ArticleList articles={[article(2), article(3)]} />);
+
+    await userEvent.keyboard("n");
+
+    expect(cardOf("Article 3")).toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
+  });
+
+  it("highlights the new last article when the last one is marked as read", async () => {
+    const { rerender } = render(
+      <ArticleList articles={[article(1), article(2)]} />,
+    );
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("m");
+
+    rerender(<ArticleList articles={[article(1)]} />);
+
+    expect(cardOf("Article 1")).toHaveClass("border-foreground");
+  });
+
+  it("highlights nothing when the last remaining article is marked as read", async () => {
+    const { rerender } = render(<ArticleList articles={[article(1)]} />);
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("m");
+
+    rerender(<ArticleList articles={[]} />);
+
+    expect(screen.queryByText("Article 1")).toBeNull();
   });
 });

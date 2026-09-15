@@ -16,6 +16,12 @@ interface ArticleListProps {
   articles: ListedArticle[];
 }
 
+/** The highlighted article and the row it currently occupies. */
+interface Selection {
+  id: number;
+  index: number;
+}
+
 const idsOf = (articles: ListedArticle[]) =>
   articles.map((article) => article.id);
 
@@ -28,8 +34,9 @@ const idsOf = (articles: ListedArticle[]) =>
 const ArticleList = ({ articles }: ArticleListProps) => {
   const { userRefreshActive } = useLiveUpdates();
   // Selection is by id, not position: showing held articles prepends to the
-  // list, and the highlight has to stay on the article the reader chose.
-  const [selectedId, setSelectedId] = useState<number>();
+  // list, and the highlight has to stay on the article the reader chose. Its
+  // position rides along so the highlight can move on when that article goes.
+  const [selection, setSelection] = useState<Selection>();
   const [seenIds, setSeenIds] = useState(() => new Set(idsOf(articles)));
 
   const unseen = articles.filter((article) => !seenIds.has(article.id));
@@ -44,7 +51,7 @@ const ArticleList = ({ articles }: ArticleListProps) => {
   const visible = articles.filter((article) => seenIds.has(article.id));
   const heldCount = articles.length - visible.length;
   const selectedIndex = visible.findIndex(
-    (article) => article.id === selectedId,
+    (article) => article.id === selection?.id,
   );
 
   const showNewArticles = () => {
@@ -52,8 +59,22 @@ const ArticleList = ({ articles }: ArticleListProps) => {
   };
 
   const selectAt = (index: number) => {
-    setSelectedId(visible[index]?.id);
+    const article = visible[index];
+    setSelection(article ? { id: article.id, index } : undefined);
   };
+
+  if (selection !== undefined) {
+    if (selectedIndex === -1) {
+      // The selected article left the list, usually because the reader marked
+      // it as read. Hand the highlight to the article that moved up into its
+      // place, so "n" carries on from there instead of starting over at the
+      // top. Nothing left to highlight clears the selection.
+      selectAt(Math.min(selection.index, visible.length - 1));
+    } else if (selectedIndex !== selection.index) {
+      // Held articles were shown: same article, new row.
+      setSelection({ ...selection, index: selectedIndex });
+    }
+  }
 
   useHotkeys("p", () => {
     if (selectedIndex === -1) {
@@ -61,7 +82,7 @@ const ArticleList = ({ articles }: ArticleListProps) => {
     }
 
     if (selectedIndex === 0) {
-      setSelectedId(undefined);
+      setSelection(undefined);
       return;
     }
 
@@ -94,12 +115,12 @@ const ArticleList = ({ articles }: ArticleListProps) => {
         </Button>
       )}
 
-      {visible.map((article) => (
+      {visible.map((article, index) => (
         <ArticleCard
           key={article.id}
           article={article}
-          onClick={() => setSelectedId(article.id)}
-          selected={article.id === selectedId}
+          onClick={() => selectAt(index)}
+          selected={index === selectedIndex}
         />
       ))}
     </div>
