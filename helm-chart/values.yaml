@@ -53,9 +53,21 @@ networkPolicy:
 #        - protocol: TCP
 #          port: 3000
 
+priorityClassName: ""
+
+# Extra environment variables for the application container. Appended after
+# the chart's own, so an entry here wins on a name clash.
+env: []
+#  - name: OPENAI_BASE_URL
+#    value: https://api.openai.com/v1
+
 persistence:
   enabled: true
   size: 1Gi
+  # Empty means the cluster's default StorageClass.
+  storageClassName: ""
+  # Use a PVC declared outside the chart instead of creating one.
+  existingClaim: ""
 
 resources: {}
   # limits:
