@@ -21,6 +21,11 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+# Signs session cookies. Generated on first install and reused on every upgrade
+# thereafter; set it here only to pin a specific value, or supply AUTH_SECRET in
+# the release secret, which takes precedence over both.
+authSecret: ""
+
 # Public URL the application is reached at, including scheme and trailing
 # slash. Defaults to https://<first httpRoute hostname>/, or
 # http://localhost:3000/ when no hostname is set.

@@ -48,6 +48,8 @@ spec:
             {{- end }}
           envFrom:
             - secretRef:
+                name: {{ include "briefing-officer.fullname" . }}-auth
+            - secretRef:
                 name: {{ include "briefing-officer.fullname" . }}
           {{- with .Values.securityContext }}
           securityContext:
