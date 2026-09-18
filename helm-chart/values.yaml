@@ -21,6 +21,11 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+# Public URL the application is reached at, including scheme and trailing
+# slash. Defaults to https://<first httpRoute hostname>/, or
+# http://localhost:3000/ when no hostname is set.
+baseUrl: ""
+
 service:
   type: ClusterIP
   port: 80
