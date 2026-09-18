@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.17.0](https://github.com/marcusleg/briefing-officer/compare/v0.16.0...v0.17.0) (2026-09-18)
+
+
+### Features
+
+* generate AUTH_SECRET on first install and reuse it thereafter ([49c0d20](https://github.com/marcusleg/briefing-officer/commit/49c0d200c68461af54a153dfa2cf6750910ba155))
+* make env vars, storage and pod priority configurable in the Helm chart ([48d9660](https://github.com/marcusleg/briefing-officer/commit/48d96603602aacb9d53148547b53936424626bfd))
+
+
+### Bug Fixes
+
+* keep sessions alive across Helm upgrades and fix the derived BASE_URL ([baa9569](https://github.com/marcusleg/briefing-officer/commit/baa9569f23b93dbb48a8d8c9400732c41731de14))
+
 ## [0.16.0](https://github.com/marcusleg/briefing-officer/compare/v0.15.0...v0.16.0) (2026-09-15)
 
 
