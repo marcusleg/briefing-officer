@@ -60,3 +60,16 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Public URL the application is reached at.
+*/}}
+{{- define "briefing-officer.baseUrl" -}}
+{{- if .Values.baseUrl -}}
+{{- .Values.baseUrl -}}
+{{- else if .Values.httpRoute.hostnames -}}
+{{- printf "https://%s/" (first .Values.httpRoute.hostnames) -}}
+{{- else -}}
+{{- "http://localhost:3000/" -}}
+{{- end -}}
+{{- end }}

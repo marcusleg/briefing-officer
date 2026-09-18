@@ -1,11 +1,16 @@
-{{- if .Values.persistence.enabled}}
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ include "briefing-officer.fullname" . }}-data
+  labels:
+    {{- include "briefing-officer.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce
+  {{- with .Values.persistence.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
   resources:
     requests:
       storage: {{ .Values.persistence.size }}
