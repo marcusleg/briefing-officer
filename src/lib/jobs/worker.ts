@@ -9,6 +9,7 @@ import {
   resetRunningJobs,
 } from "@/lib/jobs/jobRepository";
 import logger from "@/lib/logger";
+import { getHeapStatistics } from "node:v8";
 
 interface WorkerOptions {
   pollIntervalMs?: number;
@@ -26,6 +27,24 @@ export interface Worker {
 }
 
 const JOB_KINDS = Object.keys(CONCURRENCY) as JobKind[];
+
+const toMiB = (bytes: number) => Math.round(bytes / 1024 / 1024);
+
+/**
+ * Process memory in MiB. `heapLimit` is V8's old-space ceiling, which Node
+ * derives from the container limit; running out of heap aborts the process
+ * well before the container itself is out of memory.
+ */
+const memorySnapshot = () => {
+  const { rss, heapUsed, external, arrayBuffers } = process.memoryUsage();
+  return {
+    rss: toMiB(rss),
+    heapUsed: toMiB(heapUsed),
+    heapLimit: toMiB(getHeapStatistics().heap_size_limit),
+    external: toMiB(external),
+    arrayBuffers: toMiB(arrayBuffers),
+  };
+};
 
 export const createWorker = (
   handlers: Record<JobKind, JobHandler>,
@@ -59,6 +78,8 @@ export const createWorker = (
       targetId: job.targetId,
       attempt: job.attempts + 1,
     };
+    const startedAt = Date.now();
+    const memoryBefore = memorySnapshot();
     try {
       const userId = await handlers[job.kind](job.targetId);
       await completeJob(job.id);
@@ -79,6 +100,17 @@ export const createWorker = (
         );
       }
     } finally {
+      // Other jobs run alongside this one, so the delta is not this job's
+      // alone; `inFlight` says how many shared the window.
+      logger.debug(
+        {
+          job: context,
+          durationMs: Date.now() - startedAt,
+          inFlight: { ...inFlight },
+          memory: { before: memoryBefore, after: memorySnapshot() },
+        },
+        "Job finished.",
+      );
       inFlight[job.kind] -= 1;
       // A finished job frees a slot; look for more work right away.
       void tick();

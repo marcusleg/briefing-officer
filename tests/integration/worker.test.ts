@@ -1,6 +1,7 @@
 import { notifyUser } from "@/lib/events/userEvents";
 import { enqueue } from "@/lib/jobs/jobRepository";
 import { createWorker, setGlobalWorker, wakeWorker } from "@/lib/jobs/worker";
+import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -41,6 +42,36 @@ describe("worker", () => {
     });
     expect(handler).toHaveBeenCalledWith(1);
     expect(notifyUser).toHaveBeenCalledWith("user-1");
+  });
+
+  it("logs memory usage when a job finishes", async () => {
+    const debug = vi.spyOn(logger, "debug");
+    const handler = vi.fn(async () => "user-1");
+    worker = createWorker(
+      { REFRESH_FEED: handler, PROCESS_ARTICLE: handler },
+      idle,
+    );
+    await enqueue("PROCESS_ARTICLE", 7);
+
+    await worker.start();
+
+    await vi.waitFor(() => {
+      expect(debug).toHaveBeenCalledWith(
+        expect.objectContaining({
+          job: expect.objectContaining({
+            kind: "PROCESS_ARTICLE",
+            targetId: 7,
+          }),
+          inFlight: { REFRESH_FEED: 0, PROCESS_ARTICLE: 1 },
+          memory: {
+            before: expect.objectContaining({ heapUsed: expect.any(Number) }),
+            after: expect.objectContaining({ heapLimit: expect.any(Number) }),
+          },
+        }),
+        "Job finished.",
+      );
+    });
+    debug.mockRestore();
   });
 
   it("does not notify when the handler reports no owner", async () => {
