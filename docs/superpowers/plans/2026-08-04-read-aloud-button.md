@@ -29,9 +29,8 @@ shadcn/ui Button + Tooltip, lucide-react icons.
   `use-date-formatters.ts`). Not `src/lib/hooks/`.
 - **Article components live in `src/components/article/`**, kebab-case
   filenames, `export default` at the bottom.
-- **Component tests live in
-  `tests/components/**/\*.test.tsx`** and run under the `components`Vitest project (jsdom,`globals:
-  true`).
+- **Component tests live in `tests/components/**/\*.test.tsx`** and run under
+  the `components`Vitest project (jsdom,`globals: true`).
 - **Commit with explicit paths only — never `git add -A` or `git add .`.** The
   working tree has unrelated in-flight changes (see below).
 - Prettier runs `organize-imports` and `tailwindcss` plugins via lint-staged, so
