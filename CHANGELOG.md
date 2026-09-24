@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/marcusleg/briefing-officer/compare/v0.17.0...v0.18.0) (2026-09-24)
+
+
+### Features
+
+* add LOG_LEVEL setting and log memory usage per background job ([9699d13](https://github.com/marcusleg/briefing-officer/commit/9699d1346dac34d6424289af028e70527c74d9a7)), closes [#780](https://github.com/marcusleg/briefing-officer/issues/780)
+
 ## [0.17.0](https://github.com/marcusleg/briefing-officer/compare/v0.16.0...v0.17.0) (2026-09-18)
 
 
