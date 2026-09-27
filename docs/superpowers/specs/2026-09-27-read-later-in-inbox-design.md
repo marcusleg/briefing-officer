@@ -59,14 +59,18 @@ A new module, `src/lib/inbox.ts`, exports:
 getInboxArticles(userId: string): Promise<InboxArticle[]>;
 ```
 
-It runs two queries for the given user, each with the includes `/feed` uses
-today (`feed`, `lead`, `scrape`, `user`) and each ordered by `publicationDate`
+It runs two queries for the given user, each including `feed`, `lead` and
+`scrape` (what `ArticleList` needs) and each ordered by `publicationDate`
 descending:
 
 1. articles with `status: "UNREAD"`
 2. articles with `status: "READ_LATER"`
 
 It returns the unread articles followed by the Read Later articles.
+
+The page's current query also includes `user`. No article component reads it,
+and every row is serialised into the client component's props, so the new
+function leaves it out.
 
 Using two queries, not one query sorted by `status`, is deliberate. SQLite
 stores the enum as text, so sorting on `status` sorts alphabetically. A
