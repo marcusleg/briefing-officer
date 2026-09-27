@@ -371,6 +371,12 @@ count and `lastFetched` queries stay as they are.
 
 - [ ] **Step 2: Remove the unreachable Read Later block from the empty state**
 
+> **Superseded during execution:** skip this step. The category pages also use
+> this component and list only unread articles, so the block is still reachable
+> there. On `/feed` it hides itself, because it only renders when the Read Later
+> count is non-zero. The file stays unchanged; see the spec's "Empty state"
+> section.
+
 The empty state now renders only when there are no unread **and** no Read Later
 articles, so its "saved for later" block can never show. Replace the contents of
 `src/app/feed/no-unread-articles.tsx` with:
