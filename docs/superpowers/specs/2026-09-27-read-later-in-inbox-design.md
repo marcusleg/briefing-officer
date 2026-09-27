@@ -114,11 +114,14 @@ directive and is imported only by the server component.
 
 ### Empty state
 
-`src/app/feed/no-unread-articles.tsx` loses its "You have N saved for later / Go
-to Read Later" block and the `prisma.article.count` query behind it. The
-component now only renders when Read Later is empty too, so that branch could
-never be reached. With the query gone the component needs neither `async` nor
-`getUserId`, and the `BookmarkIcon`, `Button` and `Link` imports can be removed.
+`src/app/feed/no-unread-articles.tsx` stays unchanged. On `/feed` it now only
+renders when Read Later is empty, so its "You have N saved for later / Go to
+Read Later" block hides itself: the block only shows when that count is
+non-zero. The category pages also use this component, and they list only unread
+articles, so the link is still useful there.
+
+> Amended during implementation: an earlier version of this spec removed the
+> block as unreachable, which overlooked the category pages.
 
 The separate `src/app/feed/[feedId]/no-unread-articles.tsx` used by per-feed
 pages is out of scope and stays unchanged.
