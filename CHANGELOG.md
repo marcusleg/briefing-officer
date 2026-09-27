@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.18.0](https://github.com/marcusleg/briefing-officer/compare/v0.17.0...v0.18.0) (2026-09-27)
+
+
+### Features
+
+* add LOG_LEVEL setting and log memory usage per background job ([9699d13](https://github.com/marcusleg/briefing-officer/commit/9699d1346dac34d6424289af028e70527c74d9a7)), closes [#780](https://github.com/marcusleg/briefing-officer/issues/780)
+* show Read Later articles in the home inbox below unread ones ([9eb9f2b](https://github.com/marcusleg/briefing-officer/commit/9eb9f2bcd5fde2b85217dfd0211810a219b338ab))
+
+
+### Bug Fixes
+
+* keep the keyboard highlight in place when an article moves to or from Read Later ([de8be1e](https://github.com/marcusleg/briefing-officer/commit/de8be1ea626dbecdcfb57ccf8b5c0c1b9c418fa2))
+
 ## [0.17.0](https://github.com/marcusleg/briefing-officer/compare/v0.16.0...v0.17.0) (2026-09-18)
 
 
