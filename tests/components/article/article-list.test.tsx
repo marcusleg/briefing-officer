@@ -28,13 +28,17 @@ vi.mock("@/lib/repository/feedRepository", () => ({
   removeFeedFilter: vi.fn().mockResolvedValue(undefined),
 }));
 
-const article = (id: number, title = `Article ${id}`) =>
+const article = (
+  id: number,
+  title = `Article ${id}`,
+  status: "UNREAD" | "READ_LATER" = "UNREAD",
+) =>
   ({
     id,
     title,
     link: `https://example.com/${id}`,
     publicationDate: new Date("2026-09-01T00:00:00Z"),
-    status: "UNREAD",
+    status,
     starred: false,
     filterReason: null,
     feedId: 1,
@@ -265,5 +269,41 @@ describe("ArticleList", () => {
 
     expect(cardOf("Article 3")).toHaveClass("border-foreground");
     expect(cardOf("Article 9")).not.toHaveClass("border-foreground");
+  });
+
+  it("keeps the highlight in place when the selected article moves to Read Later", async () => {
+    const { rerender } = render(
+      <ArticleList
+        articles={[
+          article(1),
+          article(2),
+          article(3),
+          article(4, undefined, "READ_LATER"),
+        ]}
+      />,
+    );
+    await userEvent.click(screen.getByText("Article 2"));
+
+    // Article 2 was marked Read Later: it keeps its id but leaves the unread
+    // group, landing after the other unread articles. Article 3 takes over
+    // Article 2's old row.
+    rerender(
+      <ArticleList
+        articles={[
+          article(1),
+          article(3),
+          article(2, undefined, "READ_LATER"),
+          article(4, undefined, "READ_LATER"),
+        ]}
+      />,
+    );
+
+    expect(cardOf("Article 3")).toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
+
+    await userEvent.keyboard("n");
+
+    expect(cardOf("Article 2")).toHaveClass("border-foreground");
+    expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
   });
 });

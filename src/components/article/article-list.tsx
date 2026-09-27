@@ -3,7 +3,7 @@
 import ArticleCard from "@/components/article/article-card";
 import { useLiveUpdates } from "@/components/live-updates";
 import { Button } from "@/components/ui/button";
-import { Prisma } from "@/generated/prisma/client";
+import { ArticleStatus, Prisma } from "@/generated/prisma/client";
 import { ArrowUpIcon } from "lucide-react";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -16,10 +16,16 @@ interface ArticleListProps {
   articles: ListedArticle[];
 }
 
-/** The highlighted article and the row it currently occupies. */
+/**
+ * The highlighted article, the row it currently occupies, and its status at
+ * the time it was highlighted. The status is kept alongside the row so a
+ * status change (moving into or out of Read Later) can be told apart from
+ * merely shifting position.
+ */
 interface Selection {
   id: number;
   index: number;
+  status: ArticleStatus;
 }
 
 const idsOf = (articles: ListedArticle[]) =>
@@ -35,7 +41,9 @@ const ArticleList = ({ articles }: ArticleListProps) => {
   const { userRefreshActive } = useLiveUpdates();
   // Selection is by id, not position: showing held articles prepends to the
   // list, and the highlight has to stay on the article the reader chose. Its
-  // position rides along so the highlight can move on when that article goes.
+  // position and status ride along: position so the highlight can move on
+  // when that article goes, status so a move between unread and Read Later
+  // (same id, new group) is treated the same way rather than followed.
   const [selection, setSelection] = useState<Selection>();
   const [seenIds, setSeenIds] = useState(() => new Set(idsOf(articles)));
 
@@ -60,19 +68,28 @@ const ArticleList = ({ articles }: ArticleListProps) => {
 
   const selectAt = (index: number) => {
     const article = visible[index];
-    setSelection(article ? { id: article.id, index } : undefined);
+    setSelection(
+      article ? { id: article.id, index, status: article.status } : undefined,
+    );
   };
 
   if (selection !== undefined) {
-    if (selectedIndex === -1) {
-      // The selected article left the list, usually because the reader marked
-      // it as read. Hand the highlight to the article that moved up into its
-      // place, so "n" carries on from there instead of starting over at the
-      // top. Nothing left to highlight clears the selection.
+    const sameArticleSameStatus =
+      selectedIndex !== -1 &&
+      visible[selectedIndex].status === selection.status;
+
+    if (!sameArticleSameStatus) {
+      // The selected article left the list (usually marked as read), or it's
+      // still there but its status changed — it moved between unread and
+      // Read Later. Either way, treat it as if it left its row: hand the
+      // highlight to whatever article now occupies that row, so "n" carries
+      // on from there instead of dragging the reader's place in triage down
+      // into the other group along with the article. Nothing left to
+      // highlight clears the selection.
       selectAt(Math.min(selection.index, visible.length - 1));
     } else if (selectedIndex !== selection.index) {
-      // The same article sits on a different row now, because held articles
-      // were shown or because something above it left the list.
+      // The same article, same status, sits on a different row now, because
+      // held articles were shown or because something above it left the list.
       setSelection({ ...selection, index: selectedIndex });
     }
   }
