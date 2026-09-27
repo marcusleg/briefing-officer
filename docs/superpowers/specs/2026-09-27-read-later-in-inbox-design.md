@@ -103,7 +103,8 @@ directive and is imported only by the server component.
 
 ### `ArticleList`
 
-`ArticleList` is unchanged. It already handles the merged list correctly:
+`ArticleList` gets one change: it already handles the merged list correctly
+otherwise.
 
 - A single list means a single selection and a single set of `n` / `p` hotkeys.
   Pressing `n` on the last unread article moves to the first Read Later article.
@@ -111,6 +112,11 @@ directive and is imported only by the server component.
   Marking an article Read Later doesn't change its id, so the article is already
   "seen" and simply moves to its new position. New articles from a feed refresh
   always arrive as `UNREAD`, so they are held back exactly as they are today.
+- Marking the selected article Read Later (or undoing that) moves it to the
+  other group, which previously dragged the keyboard highlight down the list
+  with it; the highlight now stays on the row the article vacated, exactly as if
+  the article had left the list, since a status change is a triage decision and
+  must not drag the reader's place in triage along with it.
 
 ### Empty state
 

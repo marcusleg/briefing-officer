@@ -12,8 +12,9 @@ ones, in a single article list.
 reader's unread articles followed by their Read Later articles. Each group is
 fetched by its own query and sorted newest publication date first.
 `src/app/feed/page.tsx` renders that combined list with the existing
-`<ArticleList>`. The empty state loses its now-unreachable "Go to Read Later"
-block.
+`<ArticleList>`. The empty state component stays unchanged; on `/feed` its "Go
+to Read Later" block now hides itself because it only renders when the Read
+Later count is non-zero, and category pages still show it as before.
 
 **Tech Stack:** Next.js (App Router, server components), Prisma 7 with SQLite,
 Vitest integration tests against a per-worker SQLite file.
@@ -279,7 +280,6 @@ that are meaningful in the changelog, and an unused query is not.
 **Files:**
 
 - Modify: `src/app/feed/page.tsx` (whole file, shown below)
-- Modify: `src/app/feed/no-unread-articles.tsx` (whole file, shown below)
 - Modify: `docs/prd.md` (feature 9 "Views" and the "Daily triage" key flow)
 
 **Interfaces:**
@@ -470,7 +470,7 @@ exit 0. All tests pass, including `tests/integration/inbox.test.ts`.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/lib/inbox.ts tests/integration/inbox.test.ts src/app/feed/page.tsx src/app/feed/no-unread-articles.tsx docs/prd.md
+git add src/lib/inbox.ts tests/integration/inbox.test.ts src/app/feed/page.tsx docs/prd.md
 git commit -m "feat: show Read Later articles in the home inbox below unread ones
 
 Articles saved for later used to vanish from /feed onto a page that had to be
@@ -481,7 +481,8 @@ so keyboard navigation runs through both.
 The query lives in src/lib/inbox.ts rather than the \"use server\"
 articleRepository, where an exported function taking a userId would be a
 client-callable server action. The header count stays unread-only, and the
-empty state drops its now-unreachable link to Read Later.
+empty state's \"Go to Read Later\" block now hides itself on /feed rather than
+being unreachable, since it only shows when the Read Later count is non-zero.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
