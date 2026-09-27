@@ -6,6 +6,7 @@ import RefreshAllFeedsButton from "@/app/feed/refresh-all-feeds-button";
 import ArticleList from "@/components/article/article-list";
 import TopNavigation from "@/components/navigation/top-navigation";
 import { auth } from "@/lib/auth";
+import { getInboxArticles } from "@/lib/inbox";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
 
@@ -29,21 +30,12 @@ const MyFeeds = async () => {
     orderBy: { lastFetched: "desc" },
   });
 
-  const articles = await prisma.article.findMany({
-    include: {
-      feed: true,
-      lead: true,
-      scrape: true,
-      user: true,
-    },
-    where: {
-      status: "UNREAD",
-      userId: session.user.id,
-    },
-    orderBy: {
-      publicationDate: "desc",
-    },
-  });
+  const articles = await getInboxArticles(session.user.id);
+  // The count measures triage progress, so it leaves out articles already
+  // saved for later; the sidebar badge counts those.
+  const unreadCount = articles.filter(
+    (article) => article.status === "UNREAD",
+  ).length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -54,7 +46,7 @@ const MyFeeds = async () => {
       <div className="flex flex-col items-center gap-2 xl:flex-row">
         <FeedTitle
           title="Your Latest Reads"
-          articleCount={articles.length}
+          articleCount={unreadCount}
           lastUpdated={lastFetched}
         />
 

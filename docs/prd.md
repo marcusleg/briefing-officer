@@ -103,9 +103,10 @@ Ordered by importance to the core job of triaging news.
 8. **Triage actions.** Dismiss, restore, read later, star, open the original,
    open the comments link when the feed provides one, and bulk mark as read for
    all articles or those older than a chosen number of days or weeks.
-9. **Views.** Home inbox across all feeds, per-feed and per-category views with
-   an All / Unread / Filtered switch, Read Later, Starred, History of the last
-   50 read articles, and full-text search over titles and article text.
+9. **Views.** Home inbox across all feeds, listing unread articles and then
+   those saved for later; per-feed and per-category views with an All / Unread /
+   Filtered switch, Read Later, Starred, History of the last 50 read articles,
+   and full-text search over titles and article text.
 10. **Keyboard navigation.** Move between articles and trigger summary, audio,
     visit, and dismiss from the keyboard.
 11. **Dashboard.** Charts of unread articles by feed, daily new, read, and
@@ -123,7 +124,8 @@ Ordered by importance to the core job of triaging news.
 
 - **Daily triage.** Sign in, land on the home inbox, skim leads, dismiss or read
   later as you go, open a text or audio summary for the few articles that
-  warrant it, open the original for the ones that warrant more.
+  warrant it, open the original for the ones that warrant more. Articles saved
+  for later stay in the inbox, below the unread ones, until they are dismissed.
 - **Adding a feed.** Paste a URL in the sidebar form, optionally set a title and
   category, adjust the prefilled "not interested in" defaults, save. The feed is
   fetched and its articles get leads and filter decisions.
