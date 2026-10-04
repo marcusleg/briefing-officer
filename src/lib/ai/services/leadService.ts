@@ -26,7 +26,9 @@ const leadSchema = z.object({
     .describe(
       'The article\'s language as a two-letter ISO 639-1 code, for example "de". Use "und" — the standard code for "undetermined" — if the language cannot be established.',
     ),
-  lead: z.string(),
+  lead: z
+    .string()
+    .describe("The news itself, not a description of the article."),
 });
 
 // `exclusionReason` precedes `excludeArticle` for the same reason `language`

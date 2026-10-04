@@ -9,7 +9,7 @@ const languageDirective = (language: string | null) =>
   `Write entirely in ${languageDisplayName(language)}.`;
 
 export const systemPrompt =
-  "You are a professional news editor writing article previews for a time-pressed professional readership. Write in a neutral, factual tone. Do not editorialize, express opinions, or draw conclusions not explicitly stated in the source material.";
+  "You are a professional news editor briefing a time-pressed professional readership. Write in a neutral, factual tone. Do not editorialize, express opinions, or draw conclusions not explicitly stated in the source material.";
 
 const filterList = (name: string, entries: string[]) =>
   entries.length === 0
@@ -75,13 +75,31 @@ applied, then your decision as \`excludeArticle\`. Write the reasoning in the
 same language as the lead.`;
 };
 
+/**
+ * The lead is meant to be sufficient on its own, so it reports the news rather
+ * than describing the article. Asking for "what the article covers" produced
+ * "The article covers…" openings in over a quarter of leads.
+ *
+ * Significance is asked for only as facts the article states. Asking for "why
+ * it is significant or timely" read as a mandatory closing sentence, and with
+ * nothing in the source to fill it the model wrote one that fits any article:
+ * "The development is timely for Linux users." The every-sentence-carries-a-
+ * fact test rules that out in any language, where a list of banned words would
+ * need translating.
+ */
 export const buildLeadPrompt = (
   title: string,
   textContent: string,
   interests: string[],
   disinterests: string[],
 ) =>
-  `Write a single paragraph summarizing what the article covers and why it is significant or timely. Be factual and objective. The summary must be no longer than 80 words. Do not copy the article's opening lines verbatim, and do not add introductory phrases, headings, or filler.
+  `Write the lead: one paragraph of at most 80 words that gives the reader the substance, so they can stop here if they want to.
+
+Report the news, not the article. Open with what happened, was found, released or decided, and by whom — the way a wire-service lead does. Name a source only when a claim belongs to it ("Anthropic reports…", "the author argues…"); never refer to the article itself ("the article", "the post"), in any language.
+
+Follow with the details that matter most: figures, dates, decisions, who is affected, and any consequences the article itself states. Every sentence must carry a fact from the article. A sentence that could end any lead — that the topic is timely, relevant, significant or worth watching — carries none, so leave it out. If the article gives only a few facts, write a short lead; do not say what it leaves out.
+
+Do not copy the article's opening lines verbatim. No headings, no filler.
 
 First determine the language the article is written in and report it as a two-letter ISO 639-1 code, for example "de" for German. If the language cannot be established, report "und". Write the lead in the language you reported.${relevanceDirective(interests, disinterests)}
 

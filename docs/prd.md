@@ -79,11 +79,11 @@ Ordered by importance to the core job of triaging news.
    file written by another reader, with categories carried over as folders.
    Refreshes run in the background; open pages update themselves as leads arrive
    and offer a "Show N new articles" button when new articles land.
-2. **AI lead.** Every ingested article gets a lead of at most 80 words that says
-   what it covers and why it matters. It is written to inform, not to spark
-   interest: for many articles the lead is all the reader needs. It is shown on
-   the article card together with author, relative date, and a reading-time
-   estimate.
+2. **AI lead.** Every ingested article gets a lead of at most 80 words that
+   reports the news itself: what happened, the key facts, and any consequences
+   the article states. It is written to inform, not to spark interest: for many
+   articles the lead is all the reader needs. It is shown on the article card
+   together with author, relative date, and a reading-time estimate.
 3. **AI text summary.** On request, a streamed bullet list of 5 to 12 key facts
    or takeaways for one article, for readers who want the substance without
    reading the whole piece.
