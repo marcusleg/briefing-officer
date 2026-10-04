@@ -1,4 +1,5 @@
 import { notifyUser } from "@/lib/events/userEvents";
+import { MAX_ATTEMPTS } from "@/lib/jobs/config";
 import { enqueue } from "@/lib/jobs/jobRepository";
 import { createWorker, setGlobalWorker, wakeWorker } from "@/lib/jobs/worker";
 import logger from "@/lib/logger";
@@ -140,7 +141,7 @@ describe("worker", () => {
     expect(handler).toHaveBeenCalledOnce();
   });
 
-  it("resets running jobs at start", async () => {
+  it("backs off a job left running by a previous process", async () => {
     const handler = vi.fn(async () => "user-1");
     worker = createWorker(
       { REFRESH_FEED: handler, PROCESS_ARTICLE: handler },
@@ -151,11 +152,43 @@ describe("worker", () => {
     });
 
     await worker.start();
+    await worker.tick();
 
-    await vi.waitFor(async () => {
-      expect(await prisma.job.count()).toBe(0);
+    const [job] = await prisma.job.findMany();
+    expect(job.status).toBe("PENDING");
+    expect(job.attempts).toBe(1);
+    expect(handler).not.toHaveBeenCalled();
+    expect(logger.warn).toHaveBeenCalledWith(
+      { count: 1 },
+      "Requeued jobs left running by a previous process.",
+    );
+  });
+
+  it("gives up on a job that keeps stopping the process", async () => {
+    const handler = vi.fn(async () => "user-1");
+    worker = createWorker(
+      { REFRESH_FEED: handler, PROCESS_ARTICLE: handler },
+      idle,
+    );
+    await prisma.job.create({
+      data: {
+        kind: "PROCESS_ARTICLE",
+        targetId: 1,
+        status: "RUNNING",
+        attempts: MAX_ATTEMPTS - 1,
+      },
     });
-    expect(handler).toHaveBeenCalledWith(1);
+
+    await worker.start();
+    await worker.tick();
+
+    const [job] = await prisma.job.findMany();
+    expect(job.status).toBe("FAILED");
+    expect(handler).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledWith(
+      { count: 1 },
+      "Gave up on jobs left running by a previous process.",
+    );
   });
 
   it("runs a job enqueued after start when woken", async () => {
