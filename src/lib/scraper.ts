@@ -7,18 +7,22 @@ import axios from "axios";
 import type { AnyNode } from "domhandler";
 import { DomUtils, parseDocument, parseFeed } from "htmlparser2";
 import { JSDOM } from "jsdom";
+import type { Readable } from "node:stream";
+import { extractText, getDocumentProxy, getMeta } from "unpdf";
 
-// Parsing is synchronous and blocks the event loop for as long as it runs, so
-// only pages that can be articles are parsed at all. The size limit bounds the
-// cost of those: the largest real articles are around 2 MB and parse in about
-// a second.
-export const MAX_ARTICLE_BYTES = 5 * 1024 * 1024;
-const HTML_CONTENT_TYPES = ["text/html", "application/xhtml+xml"];
+// HTML parsing is synchronous and blocks the event loop for as long as it
+// runs, so only pages that can be articles are parsed at all. The size limit
+// bounds the cost of those: the largest real articles are around 2 MB and parse
+// in about a second.
+export const MAX_HTML_BYTES = 5 * 1024 * 1024;
+// pdf.js slices its work into short tasks, so a PDF costs memory rather than
+// event-loop time: a 100-page paper blocked for at most about 100 ms but
+// peaked at about 200 MiB. Papers with figures often run past 5 MB.
+export const MAX_PDF_BYTES = 20 * 1024 * 1024;
 
 const http = axios.create({
   timeout: 10000,
-  maxContentLength: MAX_ARTICLE_BYTES,
-  responseType: "text",
+  responseType: "stream",
   headers: {
     "User-Agent":
       "Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
@@ -31,25 +35,107 @@ const http = axios.create({
   },
 });
 
-// A PDF or other binary read as markup builds an enormous, deeply nested DOM;
-// one 4 MB PDF took over a minute and stalled the whole server.
-const assertHtml = (contentType: unknown) => {
-  const mediaType = String(contentType ?? "")
-    .split(";")[0]
-    .trim()
-    .toLowerCase();
-  if (!HTML_CONTENT_TYPES.includes(mediaType)) {
-    throw new Error(`Not an HTML page: ${mediaType || "no content type"}`);
-  }
-};
+type ParsedArticle = {
+  textContent: string | null | undefined;
+  byline: string | null | undefined;
+} | null;
 
 // JSDOM does not run scripts or load subresources unless told to, and only
 // Readability's plain text is kept, so the page needs no sanitizing first.
-const fetchAndParseArticle = async (articleLink: string) => {
-  const website = await http.get<string>(articleLink);
-  assertHtml(website.headers["content-type"]);
-  const document = new JSDOM(website.data);
+// Decoded as UTF-8 regardless of the declared charset, as before PDF support.
+const parseHtml = (body: Uint8Array): ParsedArticle => {
+  const document = new JSDOM(new TextDecoder().decode(body));
   return new Readability(document.window.document).parse();
+};
+
+// pdf.js otherwise logs recoverable problems in a document straight to the
+// console, outside the app's logger.
+const VERBOSITY_ERRORS = 0;
+
+// A scanned PDF has no text layer and yields only the line breaks between its
+// pages, which the trim turns into the empty content that fails the scrape.
+const parsePdf = async (body: Uint8Array): Promise<ParsedArticle> => {
+  const pdf = await getDocumentProxy(body, {
+    verbosity: VERBOSITY_ERRORS,
+  });
+  try {
+    const { text } = await extractText(pdf, { mergePages: true });
+    const { info } = await getMeta(pdf);
+    const author = typeof info.Author === "string" ? info.Author.trim() : "";
+    return { textContent: text.trim(), byline: author || null };
+  } finally {
+    await pdf.loadingTask.destroy();
+  }
+};
+
+// Read as markup, a PDF or other binary builds an enormous, deeply nested DOM;
+// one 4 MB PDF took over a minute and stalled the whole server. So each
+// response goes to the parser for its media type, and any other type is
+// refused before its body is read.
+const parsers = new Map<
+  string,
+  {
+    maxBytes: number;
+    parse: (body: Uint8Array) => Promise<ParsedArticle> | ParsedArticle;
+  }
+>([
+  ["text/html", { maxBytes: MAX_HTML_BYTES, parse: parseHtml }],
+  ["application/xhtml+xml", { maxBytes: MAX_HTML_BYTES, parse: parseHtml }],
+  ["application/pdf", { maxBytes: MAX_PDF_BYTES, parse: parsePdf }],
+]);
+
+// The limit is checked as the body streams in, so an oversized response is
+// dropped once it passes the limit instead of being downloaded in full. The
+// body is copied into memory of its own rather than joined with Buffer.concat,
+// whose result can share Node's buffer pool: pdf.js may take ownership of the
+// bytes it is given.
+const readBody = async (stream: Readable, maxBytes: number) => {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of stream) {
+    size += chunk.length;
+    if (size > maxBytes) {
+      throw new Error(`Response is larger than ${maxBytes} bytes`);
+    }
+    chunks.push(chunk);
+  }
+
+  const body = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return body;
+};
+
+// With a streamed response, axios rejects an error status without reading its
+// body, which would hold the connection open until the request times out.
+const get = async (url: string) => {
+  try {
+    return await http.get<Readable>(url);
+  } catch (error) {
+    if (axios.isAxiosError<Readable>(error)) {
+      error.response?.data?.destroy();
+    }
+    throw error;
+  }
+};
+
+const fetchAndParseArticle = async (articleLink: string) => {
+  const response = await get(articleLink);
+  const mediaType = String(response.headers["content-type"] ?? "")
+    .split(";")[0]
+    .trim()
+    .toLowerCase();
+
+  const parser = parsers.get(mediaType);
+  if (!parser) {
+    response.data.destroy();
+    throw new Error(`Unsupported content type: ${mediaType || "none"}`);
+  }
+
+  return parser.parse(await readBody(response.data, parser.maxBytes));
 };
 
 export const scrapeArticle = async (articleId: number, articleLink: string) => {
