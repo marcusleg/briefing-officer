@@ -6,11 +6,19 @@ import { Readability } from "@mozilla/readability";
 import axios from "axios";
 import type { AnyNode } from "domhandler";
 import { DomUtils, parseDocument, parseFeed } from "htmlparser2";
-import DOMPurify from "isomorphic-dompurify";
 import { JSDOM } from "jsdom";
+
+// Parsing is synchronous and blocks the event loop for as long as it runs, so
+// only pages that can be articles are parsed at all. The size limit bounds the
+// cost of those: the largest real articles are around 2 MB and parse in about
+// a second.
+export const MAX_ARTICLE_BYTES = 5 * 1024 * 1024;
+const HTML_CONTENT_TYPES = ["text/html", "application/xhtml+xml"];
 
 const http = axios.create({
   timeout: 10000,
+  maxContentLength: MAX_ARTICLE_BYTES,
+  responseType: "text",
   headers: {
     "User-Agent":
       "Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
@@ -23,10 +31,24 @@ const http = axios.create({
   },
 });
 
+// A PDF or other binary read as markup builds an enormous, deeply nested DOM;
+// one 4 MB PDF took over a minute and stalled the whole server.
+const assertHtml = (contentType: unknown) => {
+  const mediaType = String(contentType ?? "")
+    .split(";")[0]
+    .trim()
+    .toLowerCase();
+  if (!HTML_CONTENT_TYPES.includes(mediaType)) {
+    throw new Error(`Not an HTML page: ${mediaType || "no content type"}`);
+  }
+};
+
+// JSDOM does not run scripts or load subresources unless told to, and only
+// Readability's plain text is kept, so the page needs no sanitizing first.
 const fetchAndParseArticle = async (articleLink: string) => {
-  const website = await http.get(articleLink);
-  const cleanBody = DOMPurify.sanitize(website.data);
-  const document = new JSDOM(cleanBody);
+  const website = await http.get<string>(articleLink);
+  assertHtml(website.headers["content-type"]);
+  const document = new JSDOM(website.data);
   return new Readability(document.window.document).parse();
 };
 
