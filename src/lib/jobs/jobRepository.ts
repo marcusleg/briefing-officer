@@ -189,13 +189,23 @@ export const failJob = async (job: Job, error: unknown) => {
   return "PENDING" as const;
 };
 
-/** A running job at startup can only be left over from a process that died. */
+/**
+ * A running job at startup can only be left over from a process that died.
+ * That counts as a failed attempt: a job that reliably kills the process would
+ * otherwise be retried on every start, forever, with no backoff.
+ */
 export const resetRunningJobs = async () => {
-  const result = await prisma.job.updateMany({
-    where: { status: "RUNNING" },
-    data: { status: "PENDING" },
-  });
-  return result.count;
+  const running = await prisma.job.findMany({ where: { status: "RUNNING" } });
+
+  const counts = { requeued: 0, failed: 0 };
+  for (const job of running) {
+    const outcome = await failJob(
+      job,
+      new Error("The process stopped while the job was running."),
+    );
+    counts[outcome === "FAILED" ? "failed" : "requeued"] += 1;
+  }
+  return counts;
 };
 
 export const deleteStaleFailedJobs = async (olderThan: Date) => {

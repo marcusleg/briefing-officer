@@ -156,11 +156,17 @@ export const createWorker = (
       return;
     }
     running = true;
-    const reset = await resetRunningJobs();
-    if (reset > 0) {
+    const { requeued, failed } = await resetRunningJobs();
+    if (requeued > 0) {
       logger.warn(
-        { count: reset },
+        { count: requeued },
         "Requeued jobs left running by a previous process.",
+      );
+    }
+    if (failed > 0) {
+      logger.error(
+        { count: failed },
+        "Gave up on jobs left running by a previous process.",
       );
     }
     void tick();

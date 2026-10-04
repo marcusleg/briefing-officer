@@ -1,3 +1,4 @@
+import { backoffMs, MAX_ATTEMPTS } from "@/lib/jobs/config";
 import {
   claimDueJobs,
   completeJob,
@@ -309,18 +310,42 @@ describe("failJob", () => {
 });
 
 describe("resetRunningJobs", () => {
-  it("returns running jobs to pending and reports how many", async () => {
+  it("counts a job left running as a failed attempt and backs it off", async () => {
     await prisma.job.create({
       data: { kind: "REFRESH_FEED", targetId: 1, status: "RUNNING" },
     });
     await prisma.job.create({
       data: { kind: "REFRESH_FEED", targetId: 2, status: "FAILED" },
     });
+    const before = Date.now();
 
-    expect(await resetRunningJobs()).toBe(1);
+    expect(await resetRunningJobs()).toEqual({ requeued: 1, failed: 0 });
 
-    const statuses = (await jobs()).map((job) => job.status);
-    expect(statuses).toEqual(["PENDING", "FAILED"]);
+    const [requeued, untouched] = await jobs();
+    expect(requeued.status).toBe("PENDING");
+    expect(requeued.attempts).toBe(1);
+    expect(requeued.lastError).toMatch(/process stopped/i);
+    expect(requeued.runAfter.getTime()).toBeGreaterThanOrEqual(
+      before + backoffMs(1),
+    );
+    expect(untouched.status).toBe("FAILED");
+  });
+
+  it("gives up on a job that was running on its final attempt", async () => {
+    await prisma.job.create({
+      data: {
+        kind: "PROCESS_ARTICLE",
+        targetId: 1,
+        status: "RUNNING",
+        attempts: MAX_ATTEMPTS - 1,
+      },
+    });
+
+    expect(await resetRunningJobs()).toEqual({ requeued: 0, failed: 1 });
+
+    const [job] = await jobs();
+    expect(job.status).toBe("FAILED");
+    expect(job.attempts).toBe(MAX_ATTEMPTS);
   });
 });
 
