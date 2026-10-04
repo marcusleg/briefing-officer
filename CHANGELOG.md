@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.18.0](https://github.com/marcusleg/briefing-officer/compare/v0.17.0...v0.18.0) (2026-10-04)
+
+
+### Features
+
+* add LOG_LEVEL setting and log memory usage per background job ([9699d13](https://github.com/marcusleg/briefing-officer/commit/9699d1346dac34d6424289af028e70527c74d9a7)), closes [#780](https://github.com/marcusleg/briefing-officer/issues/780)
+* PDF support ([0224e45](https://github.com/marcusleg/briefing-officer/commit/0224e459fc8126970ab1b0f84a91b9641bbce65b)), closes [#794](https://github.com/marcusleg/briefing-officer/issues/794)
+* show Read Later articles in the home inbox below unread ones ([9eb9f2b](https://github.com/marcusleg/briefing-officer/commit/9eb9f2bcd5fde2b85217dfd0211810a219b338ab))
+
+
+### Bug Fixes
+
+* give up on a background job that keeps crashing the app instead of retrying it on every restart ([a8cf8ef](https://github.com/marcusleg/briefing-officer/commit/a8cf8ef50570018f1ce0bde3fe854802a8a60634)), closes [#792](https://github.com/marcusleg/briefing-officer/issues/792)
+* keep the keyboard highlight in place when an article moves to or from Read Later ([de8be1e](https://github.com/marcusleg/briefing-officer/commit/de8be1ea626dbecdcfb57ccf8b5c0c1b9c418fa2))
+* skip PDFs and other non-HTML links instead of stalling the app while scraping them ([7fd995e](https://github.com/marcusleg/briefing-officer/commit/7fd995e8cd043a36eb864cfd0fca9cf416b39b24)), closes [#792](https://github.com/marcusleg/briefing-officer/issues/792)
+* write article leads that state the news instead of describing the article ([2673d61](https://github.com/marcusleg/briefing-officer/commit/2673d61199c5a60e35087f42eecc7a71639b3337))
+
 ## [0.17.0](https://github.com/marcusleg/briefing-officer/compare/v0.16.0...v0.17.0) (2026-09-18)
 
 
