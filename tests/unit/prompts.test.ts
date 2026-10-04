@@ -11,7 +11,18 @@ describe("buildLeadPrompt", () => {
     const prompt = buildLeadPrompt("My Title", "Body text here", [], []);
     expect(prompt).toContain("My Title");
     expect(prompt).toContain("Body text here");
-    expect(prompt).toContain("no longer than 80 words");
+    expect(prompt).toContain("at most 80 words");
+  });
+
+  it("asks for the news itself rather than a description of the article", () => {
+    // Asking for "what the article covers and why it is timely" produced
+    // "The article covers…" openings and a stock "this is timely" close.
+    const prompt = buildLeadPrompt("My Title", "Body text here", [], []);
+    expect(prompt).toContain("Report the news, not the article.");
+    expect(prompt).toContain(
+      "Every sentence must carry a fact from the article.",
+    );
+    expect(prompt).not.toContain("significant or timely");
   });
 
   it("asks the model to report the language as an ISO 639-1 code", () => {
@@ -33,7 +44,7 @@ describe("buildLeadPrompt", () => {
     expect(prompt).not.toContain("reader_interests");
     expect(prompt).not.toContain("reader_disinterests");
     expect(prompt).not.toContain("excludeArticle");
-    expect(prompt).toContain("no longer than 80 words");
+    expect(prompt).toContain("at most 80 words");
   });
 
   it("renders only the list that has entries", () => {
