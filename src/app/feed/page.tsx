@@ -2,8 +2,10 @@ import Dashboard from "@/app/feed/dashboard";
 import FeedTitle from "@/app/feed/feed-title";
 import NoFeedsMessage from "@/app/feed/no-feeds-message";
 import NoUnreadArticles from "@/app/feed/no-unread-articles";
+import ReadLaterHeading from "@/app/feed/read-later-heading";
 import RefreshAllFeedsButton from "@/app/feed/refresh-all-feeds-button";
 import ArticleList from "@/components/article/article-list";
+import ArticleListGroup from "@/components/article/article-list-group";
 import TopNavigation from "@/components/navigation/top-navigation";
 import { auth } from "@/lib/auth";
 import { getInboxArticles } from "@/lib/inbox";
@@ -30,12 +32,7 @@ const MyFeeds = async () => {
     orderBy: { lastFetched: "desc" },
   });
 
-  const articles = await getInboxArticles(session.user.id);
-  // The count measures triage progress, so it leaves out articles already
-  // saved for later; the sidebar badge counts those.
-  const unreadCount = articles.filter(
-    (article) => article.status === "UNREAD",
-  ).length;
+  const { unread, readLater } = await getInboxArticles(session.user.id);
 
   return (
     <div className="flex flex-col gap-4">
@@ -46,7 +43,9 @@ const MyFeeds = async () => {
       <div className="flex flex-col items-center gap-2 xl:flex-row">
         <FeedTitle
           title="Your Latest Reads"
-          articleCount={unreadCount}
+          // The count measures triage progress, so it leaves out articles
+          // already saved for later; the sidebar badge counts those.
+          articleCount={unread.length}
           lastUpdated={lastFetched}
         />
 
@@ -57,8 +56,19 @@ const MyFeeds = async () => {
         </div>
       </div>
 
-      {articles.length > 0 ? (
-        <ArticleList articles={articles} />
+      {unread.length + readLater.length > 0 ? (
+        // One group, so "n" and "p" run on from the unread articles into
+        // Read Later. The unread list stays mounted even when empty, so it
+        // still holds back articles that arrive later.
+        <ArticleListGroup>
+          <ArticleList articles={unread} />
+          {readLater.length > 0 && (
+            <>
+              <ReadLaterHeading />
+              <ArticleList articles={readLater} />
+            </>
+          )}
+        </ArticleListGroup>
       ) : (
         <NoUnreadArticles />
       )}
