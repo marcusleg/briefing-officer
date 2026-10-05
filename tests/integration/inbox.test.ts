@@ -15,7 +15,7 @@ beforeEach(async () => {
 const day = (n: number) => new Date(Date.UTC(2026, 8, n));
 
 describe("getInboxArticles", () => {
-  it("lists unread articles before read later ones, each newest first", async () => {
+  it("splits unread and read later articles, each newest first", async () => {
     await createArticle({
       userId,
       feedId,
@@ -43,11 +43,13 @@ describe("getInboxArticles", () => {
       publicationDate: day(2),
     });
 
-    const articles = await getInboxArticles(userId);
+    const { unread, readLater } = await getInboxArticles(userId);
 
-    expect(articles.map((article) => article.title)).toEqual([
+    expect(unread.map((article) => article.title)).toEqual([
       "unread new",
       "unread old",
+    ]);
+    expect(readLater.map((article) => article.title)).toEqual([
       "later newest",
       "later old",
     ]);
@@ -63,9 +65,10 @@ describe("getInboxArticles", () => {
       status: "FILTERED",
     });
 
-    const articles = await getInboxArticles(userId);
+    const { unread, readLater } = await getInboxArticles(userId);
 
-    expect(articles.map((article) => article.title)).toEqual(["unread"]);
+    expect(unread.map((article) => article.title)).toEqual(["unread"]);
+    expect(readLater).toEqual([]);
   });
 
   it("leaves out other users' articles", async () => {
@@ -84,15 +87,18 @@ describe("getInboxArticles", () => {
     });
     await createArticle({ userId, feedId, title: "mine" });
 
-    const articles = await getInboxArticles(userId);
+    const { unread, readLater } = await getInboxArticles(userId);
 
-    expect(articles.map((article) => article.title)).toEqual(["mine"]);
+    expect(unread.map((article) => article.title)).toEqual(["mine"]);
+    expect(readLater).toEqual([]);
   });
 
   it("includes the feed, lead and scrape the article list renders", async () => {
     await createArticle({ userId, feedId });
 
-    const [article] = await getInboxArticles(userId);
+    const {
+      unread: [article],
+    } = await getInboxArticles(userId);
 
     expect(article.feed.id).toBe(feedId);
     expect(article).toHaveProperty("lead", null);
