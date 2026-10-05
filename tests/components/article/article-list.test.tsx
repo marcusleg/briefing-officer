@@ -1,4 +1,5 @@
 import ArticleList from "@/components/article/article-list";
+import ArticleListGroup from "@/components/article/article-list-group";
 import { LiveUpdatesContext } from "@/components/live-updates";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -271,33 +272,34 @@ describe("ArticleList", () => {
     expect(cardOf("Article 9")).not.toHaveClass("border-foreground");
   });
 
-  it("keeps the highlight in place when the selected article moves to Read Later", async () => {
+  it("hands the highlight on when the selected article moves to the other list", async () => {
+    const inbox = (unread: any[], readLater: any[]) => (
+      <ArticleListGroup>
+        <ArticleList articles={unread} />
+        <ArticleList articles={readLater} />
+      </ArticleListGroup>
+    );
     const { rerender } = render(
-      <ArticleList
-        articles={[
-          article(1),
-          article(2),
-          article(3),
-          article(4, undefined, "READ_LATER"),
-        ]}
-      />,
+      inbox(
+        [article(1), article(2), article(3)],
+        [article(4, undefined, "READ_LATER")],
+      ),
     );
     await userEvent.click(screen.getByText("Article 2"));
 
-    // Article 2 was marked Read Later: it keeps its id but leaves the unread
-    // group, landing after the other unread articles. Article 3 takes over
-    // Article 2's old row.
+    // Article 2 was marked Read Later: it leaves the unread list and lands
+    // in the other one. Article 3 takes over Article 2's old row.
     rerender(
-      <ArticleList
-        articles={[
-          article(1),
-          article(3),
+      inbox(
+        [article(1), article(3)],
+        [
           article(2, undefined, "READ_LATER"),
           article(4, undefined, "READ_LATER"),
-        ]}
-      />,
+        ],
+      ),
     );
 
+    expect(screen.queryByRole("button", { name: /new article/ })).toBeNull();
     expect(cardOf("Article 3")).toHaveClass("border-foreground");
     expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
 
@@ -305,5 +307,40 @@ describe("ArticleList", () => {
 
     expect(cardOf("Article 2")).toHaveClass("border-foreground");
     expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
+  });
+
+  it("walks from one list into the next with n and p", async () => {
+    render(
+      <ArticleListGroup>
+        <ArticleList articles={[article(1)]} />
+        <h3>Between</h3>
+        <ArticleList articles={[article(2)]} />
+      </ArticleListGroup>,
+    );
+
+    await userEvent.keyboard("n");
+    await userEvent.keyboard("n");
+
+    expect(cardOf("Article 2")).toHaveClass("border-foreground");
+    expect(cardOf("Article 1")).not.toHaveClass("border-foreground");
+
+    await userEvent.keyboard("p");
+
+    expect(cardOf("Article 1")).toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
+  });
+
+  it("keeps separate lists' highlights apart from each other", async () => {
+    render(
+      <>
+        <ArticleList articles={[article(1)]} />
+        <ArticleList articles={[article(2)]} />
+      </>,
+    );
+
+    await userEvent.click(screen.getByText("Article 1"));
+
+    expect(cardOf("Article 1")).toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
   });
 });
