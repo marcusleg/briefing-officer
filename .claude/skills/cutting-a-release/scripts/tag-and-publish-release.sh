@@ -28,9 +28,15 @@ if [[ $pkg_version != "$version" ]]; then
 fi
 
 # The section body: everything between this version's heading and the next one.
+# GitHub renders every line break in release notes, so wrapped bullets are
+# joined back into single lines.
 notes=$(git show "$commit:CHANGELOG.md" | awk -v v="$version" '
   /^## / { if (found) exit; if (index($0, "## [" v "]") == 1) { found = 1; next } }
   found { print }
+' | awk '
+  /^ +[^ ]/ && prev != "" { sub(/^ +/, ""); prev = prev " " $0; next }
+  { if (NR > 1) print prev; prev = $0 }
+  END { print prev }
 ')
 if [[ -z ${notes//[[:space:]]/} ]]; then
   echo "error: CHANGELOG.md at ${commit:0:7} has no section for $version" >&2
