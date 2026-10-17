@@ -355,4 +355,15 @@ describe("ArticleList", () => {
     await userEvent.keyboard("p");
     expect(cardOf("Article 1")).toHaveClass("border-foreground");
   });
+
+  it("scrolls the article the reader moves to into view", async () => {
+    render(<ArticleList articles={[article(1), article(2)]} />);
+    vi.mocked(Element.prototype.scrollIntoView).mockClear();
+
+    await userEvent.keyboard("nn");
+
+    expect(
+      vi.mocked(Element.prototype.scrollIntoView).mock.contexts.at(-1),
+    ).toBe(cardOf("Article 2"));
+  });
 });

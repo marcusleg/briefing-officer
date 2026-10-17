@@ -34,6 +34,12 @@ window.matchMedia = (query: string): MediaQueryList => ({
   dispatchEvent: vi.fn(() => true),
 });
 
+/**
+ * ArticleCard scrolls itself into view when selected; jsdom has no layout and
+ * leaves scrollIntoView out.
+ */
+Element.prototype.scrollIntoView = vi.fn();
+
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(() => ({ push: vi.fn(), back: vi.fn(), refresh: vi.fn() })),
   usePathname: vi.fn(() => "/"),
