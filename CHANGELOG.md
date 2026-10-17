@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.19.0](https://github.com/marcusleg/briefing-officer/compare/v0.18.0...v0.19.0) (2026-10-17)
+
+### Features
+
+- Read Later articles on the home feed now sit under their own heading, below
+  your unread articles, and are sorted oldest first there and on the Read Later
+  page. When you are all caught up, the home feed points you to them.
+  ([#800](https://github.com/marcusleg/briefing-officer/pull/800))
+
+### Bug Fixes
+
+- Moving through articles with `n` and `p` scrolls the selected article into
+  view again. ([#800](https://github.com/marcusleg/briefing-officer/pull/800))
+
+### Dependencies
+
+- Updated Next.js to 16.4.2.
+  ([#798](https://github.com/marcusleg/briefing-officer/pull/798))
+
 ## [0.18.0](https://github.com/marcusleg/briefing-officer/compare/v0.17.0...v0.18.0) (2026-10-04)
 
 ### Features
