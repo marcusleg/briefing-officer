@@ -45,9 +45,9 @@ npm run build      # Next.js production build
 ### Commit messages
 
 Use [Conventional Commits](https://www.conventionalcommits.org/) **without
-scopes**. The commit history feeds `release-please`, which generates the
-changelog and version bumps — non-conforming messages break the release
-pipeline.
+scopes**. The commit types decide the next version number when a release is cut
+(see [Releases](#releases)), so non-conforming messages produce the wrong
+version.
 
 Valid prefixes:
 
@@ -62,8 +62,8 @@ Valid prefixes:
 - `ci:` — CI/CD configuration changes
 - `chore:` — maintenance, other changes
 
-`feat:` and `fix:` commits are included in the public changelog, so word the
-first line with end users in mind — describe what changed from their
+`feat:` and `fix:` commits are the starting point for the public changelog, so
+word the first line with end users in mind — describe what changed from their
 perspective, not how the code changed internally. The commit body may go into
 implementation details and technical context.
 
@@ -102,6 +102,15 @@ Avoid making commits that are too small. Especially `feat:` and `fix:` commits
 should be substantial enough to be meaningful in a changelog. Group related
 changes into a single commit rather than committing every minor edit. At the
 same time, keep changes sensibly sized — don't bundle unrelated work together.
+
+### Releases
+
+Releases are cut with the `cutting-a-release` skill
+(`.claude/skills/cutting-a-release/SKILL.md`). It writes the changelog, bumps
+the version in `package.json`, `package-lock.json` and `helm-chart/Chart.yaml`
+through a release PR, and tags the release once the user has merged that PR.
+Pushing a `v*` tag publishes the container image and Helm chart, so don't create
+tags or GitHub releases outside that skill.
 
 <!-- prettier-ignore-start -->
 
