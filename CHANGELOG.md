@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.19.0](https://github.com/marcusleg/briefing-officer/compare/v0.18.0...v0.19.0) (2026-10-17)
+
+
+### Features
+
+* show Read Later articles in their own section on the home feed ([28d0fc9](https://github.com/marcusleg/briefing-officer/commit/28d0fc9a270abdc7edc1b96f339c55517f413cd0))
+
+
+### Bug Fixes
+
+* scroll the selected article into view when moving with n and p ([ab383f8](https://github.com/marcusleg/briefing-officer/commit/ab383f811186e67498cbf9bb7e4ccc8241db9ee2))
+
 ## [0.18.0](https://github.com/marcusleg/briefing-officer/compare/v0.17.0...v0.18.0) (2026-10-04)
 
 
