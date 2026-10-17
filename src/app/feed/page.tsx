@@ -31,11 +31,10 @@ const MyFeeds = async () => {
   });
 
   const articles = await getInboxArticles(session.user.id);
-  // The count measures triage progress, so it leaves out articles already
-  // saved for later; the sidebar badge counts those.
   const unreadCount = articles.filter(
     (article) => article.status === "UNREAD",
   ).length;
+  const readLaterCount = articles.length - unreadCount;
 
   return (
     <div className="flex flex-col gap-4">
@@ -44,11 +43,13 @@ const MyFeeds = async () => {
       <Dashboard />
 
       <div className="flex flex-col items-center gap-2 xl:flex-row">
-        <FeedTitle
-          title="Your Latest Reads"
-          articleCount={unreadCount}
-          lastUpdated={lastFetched}
-        />
+        {unreadCount > 0 && (
+          <FeedTitle
+            title="Your Latest Reads"
+            articleCount={unreadCount}
+            lastUpdated={lastFetched}
+          />
+        )}
 
         <div className="grow" />
 
@@ -57,10 +58,17 @@ const MyFeeds = async () => {
         </div>
       </div>
 
-      {articles.length > 0 ? (
-        <ArticleList articles={articles} />
-      ) : (
-        <NoUnreadArticles />
+      {unreadCount === 0 && <NoUnreadArticles />}
+
+      {articles.length > 0 && (
+        <ArticleList
+          articles={articles}
+          readLaterHeading={
+            <div className="mt-6">
+              <FeedTitle title="Read Later" articleCount={readLaterCount} />
+            </div>
+          }
+        />
       )}
     </div>
   );

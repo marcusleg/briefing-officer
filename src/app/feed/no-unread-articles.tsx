@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -9,8 +8,7 @@ import {
 } from "@/components/ui/empty";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
-import { BookmarkIcon, CheckCircle } from "lucide-react";
-import Link from "next/link";
+import { CheckCircle } from "lucide-react";
 
 const NoUnreadArticles = async () => {
   const userId = await getUserId();
@@ -31,19 +29,11 @@ const NoUnreadArticles = async () => {
       </EmptyHeader>
       <EmptyContent>
         {readLaterCount > 0 && (
-          <>
-            <span className="block">
-              You have {readLaterCount} article
-              {readLaterCount !== 1 ? "s" : ""} saved for later.
-            </span>
-
-            <Button asChild variant="outline">
-              <Link href="/feed/read-later">
-                <BookmarkIcon />
-                Go to Read Later
-              </Link>
-            </Button>
-          </>
+          <span className="block">
+            {readLaterCount === 1
+              ? "The article you saved for later is waiting below."
+              : `The ${readLaterCount} articles you saved for later are waiting below.`}
+          </span>
         )}
 
         <p className="text-muted-foreground text-xs">
