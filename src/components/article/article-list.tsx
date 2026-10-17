@@ -5,7 +5,7 @@ import { useLiveUpdates } from "@/components/live-updates";
 import { Button } from "@/components/ui/button";
 import { ArticleStatus, Prisma } from "@/generated/prisma/client";
 import { ArrowUpIcon } from "lucide-react";
-import { useState } from "react";
+import { Fragment, ReactNode, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 type ListedArticle = Prisma.ArticleGetPayload<{
@@ -14,6 +14,13 @@ type ListedArticle = Prisma.ArticleGetPayload<{
 
 interface ArticleListProps {
   articles: ListedArticle[];
+  /**
+   * Shown above the first Read Later article, separating it from the unread
+   * ones. It sits inside the list rather than splitting the page into two
+   * lists, so "n" and "p" move straight across the boundary and an article
+   * changing group is never mistaken for a new arrival.
+   */
+  readLaterHeading?: ReactNode;
 }
 
 /**
@@ -37,7 +44,7 @@ const idsOf = (articles: ListedArticle[]) =>
  * around under the reader. Articles already on screen still update in place
  * and disappear when the server stops returning them.
  */
-const ArticleList = ({ articles }: ArticleListProps) => {
+const ArticleList = ({ articles, readLaterHeading }: ArticleListProps) => {
   const { userRefreshActive } = useLiveUpdates();
   // Selection is by id, not position: showing held articles prepends to the
   // list, and the highlight has to stay on the article the reader chose. Its
@@ -60,6 +67,9 @@ const ArticleList = ({ articles }: ArticleListProps) => {
   const heldCount = articles.length - visible.length;
   const selectedIndex = visible.findIndex(
     (article) => article.id === selection?.id,
+  );
+  const firstReadLaterIndex = visible.findIndex(
+    (article) => article.status === "READ_LATER",
   );
 
   const showNewArticles = () => {
@@ -121,7 +131,7 @@ const ArticleList = ({ articles }: ArticleListProps) => {
   });
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col space-y-6">
+    <div className="flex flex-col space-y-6">
       {heldCount > 0 && (
         <Button
           className="cursor-pointer self-center"
@@ -134,12 +144,16 @@ const ArticleList = ({ articles }: ArticleListProps) => {
       )}
 
       {visible.map((article, index) => (
-        <ArticleCard
-          key={article.id}
-          article={article}
-          onClick={() => selectAt(index)}
-          selected={index === selectedIndex}
-        />
+        <Fragment key={article.id}>
+          {index === firstReadLaterIndex && readLaterHeading}
+          <div className="mx-auto w-full max-w-4xl">
+            <ArticleCard
+              article={article}
+              onClick={() => selectAt(index)}
+              selected={index === selectedIndex}
+            />
+          </div>
+        </Fragment>
       ))}
     </div>
   );

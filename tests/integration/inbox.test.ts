@@ -15,7 +15,7 @@ beforeEach(async () => {
 const day = (n: number) => new Date(Date.UTC(2026, 8, n));
 
 describe("getInboxArticles", () => {
-  it("lists unread articles before read later ones, each newest first", async () => {
+  it("lists unread articles newest first, then read later ones oldest first", async () => {
     await createArticle({
       userId,
       feedId,
@@ -48,8 +48,8 @@ describe("getInboxArticles", () => {
     expect(articles.map((article) => article.title)).toEqual([
       "unread new",
       "unread old",
-      "later newest",
       "later old",
+      "later newest",
     ]);
   });
 

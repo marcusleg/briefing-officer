@@ -12,8 +12,8 @@ export type InboxArticle = Prisma.ArticleGetPayload<{
 }>;
 
 /**
- * The home inbox: every unread article, then every article saved for later,
- * each group newest first.
+ * The home inbox: every unread article, newest first, then every article
+ * saved for later, oldest first so the longest-waiting ones come up first.
  *
  * Read Later articles are listed here, below the unread ones, so that saving
  * an article for later does not hide it from the page the reader triages on.
@@ -38,7 +38,7 @@ export const getInboxArticles = async (
     prisma.article.findMany({
       include,
       where: { status: "READ_LATER", userId },
-      orderBy: { publicationDate: "desc" },
+      orderBy: { publicationDate: "asc" },
     }),
   ]);
 

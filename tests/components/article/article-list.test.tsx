@@ -306,4 +306,53 @@ describe("ArticleList", () => {
     expect(cardOf("Article 2")).toHaveClass("border-foreground");
     expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
   });
+
+  it("shows the Read Later heading above the first Read Later article", () => {
+    render(
+      <ArticleList
+        articles={[
+          article(1),
+          article(2, undefined, "READ_LATER"),
+          article(3, undefined, "READ_LATER"),
+        ]}
+        readLaterHeading={<h2>Read Later</h2>}
+      />,
+    );
+
+    const heading = screen.getByRole("heading", { name: "Read Later" });
+    expect(
+      cardOf("Article 1")!.compareDocumentPosition(heading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      heading.compareDocumentPosition(cardOf("Article 2")!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("leaves out the Read Later heading when nothing is saved for later", () => {
+    render(
+      <ArticleList
+        articles={[article(1), article(2)]}
+        readLaterHeading={<h2>Read Later</h2>}
+      />,
+    );
+
+    expect(screen.queryByRole("heading", { name: "Read Later" })).toBeNull();
+  });
+
+  it("moves the highlight across the Read Later heading with n and p", async () => {
+    render(
+      <ArticleList
+        articles={[article(1), article(2, undefined, "READ_LATER")]}
+        readLaterHeading={<h2>Read Later</h2>}
+      />,
+    );
+
+    await userEvent.keyboard("nn");
+    expect(cardOf("Article 2")).toHaveClass("border-foreground");
+
+    await userEvent.keyboard("p");
+    expect(cardOf("Article 1")).toHaveClass("border-foreground");
+  });
 });
