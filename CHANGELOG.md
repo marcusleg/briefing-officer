@@ -2,533 +2,483 @@
 
 ## [0.18.0](https://github.com/marcusleg/briefing-officer/compare/v0.17.0...v0.18.0) (2026-10-04)
 
-
 ### Features
 
-* add LOG_LEVEL setting and log memory usage per background job ([9699d13](https://github.com/marcusleg/briefing-officer/commit/9699d1346dac34d6424289af028e70527c74d9a7)), closes [#780](https://github.com/marcusleg/briefing-officer/issues/780)
-* PDF support ([0224e45](https://github.com/marcusleg/briefing-officer/commit/0224e459fc8126970ab1b0f84a91b9641bbce65b)), closes [#794](https://github.com/marcusleg/briefing-officer/issues/794)
-* show Read Later articles in the home inbox below unread ones ([9eb9f2b](https://github.com/marcusleg/briefing-officer/commit/9eb9f2bcd5fde2b85217dfd0211810a219b338ab))
-
+- Articles that link to a PDF, which is common on Hacker News, are now read in
+  full, so their lead and summary come from the document's text and author
+  instead of the title alone. Other links that are not web pages are skipped
+  instead of stalling the app while it scrapes them.
+  ([#796](https://github.com/marcusleg/briefing-officer/pull/796),
+  [#793](https://github.com/marcusleg/briefing-officer/pull/793), closes
+  [#794](https://github.com/marcusleg/briefing-officer/issues/794),
+  [#792](https://github.com/marcusleg/briefing-officer/issues/792))
+- Read Later articles now show on the home feed, below the unread ones, instead
+  of only on their own page. The unread count still counts only unread articles.
+  ([#791](https://github.com/marcusleg/briefing-officer/pull/791))
+- Set `LOG_LEVEL` (`trace` to `fatal`) to control how much the app logs. At
+  `debug`, every background job logs how long it took and how much memory the
+  app used. ([#788](https://github.com/marcusleg/briefing-officer/pull/788),
+  closes [#780](https://github.com/marcusleg/briefing-officer/issues/780))
 
 ### Bug Fixes
 
-* give up on a background job that keeps crashing the app instead of retrying it on every restart ([a8cf8ef](https://github.com/marcusleg/briefing-officer/commit/a8cf8ef50570018f1ce0bde3fe854802a8a60634)), closes [#792](https://github.com/marcusleg/briefing-officer/issues/792)
-* keep the keyboard highlight in place when an article moves to or from Read Later ([de8be1e](https://github.com/marcusleg/briefing-officer/commit/de8be1ea626dbecdcfb57ccf8b5c0c1b9c418fa2))
-* skip PDFs and other non-HTML links instead of stalling the app while scraping them ([7fd995e](https://github.com/marcusleg/briefing-officer/commit/7fd995e8cd043a36eb864cfd0fca9cf416b39b24)), closes [#792](https://github.com/marcusleg/briefing-officer/issues/792)
-* write article leads that state the news instead of describing the article ([2673d61](https://github.com/marcusleg/briefing-officer/commit/2673d61199c5a60e35087f42eecc7a71639b3337))
+- A background job that keeps crashing the app is now given up on after a few
+  attempts instead of being retried on every restart.
+  ([#793](https://github.com/marcusleg/briefing-officer/pull/793), closes
+  [#792](https://github.com/marcusleg/briefing-officer/issues/792))
+- Article leads now state the news itself instead of opening with "The
+  article..." and ending on a stock sentence about timeliness.
+  ([#795](https://github.com/marcusleg/briefing-officer/pull/795))
+
+### Dependencies
+
+- Updated Next.js to 16.3.6, React to 19.3.0 and Prisma to 7.10.0.
+  ([#790](https://github.com/marcusleg/briefing-officer/pull/790))
 
 ## [0.17.0](https://github.com/marcusleg/briefing-officer/compare/v0.16.0...v0.17.0) (2026-09-18)
 
-
 ### Features
 
-* generate AUTH_SECRET on first install and reuse it thereafter ([49c0d20](https://github.com/marcusleg/briefing-officer/commit/49c0d200c68461af54a153dfa2cf6750910ba155))
-* make env vars, storage and pod priority configurable in the Helm chart ([48d9660](https://github.com/marcusleg/briefing-officer/commit/48d96603602aacb9d53148547b53936424626bfd))
-
+- The Helm chart takes new values: `env` for extra environment variables,
+  `persistence.storageClassName`, `persistence.existingClaim` to use a volume
+  claim managed outside the chart, `priorityClassName`, `baseUrl` and
+  `authSecret`. ([#784](https://github.com/marcusleg/briefing-officer/pull/784))
 
 ### Bug Fixes
 
-* keep sessions alive across Helm upgrades and fix the derived BASE_URL ([baa9569](https://github.com/marcusleg/briefing-officer/commit/baa9569f23b93dbb48a8d8c9400732c41731de14))
+- Helm upgrades no longer sign everyone out. The chart generated a new
+  `AUTH_SECRET` on every render and it overrode the one in your release secret.
+  It now generates the secret once, keeps it across upgrades and lets an
+  `AUTH_SECRET` from your release secret or the new `authSecret` value take
+  precedence. ([#784](https://github.com/marcusleg/briefing-officer/pull/784),
+  closes [#785](https://github.com/marcusleg/briefing-officer/issues/785))
+- The chart now derives `BASE_URL` with its `https://` scheme, and
+  `persistence.enabled: false` renders a working Deployment backed by an empty
+  directory. ([#784](https://github.com/marcusleg/briefing-officer/pull/784))
 
 ## [0.16.0](https://github.com/marcusleg/briefing-officer/compare/v0.15.0...v0.16.0) (2026-09-15)
 
+### ⚠ Breaking Changes
+
+- Feeds are now refreshed by a worker inside the app, so the external cron job
+  is gone: `/api/cron`, the `CRON_API_TOKEN` setting and the Helm chart's
+  CronJob and its NetworkPolicy are removed. Delete any cron job or scheduler
+  that calls `/api/cron`. Set `FEED_REFRESH_INTERVAL_MINUTES` (default 15) to
+  change how often feeds refresh, or `BACKGROUND_WORKER_DISABLED=true` to turn
+  the worker off.
+  ([#778](https://github.com/marcusleg/briefing-officer/pull/778))
 
 ### Features
 
-* add background worker loop with per-kind concurrency ([8a6ad16](https://github.com/marcusleg/briefing-officer/commit/8a6ad16414684763a65de377888e0e90b0e693e6))
-* add feed refresh and article processing job handlers ([d8da528](https://github.com/marcusleg/briefing-officer/commit/d8da5286ea9f0c37ec4ce2e5250a2b0c2d971d99))
-* add Import OPML and Export OPML to the sidebar ([04a6d0b](https://github.com/marcusleg/briefing-officer/commit/04a6d0bf567d66e7bba12f044a1ece9aa53748b3))
-* add in-memory per-user event bus ([2622aec](https://github.com/marcusleg/briefing-officer/commit/2622aecbf7ad4de939ae878578e50cea26bf68cf))
-* add job repository with retry and backoff ([d922733](https://github.com/marcusleg/briefing-officer/commit/d922733a74f064b79e7e5e7b9662d48771375421))
-* add job table for background work ([20f6f45](https://github.com/marcusleg/briefing-officer/commit/20f6f45e779943c5df4726fb8adbab50ed821b2c))
-* add scheduler for feed refreshes, lead sweeps, and cleanup ([e15f6fc](https://github.com/marcusleg/briefing-officer/commit/e15f6fc5a3077c605e58fb448fd9e9c39040d944))
-* announce new articles instead of inserting them into the open list ([bcc681d](https://github.com/marcusleg/briefing-officer/commit/bcc681d338bbd9d89a97ecc67055de6f59e46f94))
-* import feeds from an OPML file and export the feed list as OPML ([0b07a10](https://github.com/marcusleg/briefing-officer/commit/0b07a10167edf3c78f7e0906deb88e57d82f60ba))
-* move OPML import and export into the user menu ([883ab2e](https://github.com/marcusleg/briefing-officer/commit/883ab2ea062f476bf17c5c73ca5547d6d5b01385)), closes [#776](https://github.com/marcusleg/briefing-officer/issues/776)
-* parse and build OPML feed lists ([de4405f](https://github.com/marcusleg/briefing-officer/commit/de4405f4933f3ecf0ba67ff4aeec0adc33ce1add))
-* refresh feeds in the background instead of blocking the page ([df054af](https://github.com/marcusleg/briefing-officer/commit/df054af3c092b5fdfdb76b583f0a9a2a86d88f75))
-* refresh feeds on a schedule without an external cron job ([a1a8444](https://github.com/marcusleg/briefing-officer/commit/a1a8444c299d3d090f954accf7ba62fbb4d4a463))
-* refresh open feed pages when background work finishes ([861fadf](https://github.com/marcusleg/briefing-officer/commit/861fadf1e23861a8677f24040028faaa5aaa6b78))
-* serve the OPML export as a download at /api/opml ([e387568](https://github.com/marcusleg/briefing-officer/commit/e387568b3bb43fa8ae4f2bf5e4635f25b2c00d7e))
-* start the background worker with the server ([a8e65c2](https://github.com/marcusleg/briefing-officer/commit/a8e65c2fc9f3efca208c43a572dfb65170592b70))
-* stream change events to open pages ([1ec65aa](https://github.com/marcusleg/briefing-officer/commit/1ec65aab50699a8dd955a8e68725047e358a97e0))
-
-
-### Bug Fixes
-
-* address review findings on background jobs and live updates ([895ec37](https://github.com/marcusleg/briefing-officer/commit/895ec373f07c2ca8f8eae2c2e460e0f5cf2c80a7))
-* keep the keyboard selection moving when an article is marked as read ([c848736](https://github.com/marcusleg/briefing-officer/commit/c84873693abf47f1baab220beaa8f9f6c84080cf)), closes [#781](https://github.com/marcusleg/briefing-officer/issues/781)
-* make OPML import safer to dismiss and the export route friendlier when signed out ([1cb34ee](https://github.com/marcusleg/briefing-officer/commit/1cb34eebf263dfd3cdcfb7e53b661f3942684c05))
-* queue refreshes for OPML-imported feeds on the background worker ([58efe06](https://github.com/marcusleg/briefing-officer/commit/58efe06b3dc1808e75f0fb04e251f0955d6d1fee))
+- Feeds now refresh on a schedule in the background, so you no longer need an
+  external cron job, and pages no longer wait for a refresh to finish. Failed
+  jobs are retried with increasing delays.
+  ([#778](https://github.com/marcusleg/briefing-officer/pull/778))
+- Open pages update when background work finishes: leads fill in and the sidebar
+  counts change on their own. New articles are announced with a "Show N new
+  articles" button instead of moving the list while you read.
+  ([#778](https://github.com/marcusleg/briefing-officer/pull/778))
+- Move your feeds to or from another reader with OPML. Import OPML and Export
+  OPML are in the user menu. Folders become categories, and feeds you already
+  have are skipped.
+  ([#775](https://github.com/marcusleg/briefing-officer/pull/775),
+  [#779](https://github.com/marcusleg/briefing-officer/pull/779), closes
+  [#776](https://github.com/marcusleg/briefing-officer/issues/776))
 
 ## [0.15.0](https://github.com/marcusleg/briefing-officer/compare/v0.14.0...v0.15.0) (2026-09-12)
 
+### ⚠ Breaking Changes
+
+- Each feed's free-text interest profile is replaced by keyword lists and is not
+  carried over. Enter your interests again as keywords. Every feed, including
+  existing ones, also gets "advertisements" and "sponsored posts" as
+  disinterests, so feeds that were not filtered before now run the filter on
+  every article. Delete both keywords to turn filtering off for a feed.
+  ([#750](https://github.com/marcusleg/briefing-officer/pull/750))
 
 ### Features
 
-* break down daily read and filtered articles by feed ([cf64136](https://github.com/marcusleg/briefing-officer/commit/cf641363bb3a25e27e011c0a8b70a0c6ef85ae32))
-* describe a feed's keyword filters in plain English ([1b3df78](https://github.com/marcusleg/briefing-officer/commit/1b3df78ca258813c4ca6ba650733917b6937baac))
-* file articles you reject by hand alongside filtered ones ([b46ec40](https://github.com/marcusleg/briefing-officer/commit/b46ec40e1df3b7d8d3ec00b4581a82572cdc7b37))
-* filter articles against separate interest and disinterest keywords ([e9cddc6](https://github.com/marcusleg/briefing-officer/commit/e9cddc6096c5f0eb2dafdf5682e7129b6edf5701))
-* manage feed keywords as two editable lists ([932c711](https://github.com/marcusleg/briefing-officer/commit/932c7117a8bdfeb4064831f1cfac10a222322e36))
-* order keyword lists alphabetically ([3b98993](https://github.com/marcusleg/briefing-officer/commit/3b98993599f09cbe9e712e61d3b3963d050414cf))
-* prefill default disinterests in the Add Feed form ([1d7f269](https://github.com/marcusleg/briefing-officer/commit/1d7f269ad2c5ebb69edede0529b11662abde4ea6))
-* replace the free-text interest profile with keyword lists ([2ea53de](https://github.com/marcusleg/briefing-officer/commit/2ea53defb0ea7d9d12084ea31b64a2234150455b))
-* store per-feed interest and disinterest keywords ([3c8d6f3](https://github.com/marcusleg/briefing-officer/commit/3c8d6f3bca9a277865519ca70cdfb70aced8da28))
-* suggest keywords for ignoring similar articles ([6934256](https://github.com/marcusleg/briefing-officer/commit/6934256044fee28e99a4661f7bed69f62cb49f5b))
-* teach a feed's filter when you reject an article ([7e78056](https://github.com/marcusleg/briefing-officer/commit/7e7805689a6a72513b8335e7e31b7ddf5e3408d6))
-
+- Each feed has an "Interested in" and a "Not interested in" keyword list, which
+  you edit in the feed form. When keywords from both lists apply to an article,
+  the more specific one wins, so "kernel development, but not USB drivers"
+  works. The Add Feed form is prefilled with default disinterests, lists are
+  sorted alphabetically, and a feed's filters are summarised in plain English.
+  ([#750](https://github.com/marcusleg/briefing-officer/pull/750))
+- Rejecting an article with Not interested now offers three suggested keywords,
+  from narrow to broad, and a field for your own, so the feed learns what to
+  hide next time. Articles you reject by hand are filed with the filtered ones.
+  ([#750](https://github.com/marcusleg/briefing-officer/pull/750))
+- The Your Daily Activity and Filtered Articles charts now break each day down
+  by feed. ([#753](https://github.com/marcusleg/briefing-officer/pull/753))
 
 ### Bug Fixes
 
-* address remaining minor review findings ([beef505](https://github.com/marcusleg/briefing-officer/commit/beef505a3c10f5ac4629fb766938bc993d642cae))
-* gate feed-edit submit until filter keywords finish loading ([d556317](https://github.com/marcusleg/briefing-officer/commit/d556317eaf92abdc3543a3722a9935eb69d46bd0))
-* guard the daily article charts against an empty date range ([#757](https://github.com/marcusleg/briefing-officer/issues/757)) ([27d569f](https://github.com/marcusleg/briefing-officer/commit/27d569f153081beb5943bc5dc34c24fc8c179601))
-* keep each feed's dashboard colour stable and stop same-named feeds merging ([46e654f](https://github.com/marcusleg/briefing-officer/commit/46e654f5c620ae6287fb4962910569d41bf242f0)), closes [#754](https://github.com/marcusleg/briefing-officer/issues/754) [#755](https://github.com/marcusleg/briefing-officer/issues/755)
-* keep filter suggestions from contradicting existing interests ([7970a47](https://github.com/marcusleg/briefing-officer/commit/7970a470b915eccaf109329335b94e3ba8b45118))
-* keep not-interested popover open past the first accepted keyword ([41708c1](https://github.com/marcusleg/briefing-officer/commit/41708c1149f795d8c66628467e0ee79bdf46cac6))
-* keep the not-interested popover open through dismissal ([a160994](https://github.com/marcusleg/briefing-officer/commit/a160994bb88c06d38b677eb419013d9b8aa46bd8))
-* namespace the feed keys in the daily article rows ([b4425d9](https://github.com/marcusleg/briefing-officer/commit/b4425d9d364e45844978a0e412dc6dc8f631a27f))
-* seed default disinterest keywords for pre-existing feeds ([4982cf6](https://github.com/marcusleg/briefing-officer/commit/4982cf656d7fd2aedb13212b047a2a18914c7378))
+- Dashboard charts give each feed the same colour in every chart, and two feeds
+  with the same title are no longer merged into one series.
+  ([#767](https://github.com/marcusleg/briefing-officer/pull/767), closes
+  [#754](https://github.com/marcusleg/briefing-officer/issues/754),
+  [#755](https://github.com/marcusleg/briefing-officer/issues/755))
 
 ## [0.14.0](https://github.com/marcusleg/briefing-officer/compare/v0.13.0...v0.14.0) (2026-08-14)
 
-
 ### Features
 
-* add a Filtered view and a daily chart of what never reached you ([dc1cb03](https://github.com/marcusleg/briefing-officer/commit/dc1cb039b491f335e073e1e6d8efddb4751f1bd9))
-* add a Not interested action and a view to review hidden articles ([e60424a](https://github.com/marcusleg/briefing-officer/commit/e60424a16b6aaba084ac2e24427cabbe6fdfc4b7))
-* hide articles that do not match a feed's interest profile ([fdfe90f](https://github.com/marcusleg/briefing-officer/commit/fdfe90fd3b215e9d226bbadbdaff105a9c87998a))
-* replace title filter expressions with an interest profile ([51eea32](https://github.com/marcusleg/briefing-officer/commit/51eea3250be48ef0ece1ce9638a5fa1f8f8b6796))
-
+- Describe what you want from a feed in plain language and an AI model hides
+  articles that do not match. Hidden articles are kept, never deleted, each with
+  a one-line reason. Feeds without a profile are not filtered. This replaces
+  Title Filter Expressions: existing expressions are carried over into the
+  profile, but feeds that used regular expressions are now filtered by AI and
+  use more tokens.
+  ([#747](https://github.com/marcusleg/briefing-officer/pull/747))
+- A Not interested button rejects an article by hand. Choose View, then Not
+  interested, on a feed to review everything that was hidden and restore it.
+  ([#747](https://github.com/marcusleg/briefing-officer/pull/747))
+- A Filtered page in the sidebar lists everything that never reached your feed,
+  and a daily chart on the dashboard shows how much was filtered by the model
+  and how much you rejected.
+  ([#749](https://github.com/marcusleg/briefing-officer/pull/749))
 
 ### Bug Fixes
 
-* keep the reader in control of Read Later and already-read articles ([985c72f](https://github.com/marcusleg/briefing-officer/commit/985c72f3c318e74096729fc516a183013623092f))
-* run the configured seed script again on prisma db seed ([e42d4d3](https://github.com/marcusleg/briefing-officer/commit/e42d4d3876eca99aed91a19dffea801d7cdfc7c8))
-* stop counting read-later articles as unread ([5b72a38](https://github.com/marcusleg/briefing-officer/commit/5b72a383fe65ee23a6c74045a624fd9137916ee6))
-* stop filtering articles when your interest profile says "everything except" ([31cd779](https://github.com/marcusleg/briefing-officer/commit/31cd779632134c93b5be7b955250eea872e04e8f))
+- Read Later articles are no longer counted as unread in the dashboard chart and
+  in the prompt about your other feeds, an article that was read and then saved
+  for later no longer appears in both History and Read Later, and undoing
+  Dismiss or Restore puts the article back where it was.
+  ([#747](https://github.com/marcusleg/briefing-officer/pull/747))
 
 ## [0.13.0](https://github.com/marcusleg/briefing-officer/compare/v0.12.0...v0.13.0) (2026-08-08)
 
-
 ### Features
 
-* add audio script assembly helpers ([6b6e071](https://github.com/marcusleg/briefing-officer/commit/6b6e07145249f8696541bdc5c6251b0eff06d469))
-* add the audio summary page ([abb3c0e](https://github.com/marcusleg/briefing-officer/commit/abb3c0e354ec0e708b4291b173fb629bcbcda450))
-* generate a spoken script for audio summaries ([7be3db1](https://github.com/marcusleg/briefing-officer/commit/7be3db1d149ba43976faaf4404311050524636d1))
-* generate and speak article briefings in the article's own language ([546556b](https://github.com/marcusleg/briefing-officer/commit/546556b72d61bda526d52eca315bf9254aacd183))
-* move audio playback controls above the briefing transcript ([e8b6893](https://github.com/marcusleg/briefing-officer/commit/e8b68933aa1107e1168dd4428aca7c0b78e433b7))
-* open a dedicated page from the article card's speaker icon ([22715a5](https://github.com/marcusleg/briefing-officer/commit/22715a5c6e29321d8dd87c0e6516afe8185ed833))
-* play audio summaries while the transcript streams in ([444db62](https://github.com/marcusleg/briefing-officer/commit/444db62b2ab9e79751ab1d8a3a0defcd19585471))
-* read article title and lead aloud from the card ([4b15278](https://github.com/marcusleg/briefing-officer/commit/4b15278c5becb2173db0673cbe5b31a67fa936fa))
-* replace the speech rate slider with a playback speed menu ([#736](https://github.com/marcusleg/briefing-officer/issues/736)) ([f5685d8](https://github.com/marcusleg/briefing-officer/commit/f5685d8bdf75c890e6ef4d7cac6f6247dc76d1b2))
-* show the author a feed publishes, not a guessed byline ([#726](https://github.com/marcusleg/briefing-officer/issues/726)) ([d6d61c7](https://github.com/marcusleg/briefing-officer/commit/d6d61c79afb1cc80a91b0994e1a15fe6c8dd2b67))
-
+- Listen to an article briefing. The speaker icon on an article card, or the `a`
+  key, opens an audio page that reads the title, author and feed straight away,
+  then speaks a script written for listening while the transcript streams in and
+  highlights the sentence being read. Choose a playback speed from 1.0x to 2.0x.
+  The speech uses your browser's built-in voices.
+  ([#724](https://github.com/marcusleg/briefing-officer/pull/724),
+  [#725](https://github.com/marcusleg/briefing-officer/pull/725),
+  [#735](https://github.com/marcusleg/briefing-officer/pull/735),
+  [#736](https://github.com/marcusleg/briefing-officer/pull/736))
+- Articles show the author the feed itself declares, instead of a byline guessed
+  from the page.
+  ([#726](https://github.com/marcusleg/briefing-officer/pull/726))
 
 ### Bug Fixes
 
-* **ai:** adopt LanguageModelV4 for AI SDK v7 ([4bc0bda](https://github.com/marcusleg/briefing-officer/commit/4bc0bda9cb1e61d3fda332e4606cd44b38d91529))
-* **charts:** scale unread articles donut with its container ([86ed169](https://github.com/marcusleg/briefing-officer/commit/86ed169a706854dc115eca9e5977fa36ec17beab))
-* **deps:** align react-dom with react 19.2.8 ([2fb7b49](https://github.com/marcusleg/briefing-officer/commit/2fb7b49a1d140ba114a36b2719691aac5c3abfc4))
-* **deps:** resolve all open Dependabot security alerts ([#744](https://github.com/marcusleg/briefing-officer/issues/744)) ([8b33833](https://github.com/marcusleg/briefing-officer/commit/8b338338e5b862061062c8d1d96acd3e241fb091))
-* guard rate-restore effect and surface script generation failures ([2bcf036](https://github.com/marcusleg/briefing-officer/commit/2bcf036a868b82464c0dc750cdff0b5b53689b81))
-* ignore authors embedded in feed item content ([d92f076](https://github.com/marcusleg/briefing-officer/commit/d92f076d9887539ee29c11fc741126094cf8a2f6))
-* keep speaking the article introduction in development ([a0bb054](https://github.com/marcusleg/briefing-officer/commit/a0bb054ae651676e1e957117a11da4ebf1c823bb))
-* redirect signed-out visitors from every feed page ([81c3832](https://github.com/marcusleg/briefing-officer/commit/81c38320682977bdb4844cd94480d3b1f4974916))
-* remove "no" from abbreviations and guard ordinals from suppression ([2859935](https://github.com/marcusleg/briefing-officer/commit/285993564c9d4a7047f12f22b8c0a49e6a915d12))
-* report summary generation failures instead of stalling ([62ec9fa](https://github.com/marcusleg/briefing-officer/commit/62ec9fab8332ed594fda82f2c45e6c505814e702))
-* resume engine after cancel and recover from stalled sentence streams ([dc557af](https://github.com/marcusleg/briefing-officer/commit/dc557afd6b3eb923f5522cf95aa4d51bf8eaf717))
-* stop leaked speech playback, rate-drag restarts, and two crash paths ([51346a2](https://github.com/marcusleg/briefing-officer/commit/51346a2475371fbd09f16c3cf857cf4d4cdf118a))
+- Leads, text summaries and audio briefings are now written in the article's own
+  language instead of sometimes switching to English. The briefing is spoken by
+  a matching voice where one is installed; otherwise the page says which voice
+  is missing. ([#734](https://github.com/marcusleg/briefing-officer/pull/734))
+- When the AI provider fails, the summary page now shows what arrived and
+  reports the failure instead of waiting forever, and the failure can no longer
+  crash the app.
+  ([#737](https://github.com/marcusleg/briefing-officer/pull/737))
+- Signed-out visitors are redirected to the sign-in page from search and
+  category pages instead of seeing an error.
+  ([#737](https://github.com/marcusleg/briefing-officer/pull/737))
+- The unread articles chart on the dashboard no longer disappears in narrow
+  layouts. ([#706](https://github.com/marcusleg/briefing-officer/pull/706))
+- Fixed the known security vulnerabilities in dependencies that GitHub's
+  Dependabot reported.
+  ([#744](https://github.com/marcusleg/briefing-officer/pull/744))
+
+### Dependencies
+
+- Updated Next.js to 16.3.0, React to 19.2.8, Prisma to 7.9.1 and the AI SDK to
+  7.0. ([#692](https://github.com/marcusleg/briefing-officer/pull/692),
+  [#744](https://github.com/marcusleg/briefing-officer/pull/744))
 
 ## [0.12.0](https://github.com/marcusleg/briefing-officer/compare/v0.11.0...v0.12.0) (2026-07-11)
 
+### ⚠ Breaking Changes
+
+- The upgrade to Prisma 7 changes how a relative `DATABASE_URL` is resolved:
+  `file:` paths now start from the directory the app runs in, no longer from the
+  `prisma` folder. If yours is relative, change `file:../data/database.sqlite`
+  to `file:./data/database.sqlite`.
+  ([#690](https://github.com/marcusleg/briefing-officer/pull/690))
 
 ### Features
 
-* **article:** stop marking article as read on visit ([a607cff](https://github.com/marcusleg/briefing-officer/commit/a607cff5595c4ad9a4a3ea7023b2c5a3cd899f12))
-
+- Opening an article no longer marks it as read. Use the Dismiss button, which
+  now shows a checkmark instead of a trash icon.
+  ([#690](https://github.com/marcusleg/briefing-officer/pull/690))
 
 ### Bug Fixes
 
-* **article:** use checkmark instead of trash icon on dismiss button ([d8de716](https://github.com/marcusleg/briefing-officer/commit/d8de7165541c30420a20f62c82f3161d508ea535))
-* **db:** resolve SQLite path relative to project root ([27a0bf6](https://github.com/marcusleg/briefing-officer/commit/27a0bf6e8cc46bc4e847429f860528072ab5bd8c))
-* **deps:** pin kysely to ^0.28.17 to fix better-auth 1.6.13 build ([ba495a7](https://github.com/marcusleg/briefing-officer/commit/ba495a75594b304050350fb1d8f72b0808498b14))
-* include error details in cron and article processing logs ([bf4f890](https://github.com/marcusleg/briefing-officer/commit/bf4f890fdc22fdb6594c69538048d0462fcfb40e))
-
+- Failed feed refreshes and article processing now log the error message and
+  stack trace instead of an empty object.
+  ([#679](https://github.com/marcusleg/briefing-officer/pull/679))
 
 ### Performance Improvements
 
-* enable SQLite WAL mode to prevent writes from blocking page loads ([72e29a3](https://github.com/marcusleg/briefing-officer/commit/72e29a3b428cab9933023314e8aabb30f3866cca))
+- Page loads no longer stall while a feed refresh is writing to the database.
+  ([#681](https://github.com/marcusleg/briefing-officer/pull/681))
+
+### Dependencies
+
+- Updated Prisma to 7.8.0.
 
 ## [0.11.0](https://github.com/marcusleg/briefing-officer/compare/v0.10.0...v0.11.0) (2026-06-21)
 
-
 ### Features
 
-* add playwright config for screenshot capture ([40f3cf3](https://github.com/marcusleg/briefing-officer/commit/40f3cf36583fbe4be166bb720bb73457cb4290d1))
-* add prisma seed script with demo fixtures ([dd4eb6d](https://github.com/marcusleg/briefing-officer/commit/dd4eb6d7d24a042fc79009415c08f17bc18ad998))
-* add screenshot capture script and npm run update-screenshots ([34a46c7](https://github.com/marcusleg/briefing-officer/commit/34a46c7fd8f3f48a2c53100da3932028137aa70a))
-* refined prompts for AI summary generation ([c2a7a58](https://github.com/marcusleg/briefing-officer/commit/c2a7a583292dd618b8d174f886f5d44cfa62667c))
-
+- Summaries and leads are generated from refined prompts: the summary picks "Key
+  Facts", "Key Takeaways" or "Key Points" to suit the article, and the model is
+  given the article title as well as its text.
+  ([#670](https://github.com/marcusleg/briefing-officer/pull/670))
 
 ### Bug Fixes
 
-* improve seed fixtures and screenshot capture quality ([356dd8f](https://github.com/marcusleg/briefing-officer/commit/356dd8f5926475ad8c237c21a17cfeb5d933cc29))
-* muted "Read" button to avoid visual button hierarchy ([d83bb71](https://github.com/marcusleg/briefing-officer/commit/d83bb71d35d8b0a5ec9c8bbb6b54eeabacfd5ce0))
-* prevent article card from overflowing the viewport on mobile ([754abd8](https://github.com/marcusleg/briefing-officer/commit/754abd81f2257511084bbee49bb32b04567d07a0))
-
-
-### Reverts
-
-* remove accidental application code change from article-card ([3cc8e02](https://github.com/marcusleg/briefing-officer/commit/3cc8e02243c23d0abb2d00fc215df5f269629834))
+- Article cards no longer grow wider than a phone screen and scroll sideways
+  when a lead contains long unbreakable text.
+  ([#676](https://github.com/marcusleg/briefing-officer/pull/676))
+- The Read button is muted so it no longer competes with the other buttons.
+  ([#673](https://github.com/marcusleg/briefing-officer/pull/673))
 
 ## [0.10.0](https://github.com/marcusleg/briefing-officer/compare/v0.9.1...v0.10.0) (2026-06-17)
 
-
 ### Features
 
-* navigate back on Dismiss from AI summary page ([e2eebf0](https://github.com/marcusleg/briefing-officer/commit/e2eebf0f45a8332bfe8b976a703f7008c5e38660))
-
+- Dismissing an article from its AI summary page takes you back to the page you
+  came from. ([#669](https://github.com/marcusleg/briefing-officer/pull/669))
 
 ### Bug Fixes
 
-* remove mostly broken token cost estimates ([805787c](https://github.com/marcusleg/briefing-officer/commit/805787cb298408e18098deca88f48946d1fae905))
-* remove obsolete reasoning token tracking ([f42a123](https://github.com/marcusleg/briefing-officer/commit/f42a12349d2db82cad56b27f218d89fe28d2aee5))
+- The token usage chart no longer shows cost estimates, which were mostly wrong,
+  or reasoning tokens.
+  ([#667](https://github.com/marcusleg/briefing-officer/pull/667))
 
 ## [0.9.1](https://github.com/marcusleg/briefing-officer/compare/v0.9.0...v0.9.1) (2026-06-17)
 
-
 ### Bug Fixes
 
-* align line-height of AI Summaries with Article Card ([d7d67a4](https://github.com/marcusleg/briefing-officer/commit/d7d67a4dc905ce876fe30a20b12d22c7defe5ad6))
-* left-align back button on AI summary page ([3bcffc3](https://github.com/marcusleg/briefing-officer/commit/3bcffc390433a65dc12bc00e877e52bd02dfe219))
+- On the AI summary page, the text spacing matches the article cards and the
+  back button is aligned to the left.
+  ([#665](https://github.com/marcusleg/briefing-officer/pull/665))
 
 ## [0.9.0](https://github.com/marcusleg/briefing-officer/compare/v0.8.0...v0.9.0) (2026-06-17)
 
-
 ### Features
 
-* clicking the feed name on article cards navigates to the feed page ([1dd474d](https://github.com/marcusleg/briefing-officer/commit/1dd474da6c63cc04c73034f2e86c141106fcd597))
-* collapse secondary buttons to icon-only with tooltips; introduce Dismiss/Restore ([902815d](https://github.com/marcusleg/briefing-officer/commit/902815d711b280c215119296785253029259b019))
-* increase most font sizes for better legibility ([5709601](https://github.com/marcusleg/briefing-officer/commit/5709601aa231d94b3d7a690db007e3a8e19a65af))
-* move feed name and publication date above article title ([836c007](https://github.com/marcusleg/briefing-officer/commit/836c007dead909bd13e5a4d486fd48deace232e0))
-* reduce font size of source link on AI Summary page ([f445a75](https://github.com/marcusleg/briefing-officer/commit/f445a75fa5c6be44dd50f3675f07fe29dc362771))
-* rename, reorder action buttons and add reading time to footer ([ef7572c](https://github.com/marcusleg/briefing-officer/commit/ef7572c53aee2a18b31bb6e8a2ffc82d55d3f178))
-* restructure AI summary page layout to match ArticleCard design ([12ab193](https://github.com/marcusleg/briefing-officer/commit/12ab193cefdb3d24a6c93b38a44ee9a0b18fb277))
-
-
-### Bug Fixes
-
-* correct hotkey feedId reference and mobile button size ([9a47ae3](https://github.com/marcusleg/briefing-officer/commit/9a47ae3a0b4fb29c6acf8547f5dd06eb444fa0e6))
-* reduce card padding and gap on mobile ([46a339c](https://github.com/marcusleg/briefing-officer/commit/46a339c0b557dc6181fce30659758acd2ddf76c3))
-* replace EyeIcon with ArchiveRestoreIcon for toggle-read button ([45b2ff7](https://github.com/marcusleg/briefing-officer/commit/45b2ff758effc7d72e8f6efa110b47e78217e516))
+- Redesigned article cards: the feed name and publication date sit above the
+  title, most fonts are larger, buttons are renamed (Read, Summarize) and
+  reordered, and reading time moves to the footer. Read Later, Star and Comments
+  collapse to icons with tooltips, and Mark as read becomes Dismiss and Restore.
+  ([#655](https://github.com/marcusleg/briefing-officer/pull/655),
+  [#660](https://github.com/marcusleg/briefing-officer/pull/660),
+  [#664](https://github.com/marcusleg/briefing-officer/pull/664))
+- Click the feed name on an article card to open that feed.
+  ([#663](https://github.com/marcusleg/briefing-officer/pull/663))
+- The AI summary page follows the article card layout, with the action buttons
+  below the summary and the reading time shown.
+  ([#661](https://github.com/marcusleg/briefing-officer/pull/661))
 
 ## [0.8.0](https://github.com/marcusleg/briefing-officer/compare/v0.7.0...v0.8.0) (2026-06-11)
 
-
 ### Features
 
-* add opencode.json ([a41f1b3](https://github.com/marcusleg/briefing-officer/commit/a41f1b37e16dbcaf457ddc2f2273d5d9a06d7470))
-* **ai:** extract tokenPricing table and calculateTotalCost ([98f77f7](https://github.com/marcusleg/briefing-officer/commit/98f77f7000b5a83625bcf16faef270055c6397ca))
-* **charts:** add shared CHART_COLORS and buildPalette helper ([f44fe41](https://github.com/marcusleg/briefing-officer/commit/f44fe41f528b7efb08c3b577f7ee1ba6acab3654))
-* **feed:** add ChartCard shell with skeleton fallback ([359c0ce](https://github.com/marcusleg/briefing-officer/commit/359c0ce99112fdfb10657865ac5bd93928101983))
-* **hooks:** add useDateFormatters for memoized Intl formatters ([d7048a7](https://github.com/marcusleg/briefing-officer/commit/d7048a787a7fce25a32e7f17d50b742e46857292))
-* simplify summary prompt to key facts/takeaways only ([df10cc0](https://github.com/marcusleg/briefing-officer/commit/df10cc04ff192ee91b4b98fd9bec621f63481ca1))
-* **stats:** add pure transforms for chart-ready shapes ([d674c8e](https://github.com/marcusleg/briefing-officer/commit/d674c8eb9fb37dfcfd37a4c406bfdf3d6b191753))
-
+- Summaries are now a single list of 5 to 12 key facts or takeaways, without the
+  Executive Summary and "Why the Full Article Is Worth Reading" sections.
+  ([#652](https://github.com/marcusleg/briefing-officer/pull/652))
 
 ### Bug Fixes
 
-* replace next-themes with @wrksz/themes to fix React 19 script tag warning ([fb573a1](https://github.com/marcusleg/briefing-officer/commit/fb573a169068cb386a2904aed3e4b1221a45b211))
-* resolve hydration mismatch in sidebar dialog triggers ([9cadc73](https://github.com/marcusleg/briefing-officer/commit/9cadc73e8f9ad8b68103c8fb38182df3e5f1b1a7))
-* **tests:** type rows as ArticlesPerFeedRow[] to satisfy index signature ([0190645](https://github.com/marcusleg/briefing-officer/commit/0190645af8e198cc456a817dc2a0ea1505a8399a))
+- Fixed React console errors from the theme switcher and from the Add Category
+  and Add Feed buttons in the sidebar.
+  ([#649](https://github.com/marcusleg/briefing-officer/pull/649))
 
 ## [0.7.0](https://github.com/marcusleg/briefing-officer/compare/v0.6.1...v0.7.0) (2026-06-04)
 
-
 ### Features
 
-* add enabled column to Feed via migration ([d1dba31](https://github.com/marcusleg/briefing-officer/commit/d1dba31d823928fc1b022728d006d9865056d4da))
-* add enabled switch to feed form ([fab0a95](https://github.com/marcusleg/briefing-officer/commit/fab0a953fe31dbea7dbb6b68afe7d67620148116))
-* add enabled to feed schema ([61bff82](https://github.com/marcusleg/briefing-officer/commit/61bff82ba5cc1a041501a05abc3ccd706bd1b1c0))
-* add Switch ui component ([32c9f2d](https://github.com/marcusleg/briefing-officer/commit/32c9f2ddc38bf049d2f7f6c966e5a6b29a47059c))
-* announce paused feeds to screen readers ([b89397d](https://github.com/marcusleg/briefing-officer/commit/b89397dfb29f436a11beb1da23ee48da4157d7f3))
-* disable form inputs and buttons while submitting for improved UX ([e02de2c](https://github.com/marcusleg/briefing-officer/commit/e02de2c55a85e9beb43e74ddd4583438fce9ac52))
-* show Comments link on article cards from RSS &lt;comments&gt; field ([#642](https://github.com/marcusleg/briefing-officer/issues/642)) ([2e2cafc](https://github.com/marcusleg/briefing-officer/commit/2e2cafc201205f1397a826b63bdc822568fe106f))
-* show disabled feeds as paused in sidebar ([f13b58c](https://github.com/marcusleg/briefing-officer/commit/f13b58c586277c19ba526422bc21fc082a3ddeaf))
-* skip disabled feeds in automatic refresh ([1c20568](https://github.com/marcusleg/briefing-officer/commit/1c2056806731144087505dd79b357663f8747df9))
+- Pause a feed without deleting it with the new "Refresh Automatically" switch
+  in the feed form. Paused feeds are skipped by automatic and bulk refreshes,
+  appear greyed out with a pause icon in the sidebar and are announced as paused
+  to screen readers. Refreshing the feed by hand still works.
+  ([#636](https://github.com/marcusleg/briefing-officer/pull/636))
+- Article cards show a Comments link when the RSS feed provides a `<comments>`
+  URL. ([#642](https://github.com/marcusleg/briefing-officer/pull/642))
+- Form inputs and buttons are disabled while a form is submitting.
+  ([#634](https://github.com/marcusleg/briefing-officer/pull/634))
 
+### Dependencies
 
-### Bug Fixes
-
-* make CommentsButton visible by correcting commentsLink indexing and upsert on refresh ([85821f1](https://github.com/marcusleg/briefing-officer/commit/85821f1080b250eb44e3c5c506f5ee179d7b98e7))
+- Updated Next.js to 16.2.7, React to 19.2.7 and Prisma to 6.19.3.
 
 ## [0.6.1](https://github.com/marcusleg/briefing-officer/compare/v0.6.0...v0.6.1) (2026-04-01)
 
-
 ### Bug Fixes
 
-* exclude read-later articles from mark-as-read bulk updates ([a8f7b60](https://github.com/marcusleg/briefing-officer/commit/a8f7b60d36a8362b3344cfb36df4144bd31e1634))
-* prevent mobile sidebar from auto-focusing on open ([c2b8a62](https://github.com/marcusleg/briefing-officer/commit/c2b8a6234047a4233a1b069618ed71ca5209d719))
+- Mark as read on a feed no longer marks the articles you saved for Read Later.
+  ([#618](https://github.com/marcusleg/briefing-officer/pull/618))
+- The sidebar search field is no longer focused when you open the sidebar on a
+  phone. ([#612](https://github.com/marcusleg/briefing-officer/pull/612))
+
+### Dependencies
+
+- Updated Next.js to 16.1.7 and React to 19.2.4.
+  ([#610](https://github.com/marcusleg/briefing-officer/pull/610))
 
 ## [0.6.0](https://github.com/marcusleg/briefing-officer/compare/v0.5.0...v0.6.0) (2026-02-18)
 
+### ⚠ Breaking Changes
 
-### ⚠ BREAKING CHANGES
-
-* model name is now configurable and must be set as environment variable
+- The Anthropic and Azure OpenAI model names are no longer built in. Set
+  `ANTHROPIC_MODEL` or `AZURE_OPENAI_MODEL`, depending on your provider, before
+  upgrading. ([#496](https://github.com/marcusleg/briefing-officer/pull/496))
 
 ### Features
 
-* add network policy to Helm Chafrt ([41b6ce4](https://github.com/marcusleg/briefing-officer/commit/41b6ce4bd8040cb7c0a436edfcfdb83821a73c65))
-* add support for OpenAI and OpenAI-compatible providers ([873c647](https://github.com/marcusleg/briefing-officer/commit/873c6471c1fa9df16e594d77c5a2c05763029f11))
-* add support for Single-Sign On OAuth provider ([e09aa26](https://github.com/marcusleg/briefing-officer/commit/e09aa26ddd8b359548cc8d9d57417df8fa6a91a1))
-* model name is now configurable and must be set as environment variable ([6331e05](https://github.com/marcusleg/briefing-officer/commit/6331e0539d7b119b23f45e0e6f5b58bd977ba2a0))
-
+- Use OpenAI or any OpenAI-compatible API as the AI provider. Set
+  `OPENAI_API_KEY` and `OPENAI_MODEL`, and `OPENAI_BASE_URL` for a provider
+  other than OpenAI.
+  ([#585](https://github.com/marcusleg/briefing-officer/pull/585))
+- Sign in with a single sign-on (OAuth) provider. Enable it with
+  `NEXT_PUBLIC_AUTH_GENERIC_OAUTH_ENABLE` and configure it with the
+  `AUTH_GENERIC_OAUTH_*` settings.
+  ([e09aa26](https://github.com/marcusleg/briefing-officer/commit/e09aa26ddd8b359548cc8d9d57417df8fa6a91a1))
+- The Helm chart can create a NetworkPolicy. Turn it on with
+  `networkPolicy.enabled`.
+  ([#589](https://github.com/marcusleg/briefing-officer/pull/589))
 
 ### Bug Fixes
 
-* adaptive color for "Read Later" button based on light or dark mode ([960cfd6](https://github.com/marcusleg/briefing-officer/commit/960cfd6ce27ba6fb1356df6ed2bd52ecfae7993b))
-* adaptive color for "Star" button based on light or dark mode ([98b5864](https://github.com/marcusleg/briefing-officer/commit/98b5864a63c600f73e19da62cb7e557376813f9d))
-* add `BASE_URL` and `AUTH_SECRET` environment variables to deployment template ([00bd088](https://github.com/marcusleg/briefing-officer/commit/00bd0888f0b1d1bdfd577b2fccea75a5520ab108))
-* sort users by name in ascending order ([08053ff](https://github.com/marcusleg/briefing-officer/commit/08053ff6ab7b9969598000c244ad12f7c11fc2c4))
-* wire up `AUTH_SELF_REGISTRATION_ENABLED` environment variable to enabling self-registration ([90eb5e6](https://github.com/marcusleg/briefing-officer/commit/90eb5e6a036783e60bff570c74c238f84e6d17dd))
+- The Star and Read Later buttons use colours that suit light and dark mode.
+  ([#602](https://github.com/marcusleg/briefing-officer/pull/602))
+- `AUTH_SELF_REGISTRATION_ENABLED` now controls self-registration as documented.
+  ([90eb5e6](https://github.com/marcusleg/briefing-officer/commit/90eb5e6a036783e60bff570c74c238f84e6d17dd))
+- The Helm chart's deployment now sets `BASE_URL` and `AUTH_SECRET`.
+  ([00bd088](https://github.com/marcusleg/briefing-officer/commit/00bd0888f0b1d1bdfd577b2fccea75a5520ab108))
+- The user management page lists users sorted by name.
+  ([08053ff](https://github.com/marcusleg/briefing-officer/commit/08053ff6ab7b9969598000c244ad12f7c11fc2c4))
 
+### Dependencies
 
-### Reverts
-
-* verify regular users cannot see the User Management link in the sidebar ([5659d8d](https://github.com/marcusleg/briefing-officer/commit/5659d8d0f01b845e78f5bfde1bd6f9a901126d6d))
+- Updated Next.js to 16.1.6, the AI SDK to 6.0 and Node.js to 24.13.0.
+  ([#586](https://github.com/marcusleg/briefing-officer/pull/586))
 
 ## [0.5.0](https://github.com/marcusleg/briefing-officer/compare/v0.4.0...v0.5.0) (2025-12-14)
 
-
 ### Features
 
-* new empty page designs using shadcn's `Empty` component ([fb367d0](https://github.com/marcusleg/briefing-officer/commit/fb367d0901433e3d5fab50dfa23e97770e5b8d41))
+- Empty pages, such as an empty feed or no search results, have a new design.
+  ([fb367d0](https://github.com/marcusleg/briefing-officer/commit/fb367d0901433e3d5fab50dfa23e97770e5b8d41))
 
+### Dependencies
 
-### Chores
-
-* update NextJS to version 16.0.10
+- Updated Next.js to 16.0.10 and React to 19.2.3.
 
 ## [0.4.0](https://github.com/marcusleg/briefing-officer/compare/v0.3.0...v0.4.0) (2025-12-07)
 
-
 ### Features
 
-* add liveness and readiness probes ([82309ef](https://github.com/marcusleg/briefing-officer/commit/82309efe814ed6432ffe6e909fbb16aa5f3e525b))
-* Helm chart for application deployment ([b508970](https://github.com/marcusleg/briefing-officer/commit/b5089701f9048135962ce5fea393d2ec5a431b04))
-
+- Deploy Briefing Officer to Kubernetes with the new Helm chart.
+  ([#230](https://github.com/marcusleg/briefing-officer/pull/230))
+- The app answers liveness and readiness probes at `/api/health/liveness` and
+  `/api/health/readiness`, and the Helm chart uses them.
+  ([82309ef](https://github.com/marcusleg/briefing-officer/commit/82309efe814ed6432ffe6e909fbb16aa5f3e525b))
 
 ### Bug Fixes
 
-* improve word breaking in article titles ([3980866](https://github.com/marcusleg/briefing-officer/commit/39808664c7740811da60359d1cc30656c9d251e8))
-* improve word breaking in article titles ([6b93ba2](https://github.com/marcusleg/briefing-officer/commit/6b93ba2d879d157325d70a812d58019a47a57ce0))
-* prevent text overflow in article titles with `break-all` ([3c878c3](https://github.com/marcusleg/briefing-officer/commit/3c878c3cf45d6bc7c689c83834b9d6f6a16a2480))
+- Long words in article titles no longer overflow the card.
+  ([3980866](https://github.com/marcusleg/briefing-officer/commit/39808664c7740811da60359d1cc30656c9d251e8),
+  [6b93ba2](https://github.com/marcusleg/briefing-officer/commit/6b93ba2d879d157325d70a812d58019a47a57ce0),
+  [3c878c3](https://github.com/marcusleg/briefing-officer/commit/3c878c3cf45d6bc7c689c83834b9d6f6a16a2480))
+
+### Dependencies
+
+- Updated Next.js to 15.5.7 and Prisma to 6.18.0.
 
 ## [0.3.0](https://github.com/marcusleg/briefing-officer/compare/v0.2.0...v0.3.0) (2025-09-10)
 
-
 ### Features
 
-* display `ArticleCardActions` as a grid on small screens ([07be19b](https://github.com/marcusleg/briefing-officer/commit/07be19b944a79ee8b13199e62ced4d77e77925da))
-
+- The article action buttons are laid out as a grid on small screens.
+  ([07be19b](https://github.com/marcusleg/briefing-officer/commit/07be19b944a79ee8b13199e62ced4d77e77925da))
 
 ### Bug Fixes
 
-* improve sidebar item design for feeds with long titles ([847057a](https://github.com/marcusleg/briefing-officer/commit/847057aa238cbac5b2476ef81628a71bd5ffa0dd))
+- Feeds with long titles look better in the sidebar.
+  ([847057a](https://github.com/marcusleg/briefing-officer/commit/847057aa238cbac5b2476ef81628a71bd5ffa0dd))
+
+### Dependencies
+
+- Updated Next.js to 15.5.2 and Prisma to 6.16.0.
 
 ## [0.2.0](https://github.com/marcusleg/briefing-officer/compare/v0.1.1...v0.2.0) (2025-08-22)
 
-
 ### Features
 
-* add keyboard shortcut for AI summary navigation in `ArticleCard` ([dd3cc54](https://github.com/marcusleg/briefing-officer/commit/dd3cc542e58b1c519cf2ec11650d6697f058e265))
-* redesign `ArticleCard` reading time badges and action buttons ([57e0642](https://github.com/marcusleg/briefing-officer/commit/57e064288a1ad413242bbe247de68ddc774e7700))
-
+- Press `s` on a selected article to open its AI summary.
+  ([dd3cc54](https://github.com/marcusleg/briefing-officer/commit/dd3cc542e58b1c519cf2ec11650d6697f058e265))
+- Redesigned the reading time badge and action buttons on article cards.
+  ([57e0642](https://github.com/marcusleg/briefing-officer/commit/57e064288a1ad413242bbe247de68ddc774e7700))
 
 ### Bug Fixes
 
-* improve `ArticleCard` layout for mobile devices ([e001776](https://github.com/marcusleg/briefing-officer/commit/e00177624ed898dda2d534af0becf17296437273))
-* set width in `Dashboard` to avoid horizontal content jump ([cf7d0d1](https://github.com/marcusleg/briefing-officer/commit/cf7d0d159f5507416db4fb414cb2880f1cab00f2))
+- Article cards fit better on mobile screens.
+  ([e001776](https://github.com/marcusleg/briefing-officer/commit/e00177624ed898dda2d534af0becf17296437273))
+- The dashboard no longer shifts sideways when its content loads.
+  ([cf7d0d1](https://github.com/marcusleg/briefing-officer/commit/cf7d0d159f5507416db4fb414cb2880f1cab00f2))
 
 ## [0.1.1](https://github.com/marcusleg/briefing-officer/compare/briefing-officer-v0.1.0...briefing-officer-v0.1.1) (2025-08-22)
 
-
 ### Features
 
-* add `Breadcrumb` component and integrate it into navigation components ([63806ff](https://github.com/marcusleg/briefing-officer/commit/63806ff990d02a19182a717346f401555bb9d88b))
-* add `userId` to `Article` and `Feed` models ([6eb0496](https://github.com/marcusleg/briefing-officer/commit/6eb0496cf0b508d462597a6fd05c48a6940d6f07))
-* add `UserNavigation` component with sign-out functionality ([f8c167f](https://github.com/marcusleg/briefing-officer/commit/f8c167f6c4277e7fa34761bdd8ec6a6106e1f24a))
-* add article count badges and separators to key pages ([a62f0ef](https://github.com/marcusleg/briefing-officer/commit/a62f0efe2ed1b006bfa42f7d18c75b3e2fc00f2b))
-* add article retention filter and configure retention period in API route ([e4cbb1d](https://github.com/marcusleg/briefing-officer/commit/e4cbb1d97fc7fa9c2742830c3f3efa1735e2523a))
-* add authentication to `createFeed` and associate feeds with users ([c593280](https://github.com/marcusleg/briefing-officer/commit/c5932809a0709b24c5e25537dfc174ae8c039816))
-* add better-auth middleware ([1c92e9b](https://github.com/marcusleg/briefing-officer/commit/1c92e9bb8b0e9c9bcd9a42d1d18c6fb27d95c45d))
-* add caching middleware for AI model to optimize repeated prompt handling ([801eb58](https://github.com/marcusleg/briefing-officer/commit/801eb589e7afceb0e908d0933e272d90c566e006))
-* add dynamic model-based chart configuration to TokenUsageChart ([0eddc34](https://github.com/marcusleg/briefing-officer/commit/0eddc34b3fbe9313df1ffbc1b9347c2520060e6e))
-* add edit and delete button to category page ([7922dd6](https://github.com/marcusleg/briefing-officer/commit/7922dd6f2844e6752c0e5d3494c637dbc082674e))
-* add error handling and success notification to SignUpForm submission process ([c2e2a04](https://github.com/marcusleg/briefing-officer/commit/c2e2a04f5832b450371b095ef9628edb8250f8fe))
-* add loading spinner to `ToggleReadButton` and refactor conditional rendering ([7e980fa](https://github.com/marcusleg/briefing-officer/commit/7e980fa4d55a7a103e2b8ce04a5f18ffa218ec85))
-* add loading spinner to buttons in feed dialog and form components ([dc010df](https://github.com/marcusleg/briefing-officer/commit/dc010df8e6c20cd0d3b2fcc9c0c4f7f9bd4a3851))
-* add mark-as-read button and functionality to category page ([da05f83](https://github.com/marcusleg/briefing-officer/commit/da05f83bbef332ece671c52e1513468dcc5ef883))
-* add reasoning tokens to token usage tracking and charts ([872ffc6](https://github.com/marcusleg/briefing-officer/commit/872ffc65d2977d0698b15128b92f74e494db754f))
-* add refresh category feeds button to category page ([e196de2](https://github.com/marcusleg/briefing-officer/commit/e196de296702340248d5943c14eb122d46a14a77))
-* add session-based filtering to read later, read history, and starred articles ([a016424](https://github.com/marcusleg/briefing-officer/commit/a016424f090c552c55b9207b8342a445740cbe6d))
-* add session-based filtering to unread articles query ([826acec](https://github.com/marcusleg/briefing-officer/commit/826acec36062a10c04fedb4ef40b66d9140ff4ee))
-* add session-based user filtering to `LeftNavigation` feeds ([4273613](https://github.com/marcusleg/briefing-officer/commit/42736138059730d45ab01c186a171e53f02f6f09))
-* add source link to AI summary page ([a30dfc8](https://github.com/marcusleg/briefing-officer/commit/a30dfc87484ac38330c6754028bdee72017db88f))
-* add support for Anthropic ([761a376](https://github.com/marcusleg/briefing-officer/commit/761a3764285d417463d26450441a02714c3bf642))
-* add title header to sidebar ([ae9ae2f](https://github.com/marcusleg/briefing-officer/commit/ae9ae2fdd9c4acd04f0feec916395eb03ace6bc1))
-* add toast notifications for adding/removing articles to/from Read Later list ([b53f0d0](https://github.com/marcusleg/briefing-officer/commit/b53f0d0b10c5023ede953068dd1d0ac0ad9eaef0))
-* add toast notifications for starring/unstarring articles ([f0c78d4](https://github.com/marcusleg/briefing-officer/commit/f0c78d4f4dfb5063c99eee55b015d50c80e8ecfe))
-* add tooltip to `DeleteFeedButton` ([e3a6bf5](https://github.com/marcusleg/briefing-officer/commit/e3a6bf57271d2adbb1cbbaecfba58c77bc27ff8f))
-* add tooltip to `EditFeedButton` ([6bac54f](https://github.com/marcusleg/briefing-officer/commit/6bac54fa9e4ce9895d27f33ea669995f118aa7dd))
-* add user activation status and ban/unban functionality in UserTable ([a7343b2](https://github.com/marcusleg/briefing-officer/commit/a7343b28427c755cf9c46bcb98cc06857f821f90))
-* add user-based filtering to article and feed stats queries ([2cd28c3](https://github.com/marcusleg/briefing-officer/commit/2cd28c366c0c5058c6217fe9115565b65f0e72aa))
-* allow self-registration by default, but disallow sign-ins until account approved by administrator ([9095c56](https://github.com/marcusleg/briefing-officer/commit/9095c56ca0216253e423636bbdfe133c7bc10c69))
-* article search ([25426dd](https://github.com/marcusleg/briefing-officer/commit/25426ddabb244e644bafcb403f60b4bed3d38473))
-* automatically assign `admin` role to first user ([569afff](https://github.com/marcusleg/briefing-officer/commit/569afff7fe1d72587a190a31334e8ab0ef9a79d0))
-* automatically delete articles older than one year ([6afcd8c](https://github.com/marcusleg/briefing-officer/commit/6afcd8c7fa927b3f063fd9d9f07f5d86f0282b75))
-* basic user management ([85faf01](https://github.com/marcusleg/briefing-officer/commit/85faf0193bacf1353f79887e2e3cd698122e1e95))
-* calculate token costs dynamically by model ([bbcf748](https://github.com/marcusleg/briefing-officer/commit/bbcf748d7e78f7664531ca3d4282ee5cecd7fd1c))
-* clicking the website title navigates to frontpage ([625cc0f](https://github.com/marcusleg/briefing-officer/commit/625cc0feb8bb19134364e3b6c799247675aa4261))
-* dark mode auto-detect and toggle ([e974e55](https://github.com/marcusleg/briefing-officer/commit/e974e55891e3d215c9c2955a0f38c79db94267eb))
-* darker dark theme ([e44ef43](https://github.com/marcusleg/briefing-officer/commit/e44ef433006ef9ed20e77379df195e49789f0755))
-* disable self-registration by default after initial account was created ([8bf80d0](https://github.com/marcusleg/briefing-officer/commit/8bf80d04395f29d334cf0ffc8501d54fe6b28a4d))
-* display a helpful message when no feeds were added yet ([833fa7c](https://github.com/marcusleg/briefing-officer/commit/833fa7ce45a6bf332f891e2c6ed39e375b49d04e))
-* display article author in ArticleCard if available ([85d2260](https://github.com/marcusleg/briefing-officer/commit/85d226024f038f1fac4c936605d248c500a1f19d))
-* display feed action buttons right of the feed title on large screens ([8652b7a](https://github.com/marcusleg/briefing-officer/commit/8652b7a8476b6f5ecc0949f9628085deebd79e02))
-* display time of last update on feed page ([43a77be](https://github.com/marcusleg/briefing-officer/commit/43a77be526f18c23d5e916b2b4375de4b0fe14db))
-* enhance AI summary prompt for improved structure and clarity ([329a583](https://github.com/marcusleg/briefing-officer/commit/329a583bf805a06b4bcf5472d7d0df83cb735180))
-* enhance caching layer with QuickLRU for size-limited and time-bound storage ([c2cb87f](https://github.com/marcusleg/briefing-officer/commit/c2cb87feff6b714b83171d279ea00aaff9798f3b))
-* feed categories ([86f535e](https://github.com/marcusleg/briefing-officer/commit/86f535e731bc902f4b0d59de912049bfea2028cd))
-* generate AI lead on demand if not found in database ([da26228](https://github.com/marcusleg/briefing-officer/commit/da26228a262cce1d36e79de34b6101a3ac64db48))
-* generate AI lead right after the article is scraped ([b28455d](https://github.com/marcusleg/briefing-officer/commit/b28455d3a8296819369de65bc6a871f29d4f3644))
-* hide articles marked for "read later" from feeds ([152c5dd](https://github.com/marcusleg/briefing-officer/commit/152c5ddf7df91a7b8ec975d0a0bb0b7c8c3d1de7))
-* hide frontpage charts on small screen ([8f6fa30](https://github.com/marcusleg/briefing-officer/commit/8f6fa300913683957787e42a29f2da9648eb13db))
-* implement authentication flows with `better-auth` ([60a3334](https://github.com/marcusleg/briefing-officer/commit/60a33346816828932c9049021a6453918263d9d1))
-* improve AI summary prompt ([ae485b3](https://github.com/marcusleg/briefing-officer/commit/ae485b3834a5208455aaba73ddc130c19151950c))
-* improve AI summary prompt ([9889da6](https://github.com/marcusleg/briefing-officer/commit/9889da61ac99eb6a08635b8db6ec5edad8245e38))
-* improve bulk mark as read action ([eaec253](https://github.com/marcusleg/briefing-officer/commit/eaec25368c48c637aa47ab45db2bec5bf604313e))
-* improve frontpage dashboard ([#232](https://github.com/marcusleg/briefing-officer/issues/232)) ([e90f830](https://github.com/marcusleg/briefing-officer/commit/e90f830287ee743b8deb306975da2b822bbfa45e))
-* improve message when no unread articles to display in a feed, link to All Feeds ([125e5a0](https://github.com/marcusleg/briefing-officer/commit/125e5a07b1af5c57cfc7f1152f1976218df6f36c))
-* improve message when no unread articles to display, link to Read Later ([94c7b9a](https://github.com/marcusleg/briefing-officer/commit/94c7b9a1c54392bfe23eb5bcfb5ad2838b301fcc))
-* integrate `better-auth` with Prisma and Next.js ([d3ff7aa](https://github.com/marcusleg/briefing-officer/commit/d3ff7aa337eea7250414559040442817c55366ae))
-* introduce system prompt for AI summary and lead generation ([37d34f3](https://github.com/marcusleg/briefing-officer/commit/37d34f3be657ff2188f07f5140717d43a37a5d1b))
-* lazy-load AI leads to avoid unnecessary LLM invocations ([2189ee7](https://github.com/marcusleg/briefing-officer/commit/2189ee742b1961a21184b1d6f5c10303c8274a53))
-* limit completion tokens for AI Lead generation ([842a566](https://github.com/marcusleg/briefing-officer/commit/842a56693953449d223a97fcfbbffb6164c0187c))
-* limit max width and center ArticleCard ([455f9ba](https://github.com/marcusleg/briefing-officer/commit/455f9ba04646cea58135cbab74d346e9fc7948c1))
-* log AI token usage ([e3b6bd1](https://github.com/marcusleg/briefing-officer/commit/e3b6bd1be3f614ac552684ded64e6bbd7b137b3d))
-* make New Articles Chart a stacked bar chart ([9832c93](https://github.com/marcusleg/briefing-officer/commit/9832c9332a8ccb0fab67b3e42a9083b13e1c84b9))
-* make New Articles Chart a stacked bar chart ([4a9099f](https://github.com/marcusleg/briefing-officer/commit/4a9099f3730065f3c670d2106eb4f5f6b23076c4))
-* migrate from Buildah to Docker ([1c43447](https://github.com/marcusleg/briefing-officer/commit/1c43447ec158ff4293a0674992345eabbbedc3d9))
-* more conventional path for Article AI Summary page ([cd0f639](https://github.com/marcusleg/briefing-officer/commit/cd0f639889158d38c34971f4d06f3134371764ad))
-* move relative time of last feed update to feed subtitle ([7ba18a9](https://github.com/marcusleg/briefing-officer/commit/7ba18a9479978c7c2fccec5d0196d487e3bdb598))
-* new navigation bar based on `sidebar` ([2cb41a3](https://github.com/marcusleg/briefing-officer/commit/2cb41a3989b31375c0aad24d4c6f4c6fcb0d8667))
-* read database URL from environment ([b0818e3](https://github.com/marcusleg/briefing-officer/commit/b0818e39ed881b158d9af0f31a59fb17672f5968))
-* redesign All Feeds page title section ([7999997](https://github.com/marcusleg/briefing-officer/commit/799999784b23b492516727630da3db7f03c43f67))
-* redesign feed title, refactor into reusable component ([c1493f7](https://github.com/marcusleg/briefing-officer/commit/c1493f7affbd35516522800e3c0a8ad4a738ed2c))
-* redesign of article cards ([3351166](https://github.com/marcusleg/briefing-officer/commit/33511660c11414c617cc2a50fe7e77602afdff12))
-* refine AI lead prompt and add token limit for better control ([56fa732](https://github.com/marcusleg/briefing-officer/commit/56fa73267bd3241a449d979431d4a0b10364b814))
-* remove articles marked as read from "Read Later" ([a41c299](https://github.com/marcusleg/briefing-officer/commit/a41c299a9fdf09b6d331281c86b94a9575a004ae))
-* remove AWS Bedrock code and SDK ([4fb64e1](https://github.com/marcusleg/briefing-officer/commit/4fb64e179bf7f95d7edc772705ed1e1664d8e747))
-* replace `Typography` with semantic `<h2>` in multiple pages ([becc2ac](https://github.com/marcusleg/briefing-officer/commit/becc2ac82f22877581bbe74784c6232f379dbee1))
-* secure cron API with environment-based token validation ([d128693](https://github.com/marcusleg/briefing-officer/commit/d128693d285afaf2e6ed1984fa054e0aa82533f1))
-* show a message on frontpage when no unread articles are available ([1d769b1](https://github.com/marcusleg/briefing-officer/commit/1d769b142656320d857b229307dd91564eca92db))
-* show article metadata on AI summary page ([f799ffc](https://github.com/marcusleg/briefing-officer/commit/f799ffc4a00a1d0a9375583e2ca0870078721b22))
-* spoof Firefox user agent when scraping articles ([69f0571](https://github.com/marcusleg/briefing-officer/commit/69f05715ff89a1b85bc5ca0c0e4f757527ce578d))
-* stream AI leads for improved performance ([6a60cda](https://github.com/marcusleg/briefing-officer/commit/6a60cda5a65248c73dd9168cc30f7f903cfc452b))
-* stream AI summaries for faster page loads ([574e195](https://github.com/marcusleg/briefing-officer/commit/574e19530d2a38c6127953becd34db0fbea3cfb6))
-* track and persist token usage in AI operations ([fd7328d](https://github.com/marcusleg/briefing-officer/commit/fd7328d4fd65da55d6b267f87ab3cf02e0a6818f))
-* tweak padding and margins in base layout ([fb193fc](https://github.com/marcusleg/briefing-officer/commit/fb193fc5bdf94277707a6bf3ad994d6151a1c5ed))
-* update AI summary prompt to generate longer summaries ([7d209ca](https://github.com/marcusleg/briefing-officer/commit/7d209ca1a941bee70df06dccb23a84870914d39a))
-* use GPT-5-nano and update AI SDK ([ad48ce1](https://github.com/marcusleg/briefing-officer/commit/ad48ce19837a08e862ae9b3ce09b83550588a55f))
-* use OpenAI to generate leads and summaries ([7047f1b](https://github.com/marcusleg/briefing-officer/commit/7047f1bc48a2f1596f08a91ccfd8503948a3e445))
-* WIP login form ([2bd9045](https://github.com/marcusleg/briefing-officer/commit/2bd904581ccfa687b84a9cf91cb6c8eea3fc8cfb))
-* WIP non-functional burger menu button ([4bef77b](https://github.com/marcusleg/briefing-officer/commit/4bef77b258b32e1c7c8e427d8213eaa565126315))
-
+- Sign in, sign up and sign out with accounts. The first user becomes the
+  administrator, new accounts must be approved by an administrator, and
+  self-registration is turned off after the first account exists. Administrators
+  manage users, including banning and unbanning them. Every feed and article
+  belongs to one user.
+  ([d3ff7aa](https://github.com/marcusleg/briefing-officer/commit/d3ff7aa337eea7250414559040442817c55366ae),
+  [569afff](https://github.com/marcusleg/briefing-officer/commit/569afff7fe1d72587a190a31334e8ab0ef9a79d0),
+  [9095c56](https://github.com/marcusleg/briefing-officer/commit/9095c56ca0216253e423636bbdfe133c7bc10c69),
+  [8bf80d0](https://github.com/marcusleg/briefing-officer/commit/8bf80d04395f29d334cf0ffc8501d54fe6b28a4d),
+  [85faf01](https://github.com/marcusleg/briefing-officer/commit/85faf0193bacf1353f79887e2e3cd698122e1e95),
+  [a7343b2](https://github.com/marcusleg/briefing-officer/commit/a7343b28427c755cf9c46bcb98cc06857f821f90),
+  [6eb0496](https://github.com/marcusleg/briefing-officer/commit/6eb0496cf0b508d462597a6fd05c48a6940d6f07))
+- Every article gets an AI-written lead, generated when it is scraped or on
+  demand, and streamed in as it scrolls into view. AI summaries stream in as
+  well and open on their own page with the article metadata and a link to the
+  source. Choose OpenAI or Anthropic as the provider.
+  ([#227](https://github.com/marcusleg/briefing-officer/pull/227),
+  [#228](https://github.com/marcusleg/briefing-officer/pull/228),
+  [b28455d](https://github.com/marcusleg/briefing-officer/commit/b28455d3a8296819369de65bc6a871f29d4f3644),
+  [7047f1b](https://github.com/marcusleg/briefing-officer/commit/7047f1bc48a2f1596f08a91ccfd8503948a3e445),
+  [761a376](https://github.com/marcusleg/briefing-officer/commit/761a3764285d417463d26450441a02714c3bf642))
+- Generated AI texts are cached in memory, so repeated requests do not call the
+  model again. ([#229](https://github.com/marcusleg/briefing-officer/pull/229))
+- Token usage is tracked and shown in a chart.
+  ([fd7328d](https://github.com/marcusleg/briefing-officer/commit/fd7328d4fd65da55d6b267f87ab3cf02e0a6818f))
+- Organise feeds in categories. A category page lets you edit or delete the
+  category, refresh all its feeds and mark all its articles as read.
+  ([#238](https://github.com/marcusleg/briefing-officer/pull/238))
+- A new sidebar navigation with breadcrumbs, redesigned article cards and
+  article counts on the main pages.
+  ([#231](https://github.com/marcusleg/briefing-officer/pull/231))
+- A redesigned dashboard on the front page.
+  ([#232](https://github.com/marcusleg/briefing-officer/pull/232))
+- Search articles.
+  ([25426dd](https://github.com/marcusleg/briefing-officer/commit/25426ddabb244e644bafcb403f60b4bed3d38473))
+- Dark mode follows your system setting and can be toggled.
+  ([e974e55](https://github.com/marcusleg/briefing-officer/commit/e974e55891e3d215c9c2955a0f38c79db94267eb))
+- Articles older than one year are deleted automatically.
+  ([6afcd8c](https://github.com/marcusleg/briefing-officer/commit/6afcd8c7fa927b3f063fd9d9f07f5d86f0282b75))
+- Toast notifications confirm starring and saving articles for later.
+  ([b53f0d0](https://github.com/marcusleg/briefing-officer/commit/b53f0d0b10c5023ede953068dd1d0ac0ad9eaef0),
+  [f0c78d4](https://github.com/marcusleg/briefing-officer/commit/f0c78d4f4dfb5063c99eee55b015d50c80e8ecfe))
+- The feed page shows when the feed was last updated.
+  ([43a77be](https://github.com/marcusleg/briefing-officer/commit/43a77be526f18c23d5e916b2b4375de4b0fe14db))
+- The `/api/cron` endpoint, which refreshes the feeds, is protected by a token.
+  ([d128693](https://github.com/marcusleg/briefing-officer/commit/d128693d285afaf2e6ed1984fa054e0aa82533f1))
 
 ### Bug Fixes
 
-* `outline` conflicted with `border` inherited from `<Card />` ([3c715c6](https://github.com/marcusleg/briefing-officer/commit/3c715c63080c731fe81d08d58973d56e4e78ef0a))
-* add base URL to `.env.example` ([85957b5](https://github.com/marcusleg/briefing-officer/commit/85957b5fcf1c99e1111f6a49f667c4bb32c1b487))
-* add breadcrumb segments to `TopNavigation` in key pages ([a4e97c6](https://github.com/marcusleg/briefing-officer/commit/a4e97c688c05caea89fa7e1c062808249910ba74))
-* add environment variables to build CI job ([efa5855](https://github.com/marcusleg/briefing-officer/commit/efa58559ca0efb3cf29673f7e2c356ae2686e3c6))
-* add environment variables to container build stage ([ccddf76](https://github.com/marcusleg/briefing-officer/commit/ccddf761506b4e952688b309eb28850603a994a2))
-* add missing dependency array ([ec503eb](https://github.com/marcusleg/briefing-officer/commit/ec503ebff3df7bf753b08a47ffe0a99781b0b645))
-* adjust article card and list spacing ([9323793](https://github.com/marcusleg/briefing-officer/commit/93237932d1b2a0625c753a1bf49e653f930d6d48))
-* adjust grid layout in dashboard to use single column on smaller screens ([5a449c0](https://github.com/marcusleg/briefing-officer/commit/5a449c0e5673f5e48917a026106f3f2c033b9fa0))
-* align design of Feed Category page with the rest of the site ([f3f3890](https://github.com/marcusleg/briefing-officer/commit/f3f3890de48014adf977163f604889c0d69cbd1d))
-* align design of Token Usage Chart with the other bar charts ([a8fd220](https://github.com/marcusleg/briefing-officer/commit/a8fd220fbe1baa47f9f7eba0bb3168cc82eff00d))
-* align title design of Search Result Page with the rest of the site ([50b62e8](https://github.com/marcusleg/briefing-officer/commit/50b62e8633064d4550d82c1e142d6ee534e5e01c))
-* await feed refreshing to fix `revalidatePath()` calls ([f29ea59](https://github.com/marcusleg/briefing-officer/commit/f29ea590dbb294cf1eb11762a8856494007d4bdb))
-* call correct Promise method ([5609a02](https://github.com/marcusleg/briefing-officer/commit/5609a026397b1825ef992b8e30907598c3aea234))
-* center dashboard date range toggle ([9277f16](https://github.com/marcusleg/briefing-officer/commit/9277f16a7b5ead80aeb831588aef1fc8f911a810))
-* checking the user ID in `feedRepository.ts` breaks the `/api/cron` endpoint ([66c5287](https://github.com/marcusleg/briefing-officer/commit/66c5287021d9c92f6c00be0b850f4d573e29bcc7))
-* checking the user ID in `generateAiLead()` breaks the `/api/cron` endpoint ([d780fa4](https://github.com/marcusleg/briefing-officer/commit/d780fa4c1383b9c14ce426b515c202187092dcca))
-* conditionally render author in ArticleCard ([571b975](https://github.com/marcusleg/briefing-officer/commit/571b97531dae780aaaa1a5affec06e2b14074cde))
-* correct heading of starred articles page ([9e5306c](https://github.com/marcusleg/briefing-officer/commit/9e5306c4f3b1c1997396107a3f15092dd38ad642))
-* correct media queries in feed dashboard ([a8deb6f](https://github.com/marcusleg/briefing-officer/commit/a8deb6fbdc4f252c0e568f90bfea905ab28b114b))
-* correct rename that got lost during rebase ([f7f9928](https://github.com/marcusleg/briefing-officer/commit/f7f9928cfdbf39db5214424b198b91ae2e846cf9))
-* correct unique constraints for feed and article links ([aa481cc](https://github.com/marcusleg/briefing-officer/commit/aa481ccaba775ae2034ff22131e248d805bdbb3f))
-* **deps:** update dependency axios to v1.8.2 [security] ([#176](https://github.com/marcusleg/briefing-officer/issues/176)) ([e8ab707](https://github.com/marcusleg/briefing-officer/commit/e8ab7074121af2ef306b6914b73596ea50d65568))
-* **deps:** update dependency jsdom to v26 ([c11d732](https://github.com/marcusleg/briefing-officer/commit/c11d7320aa2d2584b244520ec2cd6e5f9f6c2fa4))
-* **deps:** update dependency lucide-react to ^0.451.0 ([3f52ed1](https://github.com/marcusleg/briefing-officer/commit/3f52ed121927f1a10e0dfff7fca07261f4a63682))
-* **deps:** update dependency lucide-react to ^0.452.0 ([106d5b3](https://github.com/marcusleg/briefing-officer/commit/106d5b36371665d5f68b043b881822b2591d7095))
-* **deps:** update dependency lucide-react to ^0.453.0 ([a8ea223](https://github.com/marcusleg/briefing-officer/commit/a8ea22379de8ceaf86464cbc974c44a27618d3cb))
-* **deps:** update dependency lucide-react to ^0.460.0 ([#98](https://github.com/marcusleg/briefing-officer/issues/98)) ([099b49a](https://github.com/marcusleg/briefing-officer/commit/099b49ae6827ba295a1f0b9178417f5e3192aa8a))
-* **deps:** update dependency lucide-react to ^0.461.0 ([#106](https://github.com/marcusleg/briefing-officer/issues/106)) ([bf9c16c](https://github.com/marcusleg/briefing-officer/commit/bf9c16c5b38c1077914090502b9ac257befb4dbd))
-* **deps:** update dependency lucide-react to ^0.462.0 ([#110](https://github.com/marcusleg/briefing-officer/issues/110)) ([6b994c0](https://github.com/marcusleg/briefing-officer/commit/6b994c0a71fee315bf549bbe0e3952d068252474))
-* **deps:** update dependency lucide-react to ^0.464.0 ([#117](https://github.com/marcusleg/briefing-officer/issues/117)) ([237c4b9](https://github.com/marcusleg/briefing-officer/commit/237c4b9fb17dd267d201ef53a02c86f92870a5ae))
-* **deps:** update dependency lucide-react to ^0.465.0 ([#129](https://github.com/marcusleg/briefing-officer/issues/129)) ([0766c82](https://github.com/marcusleg/briefing-officer/commit/0766c82084ab94342ab954303599ba38689437c8))
-* **deps:** update dependency lucide-react to ^0.466.0 ([#134](https://github.com/marcusleg/briefing-officer/issues/134)) ([1b61609](https://github.com/marcusleg/briefing-officer/commit/1b6160997bb32d503e68caf2014b3cc02b97dc20))
-* **deps:** update dependency lucide-react to ^0.468.0 ([#135](https://github.com/marcusleg/briefing-officer/issues/135)) ([8d3921a](https://github.com/marcusleg/briefing-officer/commit/8d3921ac66a53d31f3df9d645d1b70e875a488db))
-* **deps:** update dependency lucide-react to ^0.511.0 ([#147](https://github.com/marcusleg/briefing-officer/issues/147)) ([c205b71](https://github.com/marcusleg/briefing-officer/commit/c205b7159b927a25acf7e2ce67f9b60fde831723))
-* **deps:** update dependency next to v14.2.25 [security] ([#150](https://github.com/marcusleg/briefing-officer/issues/150)) ([a2b6cce](https://github.com/marcusleg/briefing-officer/commit/a2b6cceba1b68256d626883c5c51c29768cc3187))
-* **deps:** update dependency next to v14.2.26 [security] ([d690836](https://github.com/marcusleg/briefing-officer/commit/d690836dea42c7e727af5f8482af06f709cb1d0e))
-* **deps:** update next to v14.2.29 ([#146](https://github.com/marcusleg/briefing-officer/issues/146)) ([5f80012](https://github.com/marcusleg/briefing-officer/commit/5f800123d57b6910a1a493fd9ac12a59474e9582))
-* don't auto-focus the article search inout field ([6c33743](https://github.com/marcusleg/briefing-officer/commit/6c337431ef7cd22023c26e4dae96abc1b12bcac9))
-* don't count read later articles towards sum of unread articles ([f81cfc4](https://github.com/marcusleg/briefing-officer/commit/f81cfc43e7c0c8180db5fbead7058b3242603958))
-* enable experimental `authInterrupts` in Next.js configuration ([ba6d5d2](https://github.com/marcusleg/briefing-officer/commit/ba6d5d2fe389ab77e135d46b608ac44c52d1eb03))
-* ensure `data/` directory exists when repo is cloned ([a3471f4](https://github.com/marcusleg/briefing-officer/commit/a3471f46252995ce00db374cdfe940b522b1ed82))
-* ensure feed access is user-specific by validating session and user ID ([ae10760](https://github.com/marcusleg/briefing-officer/commit/ae107606215f7cc6ce7831dc2f53fe0ab5b8a73f))
-* ensure router state refresh after sign-in and sign-out actions ([2d8c43d](https://github.com/marcusleg/briefing-officer/commit/2d8c43de35d5163dbd28cb0ff59cc7362118a4aa))
-* filter by user ID in article search ([fea5f26](https://github.com/marcusleg/briefing-officer/commit/fea5f2638617155d55c8bc813e370819fe193fd4))
-* fix `DATABASE_URL` environment variable in `build` CI job ([6f87195](https://github.com/marcusleg/briefing-officer/commit/6f871950004cb8a16668296ee3f244bb41289b38))
-* fix container build ([72aee6d](https://github.com/marcusleg/briefing-officer/commit/72aee6d95ceb687eac72035edbbff35617e38b5e))
-* fix tag in "Build and push" CI job ([c57fb0c](https://github.com/marcusleg/briefing-officer/commit/c57fb0c13775a8824b9f8602e80c9824e6423703))
-* fix type errors I was too lazy to fix last time ([ccd247b](https://github.com/marcusleg/briefing-officer/commit/ccd247bbb47b1e82c79f17242af4bec9b3b6f35e))
-* handle missing scrape content gracefully to prevent hallucinated leads based on the article title alone ([18a8a71](https://github.com/marcusleg/briefing-officer/commit/18a8a7187cc4df891720d563dc9b58e62c75f693))
-* handle missing scrape content gracefully when generating AI summaries ([9d867be](https://github.com/marcusleg/briefing-officer/commit/9d867be82f66a35234d9ca08f3d7983dc9248ffd))
-* hide dashboard date range selector on mobile ([84c17e3](https://github.com/marcusleg/briefing-officer/commit/84c17e30493e2277d8e29e67e91cc957d5e22914))
-* homogenous page widths ([88dbb44](https://github.com/marcusleg/briefing-officer/commit/88dbb44b51fca212bca701cda6a780cde5883f74))
-* improve error handling for article parsing in scraper ([9972701](https://github.com/marcusleg/briefing-officer/commit/997270136a6cd2440ca474056872a55ae9660c1e))
-* improve sign-in error handling and UI feedback ([fe99de0](https://github.com/marcusleg/briefing-officer/commit/fe99de0f13abb9ecd84f569aa79b621e92ea5a06))
-* log into ghcr.io in contaimer-image pipeline ([a5ee083](https://github.com/marcusleg/briefing-officer/commit/a5ee0831216f93f9d7ae8c06ae66e1be7db7d59b))
-* move `ARTICLE_RETENTION_DAYS` constant to shared `constants.ts` file ([edf514a](https://github.com/marcusleg/briefing-officer/commit/edf514aae41093147856964d9e032db7591d99a1))
-* only display personal feeds in left navigation ([77fcdc9](https://github.com/marcusleg/briefing-officer/commit/77fcdc900b89d979c6e1a1c5da3c98326914e431))
-* prevent multiple AI summary streams in strict mode ([3323fa7](https://github.com/marcusleg/briefing-officer/commit/3323fa7fb921363a6baf8b56b4edd8da98450b55))
-* prevent two AI lead streams running in parallel in strict mode ([f8360bd](https://github.com/marcusleg/briefing-officer/commit/f8360bdd46ce239eeaa7c4bb703285429c046d19))
-* properly escape apostrophe ([e3c6de7](https://github.com/marcusleg/briefing-officer/commit/e3c6de7ca194a9dfda889250144dfa068a884385))
-* remove `className` prop in ArticleMeta component ([4d5cfaf](https://github.com/marcusleg/briefing-officer/commit/4d5cfafdb1d92d45f0d3f9bdcf3c3cf27f0d0517))
-* remove `unauthorized()` ([5cd51e0](https://github.com/marcusleg/briefing-officer/commit/5cd51e0580c918a0e6bb3aeb37f5e65e4f5aaae1))
-* remove cursor-pointer from ArticleCard ([4dabb60](https://github.com/marcusleg/briefing-officer/commit/4dabb60bfdbbb4b42c9df809538b1172bef35e01))
-* remove pointless `activeIndex` prop from charts ([15cf6d5](https://github.com/marcusleg/briefing-officer/commit/15cf6d5f8a78beabf3f5d5f7368dcf6808342b4a))
-* replace null returns with unauthorized or notFound responses for improved navigation handling ([575fa51](https://github.com/marcusleg/briefing-officer/commit/575fa51c5d573ab848134651996a0a0937dfcbda))
-* restrict feed actions to authenticated user ([c5b69a7](https://github.com/marcusleg/briefing-officer/commit/c5b69a77e88184679b966cba088c3b1430e7cf4a))
-* shorter button text for better support on small screens ([828a3ed](https://github.com/marcusleg/briefing-officer/commit/828a3ed958c8c2025709f707ebb85d6eda08707e))
-* show pointer when hovering buttons ([76285ee](https://github.com/marcusleg/briefing-officer/commit/76285ee768323caf1c421187e15cae0cacc9418e))
-* specify Containerfile in "Build and push" CI job ([30ba112](https://github.com/marcusleg/briefing-officer/commit/30ba11221ecc0cda703002d84662da69d15f4d7a))
-* split top left navigation into server-side and client-side components to fix UI updates when marking articles as read/read later ([b4b57db](https://github.com/marcusleg/briefing-officer/commit/b4b57dbaf15ae0d0ff81efc440dd41daea2fe7a2))
-* tweak chart colors ([d53f2fe](https://github.com/marcusleg/briefing-officer/commit/d53f2fe75a017691529e5a1d9867fef3d92df9e3))
-* update breadcrumb navigation to use "My Feed" instead of "Home" ([a2df7ae](https://github.com/marcusleg/briefing-officer/commit/a2df7aefdf8e1085f2b7ad5489c898bc737fd885))
-* update environment variables in Containerfile and `.env.example` ([c964d29](https://github.com/marcusleg/briefing-officer/commit/c964d299bcb56b26b5de7ed7bb728a97e4dc4844))
-* update revalidatePath calls to target "/feed" ([fa0bb02](https://github.com/marcusleg/briefing-officer/commit/fa0bb02cd00dc961fb731a4c7285b34ad0ad2af6))
-* use `asChild` prop for `TooltipTrigger` in feed buttons ([157aeff](https://github.com/marcusleg/briefing-officer/commit/157aeff5bee4be84d56f67a579ef38a569fccb88))
-
-
-### Reverts
-
-* correct media queries in feed dashboard ([8cd5680](https://github.com/marcusleg/briefing-officer/commit/8cd568034fbfd750026a0104346080762df60780))
-* display article author in ArticleCard if available ([b327a33](https://github.com/marcusleg/briefing-officer/commit/b327a333985a78be539bca4d5b6f3aa4ea099bf9))
+- Leads and summaries are no longer made up from the title alone when an article
+  could not be scraped.
+  ([18a8a71](https://github.com/marcusleg/briefing-officer/commit/18a8a7187cc4df891720d563dc9b58e62c75f693),
+  [9d867be](https://github.com/marcusleg/briefing-officer/commit/9d867be82f66a35234d9ca08f3d7983dc9248ffd))
+- Articles saved for later no longer count towards the number of unread
+  articles.
+  ([f81cfc4](https://github.com/marcusleg/briefing-officer/commit/f81cfc43e7c0c8180db5fbead7058b3242603958))

@@ -94,8 +94,6 @@ Then check that the container image and Helm chart workflows started:
 - An entry describes the change since the last release. When a feature extends
   one from an earlier release, check that release's section in `CHANGELOG.md`
   and describe only what is new.
-- Older sections keep the release-please format they were written in. Leave them
-  as they are.
 - **Breaking Changes** lists anything an operator must act on when upgrading:
   renamed or removed environment variables, changed Helm values, data that will
   be lost. Say what they need to do.
