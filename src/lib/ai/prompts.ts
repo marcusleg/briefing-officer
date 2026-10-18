@@ -80,6 +80,11 @@ same language as the lead.`;
  * than describing the article. Asking for "what the article covers" produced
  * "The article covers…" openings in over a quarter of leads.
  *
+ * Attribution examples name who someone is, never their role in the text. An
+ * earlier "the author argues…" example was copied into every opinion piece,
+ * and most blog posts carry no byline the model could put in its place, so
+ * the prompt offers a description ("the developer of Conversations") instead.
+ *
  * Significance is asked for only as facts the article states. Asking for "why
  * it is significant or timely" read as a mandatory closing sentence, and with
  * nothing in the source to fill it the model wrote one that fits any article:
@@ -95,7 +100,9 @@ export const buildLeadPrompt = (
 ) =>
   `Write the lead: one paragraph of at most 80 words that gives the reader the substance, so they can stop here if they want to.
 
-Report the news, not the article. Open with what happened, was found, released or decided, and by whom — the way a wire-service lead does. Name a source only when a claim belongs to it ("Anthropic reports…", "the author argues…"); never refer to the article itself ("the article", "the post"), in any language.
+Report the news, not the article. Open with what happened, was found, released or decided, and by whom — the way a wire-service lead does. For opinion, analysis or a personal essay, the news is the argument: open with the claim itself.
+
+Attribute a claim only when it belongs to someone, and then say who they are: their name, or what makes them relevant ("Anthropic reports…", "a Fedora maintainer argues…", "the developer of Conversations says…"). Never call anyone "the author" or "the writer", and never refer to the article, post or text itself, in any language — the reader already knows where the lead comes from.
 
 Follow with the details that matter most: figures, dates, decisions, who is affected, and any consequences the article itself states. Every sentence must carry a fact from the article. A sentence that could end any lead — that the topic is timely, relevant, significant or worth watching — carries none, so leave it out. If the article gives only a few facts, write a short lead; do not say what it leaves out.
 
