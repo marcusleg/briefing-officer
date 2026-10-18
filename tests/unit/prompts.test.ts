@@ -25,6 +25,13 @@ describe("buildLeadPrompt", () => {
     expect(prompt).not.toContain("significant or timely");
   });
 
+  it("attributes claims to who someone is, not to 'the author'", () => {
+    // A "the author argues…" example was copied verbatim into opinion leads.
+    const prompt = buildLeadPrompt("My Title", "Body text here", [], []);
+    expect(prompt).toContain('Never call anyone "the author"');
+    expect(prompt).not.toContain('"the author argues…"');
+  });
+
   it("asks the model to report the language as an ISO 639-1 code", () => {
     // The lead is the one call that determines the language; everything
     // downstream reads what it stored.
