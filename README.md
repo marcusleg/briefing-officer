@@ -87,3 +87,6 @@ One provider must be configured.
 | `AUTH_GENERIC_OAUTH_CLIENT_SECRET`             | OAuth client secret                          |                  |
 | `AUTH_GENERIC_OAUTH_DISCOVERY_URL`             | OAuth discovery URL                          |                  |
 | `AUTH_GENERIC_OAUTH_PKCE_ENABLED`              | Enable PKCE for OAuth flow                   | `false`          |
+
+When registering Briefing Officer with your OAuth/OIDC provider, use
+`<BASE_URL>/api/auth/callback/generic` as the redirect URI.
