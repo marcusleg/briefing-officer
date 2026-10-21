@@ -73,7 +73,7 @@
     "@wrksz/themes": "^2.0.2",
     "ai": "^7.0.40",
     "axios": "^1.20.0",
-    "better-auth": "~1.6.33",
+    "better-auth": "~1.7.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",

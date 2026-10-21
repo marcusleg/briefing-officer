@@ -71,8 +71,8 @@ const SignInForm = () => {
   };
 
   const handleGenericOAuthSignIn = async () => {
-    await authClient.signIn.oauth2({
-      providerId: "generic",
+    await authClient.signIn.social({
+      provider: "generic",
       callbackURL: "/feed",
     });
   };
