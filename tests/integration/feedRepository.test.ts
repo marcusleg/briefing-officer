@@ -18,6 +18,7 @@ import {
   createFeed as createFeedAction,
   deleteCategory,
   deleteFeed,
+  getFeedFilters,
   getUserCategories,
   refreshCategoryFeeds,
   refreshFeed,
@@ -402,5 +403,126 @@ describe("feedRepository.removeFeedFilter", () => {
       where: { feedId: feed.id },
     });
     expect(filters.map((filter) => filter.kind)).toEqual(["INTEREST"]);
+  });
+});
+
+describe("feedRepository ownership", () => {
+  const feedInput = (feedCategoryId?: number) => ({
+    title: "Title",
+    link: "https://example.com/feed.xml",
+    interests: [],
+    disinterests: [],
+    autoRefresh: false,
+    feedCategoryId,
+  });
+
+  it("updateCategory refuses a category that belongs to someone else", async () => {
+    const other = await createUser();
+    const theirs = await createCategory({ userId: other.id, name: "Theirs" });
+
+    await expect(
+      updateCategory(theirs.id, { name: "Hijacked" }),
+    ).rejects.toThrow();
+
+    const untouched = await prisma.feedCategory.findUniqueOrThrow({
+      where: { id: theirs.id },
+    });
+    expect(untouched.name).toBe("Theirs");
+  });
+
+  it("deleteCategory refuses a category that belongs to someone else", async () => {
+    const other = await createUser();
+    const theirs = await createCategory({ userId: other.id });
+    const theirFeed = await createFeed({
+      userId: other.id,
+      feedCategoryId: theirs.id,
+    });
+
+    await expect(deleteCategory(theirs.id)).rejects.toThrow();
+
+    expect(await prisma.feedCategory.count({ where: { id: theirs.id } })).toBe(
+      1,
+    );
+    const feed = await prisma.feed.findUniqueOrThrow({
+      where: { id: theirFeed.id },
+    });
+    expect(feed.feedCategoryId).toBe(theirs.id);
+  });
+
+  it("updateFeed refuses to file a feed under someone else's category", async () => {
+    const other = await createUser();
+    const theirs = await createCategory({ userId: other.id });
+    const feed = await createFeed({ userId });
+
+    await expect(updateFeed(feed.id, feedInput(theirs.id))).rejects.toThrow(
+      "Category not found",
+    );
+
+    const untouched = await prisma.feed.findUniqueOrThrow({
+      where: { id: feed.id },
+    });
+    expect(untouched.feedCategoryId).toBeNull();
+  });
+
+  it("createFeed refuses to file a feed under someone else's category", async () => {
+    const xml = `<?xml version="1.0"?><rss version="2.0"><channel><title>Parsed</title></channel></rss>`;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
+    const other = await createUser();
+    const theirs = await createCategory({ userId: other.id });
+
+    await expect(createFeedAction(feedInput(theirs.id))).rejects.toThrow(
+      "Category not found",
+    );
+
+    expect(await prisma.feed.count({ where: { userId } })).toBe(0);
+    vi.unstubAllGlobals();
+  });
+
+  it("getFeedFilters refuses a feed that belongs to someone else", async () => {
+    const other = await createUser();
+    const theirFeed = await createFeed({ userId: other.id });
+    await createFeedFilter({
+      feedId: theirFeed.id,
+      kind: "INTEREST",
+      text: "secret",
+    });
+
+    await expect(getFeedFilters(theirFeed.id)).rejects.toThrow(
+      "Feed not found",
+    );
+  });
+
+  it("addFeedFilter refuses a feed that belongs to someone else", async () => {
+    const other = await createUser();
+    const theirFeed = await createFeed({ userId: other.id });
+
+    await expect(
+      addFeedFilter(theirFeed.id, "DISINTEREST", "sport"),
+    ).rejects.toThrow("Feed not found");
+
+    expect(
+      await prisma.feedFilter.count({ where: { feedId: theirFeed.id } }),
+    ).toBe(0);
+  });
+
+  it("removeFeedFilter refuses a feed that belongs to someone else", async () => {
+    const other = await createUser();
+    const theirFeed = await createFeed({ userId: other.id });
+    await createFeedFilter({
+      feedId: theirFeed.id,
+      kind: "DISINTEREST",
+      text: "sport",
+    });
+
+    await expect(
+      removeFeedFilter(theirFeed.id, "DISINTEREST", "sport"),
+    ).rejects.toThrow("Feed not found");
+
+    expect(
+      await prisma.feedFilter.count({ where: { feedId: theirFeed.id } }),
+    ).toBe(1);
   });
 });

@@ -1,7 +1,11 @@
-"use server";
-
 import prisma from "@/lib/prismaClient";
 
+/**
+ * Deliberately not `"use server"`: an exported function there becomes a server
+ * action a client could call with any `userId`, crediting usage to whoever it
+ * likes. Only the generation services, which have already established whose
+ * article they are working on, may call this.
+ */
 export const trackTokenUsage = async (
   userId: string,
   model: string,

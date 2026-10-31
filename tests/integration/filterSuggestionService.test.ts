@@ -20,13 +20,19 @@ vi.mock("ai", () => ({
   })),
 }));
 
+vi.mock("@/lib/repository/userRepository", () => ({
+  getUserId: vi.fn(),
+}));
+
 import { suggestFilterKeywords } from "@/lib/ai/services/filterSuggestionService";
+import { getUserId } from "@/lib/repository/userRepository";
 
 let userId: string;
 let feedId: number;
 
 beforeEach(async () => {
   userId = (await createUser()).id;
+  vi.mocked(getUserId).mockResolvedValue(userId);
   feedId = (await createFeed({ userId })).id;
 });
 
@@ -80,6 +86,20 @@ describe("suggestFilterKeywords", () => {
     expect(excludedBlock).not.toContain("- kernel");
     expect(wantedBlock).toContain("- kernel");
     expect(wantedBlock).not.toContain("- advertisements");
+  });
+
+  it("refuses an article that belongs to someone else", async () => {
+    const other = await createUser();
+    const otherFeed = await createFeed({ userId: other.id });
+    const theirs = await createArticle({
+      userId: other.id,
+      feedId: otherFeed.id,
+    });
+
+    await expect(suggestFilterKeywords(theirs.id)).rejects.toThrow();
+
+    expect(generateObject).not.toHaveBeenCalled();
+    expect(await prisma.tokenUsage.count()).toBe(0);
   });
 
   it("records token usage", async () => {
