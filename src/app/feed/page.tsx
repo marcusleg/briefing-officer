@@ -5,6 +5,7 @@ import NoUnreadArticles from "@/app/feed/no-unread-articles";
 import RefreshAllFeedsButton from "@/app/feed/refresh-all-feeds-button";
 import ArticleList from "@/components/article/article-list";
 import TopNavigation from "@/components/navigation/top-navigation";
+import { INBOX_SCOPE } from "@/lib/articleScope";
 import { auth } from "@/lib/auth";
 import { getInboxArticles } from "@/lib/inbox";
 import prisma from "@/lib/prismaClient";
@@ -63,6 +64,7 @@ const MyFeeds = async () => {
       {articles.length > 0 && (
         <ArticleList
           articles={articles}
+          scope={INBOX_SCOPE}
           readLaterHeading={
             <div className="mt-6">
               <FeedTitle title="Read Later" articleCount={readLaterCount} />

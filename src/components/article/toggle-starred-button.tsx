@@ -1,3 +1,6 @@
+"use client";
+
+import { useArticleChange } from "@/components/article/article-overrides";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -20,27 +23,30 @@ const ToggleStarredButton = ({
   article: Article;
   variant?: "secondary" | "ghost";
 }) => {
-  const handleStarClick = async () => {
-    await markArticleAsStarred(article.id);
+  const change = useArticleChange();
+
+  const star = () =>
+    change(article, { starred: true }, () => markArticleAsStarred(article.id));
+  const unstar = () =>
+    change(article, { starred: false }, () =>
+      unmarkArticleAsStarred(article.id),
+    );
+
+  const handleStarClick = () => {
+    star();
 
     toast("Article Starred", {
       description: <span className="italic">{article.title}</span>,
-      action: {
-        label: "Undo",
-        onClick: async () => await unmarkArticleAsStarred(article.id),
-      },
+      action: { label: "Undo", onClick: unstar },
     });
   };
 
-  const handleUnstarClick = async () => {
-    await unmarkArticleAsStarred(article.id);
+  const handleUnstarClick = () => {
+    unstar();
 
     toast("Article Unstarred", {
       description: <span className="italic">{article.title}</span>,
-      action: {
-        label: "Undo",
-        onClick: async () => await markArticleAsStarred(article.id),
-      },
+      action: { label: "Undo", onClick: star },
     });
   };
 

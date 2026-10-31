@@ -2,9 +2,12 @@ import FeedTitle from "@/app/feed/feed-title";
 import ArticleList from "@/components/article/article-list";
 import TopNavigation from "@/components/navigation/top-navigation";
 import Typography from "@/components/ui/typography";
+import { ArticleScope, scopeWhere } from "@/lib/articleScope";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
+
+const READ_LATER_SCOPE: ArticleScope = { statuses: ["READ_LATER"] };
 
 const ReadLaterPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -20,7 +23,7 @@ const ReadLaterPage = async () => {
       scrape: true,
     },
     where: {
-      status: "READ_LATER",
+      ...scopeWhere(READ_LATER_SCOPE),
       userId: session.user.id,
     },
     orderBy: {
@@ -38,7 +41,7 @@ const ReadLaterPage = async () => {
       <FeedTitle title="Read Later" articleCount={articles.length} />
 
       {articles.length > 0 ? (
-        <ArticleList articles={articles} />
+        <ArticleList articles={articles} scope={READ_LATER_SCOPE} />
       ) : (
         <Typography
           variant="p"

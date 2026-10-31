@@ -1,3 +1,6 @@
+"use client";
+
+import { useArticleChange } from "@/components/article/article-overrides";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -20,29 +23,33 @@ const ToggleReadLaterButton = ({
   article: Article;
   variant?: "secondary" | "ghost";
 }) => {
+  const change = useArticleChange();
   const isReadLater = article.status === "READ_LATER";
 
-  const handleReadLaterClick = async () => {
-    await markArticleAsReadLater(article.id);
+  const addToReadLater = () =>
+    change(article, { status: "READ_LATER" }, () =>
+      markArticleAsReadLater(article.id),
+    );
+  const removeFromReadLater = () =>
+    change(article, { status: "UNREAD" }, () =>
+      unmarkArticleAsReadLater(article.id),
+    );
+
+  const handleReadLaterClick = () => {
+    addToReadLater();
 
     toast("Article Added To Read Later", {
       description: <span className="italic">{article.title}</span>,
-      action: {
-        label: "Undo",
-        onClick: async () => await unmarkArticleAsReadLater(article.id),
-      },
+      action: { label: "Undo", onClick: removeFromReadLater },
     });
   };
 
-  const handleRemoveFromReadLaterClick = async () => {
-    await unmarkArticleAsReadLater(article.id);
+  const handleRemoveFromReadLaterClick = () => {
+    removeFromReadLater();
 
     toast("Article Removed From Read Later", {
       description: <span className="italic">{article.title}</span>,
-      action: {
-        label: "Undo",
-        onClick: async () => await markArticleAsReadLater(article.id),
-      },
+      action: { label: "Undo", onClick: addToReadLater },
     });
   };
 

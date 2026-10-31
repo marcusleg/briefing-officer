@@ -1,10 +1,13 @@
 import ArticleList from "@/components/article/article-list";
 import TopNavigation from "@/components/navigation/top-navigation";
 import Typography from "@/components/ui/typography";
+import { ArticleScope, scopeWhere } from "@/lib/articleScope";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
 import FeedTitle from "../feed-title";
+
+const STARRED_SCOPE: ArticleScope = { starredOnly: true };
 
 const StarredArticlesPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -20,7 +23,7 @@ const StarredArticlesPage = async () => {
       scrape: true,
     },
     where: {
-      starred: true,
+      ...scopeWhere(STARRED_SCOPE),
       userId: session.user.id,
     },
     orderBy: {
@@ -39,7 +42,7 @@ const StarredArticlesPage = async () => {
 
       <div className="flex flex-col gap-4">
         {articles.length > 0 ? (
-          <ArticleList articles={articles} />
+          <ArticleList articles={articles} scope={STARRED_SCOPE} />
         ) : (
           <Typography
             variant="p"

@@ -2,9 +2,12 @@ import FeedTitle from "@/app/feed/feed-title";
 import NoFilteredArticles from "@/app/feed/filtered/no-filtered-articles";
 import ArticleList from "@/components/article/article-list";
 import TopNavigation from "@/components/navigation/top-navigation";
+import { ArticleScope, scopeWhere } from "@/lib/articleScope";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
+
+const FILTERED_SCOPE: ArticleScope = { statuses: ["FILTERED"] };
 
 const FilteredPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -24,7 +27,7 @@ const FilteredPage = async () => {
       scrape: true,
     },
     where: {
-      status: "FILTERED",
+      ...scopeWhere(FILTERED_SCOPE),
       userId: session.user.id,
     },
     orderBy: {
@@ -44,7 +47,7 @@ const FilteredPage = async () => {
 
       <div className="flex flex-col gap-4">
         {articles.length > 0 ? (
-          <ArticleList articles={articles} />
+          <ArticleList articles={articles} scope={FILTERED_SCOPE} />
         ) : (
           <NoFilteredArticles />
         )}

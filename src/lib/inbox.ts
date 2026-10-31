@@ -1,4 +1,6 @@
 import { Prisma } from "@/generated/prisma/client";
+import { compareInboxOrder } from "@/lib/article";
+import { INBOX_SCOPE, scopeWhere } from "@/lib/articleScope";
 import prisma from "@/lib/prismaClient";
 
 const include = {
@@ -12,14 +14,14 @@ export type InboxArticle = Prisma.ArticleGetPayload<{
 }>;
 
 /**
- * The home inbox: every unread article, newest first, then every article
- * saved for later, oldest first so the longest-waiting ones come up first.
+ * The home inbox, in `compareInboxOrder`: unread articles first, then the
+ * ones saved for later.
  *
  * Read Later articles are listed here, below the unread ones, so that saving
  * an article for later does not hide it from the page the reader triages on.
  *
- * Two queries rather than one sorted by `status`: SQLite stores the enum as
- * text, so a status sort would only get the groups in order by accident of
+ * Sorted in JavaScript rather than by `status` in SQL: SQLite stores the enum
+ * as text, so a status sort would only get the groups in order by accident of
  * spelling.
  *
  * Deliberately not `"use server"` and not in `articleRepository.ts`, which is:
@@ -29,18 +31,10 @@ export type InboxArticle = Prisma.ArticleGetPayload<{
 export const getInboxArticles = async (
   userId: string,
 ): Promise<InboxArticle[]> => {
-  const [unread, readLater] = await Promise.all([
-    prisma.article.findMany({
-      include,
-      where: { status: "UNREAD", userId },
-      orderBy: { publicationDate: "desc" },
-    }),
-    prisma.article.findMany({
-      include,
-      where: { status: "READ_LATER", userId },
-      orderBy: { publicationDate: "asc" },
-    }),
-  ]);
+  const articles = await prisma.article.findMany({
+    include,
+    where: { ...scopeWhere(INBOX_SCOPE), userId },
+  });
 
-  return [...unread, ...readLater];
+  return articles.sort(compareInboxOrder);
 };

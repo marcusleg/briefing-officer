@@ -6,9 +6,12 @@ import FeedTitle from "@/app/feed/feed-title";
 import NoUnreadArticles from "@/app/feed/no-unread-articles";
 import ArticleList from "@/components/article/article-list";
 import TopNavigation from "@/components/navigation/top-navigation";
+import { ArticleScope, scopeWhere } from "@/lib/articleScope";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { notFound } from "next/navigation";
+
+const CATEGORY_SCOPE: ArticleScope = { statuses: ["UNREAD"] };
 
 interface FeedCategoryProps {
   params: Promise<{ categoryId: string }>;
@@ -40,7 +43,7 @@ const FeedCategory = async ({ params }: FeedCategoryProps) => {
       scrape: true,
     },
     where: {
-      status: "UNREAD",
+      ...scopeWhere(CATEGORY_SCOPE),
       userId,
       feedId: { in: category.feeds.map((feed) => feed.id) },
     },
@@ -73,7 +76,7 @@ const FeedCategory = async ({ params }: FeedCategoryProps) => {
       </div>
 
       {articles.length > 0 ? (
-        <ArticleList articles={articles} />
+        <ArticleList articles={articles} scope={CATEGORY_SCOPE} />
       ) : (
         <NoUnreadArticles />
       )}

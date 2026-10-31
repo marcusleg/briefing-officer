@@ -53,7 +53,7 @@ const ArticleSearchResultsPage = async ({
 
       {/* A new query is a new list: without the key the mounted list would
           hold every result behind "Show N new articles". */}
-      <ArticleList key={query} articles={articles} />
+      <ArticleList key={query} articles={articles} scope={{}} />
     </div>
   );
 };

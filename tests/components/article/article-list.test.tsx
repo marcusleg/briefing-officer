@@ -1,5 +1,6 @@
 import ArticleList from "@/components/article/article-list";
 import { LiveUpdatesContext } from "@/components/live-updates";
+import { INBOX_SCOPE } from "@/lib/articleScope";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -52,7 +53,9 @@ const cardOf = (title: string) =>
 
 describe("ArticleList", () => {
   it("shows every article it mounts with", () => {
-    render(<ArticleList articles={[article(1), article(2)]} />);
+    render(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(1), article(2)]} />,
+    );
 
     expect(screen.getByText("Article 1")).toBeInTheDocument();
     expect(screen.getByText("Article 2")).toBeInTheDocument();
@@ -60,24 +63,37 @@ describe("ArticleList", () => {
   });
 
   it("holds back articles that arrive later and counts them", () => {
-    const { rerender } = render(<ArticleList articles={[article(2)]} />);
+    const { rerender } = render(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(2)]} />,
+    );
 
-    rerender(<ArticleList articles={[article(3), article(2)]} />);
+    rerender(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(3), article(2)]} />,
+    );
 
     expect(screen.queryByText("Article 3")).toBeNull();
     expect(
       screen.getByRole("button", { name: "Show 1 new article" }),
     ).toBeInTheDocument();
 
-    rerender(<ArticleList articles={[article(4), article(3), article(2)]} />);
+    rerender(
+      <ArticleList
+        scope={INBOX_SCOPE}
+        articles={[article(4), article(3), article(2)]}
+      />,
+    );
     expect(
       screen.getByRole("button", { name: "Show 2 new articles" }),
     ).toBeInTheDocument();
   });
 
   it("merges held articles in server order when the button is clicked", async () => {
-    const { rerender } = render(<ArticleList articles={[article(2)]} />);
-    rerender(<ArticleList articles={[article(3), article(2)]} />);
+    const { rerender } = render(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(2)]} />,
+    );
+    rerender(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(3), article(2)]} />,
+    );
 
     await userEvent.click(
       screen.getByRole("button", { name: "Show 1 new article" }),
@@ -93,10 +109,15 @@ describe("ArticleList", () => {
 
   it("keeps the highlighted article when held articles are shown", async () => {
     const { rerender } = render(
-      <ArticleList articles={[article(2), article(1)]} />,
+      <ArticleList scope={INBOX_SCOPE} articles={[article(2), article(1)]} />,
     );
     await userEvent.click(screen.getByText("Article 1"));
-    rerender(<ArticleList articles={[article(3), article(2), article(1)]} />);
+    rerender(
+      <ArticleList
+        scope={INBOX_SCOPE}
+        articles={[article(3), article(2), article(1)]}
+      />,
+    );
 
     await userEvent.click(
       screen.getByRole("button", { name: "Show 1 new article" }),
@@ -108,9 +129,16 @@ describe("ArticleList", () => {
   });
 
   it("updates an article already on screen in place", () => {
-    const { rerender } = render(<ArticleList articles={[article(1)]} />);
+    const { rerender } = render(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(1)]} />,
+    );
 
-    rerender(<ArticleList articles={[article(1, "Article 1 (updated)")]} />);
+    rerender(
+      <ArticleList
+        scope={INBOX_SCOPE}
+        articles={[article(1, "Article 1 (updated)")]}
+      />,
+    );
 
     expect(screen.getByText("Article 1 (updated)")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /new article/ })).toBeNull();
@@ -118,10 +146,10 @@ describe("ArticleList", () => {
 
   it("drops an article the server no longer returns", () => {
     const { rerender } = render(
-      <ArticleList articles={[article(1), article(2)]} />,
+      <ArticleList scope={INBOX_SCOPE} articles={[article(1), article(2)]} />,
     );
 
-    rerender(<ArticleList articles={[article(2)]} />);
+    rerender(<ArticleList scope={INBOX_SCOPE} articles={[article(2)]} />);
 
     expect(screen.queryByText("Article 1")).toBeNull();
     expect(screen.getByText("Article 2")).toBeInTheDocument();
@@ -135,11 +163,16 @@ describe("ArticleList", () => {
         {children}
       </LiveUpdatesContext.Provider>
     );
-    const { rerender } = render(<ArticleList articles={[article(2)]} />, {
-      wrapper,
-    });
+    const { rerender } = render(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(2)]} />,
+      {
+        wrapper,
+      },
+    );
 
-    rerender(<ArticleList articles={[article(3), article(2)]} />);
+    rerender(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(3), article(2)]} />,
+    );
 
     expect(screen.getByText("Article 3")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /new article/ })).toBeNull();
@@ -147,12 +180,17 @@ describe("ArticleList", () => {
 
   it("highlights the article that took the place of one marked as read", async () => {
     const { rerender } = render(
-      <ArticleList articles={[article(1), article(2), article(3)]} />,
+      <ArticleList
+        scope={INBOX_SCOPE}
+        articles={[article(1), article(2), article(3)]}
+      />,
     );
     await userEvent.keyboard("n");
     await userEvent.keyboard("m");
 
-    rerender(<ArticleList articles={[article(2), article(3)]} />);
+    rerender(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(2), article(3)]} />,
+    );
 
     expect(cardOf("Article 2")).toHaveClass("border-foreground");
     expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
@@ -160,11 +198,16 @@ describe("ArticleList", () => {
 
   it("continues past the moved highlight when the reader presses n", async () => {
     const { rerender } = render(
-      <ArticleList articles={[article(1), article(2), article(3)]} />,
+      <ArticleList
+        scope={INBOX_SCOPE}
+        articles={[article(1), article(2), article(3)]}
+      />,
     );
     await userEvent.keyboard("n");
     await userEvent.keyboard("m");
-    rerender(<ArticleList articles={[article(2), article(3)]} />);
+    rerender(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(2), article(3)]} />,
+    );
 
     await userEvent.keyboard("n");
 
@@ -174,26 +217,28 @@ describe("ArticleList", () => {
 
   it("highlights the new last article when the last one is marked as read", async () => {
     const { rerender } = render(
-      <ArticleList articles={[article(1), article(2)]} />,
+      <ArticleList scope={INBOX_SCOPE} articles={[article(1), article(2)]} />,
     );
     await userEvent.keyboard("n");
     await userEvent.keyboard("n");
     await userEvent.keyboard("m");
 
-    rerender(<ArticleList articles={[article(1)]} />);
+    rerender(<ArticleList scope={INBOX_SCOPE} articles={[article(1)]} />);
 
     expect(cardOf("Article 1")).toHaveClass("border-foreground");
   });
 
   it("forgets the selection when the last remaining article is marked as read", async () => {
-    const { rerender } = render(<ArticleList articles={[article(1)]} />);
+    const { rerender } = render(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(1)]} />,
+    );
     await userEvent.keyboard("n");
     await userEvent.keyboard("m");
-    rerender(<ArticleList articles={[]} />);
+    rerender(<ArticleList scope={INBOX_SCOPE} articles={[]} />);
 
     // An article arriving after the list emptied must not inherit the
     // highlight of the article that was marked as read.
-    rerender(<ArticleList articles={[article(2)]} />);
+    rerender(<ArticleList scope={INBOX_SCOPE} articles={[article(2)]} />);
     await userEvent.click(
       screen.getByRole("button", { name: "Show 1 new article" }),
     );
@@ -207,12 +252,17 @@ describe("ArticleList", () => {
 
   it("keeps the highlight when an article above it is marked as read", async () => {
     const { rerender } = render(
-      <ArticleList articles={[article(1), article(2), article(3)]} />,
+      <ArticleList
+        scope={INBOX_SCOPE}
+        articles={[article(1), article(2), article(3)]}
+      />,
     );
     await userEvent.keyboard("n");
     await userEvent.keyboard("n");
 
-    rerender(<ArticleList articles={[article(2), article(3)]} />);
+    rerender(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(2), article(3)]} />,
+    );
 
     expect(cardOf("Article 2")).toHaveClass("border-foreground");
 
@@ -223,7 +273,10 @@ describe("ArticleList", () => {
 
   it("moves the highlight on while new articles are still held back", async () => {
     const { rerender } = render(
-      <ArticleList articles={[article(1), article(2), article(3)]} />,
+      <ArticleList
+        scope={INBOX_SCOPE}
+        articles={[article(1), article(2), article(3)]}
+      />,
     );
     await userEvent.keyboard("n");
     await userEvent.keyboard("n");
@@ -231,6 +284,7 @@ describe("ArticleList", () => {
 
     rerender(
       <ArticleList
+        scope={INBOX_SCOPE}
         articles={[article(9), article(8), article(1), article(3)]}
       />,
     );
@@ -254,7 +308,10 @@ describe("ArticleList", () => {
       </LiveUpdatesContext.Provider>
     );
     const { rerender } = render(
-      <ArticleList articles={[article(1), article(2), article(3)]} />,
+      <ArticleList
+        scope={INBOX_SCOPE}
+        articles={[article(1), article(2), article(3)]}
+      />,
       { wrapper },
     );
     await userEvent.keyboard("n");
@@ -263,6 +320,7 @@ describe("ArticleList", () => {
 
     rerender(
       <ArticleList
+        scope={INBOX_SCOPE}
         articles={[article(9), article(8), article(1), article(3)]}
       />,
     );
@@ -274,6 +332,7 @@ describe("ArticleList", () => {
   it("keeps the highlight in place when the selected article moves to Read Later", async () => {
     const { rerender } = render(
       <ArticleList
+        scope={INBOX_SCOPE}
         articles={[
           article(1),
           article(2),
@@ -289,6 +348,7 @@ describe("ArticleList", () => {
     // Article 2's old row.
     rerender(
       <ArticleList
+        scope={INBOX_SCOPE}
         articles={[
           article(1),
           article(3),
@@ -310,6 +370,7 @@ describe("ArticleList", () => {
   it("shows the Read Later heading above the first Read Later article", () => {
     render(
       <ArticleList
+        scope={INBOX_SCOPE}
         articles={[
           article(1),
           article(2, undefined, "READ_LATER"),
@@ -333,6 +394,7 @@ describe("ArticleList", () => {
   it("leaves out the Read Later heading when nothing is saved for later", () => {
     render(
       <ArticleList
+        scope={INBOX_SCOPE}
         articles={[article(1), article(2)]}
         readLaterHeading={<h2>Read Later</h2>}
       />,
@@ -344,6 +406,7 @@ describe("ArticleList", () => {
   it("moves the highlight across the Read Later heading with n and p", async () => {
     render(
       <ArticleList
+        scope={INBOX_SCOPE}
         articles={[article(1), article(2, undefined, "READ_LATER")]}
         readLaterHeading={<h2>Read Later</h2>}
       />,
@@ -357,7 +420,9 @@ describe("ArticleList", () => {
   });
 
   it("scrolls the article the reader moves to into view", async () => {
-    render(<ArticleList articles={[article(1), article(2)]} />);
+    render(
+      <ArticleList scope={INBOX_SCOPE} articles={[article(1), article(2)]} />,
+    );
     vi.mocked(Element.prototype.scrollIntoView).mockClear();
 
     await userEvent.keyboard("nn");

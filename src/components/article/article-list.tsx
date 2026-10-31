@@ -1,9 +1,12 @@
 "use client";
 
 import ArticleCard from "@/components/article/article-card";
+import { useWithOverrides } from "@/components/article/article-overrides";
 import { useLiveUpdates } from "@/components/live-updates";
 import { Button } from "@/components/ui/button";
 import { ArticleStatus, Prisma } from "@/generated/prisma/client";
+import { compareInboxOrder } from "@/lib/article";
+import { ArticleScope, isInScope } from "@/lib/articleScope";
 import { ArrowUpIcon } from "lucide-react";
 import { Fragment, ReactNode, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -15,10 +18,20 @@ type ListedArticle = Prisma.ArticleGetPayload<{
 interface ArticleListProps {
   articles: ListedArticle[];
   /**
+   * What the page lists — the same scope its query was built from. An article
+   * the reader changes out of it leaves the list at once, without waiting for
+   * the server.
+   */
+  scope: ArticleScope;
+  /**
    * Shown above the first Read Later article, separating it from the unread
    * ones. It sits inside the list rather than splitting the page into two
    * lists, so "n" and "p" move straight across the boundary and an article
    * changing group is never mistaken for a new arrival.
+   *
+   * A list with this heading is the inbox, so it is kept in
+   * `compareInboxOrder`: an article moved into or out of Read Later changes
+   * group on the spot.
    */
   readLaterHeading?: ReactNode;
 }
@@ -44,15 +57,32 @@ const idsOf = (articles: ListedArticle[]) =>
  * around under the reader. Articles already on screen still update in place
  * and disappear when the server stops returning them.
  */
-const ArticleList = ({ articles, readLaterHeading }: ArticleListProps) => {
+const ArticleList = ({
+  articles: serverArticles,
+  scope,
+  readLaterHeading,
+}: ArticleListProps) => {
   const { userRefreshActive } = useLiveUpdates();
+  const withOverrides = useWithOverrides();
+  // The reader's unconfirmed changes win over what the server last sent, so a
+  // dismissal shows at once — and stays shown while it waits for a connection.
+  const current = serverArticles
+    .map(withOverrides)
+    .filter((article) => isInScope(scope, article));
+  const articles = readLaterHeading
+    ? current.toSorted(compareInboxOrder)
+    : current;
+
   // Selection is by id, not position: showing held articles prepends to the
   // list, and the highlight has to stay on the article the reader chose. Its
   // position and status ride along: position so the highlight can move on
   // when that article goes, status so a move between unread and Read Later
   // (same id, new group) is treated the same way rather than followed.
   const [selection, setSelection] = useState<Selection>();
-  const [seenIds, setSeenIds] = useState(() => new Set(idsOf(articles)));
+  // Seeded from the server's list, not the filtered one: an article hidden by
+  // a pending change when the list mounts (dismissed on its summary page, say)
+  // was already seen, and an Undo must not bring it back as a new arrival.
+  const [seenIds, setSeenIds] = useState(() => new Set(idsOf(serverArticles)));
 
   const unseen = articles.filter((article) => !seenIds.has(article.id));
 

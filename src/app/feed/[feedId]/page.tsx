@@ -8,6 +8,7 @@ import RefreshFeedButton from "@/app/feed/[feedId]/refresh-feed-button";
 import FeedTitle from "@/app/feed/feed-title";
 import ArticleList from "@/components/article/article-list";
 import TopNavigation from "@/components/navigation/top-navigation";
+import { ArticleScope, scopeWhere } from "@/lib/articleScope";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { notFound } from "next/navigation";
@@ -32,6 +33,15 @@ const FeedById = async (props: FeedByIdProps) => {
     notFound();
   }
 
+  const scope: ArticleScope = {
+    statuses:
+      showSearchParam === "all"
+        ? ["UNREAD", "READ"]
+        : showSearchParam === "filtered"
+          ? ["FILTERED"]
+          : ["UNREAD"],
+  };
+
   const articles = await prisma.article.findMany({
     include: {
       feed: true,
@@ -40,12 +50,7 @@ const FeedById = async (props: FeedByIdProps) => {
     },
     where: {
       feedId: feedId,
-      status:
-        showSearchParam === "all"
-          ? { in: ["UNREAD", "READ"] }
-          : showSearchParam === "filtered"
-            ? "FILTERED"
-            : "UNREAD",
+      ...scopeWhere(scope),
       userId,
     },
     orderBy: { publicationDate: "desc" },
@@ -81,7 +86,11 @@ const FeedById = async (props: FeedByIdProps) => {
 
       <div className="flex flex-col gap-4">
         {articles.length > 0 ? (
-          <ArticleList key={showSearchParam} articles={articles} />
+          <ArticleList
+            key={showSearchParam}
+            articles={articles}
+            scope={scope}
+          />
         ) : showSearchParam === "filtered" ? (
           <NoFilteredArticles feed={feed} />
         ) : (

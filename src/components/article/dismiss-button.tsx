@@ -1,6 +1,7 @@
 "use client";
+import { useArticleChange } from "@/components/article/article-overrides";
 import { Button } from "@/components/ui/button";
-import { Article } from "@/generated/prisma/client";
+import { Article, ArticleStatus } from "@/generated/prisma/client";
 import { isInInbox } from "@/lib/article";
 import {
   markArticleAsRead,
@@ -8,7 +9,6 @@ import {
   restoreArticleToInbox,
 } from "@/lib/repository/articleRepository";
 import { ArchiveRestoreIcon, CheckIcon } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 
 const DismissButton = ({
@@ -20,44 +20,43 @@ const DismissButton = ({
   className?: string;
   onAfterDismiss?: () => void;
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const change = useArticleChange();
   const isInbox = isInInbox(article.status);
 
-  const handleMarkAsRead = async () => {
+  const undoTo = (previous: ArticleStatus) => ({
+    label: "Undo",
+    onClick: () =>
+      change(article, { status: previous }, () =>
+        restoreArticleStatus(article.id, previous),
+      ),
+  });
+
+  const handleMarkAsRead = () => {
     const previous = article.status;
-    setIsSubmitting(true);
-    await markArticleAsRead(article.id);
-    setIsSubmitting(false);
+    change(article, { status: "READ" }, () => markArticleAsRead(article.id));
     onAfterDismiss?.();
 
     toast("Article marked as read", {
       description: <span className="italic">{article.title}</span>,
-      action: {
-        label: "Undo",
-        onClick: () => restoreArticleStatus(article.id, previous),
-      },
+      action: undoTo(previous),
     });
   };
 
-  const handleRestore = async () => {
+  const handleRestore = () => {
     const previous = article.status;
-    setIsSubmitting(true);
-    await restoreArticleToInbox(article.id);
-    setIsSubmitting(false);
+    change(article, { status: "UNREAD" }, () =>
+      restoreArticleToInbox(article.id),
+    );
 
     toast("Article restored to your inbox", {
       description: <span className="italic">{article.title}</span>,
-      action: {
-        label: "Undo",
-        onClick: () => restoreArticleStatus(article.id, previous),
-      },
+      action: undoTo(previous),
     });
   };
 
   return (
     <Button
       className={className ?? "cursor-pointer justify-start text-sm"}
-      disabled={isSubmitting}
       onClick={isInbox ? handleMarkAsRead : handleRestore}
       variant="secondary"
     >
