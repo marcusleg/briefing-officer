@@ -4,6 +4,7 @@ import { buildFilterSuggestionPrompt } from "@/lib/ai/prompts";
 import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
+import { getUserId } from "@/lib/repository/userRepository";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { trackTokenUsage } from "./tokenUsageService";
@@ -23,9 +24,9 @@ const suggestionSchema = z.object({
 });
 
 export const suggestFilterKeywords = async (articleId: number) => {
-  const article = await prisma.article.findUniqueOrThrow({
+  const article = await prisma.article.findFirstOrThrow({
     include: { feed: { include: { filters: true } }, lead: true },
-    where: { id: articleId },
+    where: { id: articleId, userId: await getUserId() },
   });
 
   const existingDisinterests = article.feed.filters

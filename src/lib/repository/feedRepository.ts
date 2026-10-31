@@ -33,15 +33,50 @@ const filterRows = (
   })),
 ];
 
+/**
+ * Ownership guards. Every export of this module is a server action a client
+ * can call with any id, so an id is only acted on once it is known to belong
+ * to the signed-in reader. Someone else's row is reported exactly like a
+ * missing one.
+ */
+const ensureOwnFeed = async (feedId: number, userId: string) => {
+  const feed = await prisma.feed.findFirst({
+    where: { id: feedId, userId },
+    select: { id: true },
+  });
+  if (!feed) {
+    throw new Error("Feed not found");
+  }
+};
+
+const ensureOwnCategory = async (
+  categoryId: number | null | undefined,
+  userId: string,
+) => {
+  // Filing a feed under no category needs no check.
+  if (categoryId === undefined || categoryId === null) {
+    return;
+  }
+
+  const category = await prisma.feedCategory.findFirst({
+    where: { id: categoryId, userId },
+    select: { id: true },
+  });
+  if (!category) {
+    throw new Error("Category not found");
+  }
+};
+
 export const createFeed = async (feed: FeedSchema) => {
+  const userId = await getUserId();
+  await ensureOwnCategory(feed.feedCategoryId, userId);
+
   const fetchedFeed = await fetch(feed.link).then((res) => res.text());
   const parsedFeed = parseFeed(fetchedFeed);
 
   if (!parsedFeed || !parsedFeed.title) {
     throw new Error("Invalid feed");
   }
-
-  const userId = await getUserId();
 
   const createdFeed = await prisma.feed.create({
     data: {
@@ -82,16 +117,9 @@ export const deleteFeed = async (feedId: number) => {
  * learn about new articles over the event stream.
  */
 export const refreshFeed = async (feedId: number) => {
-  const userId = await getUserId();
-  const feed = await prisma.feed.findFirst({
-    where: { id: feedId, userId },
-    select: { id: true },
-  });
-  if (!feed) {
-    throw new Error("Feed not found");
-  }
+  await ensureOwnFeed(feedId, await getUserId());
 
-  await enqueue("REFRESH_FEED", feed.id);
+  await enqueue("REFRESH_FEED", feedId);
   wakeWorker();
 };
 
@@ -120,6 +148,7 @@ export const refreshFeeds = async () => {
 
 export const updateFeed = async (feedId: number, feed: FeedSchema) => {
   const userId = await getUserId();
+  await ensureOwnCategory(feed.feedCategoryId, userId);
 
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     await tx.feed.update({
@@ -169,8 +198,10 @@ export const updateCategory = async (
   categoryId: number,
   category: CategorySchema,
 ) => {
+  const userId = await getUserId();
+
   await prisma.feedCategory.update({
-    where: { id: categoryId },
+    where: { id: categoryId, userId },
     data: {
       ...category,
     },
@@ -180,21 +211,27 @@ export const updateCategory = async (
 };
 
 export const deleteCategory = async (categoryId: number) => {
-  // First, update all feeds in this category to have no category
-  await prisma.feed.updateMany({
-    where: { feedCategoryId: categoryId },
-    data: { feedCategoryId: null },
-  });
+  const userId = await getUserId();
+  await ensureOwnCategory(categoryId, userId);
 
-  // Then delete the category
-  await prisma.feedCategory.delete({
-    where: { id: categoryId },
-  });
+  await prisma.$transaction([
+    // First, update all feeds in this category to have no category
+    prisma.feed.updateMany({
+      where: { feedCategoryId: categoryId },
+      data: { feedCategoryId: null },
+    }),
+    // Then delete the category
+    prisma.feedCategory.delete({
+      where: { id: categoryId, userId },
+    }),
+  ]);
 
   revalidatePath("/feed", "layout");
 };
 
 export const getFeedFilters = async (feedId: number) => {
+  await ensureOwnFeed(feedId, await getUserId());
+
   const filters = await prisma.feedFilter.findMany({
     where: { feedId },
     orderBy: { createdAt: "asc" },
@@ -227,6 +264,8 @@ export const addFeedFilter = async (
   kind: FeedFilterKind,
   text: string,
 ) => {
+  await ensureOwnFeed(feedId, await getUserId());
+
   const existing = await prisma.feedFilter.findMany({
     where: { feedId, kind },
     select: { text: true },
@@ -257,6 +296,8 @@ export const removeFeedFilter = async (
   kind: FeedFilterKind,
   text: string,
 ) => {
+  await ensureOwnFeed(feedId, await getUserId());
+
   await prisma.feedFilter.deleteMany({ where: { feedId, kind, text } });
 
   // Deliberately does not revalidate — same reasoning as addFeedFilter above:

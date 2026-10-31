@@ -15,19 +15,31 @@ import { revalidatePath } from "next/cache";
  * `filterReason` is optional and only ever set alongside `FILTERED`. It is
  * accepted here rather than written separately so a rejection cannot land as a
  * status without its explanation.
+ *
+ * Scoped to the signed-in reader: every export of this module is a server
+ * action a client can call with any article id, so the id alone must never be
+ * enough. An article that is not theirs fails the update just like a missing
+ * one.
  */
-const setArticleStatus = (
+const setArticleStatus = async (
   articleId: number,
   status: ArticleStatus,
   filterReason?: string,
 ) =>
   prisma.article.update({
-    where: { id: articleId },
+    where: { id: articleId, userId: await getUserId() },
     data: {
       status,
       statusChangedAt: new Date(),
       ...(filterReason === undefined ? {} : { filterReason }),
     },
+  });
+
+/** Same scoping as `setArticleStatus`; starring leaves `statusChangedAt` be. */
+const setArticleStarred = async (articleId: number, starred: boolean) =>
+  prisma.article.update({
+    where: { id: articleId, userId: await getUserId() },
+    data: { starred },
   });
 
 const setArticleStatusMany = (
@@ -57,14 +69,7 @@ export const markArticleAsReadLater = async (articleId: number) => {
 };
 
 export const markArticleAsStarred = async (articleId: number) => {
-  const updatedArticle = await prisma.article.update({
-    where: {
-      id: articleId,
-    },
-    data: {
-      starred: true,
-    },
-  });
+  const updatedArticle = await setArticleStarred(articleId, true);
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/starred-articles");
@@ -75,6 +80,8 @@ export const markArticlesOlderThanXDaysAsRead = async (
   feedId: number,
   days: number,
 ) => {
+  const userId = await getUserId();
+
   const date = new Date();
   date.setDate(date.getDate() - days);
 
@@ -83,6 +90,7 @@ export const markArticlesOlderThanXDaysAsRead = async (
       feedId: feedId,
       publicationDate: { lte: date },
       status: "UNREAD",
+      userId,
     },
     "READ",
   );
@@ -163,14 +171,7 @@ export const unmarkArticleAsReadLater = async (articleId: number) => {
 };
 
 export const unmarkArticleAsStarred = async (articleId: number) => {
-  const updatedArticle = await prisma.article.update({
-    where: {
-      id: articleId,
-    },
-    data: {
-      starred: false,
-    },
-  });
+  const updatedArticle = await setArticleStarred(articleId, false);
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/starred-articles");

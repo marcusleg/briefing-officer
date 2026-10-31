@@ -4,7 +4,10 @@ import {
   markArticleAsRead,
   markArticleAsReadLater,
   markArticleAsStarred,
+  markArticlesOlderThanXDaysAsRead,
+  restoreArticleStatus,
   restoreArticleToInbox,
+  unmarkArticleAsReadLater,
   unmarkArticleAsStarred,
 } from "@/lib/repository/articleRepository";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -174,5 +177,58 @@ describe("articleRepository", () => {
       where: { id: article.id },
     });
     expect(updated.statusChangedAt.getTime()).toBe(readAtTime.getTime());
+  });
+});
+
+describe("articleRepository ownership", () => {
+  // Every export of a "use server" module is an endpoint a client can call
+  // with any argument, so an article id alone must never be enough to change
+  // someone else's article.
+  it.each([
+    ["markArticleAsRead", markArticleAsRead],
+    ["markArticleAsReadLater", markArticleAsReadLater],
+    ["markArticleAsNotInteresting", markArticleAsNotInteresting],
+    ["restoreArticleToInbox", restoreArticleToInbox],
+    ["unmarkArticleAsReadLater", unmarkArticleAsReadLater],
+    ["markArticleAsStarred", markArticleAsStarred],
+    ["unmarkArticleAsStarred", unmarkArticleAsStarred],
+    ["restoreArticleStatus", (id: number) => restoreArticleStatus(id, "READ")],
+  ])("%s refuses an article that belongs to someone else", async (_, act) => {
+    const other = await createUser();
+    const otherFeed = await createFeed({ userId: other.id });
+    const theirs = await createArticle({
+      userId: other.id,
+      feedId: otherFeed.id,
+      status: "READ_LATER",
+      starred: true,
+    });
+
+    await expect(act(theirs.id)).rejects.toThrow();
+
+    const untouched = await prisma.article.findUniqueOrThrow({
+      where: { id: theirs.id },
+    });
+    expect(untouched.status).toBe("READ_LATER");
+    expect(untouched.starred).toBe(true);
+    expect(untouched.statusChangedAt.getTime()).toBe(
+      theirs.statusChangedAt.getTime(),
+    );
+  });
+
+  it("markArticlesOlderThanXDaysAsRead leaves someone else's feed alone", async () => {
+    const other = await createUser();
+    const otherFeed = await createFeed({ userId: other.id });
+    const theirs = await createArticle({
+      userId: other.id,
+      feedId: otherFeed.id,
+      publicationDate: new Date("2020-01-01T00:00:00.000Z"),
+    });
+
+    expect(await markArticlesOlderThanXDaysAsRead(otherFeed.id, 1)).toBe(0);
+
+    const untouched = await prisma.article.findUniqueOrThrow({
+      where: { id: theirs.id },
+    });
+    expect(untouched.status).toBe("UNREAD");
   });
 });
