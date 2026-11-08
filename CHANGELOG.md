@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.20.0](https://github.com/marcusleg/briefing-officer/compare/v0.19.0...v0.20.0) (2026-11-08)
+
+### ⚠ Breaking Changes
+
+- Single sign-on now returns to `<BASE_URL>/api/auth/callback/generic` instead
+  of `<BASE_URL>/api/auth/oauth2/callback/generic`. If you set
+  `NEXT_PUBLIC_AUTH_GENERIC_OAUTH_ENABLE`, register the new redirect URI with
+  your OAuth/OIDC provider before upgrading, or SSO sign-ins will fail. Existing
+  SSO accounts keep working.
+  ([#807](https://github.com/marcusleg/briefing-officer/pull/807))
+
+### Bug Fixes
+
+- Other accounts on the same instance can no longer change your articles,
+  categories or feed filters, or request filter suggestions for your articles.
+  ([#808](https://github.com/marcusleg/briefing-officer/pull/808))
+- Leads for opinion pieces and blog posts no longer refer to "the author"; they
+  say who the person is or open with the claim itself.
+  ([#805](https://github.com/marcusleg/briefing-officer/pull/805))
+
+### Dependencies
+
+- Updated Node.js to 26.13.0, React to 19.3.1, Prisma to 7.10.1 and the AI SDK
+  to 7.0.147. ([#806](https://github.com/marcusleg/briefing-officer/pull/806),
+  [#810](https://github.com/marcusleg/briefing-officer/pull/810))
+
 ## [0.19.0](https://github.com/marcusleg/briefing-officer/compare/v0.18.0...v0.19.0) (2026-10-17)
 
 ### Features
