@@ -26,13 +26,15 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const SignInForm = () => {
-  const isGenericOAuthEnabled =
-    process.env.NEXT_PUBLIC_AUTH_GENERIC_OAUTH_ENABLE == "true";
-  const genericOAuthProviderName =
-    process.env.NEXT_PUBLIC_AUTH_GENERIC_OAUTH_PROVIDER_NAME ||
-    "Single Sign-On";
+interface SignInFormProps {
+  isGenericOAuthEnabled: boolean;
+  genericOAuthProviderName: string;
+}
 
+const SignInForm = ({
+  isGenericOAuthEnabled,
+  genericOAuthProviderName,
+}: SignInFormProps) => {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
