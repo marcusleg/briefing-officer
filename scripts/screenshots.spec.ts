@@ -12,6 +12,9 @@ const VIEWPORTS = [
 const THEMES = ["light", "dark"] as const;
 
 test("capture screenshots", async ({ browser }) => {
+  // Four shots, each waiting for the charts to finish animating.
+  test.setTimeout(120000);
+
   // Authenticate and save storage state
   const apiContext = await request.newContext({ baseURL: BASE_URL });
   const signInResponse = await apiContext.post("/api/auth/sign-in/email", {
@@ -42,6 +45,14 @@ test("capture screenshots", async ({ browser }) => {
 
       await page.goto("/feed");
       await page.waitForLoadState("networkidle");
+
+      // The dashboard charts render after the page settles and then animate
+      // in (Recharts takes about 1.5s), so a shot taken right away catches
+      // skeletons or a half-drawn donut. Mobile hides the charts.
+      if (viewport.name === "desktop") {
+        await page.locator(".recharts-surface").first().waitFor();
+        await page.waitForTimeout(2000);
+      }
 
       // Hide the Next.js dev-mode overlay icon
       await page.evaluate(() => {
