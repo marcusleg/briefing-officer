@@ -1,0 +1,16 @@
+import LeftNavigation from "@/components/navigation/left-navigation";
+import { SidebarProvider } from "@/components/ui/sidebar";
+
+export default async function SettingsLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <SidebarProvider>
+      <LeftNavigation />
+
+      <div className="container p-4">{children}</div>
+    </SidebarProvider>
+  );
+}

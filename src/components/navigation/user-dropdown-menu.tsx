@@ -14,9 +14,11 @@ import {
   ChevronUpIcon,
   DownloadIcon,
   LogOutIcon,
+  SettingsIcon,
   UploadIcon,
   User2Icon,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -47,6 +49,13 @@ const UserDropdownMenu = ({ userName }: UserDropdownMenuProps) => {
           side="top"
           className="w-(--radix-popper-anchor-width)"
         >
+          <DropdownMenuItem asChild className="cursor-pointer">
+            <Link href="/settings">
+              <SettingsIcon />
+              <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           {/* Moving feeds in or out is a once-per-account affair, so it lives
               with the account rather than taking permanent rows in the feed
               list. */}
