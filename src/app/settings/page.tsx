@@ -1,6 +1,9 @@
 import { linkErrorMessage } from "@/app/settings/link-error";
 import PasswordForm from "@/app/settings/password-form";
 import ProfileForm from "@/app/settings/profile-form";
+import { isSessionNotFresh } from "@/app/settings/session-freshness";
+import SessionList, { type SessionSummary } from "@/app/settings/session-list";
+import SignInAgain from "@/app/settings/sign-in-again";
 import SingleSignOn from "@/app/settings/single-sign-on";
 import {
   Card,
@@ -37,6 +40,26 @@ export default async function SettingsPage({
   const ssoAccount = accounts.find(
     (account) => account.providerId === "generic",
   );
+
+  // Better Auth only lists sessions for a fresh one; otherwise ask to sign in
+  // again.
+  let sessions: SessionSummary[] | null;
+  try {
+    const result = await auth.api.listSessions({ headers: await headers() });
+    sessions = result.map((item) => ({
+      id: item.id,
+      token: item.token,
+      userAgent: item.userAgent ?? null,
+      createdAt: new Date(item.createdAt),
+      updatedAt: new Date(item.updatedAt),
+      expiresAt: new Date(item.expiresAt),
+    }));
+  } catch (error) {
+    if (!isSessionNotFresh(error)) {
+      throw error;
+    }
+    sessions = null;
+  }
 
   const isGenericOAuthEnabled =
     process.env.AUTH_GENERIC_OAUTH_ENABLE === "true";
@@ -102,6 +125,25 @@ export default async function SettingsPage({
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sessions</CardTitle>
+          <CardDescription>
+            Devices where you&apos;re signed in.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {sessions ? (
+            <SessionList
+              sessions={sessions}
+              currentSessionId={session.session.id}
+            />
+          ) : (
+            <SignInAgain />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

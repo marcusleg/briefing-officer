@@ -74,6 +74,7 @@
     "ai": "^7.0.40",
     "axios": "^1.20.0",
     "better-auth": "~1.7.12",
+    "bowser": "^2.15.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
