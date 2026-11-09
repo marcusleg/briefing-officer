@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.20.1](https://github.com/marcusleg/briefing-officer/compare/v0.20.0...v0.20.1) (2026-11-09)
+
+### Bug Fixes
+
+- The sign-in page now shows the single sign-on button in the container image
+  when SSO is enabled. The settings that control it are now
+  `AUTH_GENERIC_OAUTH_ENABLE` and `AUTH_GENERIC_OAUTH_PROVIDER_NAME`; rename the
+  old `NEXT_PUBLIC_AUTH_GENERIC_OAUTH_*` settings in your environment or Helm
+  values. ([#813](https://github.com/marcusleg/briefing-officer/pull/813))
+
 ## [0.20.0](https://github.com/marcusleg/briefing-officer/compare/v0.19.0...v0.20.0) (2026-11-08)
 
 ### ⚠ Breaking Changes
