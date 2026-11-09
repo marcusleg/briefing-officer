@@ -28,15 +28,25 @@ const openMenu = async () => {
 };
 
 describe("UserDropdownMenu", () => {
-  it("lists the OPML actions above Sign out", async () => {
+  it("lists Settings and the OPML actions above Sign out", async () => {
     await openMenu();
 
     const items = screen.getAllByRole("menuitem");
     expect(items.map((item) => item.textContent)).toEqual([
+      "Settings",
       "Import OPML",
       "Export OPML",
       "Sign out",
     ]);
+  });
+
+  it("links to the settings page", async () => {
+    await openMenu();
+
+    expect(screen.getByRole("menuitem", { name: "Settings" })).toHaveAttribute(
+      "href",
+      "/settings",
+    );
   });
 
   it("exports through a download link to the OPML route", async () => {
