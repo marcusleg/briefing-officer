@@ -251,7 +251,7 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
 
       {/* One block per sentence, so the line structure the model emits
           survives to the page instead of being reflowed into a paragraph. */}
-      <div className="leading-loose text-pretty">
+      <div className="text-prose">
         {sentences.map((sentence, index) => (
           <p
             key={index}

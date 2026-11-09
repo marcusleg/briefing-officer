@@ -89,7 +89,7 @@ const ArticleCard = (props: ArticleCardProps) => {
   );
 
   const description = () => {
-    const className = "text-base leading-relaxed wrap-anywhere";
+    const className = "text-prose text-base wrap-anywhere";
 
     if (!props.article.scrape?.textContent) {
       return (
@@ -106,10 +106,11 @@ const ArticleCard = (props: ArticleCardProps) => {
     return <p className={className}>{aiLead}</p>;
   };
 
-  let className = "transition-all duration-200 hover:scale-101 hover:shadow-lg";
+  // Flat, as everywhere in the brand: hovering turns the title purple, and the
+  // selected card gets a purple outline instead of lifting off the page.
+  let className = "group transition-colors duration-200";
   if (props.selected) {
-    className +=
-      " border-foreground scale-101 border shadow-lg transition-all duration-200";
+    className += " border-primary ring-1 ring-primary";
   }
   if (!isInInbox(props.article.status)) {
     className += " opacity-65";
@@ -137,7 +138,7 @@ const ArticleCard = (props: ArticleCardProps) => {
               </span>
             </div>
 
-            <h2 className="hover:text-primary mb-3 text-2xl leading-tight font-semibold wrap-break-word transition-colors">
+            <h2 className="group-hover:text-primary mb-3 text-2xl leading-tight font-semibold tracking-tight text-balance wrap-break-word transition-colors">
               {props.article.title}
             </h2>
 

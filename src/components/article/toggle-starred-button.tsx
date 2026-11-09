@@ -55,7 +55,7 @@ const ToggleStarredButton = ({
             className="cursor-pointer"
           >
             <StarIcon
-              className={`size-4 ${article.starred ? "fill-black dark:fill-white" : "fill-transparent"}`}
+              className={`size-4 ${article.starred ? "fill-current" : "fill-transparent"}`}
             />
           </Button>
         </TooltipTrigger>

@@ -13,7 +13,6 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
-import { NewspaperIcon } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 
@@ -30,14 +29,10 @@ const LeftNavigation = async () => {
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <Link href="/">
-          <div className="flex items-center gap-2 px-2 py-4">
-            <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-lg">
-              <NewspaperIcon className="size-4" />
-            </div>
-            <h1 className="text-sm font-semibold">Briefing Officer</h1>
-          </div>
+      <SidebarHeader className="px-4 py-5">
+        {/* The app name over the gradient rule. */}
+        <Link href="/" className="brand-rule self-start py-[0.3em]">
+          <h1 className="text-lg leading-none font-bold">Briefing Officer</h1>
         </Link>
       </SidebarHeader>
 

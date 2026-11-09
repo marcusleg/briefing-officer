@@ -42,9 +42,9 @@ const UserTable = async () => {
           <TableRow key={user.id}>
             <TableCell className="flex justify-center">
               {user.banned ? (
-                <ShieldBanIcon className="size-4 text-red-800" />
+                <ShieldBanIcon className="text-destructive size-4" />
               ) : (
-                <ShieldCheckIcon className="size-4 text-green-800" />
+                <ShieldCheckIcon className="text-accent-green size-4" />
               )}
             </TableCell>
             <TableCell>{user.name}</TableCell>

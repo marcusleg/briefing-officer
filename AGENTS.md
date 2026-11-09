@@ -112,6 +112,19 @@ through a release PR, and tags the release once the user has merged that PR.
 Pushing a `v*` tag publishes the container image and Helm chart, so don't create
 tags or GitHub releases outside that skill.
 
+## Design
+
+Colours, fonts, radii and the reading column are defined once in
+`src/app/globals.css`; shadcn's semantic variables point at them, so components
+use `bg-primary`, `text-muted-foreground` and the like.
+
+- Colour only through those tokens, never raw Tailwind palette classes
+  (`text-blue-600`, `bg-black/50`, `fill-white`).
+- Surfaces are flat: separate them with `border` and `bg-muted`, not shadows.
+  Only floating things (menus, popovers, toasts) get a shadow.
+- Text people read (summary leads, key facts, transcripts) uses `text-prose` in
+  a column no wider than `max-w-content`. UI chrome stays compact.
+
 <!-- prettier-ignore-start -->
 
 <!-- BEGIN:nextjs-agent-rules -->

@@ -57,32 +57,35 @@ const TextSummaryStream = ({ articleId }: TextSummaryStreamProps) => {
         options={{
           overrides: {
             h1: {
-              props: { className: "text-3xl font-bold tracking-tight" },
+              props: {
+                className:
+                  "text-[1.44rem] leading-tight font-bold tracking-[-0.01em] text-balance",
+              },
             },
             h2: {
-              props: { className: "text-2xl font-bold tracking-tight" },
+              props: { className: "text-[1.2rem] leading-snug font-semibold" },
             },
             h3: {
-              props: { className: "text-xl font-bold tracking-tight" },
+              props: { className: "text-base font-semibold" },
             },
             h4: {
-              props: { className: "text-lg font-bold tracking-tight" },
+              props: { className: "text-base font-semibold" },
             },
             h5: {
-              props: { className: "text-base font-bold tracking-tight" },
+              props: { className: "text-base font-semibold" },
             },
             h6: {
-              props: { className: "text-sm font-bold tracking-tight" },
+              props: { className: "text-base font-semibold" },
             },
             ul: {
-              props: { className: "ml-6 list-disc [&>li]:mt-2" },
+              props: { className: "text-prose ml-6 list-disc [&>li]:mt-2" },
             },
             ol: {
-              props: { className: "ml-6 list-decimal [&>li]:mt-2" },
+              props: { className: "text-prose ml-6 list-decimal [&>li]:mt-2" },
             },
             p: {
               props: {
-                className: "hyphens-auto text-pretty text-justify leading-7",
+                className: "text-prose hyphens-auto",
               },
             },
           },

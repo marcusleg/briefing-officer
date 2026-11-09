@@ -102,9 +102,9 @@ describe("ArticleList", () => {
       screen.getByRole("button", { name: "Show 1 new article" }),
     );
 
-    expect(cardOf("Article 1")).toHaveClass("border-foreground");
-    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
-    expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
+    expect(cardOf("Article 1")).toHaveClass("border-primary");
+    expect(cardOf("Article 2")).not.toHaveClass("border-primary");
+    expect(cardOf("Article 3")).not.toHaveClass("border-primary");
   });
 
   it("updates an article already on screen in place", () => {
@@ -154,8 +154,8 @@ describe("ArticleList", () => {
 
     rerender(<ArticleList articles={[article(2), article(3)]} />);
 
-    expect(cardOf("Article 2")).toHaveClass("border-foreground");
-    expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).toHaveClass("border-primary");
+    expect(cardOf("Article 3")).not.toHaveClass("border-primary");
   });
 
   it("continues past the moved highlight when the reader presses n", async () => {
@@ -168,8 +168,8 @@ describe("ArticleList", () => {
 
     await userEvent.keyboard("n");
 
-    expect(cardOf("Article 3")).toHaveClass("border-foreground");
-    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
+    expect(cardOf("Article 3")).toHaveClass("border-primary");
+    expect(cardOf("Article 2")).not.toHaveClass("border-primary");
   });
 
   it("highlights the new last article when the last one is marked as read", async () => {
@@ -182,7 +182,7 @@ describe("ArticleList", () => {
 
     rerender(<ArticleList articles={[article(1)]} />);
 
-    expect(cardOf("Article 1")).toHaveClass("border-foreground");
+    expect(cardOf("Article 1")).toHaveClass("border-primary");
   });
 
   it("forgets the selection when the last remaining article is marked as read", async () => {
@@ -198,11 +198,11 @@ describe("ArticleList", () => {
       screen.getByRole("button", { name: "Show 1 new article" }),
     );
 
-    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).not.toHaveClass("border-primary");
 
     await userEvent.keyboard("n");
 
-    expect(cardOf("Article 2")).toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).toHaveClass("border-primary");
   });
 
   it("keeps the highlight when an article above it is marked as read", async () => {
@@ -214,11 +214,11 @@ describe("ArticleList", () => {
 
     rerender(<ArticleList articles={[article(2), article(3)]} />);
 
-    expect(cardOf("Article 2")).toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).toHaveClass("border-primary");
 
     await userEvent.keyboard("n");
 
-    expect(cardOf("Article 3")).toHaveClass("border-foreground");
+    expect(cardOf("Article 3")).toHaveClass("border-primary");
   });
 
   it("moves the highlight on while new articles are still held back", async () => {
@@ -235,14 +235,14 @@ describe("ArticleList", () => {
       />,
     );
 
-    expect(cardOf("Article 3")).toHaveClass("border-foreground");
+    expect(cardOf("Article 3")).toHaveClass("border-primary");
 
     await userEvent.click(
       screen.getByRole("button", { name: "Show 2 new articles" }),
     );
 
-    expect(cardOf("Article 3")).toHaveClass("border-foreground");
-    expect(cardOf("Article 9")).not.toHaveClass("border-foreground");
+    expect(cardOf("Article 3")).toHaveClass("border-primary");
+    expect(cardOf("Article 9")).not.toHaveClass("border-primary");
   });
 
   it("moves the highlight on while a user refresh merges new articles", async () => {
@@ -267,8 +267,8 @@ describe("ArticleList", () => {
       />,
     );
 
-    expect(cardOf("Article 3")).toHaveClass("border-foreground");
-    expect(cardOf("Article 9")).not.toHaveClass("border-foreground");
+    expect(cardOf("Article 3")).toHaveClass("border-primary");
+    expect(cardOf("Article 9")).not.toHaveClass("border-primary");
   });
 
   it("keeps the highlight in place when the selected article moves to Read Later", async () => {
@@ -298,13 +298,13 @@ describe("ArticleList", () => {
       />,
     );
 
-    expect(cardOf("Article 3")).toHaveClass("border-foreground");
-    expect(cardOf("Article 2")).not.toHaveClass("border-foreground");
+    expect(cardOf("Article 3")).toHaveClass("border-primary");
+    expect(cardOf("Article 2")).not.toHaveClass("border-primary");
 
     await userEvent.keyboard("n");
 
-    expect(cardOf("Article 2")).toHaveClass("border-foreground");
-    expect(cardOf("Article 3")).not.toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).toHaveClass("border-primary");
+    expect(cardOf("Article 3")).not.toHaveClass("border-primary");
   });
 
   it("shows the Read Later heading above the first Read Later article", () => {
@@ -350,10 +350,10 @@ describe("ArticleList", () => {
     );
 
     await userEvent.keyboard("nn");
-    expect(cardOf("Article 2")).toHaveClass("border-foreground");
+    expect(cardOf("Article 2")).toHaveClass("border-primary");
 
     await userEvent.keyboard("p");
-    expect(cardOf("Article 1")).toHaveClass("border-foreground");
+    expect(cardOf("Article 1")).toHaveClass("border-primary");
   });
 
   it("scrolls the article the reader moves to into view", async () => {
