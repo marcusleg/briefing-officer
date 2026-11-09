@@ -222,7 +222,7 @@
     transform-origin: left;
     transition: transform 0.25s ease;
   }
-  /* On hover the underline shrinks; the text keeps its colour. It also reacts
+  /* On hover the underline shrinks; the text keeps its color. It also reacts
      when the element sits directly inside a hovered or focused link. */
   &:hover::after,
   &:focus-visible::after,

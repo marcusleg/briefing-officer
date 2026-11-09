@@ -114,11 +114,11 @@ tags or GitHub releases outside that skill.
 
 ## Design
 
-Colours, fonts, radii and the reading column are defined once in
+Colors, fonts, radii and the reading column are defined once in
 `src/app/globals.css`; shadcn's semantic variables point at them, so components
 use `bg-primary`, `text-muted-foreground` and the like.
 
-- Colour only through those tokens, never raw Tailwind palette classes
+- Color only through those tokens, never raw Tailwind palette classes
   (`text-blue-600`, `bg-black/50`, `fill-white`).
 - Surfaces are flat: separate them with `border` and `bg-muted`, not shadows.
   Only floating things (menus, popovers, toasts) get a shadow.
