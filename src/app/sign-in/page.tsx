@@ -1,7 +1,17 @@
 import SignInForm from "@/app/sign-in/sign-in-form";
 import Link from "next/link";
+import { connection } from "next/server";
 
-export default function SignInPage() {
+export default async function SignInPage() {
+  // Render per request so the SSO settings come from the running server's
+  // environment, not the one present at build time.
+  await connection();
+
+  const isGenericOAuthEnabled =
+    process.env.AUTH_GENERIC_OAUTH_ENABLE === "true";
+  const genericOAuthProviderName =
+    process.env.AUTH_GENERIC_OAUTH_PROVIDER_NAME || "Single Sign-On";
+
   return (
     <div className="mx-auto max-w-sm space-y-8">
       <div className="space-y-2 text-center">
@@ -11,7 +21,10 @@ export default function SignInPage() {
         </p>
       </div>
 
-      <SignInForm />
+      <SignInForm
+        isGenericOAuthEnabled={isGenericOAuthEnabled}
+        genericOAuthProviderName={genericOAuthProviderName}
+      />
 
       <p className="text-center text-sm text-gray-500">
         Don&apos;t have an account?{" "}
