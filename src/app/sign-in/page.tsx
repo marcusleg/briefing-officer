@@ -1,11 +1,18 @@
 import SignInForm from "@/app/sign-in/sign-in-form";
+import { safeCallbackURL } from "@/lib/safe-callback-url";
 import Link from "next/link";
 import { connection } from "next/server";
 
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackURL?: string | string[] }>;
+}) {
   // Render per request so the SSO settings come from the running server's
   // environment, not the one present at build time.
   await connection();
+
+  const { callbackURL } = await searchParams;
 
   const isGenericOAuthEnabled =
     process.env.AUTH_GENERIC_OAUTH_ENABLE === "true";
@@ -24,6 +31,7 @@ export default async function SignInPage() {
       <SignInForm
         isGenericOAuthEnabled={isGenericOAuthEnabled}
         genericOAuthProviderName={genericOAuthProviderName}
+        callbackURL={safeCallbackURL(callbackURL)}
       />
 
       <p className="text-center text-sm text-gray-500">

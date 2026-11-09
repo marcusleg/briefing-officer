@@ -29,11 +29,13 @@ type FormData = z.infer<typeof formSchema>;
 interface SignInFormProps {
   isGenericOAuthEnabled: boolean;
   genericOAuthProviderName: string;
+  callbackURL: string;
 }
 
 const SignInForm = ({
   isGenericOAuthEnabled,
   genericOAuthProviderName,
+  callbackURL,
 }: SignInFormProps) => {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -68,14 +70,14 @@ const SignInForm = ({
 
     setSubmitting(false);
 
-    router.push("/feed");
+    router.push(callbackURL);
     router.refresh();
   };
 
   const handleGenericOAuthSignIn = async () => {
     await authClient.signIn.social({
       provider: "generic",
-      callbackURL: "/feed",
+      callbackURL,
     });
   };
 
