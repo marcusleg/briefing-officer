@@ -170,7 +170,9 @@ async function main() {
   await prisma.account.create({
     data: {
       id: randomUUID(),
-      accountId: email,
+      // Better Auth only accepts a credential account whose accountId is the
+      // user's id.
+      accountId: userId,
       providerId: "credential",
       userId,
       password: hashedPassword,
