@@ -78,14 +78,20 @@ const TextSummaryStream = ({ articleId }: TextSummaryStreamProps) => {
               props: { className: "text-base font-semibold" },
             },
             ul: {
-              props: { className: "text-prose ml-6 list-disc [&>li]:mt-2" },
+              props: {
+                className:
+                  "text-prose ml-6 list-disc text-justify hyphens-auto [&>li]:mt-2",
+              },
             },
             ol: {
-              props: { className: "text-prose ml-6 list-decimal [&>li]:mt-2" },
+              props: {
+                className:
+                  "text-prose ml-6 list-decimal text-justify hyphens-auto [&>li]:mt-2",
+              },
             },
             p: {
               props: {
-                className: "text-prose hyphens-auto",
+                className: "text-prose text-justify hyphens-auto",
               },
             },
           },

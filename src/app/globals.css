@@ -222,11 +222,29 @@
     transform-origin: left;
     transition: transform 0.25s ease;
   }
-  /* On hover the underline shrinks; the text keeps its colour. */
+  /* On hover the underline shrinks; the text keeps its colour. It also reacts
+     when the element sits directly inside a hovered or focused link. */
   &:hover::after,
-  &:focus-visible::after {
+  &:focus-visible::after,
+  :where(a:hover, a:focus-visible) > &::after {
     transform: scaleX(0.35);
   }
+}
+
+/* The app's mark: a rounded square with the gradient running diagonally and
+   a white icon on top. */
+@utility brand-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 22%;
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    var(--monokai-orange) 0%,
+    var(--monokai-pink) 50%,
+    var(--monokai-purple) 100%
+  );
 }
 
 @layer base {
