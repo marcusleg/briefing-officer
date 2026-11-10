@@ -7,13 +7,12 @@ import { LoaderCircle, MonitorIcon, SmartphoneIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
-import { describeDevice } from "./device";
 import { formatSessionDate, lastActiveLabel } from "./session-dates";
 
 export interface SessionSummary {
   id: string;
   token: string;
-  userAgent: string | null;
+  device: { label: string; isMobile: boolean }; // describeDevice, run on the server
   createdAt: Date;
   updatedAt: Date; // "last active"
   expiresAt: Date;
@@ -43,7 +42,6 @@ const SessionList = ({ sessions, currentSessionId }: SessionListProps) => {
   });
 
   const signOut = async (session: SessionSummary) => {
-    if (pendingId) return;
     setPendingId(session.id);
     try {
       if (session.id === currentSessionId) {
@@ -80,7 +78,7 @@ const SessionList = ({ sessions, currentSessionId }: SessionListProps) => {
   return (
     <ul className="divide-y">
       {sorted.map((session) => {
-        const { label, isMobile } = describeDevice(session.userAgent);
+        const { label, isMobile } = session.device;
         const isCurrent = session.id === currentSessionId;
         const DeviceIcon = isMobile ? SmartphoneIcon : MonitorIcon;
         const pending = pendingId === session.id;
