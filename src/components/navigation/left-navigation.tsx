@@ -30,14 +30,14 @@ const LeftNavigation = async () => {
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <Link href="/">
-          <div className="flex items-center gap-2 px-2 py-4">
-            <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-lg">
-              <NewspaperIcon className="size-4" />
-            </div>
-            <h1 className="text-sm font-semibold">Briefing Officer</h1>
-          </div>
+      <SidebarHeader className="px-4 py-5">
+        <Link href="/" className="flex items-center gap-2.5 self-start">
+          <span className="brand-mark size-8" aria-hidden="true">
+            <NewspaperIcon className="size-[18px]" />
+          </span>
+          <h1 className="brand-rule py-[0.3em] text-lg leading-none font-bold">
+            Briefing Officer
+          </h1>
         </Link>
       </SidebarHeader>
 

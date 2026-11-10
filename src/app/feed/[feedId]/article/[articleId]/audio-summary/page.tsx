@@ -48,7 +48,7 @@ const AudioSummary = async ({
         page="Audio Summary"
       />
 
-      <article className="mx-auto flex max-w-4xl flex-col gap-4">
+      <article className="max-w-content mx-auto flex w-full flex-col gap-4">
         <div className="-ml-3 self-start">
           <BackButton />
         </div>
@@ -61,7 +61,9 @@ const AudioSummary = async ({
             <IntlRelativeTime date={article.publicationDate} />
           </span>
         </div>
-        <h2 className="text-2xl font-bold tracking-tight">{article.title}</h2>
+        <h2 className="text-[1.728rem] leading-tight font-bold tracking-[-0.02em] text-balance">
+          {article.title}
+        </h2>
         {article.scrape ? (
           <AudioSummaryPlayer
             articleId={article.id}

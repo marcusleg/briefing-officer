@@ -61,7 +61,7 @@ const ToggleReadLaterButton = ({
             className="cursor-pointer"
           >
             <BookmarkIcon
-              className={`size-4 ${isReadLater ? "fill-black dark:fill-white" : "fill-transparent"}`}
+              className={`size-4 ${isReadLater ? "fill-current" : "fill-transparent"}`}
             />
           </Button>
         </TooltipTrigger>
