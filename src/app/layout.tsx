@@ -31,7 +31,7 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "bg-background min-h-screen font-sans antialiased",
+          "bg-page min-h-screen font-sans antialiased",
           fontSans.variable,
           fontMono.variable,
         )}
