@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const SignInAgain = () => {
   const router = useRouter();
@@ -15,6 +16,8 @@ const SignInAgain = () => {
     try {
       await authClient.signOut();
       router.push("/sign-in?callbackURL=/settings");
+    } catch {
+      toast.error("Could not sign out");
     } finally {
       setSubmitting(false);
     }

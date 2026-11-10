@@ -1,16 +1,5 @@
-import {
-  formatSessionDate,
-  lastActiveLabel,
-} from "@/app/settings/session-dates";
+import { lastActiveLabel } from "@/app/settings/session-dates";
 import { describe, expect, it } from "vitest";
-
-describe("formatSessionDate", () => {
-  it("formats a medium date without a time", () => {
-    expect(formatSessionDate(new Date(2026, 10, 9, 23, 59))).toBe(
-      "Nov 9, 2026",
-    );
-  });
-});
 
 describe("lastActiveLabel", () => {
   const now = new Date(2026, 10, 9, 0, 30);

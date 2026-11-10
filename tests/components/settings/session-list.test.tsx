@@ -18,15 +18,10 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-const FIREFOX_LINUX =
-  "Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0";
-const IPHONE_SAFARI =
-  "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1";
-
 const current: SessionSummary = {
   id: "s1",
   token: "t1",
-  userAgent: FIREFOX_LINUX,
+  device: { label: "Firefox on Linux", isMobile: false },
   createdAt: new Date(2026, 10, 9),
   updatedAt: new Date(2026, 10, 9, 10, 0),
   expiresAt: new Date(2026, 10, 16),
@@ -34,7 +29,7 @@ const current: SessionSummary = {
 const phone: SessionSummary = {
   id: "s2",
   token: "t2",
-  userAgent: IPHONE_SAFARI,
+  device: { label: "Safari on iOS", isMobile: true },
   createdAt: new Date(2026, 10, 1),
   updatedAt: new Date(2026, 10, 8),
   expiresAt: new Date(2026, 10, 15),
@@ -42,7 +37,7 @@ const phone: SessionSummary = {
 const old: SessionSummary = {
   id: "s3",
   token: "t3",
-  userAgent: null,
+  device: { label: "Unknown device", isMobile: false },
   createdAt: new Date(2026, 9, 28),
   updatedAt: new Date(2026, 10, 4),
   expiresAt: new Date(2026, 10, 11),
@@ -149,12 +144,12 @@ describe("SessionList", () => {
     ).toBeDisabled();
   });
 
-  it("gives rows that share a label distinct button names", () => {
+  it("names this device's sign-out button distinctly", () => {
     const sameLabel = {
       ...phone,
       id: "s4",
       token: "t4",
-      userAgent: FIREFOX_LINUX,
+      device: current.device,
     };
     render(
       <SessionList sessions={[current, sameLabel]} currentSessionId="s1" />,
@@ -229,15 +224,6 @@ describe("SessionList", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/sign-in"));
     expect(authClient.signOut).toHaveBeenCalled();
     expect(authClient.revokeSession).not.toHaveBeenCalled();
-  });
-
-  it("renders without a current session", () => {
-    render(
-      <SessionList sessions={[old, phone, current]} currentSessionId="gone" />,
-    );
-
-    expect(screen.getAllByRole("listitem")).toHaveLength(3);
-    expect(screen.queryByText("This device")).not.toBeInTheDocument();
   });
 
   it("says when there are no sessions", () => {

@@ -1,7 +1,7 @@
+import { describeDevice } from "@/app/settings/device";
 import { linkErrorMessage } from "@/app/settings/link-error";
 import PasswordForm from "@/app/settings/password-form";
 import ProfileForm from "@/app/settings/profile-form";
-import { isSessionNotFresh } from "@/app/settings/session-freshness";
 import SessionList, { type SessionSummary } from "@/app/settings/session-list";
 import SignInAgain from "@/app/settings/sign-in-again";
 import SingleSignOn from "@/app/settings/single-sign-on";
@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
+import { APIError } from "better-auth/api";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -49,13 +50,15 @@ export default async function SettingsPage({
     sessions = result.map((item) => ({
       id: item.id,
       token: item.token,
-      userAgent: item.userAgent ?? null,
-      createdAt: new Date(item.createdAt),
-      updatedAt: new Date(item.updatedAt),
-      expiresAt: new Date(item.expiresAt),
+      device: describeDevice(item.userAgent),
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      expiresAt: item.expiresAt,
     }));
   } catch (error) {
-    if (!isSessionNotFresh(error)) {
+    const isNotFresh =
+      error instanceof APIError && error.body?.code === "SESSION_NOT_FRESH";
+    if (!isNotFresh) {
       throw error;
     }
     sessions = null;

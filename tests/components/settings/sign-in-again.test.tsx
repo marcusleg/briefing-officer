@@ -3,12 +3,17 @@ import { authClient } from "@/lib/auth-client";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/auth-client", () => ({
   authClient: {
     signOut: vi.fn(),
   },
+}));
+
+vi.mock("sonner", () => ({
+  toast: { error: vi.fn() },
 }));
 
 afterEach(() => {
@@ -40,5 +45,20 @@ describe("SignInAgain", () => {
       expect(push).toHaveBeenCalledWith("/sign-in?callbackURL=/settings"),
     );
     expect(authClient.signOut).toHaveBeenCalled();
+  });
+
+  it("shows an error and stays put when signing out fails", async () => {
+    vi.mocked(authClient.signOut).mockRejectedValue(new Error("offline"));
+    const push = vi.fn();
+    vi.mocked(useRouter).mockReturnValue({ push } as never);
+    const user = userEvent.setup();
+    render(<SignInAgain />);
+
+    await user.click(screen.getByRole("button", { name: "Sign in again" }));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Could not sign out"),
+    );
+    expect(push).not.toHaveBeenCalled();
   });
 });
