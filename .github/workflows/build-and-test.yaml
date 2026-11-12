@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Use Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Use Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
@@ -40,9 +40,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Use Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
@@ -57,9 +57,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Use Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
@@ -83,9 +83,9 @@ jobs:
       OPENAI_API_URL=: http://localhost
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Use Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
@@ -96,7 +96,7 @@ jobs:
       - name: Run Build
         run: npm run build
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: build-artifact
           path: .next/
@@ -136,12 +136,28 @@ jobs:
   #          path: playwright-report/
   #          retention-days: 30
 
+  # Fails when .github/workflows/actions.lock is out of sync with the workflows
+  # or a locked pin no longer verifies upstream. Rerun `gh actions-lock` after
+  # changing any `uses:` to fix it.
+  verify-actions-lock:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install gh-actions-lock
+        run: gh extension install github/gh-actions-lock --pin v0.4.1
+      - name: Verify Actions Lockfile
+        run: gh actions-lock --verify
+
   render-helm-chart:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Render Helm Chart
-        uses: WyriHaximus/github-action-helm3@v4
+        uses: WyriHaximus/github-action-helm3@v4.0.2
         with:
           exec: |
             helm template briefing-officer helm-chart \
