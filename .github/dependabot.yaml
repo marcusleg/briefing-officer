@@ -5,11 +5,16 @@ multi-ecosystem-groups:
   node:
     schedule:
       interval: "weekly"
+# Every ecosystem waits 7 days before proposing a new release, so a compromised
+# version is usually caught and yanked before it reaches us. Security updates
+# ignore the cooldown.
 updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
     patterns:
       - "@types/node"
     multi-ecosystem-group: "node"
@@ -24,6 +29,8 @@ updates:
           - "@prisma/*"
   - package-ecosystem: "docker"
     directory: "/"
+    cooldown:
+      default-days: 7
     patterns:
       - "*node"
     multi-ecosystem-group: "node"
@@ -31,3 +38,5 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
