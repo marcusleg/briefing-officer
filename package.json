@@ -9,6 +9,7 @@
     "build:container": "podman build -t ghcr.io/marcusleg/briefing-officer:local .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "helm:readme": "readme-generator --values helm-chart/values.yaml --readme helm-chart/README.md",
     "start": "next start",
     "lint": "eslint .",
     "prisma:generate": "prisma generate",
@@ -99,6 +100,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@bitnami/readme-generator-for-helm": "^2.7.2",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
