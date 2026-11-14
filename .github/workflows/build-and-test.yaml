@@ -152,6 +152,25 @@ jobs:
       - name: Verify Actions Lockfile
         run: gh actions-lock --verify
 
+  # Fails when a value in helm-chart/values.yaml has no @param annotation or
+  # helm-chart/README.md is stale. Run `npm run helm:readme` to fix it.
+  helm-chart-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Use Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - name: Install Dependencies
+        run: npm ci
+      - name: Generate Helm Chart README
+        run: npm run helm:readme
+      - name: Check Helm Chart README Is Up to Date
+        run: git diff --exit-code -- helm-chart/README.md
+
   render-helm-chart:
     runs-on: ubuntu-latest
     steps:

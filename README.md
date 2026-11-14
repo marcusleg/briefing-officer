@@ -45,6 +45,9 @@ docker run -it --rm \
   ghcr.io/marcusleg/briefing-officer
 ```
 
+To deploy to Kubernetes, use the Helm chart. See
+[helm-chart/README.md](./helm-chart/README.md) for installation and its values.
+
 ## Configuration
 
 ### Application

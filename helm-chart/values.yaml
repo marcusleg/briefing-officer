@@ -1,9 +1,27 @@
+# Parameter descriptions are rendered into README.md by Bitnami's
+# readme-generator-for-helm. After changing a value, run `npm run helm:readme`.
+
+## @section Image
+
+## @param image.repository Container image repository.
+## @param image.pullPolicy Container image pull policy.
+## @param image.tag Container image tag. Defaults to the chart's `appVersion`.
+## @param imagePullSecrets Secrets for pulling the image from a private registry.
 image:
   repository: ghcr.io/marcusleg/briefing-officer
   pullPolicy: IfNotPresent
   tag: ""
 
 imagePullSecrets: []
+
+## @section Common
+
+## @param nameOverride Replaces the chart name in resource names.
+## @param fullnameOverride Replaces the full `<release>-<chart>` name of resources.
+## @param podAnnotations Annotations added to the pod.
+## @param podLabels Labels added to the pod.
+## @param podSecurityContext Security context for the pod.
+## @param securityContext Security context for the application container.
 nameOverride: ""
 fullnameOverride: ""
 
@@ -21,20 +39,43 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# Signs session cookies. Generated on first install and reused on every upgrade
-# thereafter; set it here only to pin a specific value, or supply AUTH_SECRET in
-# the release secret, which takes precedence over both.
+## @section Application config
+## @descriptionStart
+## Credentials for the AI provider and for single sign-on go into a secret named
+## after the release (see [Configuration](#configuration)). Settings without a
+## chart value of their own can be passed through `env`.
+## @descriptionEnd
+
+## @param authSecret Signs session cookies. Generated on first install and reused on every upgrade; set it only to pin a value. `AUTH_SECRET` in the release secret takes precedence.
+## @param baseUrl Public URL the application is reached at, including scheme and trailing slash. Defaults to `https://<first httpRoute hostname>/`, or `http://localhost:3000/` without a hostname.
+## @param env Extra environment variables for the application container. Appended after the chart's own, so an entry here wins on a name clash.
 authSecret: ""
 
-# Public URL the application is reached at, including scheme and trailing
-# slash. Defaults to https://<first httpRoute hostname>/, or
-# http://localhost:3000/ when no hostname is set.
 baseUrl: ""
 
+env: []
+#  - name: OPENAI_BASE_URL
+#    value: https://api.openai.com/v1
+
+## @section Service
+
+## @param service.type Kubernetes Service type.
+## @param service.port Port the Service listens on.
 service:
   type: ClusterIP
   port: 80
 
+## @section HTTPRoute
+## @descriptionStart
+## Exposes the application through a [Gateway API](https://gateway-api.sigs.k8s.io/)
+## HTTPRoute. Requests to `/api/health` from outside the cluster are redirected
+## to `/`.
+## @descriptionEnd
+
+## @param httpRoute.enabled Create an HTTPRoute.
+## @param httpRoute.annotations Annotations added to the HTTPRoute.
+## @param httpRoute.parentRefs Gateways the HTTPRoute attaches to.
+## @param httpRoute.hostnames Hostnames the HTTPRoute matches. The first one also sets the default `baseUrl`.
 httpRoute:
   enabled: false
   annotations: {}
@@ -44,9 +85,19 @@ httpRoute:
   #     sectionName: http
   hostnames: []
 
+## @section NetworkPolicy
+## @descriptionStart
+## When enabled, the pod may only reach DNS in `kube-system` and HTTP(S) on public
+## addresses, so it can fetch feeds and call the AI provider but not services
+## inside the cluster or on private networks. All ingress is denied unless allowed
+## by `networkPolicy.extraIngressRules`.
+## @descriptionEnd
+
+## @param networkPolicy.enabled Create a NetworkPolicy.
+## @param networkPolicy.extraIngressRules Ingress rules for the NetworkPolicy, typically allowing your gateway or ingress controller to reach port 3000.
 networkPolicy:
   enabled: false
-  extraIngressRules:
+  extraIngressRules: []
 #    - from:
 #        - namespaceSelector:
 #            matchExpressions:
@@ -58,21 +109,30 @@ networkPolicy:
 #        - protocol: TCP
 #          port: 3000
 
-priorityClassName: ""
+## @section Persistence
+## @descriptionStart
+## The SQLite database lives on this volume at `/data/database.sqlite`. Without
+## persistence it is kept in an `emptyDir` and lost whenever the pod is replaced.
+## @descriptionEnd
 
-# Extra environment variables for the application container. Appended after
-# the chart's own, so an entry here wins on a name clash.
-env: []
-#  - name: OPENAI_BASE_URL
-#    value: https://api.openai.com/v1
-
+## @param persistence.enabled Store the database on a PersistentVolumeClaim.
+## @param persistence.size Size of the PersistentVolumeClaim.
+## @param persistence.storageClassName StorageClass of the PersistentVolumeClaim. Empty means the cluster's default.
+## @param persistence.existingClaim Use a PersistentVolumeClaim declared outside the chart instead of creating one.
 persistence:
   enabled: true
   size: 1Gi
-  # Empty means the cluster's default StorageClass.
   storageClassName: ""
-  # Use a PVC declared outside the chart instead of creating one.
   existingClaim: ""
+
+## @section Pod scheduling & resources
+
+## @param priorityClassName PriorityClass of the pod.
+## @param resources Resource requests and limits for the application container.
+## @param nodeSelector Node labels the pod must be scheduled on.
+## @param tolerations Tolerations for the pod.
+## @param affinity Affinity rules for the pod.
+priorityClassName: ""
 
 resources: {}
   # limits:
