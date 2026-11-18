@@ -177,12 +177,17 @@ Exposes the application through a [Gateway API](https://gateway-api.sigs.k8s.io/
 HTTPRoute. Requests to `/api/health` from outside the cluster are redirected
 to `/`.
 
-| Name                    | Description                                                                     | Value   |
-| ----------------------- | ------------------------------------------------------------------------------- | ------- |
-| `httpRoute.enabled`     | Create an HTTPRoute.                                                            | `false` |
-| `httpRoute.annotations` | Annotations added to the HTTPRoute.                                             | `{}`    |
-| `httpRoute.parentRefs`  | Gateways the HTTPRoute attaches to.                                             | `[]`    |
-| `httpRoute.hostnames`   | Hostnames the HTTPRoute matches. The first one also sets the default `baseUrl`. | `[]`    |
+Chat answers and summaries are streamed and can take minutes. Gateways apply
+their own default when no request timeout is set, which can cut these
+responses off, so the route sets one.
+
+| Name                       | Description                                                                                               | Value   |
+| -------------------------- | --------------------------------------------------------------------------------------------------------- | ------- |
+| `httpRoute.enabled`        | Create an HTTPRoute.                                                                                      | `false` |
+| `httpRoute.annotations`    | Annotations added to the HTTPRoute.                                                                       | `{}`    |
+| `httpRoute.parentRefs`     | Gateways the HTTPRoute attaches to.                                                                       | `[]`    |
+| `httpRoute.hostnames`      | Hostnames the HTTPRoute matches. The first one also sets the default `baseUrl`.                           | `[]`    |
+| `httpRoute.requestTimeout` | How long the gateway waits for a complete response, as a Gateway API duration. `0s` disables the timeout. | `5m`    |
 
 ### NetworkPolicy
 

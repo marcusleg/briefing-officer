@@ -70,12 +70,17 @@ service:
 ## Exposes the application through a [Gateway API](https://gateway-api.sigs.k8s.io/)
 ## HTTPRoute. Requests to `/api/health` from outside the cluster are redirected
 ## to `/`.
+##
+## Chat answers and summaries are streamed and can take minutes. Gateways apply
+## their own default when no request timeout is set, which can cut these
+## responses off, so the route sets one.
 ## @descriptionEnd
 
 ## @param httpRoute.enabled Create an HTTPRoute.
 ## @param httpRoute.annotations Annotations added to the HTTPRoute.
 ## @param httpRoute.parentRefs Gateways the HTTPRoute attaches to.
 ## @param httpRoute.hostnames Hostnames the HTTPRoute matches. The first one also sets the default `baseUrl`.
+## @param httpRoute.requestTimeout How long the gateway waits for a complete response, as a Gateway API duration. `0s` disables the timeout.
 httpRoute:
   enabled: false
   annotations: {}
@@ -84,6 +89,7 @@ httpRoute:
   #     namespace: default
   #     sectionName: http
   hostnames: []
+  requestTimeout: 5m
 
 ## @section NetworkPolicy
 ## @descriptionStart
