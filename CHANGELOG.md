@@ -1,5 +1,55 @@
 # Changelog
 
+## [0.21.0](https://github.com/marcusleg/briefing-officer/compare/v0.20.1...v0.21.0) (2026-11-18)
+
+### Features
+
+- Ask questions about your articles in the new Chat page. Answers come only from
+  your own articles, link every claim to the article's summary, and can be
+  narrowed to a time range. Existing articles are indexed automatically after
+  the upgrade. The Helm chart's HTTPRoute now sets a request timeout,
+  `httpRoute.requestTimeout` (default `5m`), so gateways with a short default
+  don't cut off long answers.
+  ([#823](https://github.com/marcusleg/briefing-officer/pull/823),
+  [#833](https://github.com/marcusleg/briefing-officer/pull/833))
+- A new Settings page in the user menu lets you change your name and password,
+  connect or disconnect single sign-on, and see every device you are signed in
+  on and sign any of them out.
+  ([#815](https://github.com/marcusleg/briefing-officer/pull/815),
+  [#819](https://github.com/marcusleg/briefing-officer/pull/819))
+- Signing in now returns you to the page you came from.
+  ([#819](https://github.com/marcusleg/briefing-officer/pull/819))
+- A refreshed look in light and dark mode with a warmer color theme, and
+  summaries set in a narrower column that is easier to read.
+  ([#818](https://github.com/marcusleg/briefing-officer/pull/818))
+- The feed dashboard's chart cards are more compact and show two new summary
+  lines: how old your oldest unread article is, and your average daily token
+  usage. ([#824](https://github.com/marcusleg/briefing-officer/pull/824))
+- Set how much the model reasons before writing leads, summaries, audio scripts
+  and filter suggestions with `AI_REASONING_EFFORT` (`none` to `max`). Left
+  unset, the provider's default applies as before.
+  ([#825](https://github.com/marcusleg/briefing-officer/pull/825))
+- The container image is about 180 MB instead of 630 MB, so upgrades download
+  much faster. ([#835](https://github.com/marcusleg/briefing-officer/pull/835))
+
+### Bug Fixes
+
+- Signing up with the email address of an existing account no longer puts that
+  account on hold for administrator approval.
+  ([#816](https://github.com/marcusleg/briefing-officer/pull/816))
+- Text summaries no longer show half-written formatting while they stream in,
+  and no longer render images or raw HTML from the model's output. A spinner
+  shows until the first words arrive.
+  ([#831](https://github.com/marcusleg/briefing-officer/pull/831))
+- The container now stops within a second when it is shut down, instead of
+  waiting to be killed at the end of the 30-second grace period.
+  ([#835](https://github.com/marcusleg/briefing-officer/pull/835))
+
+### Dependencies
+
+- Updated Next.js to 16.4.6.
+  ([#822](https://github.com/marcusleg/briefing-officer/pull/822))
+
 ## [0.20.1](https://github.com/marcusleg/briefing-officer/compare/v0.20.0...v0.20.1) (2026-11-09)
 
 ### Bug Fixes
