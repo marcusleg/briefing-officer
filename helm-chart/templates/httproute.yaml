@@ -20,6 +20,10 @@ spec:
       backendRefs:
         - name: {{ include "briefing-officer.fullname" . }}
           port: {{ .Values.service.port }}
+      {{- with .Values.httpRoute.requestTimeout }}
+      timeouts:
+        request: {{ . | quote }}
+      {{- end }}
     - matches:
         - path:
             type: PathPrefix
