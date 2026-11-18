@@ -1,6 +1,7 @@
 import anthropicModel from "@/lib/ai/providers/anthropic";
 import azureOpenAiModel from "@/lib/ai/providers/azureOpenAi";
 import openAiModel from "@/lib/ai/providers/openAi";
+import { reasoningEffort, withReasoningEffort } from "@/lib/ai/reasoningEffort";
 
 const languageModels = [anthropicModel, azureOpenAiModel, openAiModel];
 
@@ -14,5 +15,8 @@ export const getFirstConfiguredLanguageModel = async () => {
     throw new Error("No AI language model is configured.");
   }
 
-  return firstConfiguredFactory.create();
+  return withReasoningEffort(
+    await firstConfiguredFactory.create(),
+    reasoningEffort,
+  );
 };
