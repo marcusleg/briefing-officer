@@ -89,8 +89,10 @@ Standard flow:
 6. The user reviews the PR before it can be merged. The user will either merge
    the PR themselves or explicitly instruct the agent to merge it. Do **not**
    merge a PR without that explicit instruction, even after CI passes. When
-   merging on the user's behalf, use `gh pr merge --rebase` unless the user
-   specifies a different method.
+   merging on the user's behalf, use `gh pr merge --rebase --delete-branch`
+   unless the user specifies a different method. `--delete-branch` removes the
+   remote branch (and the local one, when possible) so merged branches don't
+   pile up on the remote; always keep it, whichever merge method is used.
 
 If any check fails, fix the underlying issue and re-push. Do **not** bypass with
 `git commit --no-verify`, `gh pr merge --admin`, or by disabling the failing
