@@ -64,13 +64,37 @@ wrapLanguageModel({
   model,
   middleware: {
     specificationVersion: "v4",
-    transformParams: async ({ params }) => ({
-      ...params,
-      reasoning: params.reasoning ?? reasoning,
-    }),
+    transformParams: async ({ params }) => {
+      const effective = params.reasoning ?? reasoning;
+
+      if (effective === "provider-default") {
+        return { ...params, reasoning: effective };
+      }
+
+      return {
+        ...params,
+        reasoning: effective,
+        providerOptions: {
+          ...params.providerOptions,
+          openai: { forceReasoning: true, ...params.providerOptions?.openai },
+        },
+      };
+    },
   },
 });
 ```
+
+For OpenAI and Azure OpenAI the SDK omits `reasoning` from the request for any
+model ID it does not recognize as a reasoning model, such as an alias defined by
+an OpenAI-compatible proxy or a custom Azure deployment name, so a configured
+level would silently do nothing. Whenever the effective level is anything other
+than `provider-default`, the middleware therefore also sets the `forceReasoning`
+provider option. A call's own `openai` options win over it. The Azure provider
+reads the `azure` options key and falls back to `openai`; Anthropic ignores the
+`openai` key. Side effects of forcing: the system prompt is sent with the
+`developer` role, OpenAI requests a reasoning summary by default once an effort
+is set, and a model that cannot reason rejects the request instead of silently
+ignoring the setting. With `provider-default` nothing is added.
 
 The SDK's `defaultSettingsMiddleware` would do the same at runtime, but its
 `settings` type has no `reasoning` field.
@@ -92,25 +116,28 @@ The SDK translates the level per provider:
 
 - **Anthropic:** models with adaptive thinking receive an effort level; older
   models receive a thinking budget derived from the level. `none` disables
-  thinking where the model allows it.
-- **OpenAI and Azure OpenAI:** the level becomes `reasoning_effort`. For model
-  IDs the SDK recognizes, a level the model does not support is dropped with a
-  warning.
-
-For a model ID the SDK does not recognize — typically an alias defined by an
-OpenAI-compatible proxy — the level is passed through unchecked, and an
-unsupported one (such as `minimal` on GPT-6 Luna) is rejected by the API. The
-README says so.
+  thinking where the model allows it. A level the model does not support is
+  mapped to the nearest supported one, with a compatibility warning.
+- **OpenAI and Azure OpenAI:** the level becomes `reasoning.effort` in the
+  Responses API request. GPT-6 model IDs drop an unsupported level with a
+  warning; other recognized reasoning models (`gpt-5…`, `o…`) get the level
+  unchecked, so the API may reject an unsupported one. Unrecognized IDs, such as
+  proxy aliases and custom Azure deployment names, are forced as described under
+  Wiring and get the level unchecked too.
 
 ### Documentation
 
 `README.md` gets a row in the "AI Providers" table:
 
-| Environment Variable  | Description                                                                                                                                                                                                                      |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AI_REASONING_EFFORT` | How much the model reasons before answering: `none`, `minimal`, `low`, `medium`, `high`, `xhigh` or `max`. Defaults to `provider-default`, which leaves it to the provider. Use a level your model supports; see the note below. |
+| Environment Variable  | Description                                                                                                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AI_REASONING_EFFORT` | How much the model reasons before answering: `none`, `minimal`, `low`, `medium`, `high`, `xhigh` or `max`. Defaults to `provider-default`, which leaves it to the provider. |
 
-followed by a short note on unrecognized model IDs as described above.
+followed by a paragraph saying that, for OpenAI and Azure OpenAI, a level also
+makes the SDK treat the model as a reasoning model, that an unsupported level is
+replaced by the nearest supported one, dropped with a warning, or rejected by
+the API depending on provider and model, and that a model that cannot reason
+rejects any level other than `provider-default`.
 
 The Helm chart needs no change: its `env` list already passes arbitrary
 variables to the container.
@@ -123,8 +150,14 @@ variables to the container.
   warning.
 - **Unit, same file:** `withReasoningEffort` around the SDK's
   `MockLanguageModelV4` keeps the `modelId`, passes the level to `doGenerate`
-  (`generateText`/`generateObject`) and `doStream` (`streamText`), and yields to
-  a call that sets its own `reasoning`.
+  (`generateText`, the same `doGenerate` path `generateObject` uses) and
+  `doStream` (`streamText`), and yields to a call that sets its own `reasoning`.
+- **Unit, same file, wire level:** the real `createOpenAI` and `createAzure`
+  providers with a fake `fetch` that captures the request body. A level reaches
+  the body for an unrecognized OpenAI model ID and a custom Azure deployment
+  name; `provider-default` adds no `reasoning` key and keeps the `system` role;
+  and a call's own `openai` provider options survive next to `forceReasoning`
+  (checked on the mock model).
 - The existing generation tests keep passing unchanged, which shows the call
   sites are unaffected.
 
