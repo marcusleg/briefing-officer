@@ -82,17 +82,14 @@ Standard flow:
 2. Commit changes.
 3. Push the branch.
 4. Open a PR against `main` with `gh pr create`. Each commit on the branch
-   should already follow Conventional Commits, since the default merge method is
+   should already follow Conventional Commits, since PRs are merged by
    **rebase** — individual commits land on `main` as-is, preserving the branch
    history.
 5. Wait for CI (`format-check`, `lint`, `typecheck`, `test`, `build`) to pass.
 6. The user reviews the PR before it can be merged. The user will either merge
    the PR themselves or explicitly instruct the agent to merge it. Do **not**
    merge a PR without that explicit instruction, even after CI passes. When
-   merging on the user's behalf, use `gh pr merge --rebase --delete-branch`
-   unless the user specifies a different method. `--delete-branch` removes the
-   remote branch (and the local one, when possible) so merged branches don't
-   pile up on the remote; always keep it, whichever merge method is used.
+   merging on the user's behalf, use `gh pr merge --rebase`.
 
 If any check fails, fix the underlying issue and re-push. Do **not** bypass with
 `git commit --no-verify`, `gh pr merge --admin`, or by disabling the failing
