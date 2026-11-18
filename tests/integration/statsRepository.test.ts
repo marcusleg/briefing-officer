@@ -4,6 +4,7 @@ import {
   getFilteredArticlesPerDay,
   getNumberOfReadLaterArticles,
   getNumberOfUnreadArticles,
+  getOldestUnreadPublicationDate,
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
   getWeeklyArticleCountPerFeed,
@@ -439,6 +440,52 @@ describe("statsRepository counts", () => {
         },
       ],
       models: ["test-model"],
+      dailyAverage: { input: 10, output: 5 },
     });
+  });
+
+  it("finds the publication date of the oldest unread article", async () => {
+    const oldest = new Date("2026-02-10T06:00:00.000Z");
+    await createArticle({ userId, feedId, publicationDate: oldest });
+    await createArticle({
+      userId,
+      feedId,
+      publicationDate: new Date("2026-02-12T06:00:00.000Z"),
+    });
+
+    expect(await getOldestUnreadPublicationDate()).toEqual(oldest);
+  });
+
+  it("looks past read, read-later and other users' articles for the oldest unread one", async () => {
+    const otherUser = await createUser();
+    const otherFeedId = (await createFeed({ userId: otherUser.id })).id;
+    const older = new Date("2026-02-01T06:00:00.000Z");
+    await createArticle({
+      userId,
+      feedId,
+      status: "READ",
+      publicationDate: older,
+    });
+    await createArticle({
+      userId,
+      feedId,
+      status: "READ_LATER",
+      publicationDate: older,
+    });
+    await createArticle({
+      userId: otherUser.id,
+      feedId: otherFeedId,
+      publicationDate: older,
+    });
+    const oldestUnread = new Date("2026-02-10T06:00:00.000Z");
+    await createArticle({ userId, feedId, publicationDate: oldestUnread });
+
+    expect(await getOldestUnreadPublicationDate()).toEqual(oldestUnread);
+  });
+
+  it("has no oldest unread article when nothing is unread", async () => {
+    await createArticle({ userId, feedId, status: "READ" });
+
+    expect(await getOldestUnreadPublicationDate()).toBeNull();
   });
 });

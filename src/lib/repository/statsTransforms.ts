@@ -84,9 +84,19 @@ export function shapeArticlesPerFeedPerDay(
 
 export type TokenUsageRow = Record<string, string | number>;
 
-export function shapeTokenUsage(raw: TokenUsage[]): {
+/**
+ * One row per day with usage, keyed by model and direction, plus the average
+ * input and output tokens per day. The averages divide by `dayCount`, every
+ * day in the range, so a day without usage pulls them down like it does for
+ * the article charts.
+ */
+export function shapeTokenUsage(
+  raw: TokenUsage[],
+  dayCount: number,
+): {
   rows: TokenUsageRow[];
   models: string[];
+  dailyAverage: { input: number; output: number };
 } {
   const rows: TokenUsageRow[] = [];
 
@@ -102,5 +112,11 @@ export function shapeTokenUsage(raw: TokenUsage[]): {
 
   const models = [...new Set(raw.map((entry) => entry.model))];
 
-  return { rows, models };
+  const average = (total: number) => (dayCount === 0 ? 0 : total / dayCount);
+  const dailyAverage = {
+    input: average(raw.reduce((sum, entry) => sum + entry.inputTokens, 0)),
+    output: average(raw.reduce((sum, entry) => sum + entry.outputTokens, 0)),
+  };
+
+  return { rows, models, dailyAverage };
 }

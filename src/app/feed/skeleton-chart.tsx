@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -11,16 +12,17 @@ interface SkeletonChartProps {
   description?: string;
 }
 
+/** Spaced like `ChartCard`, so the dashboard doesn't jump once data arrives. */
 const SkeletonChart = ({ title, description }: SkeletonChartProps) => {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="gap-4 py-4">
+      <CardHeader className="px-4">
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
-      <div className="mx-auto aspect-square max-h-[250px]">
-        <Skeleton className="h-[200px] w-full" />
-      </div>
+      <CardContent className="px-4">
+        <Skeleton className="h-40 w-full" />
+      </CardContent>
     </Card>
   );
 };

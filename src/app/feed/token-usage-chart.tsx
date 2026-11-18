@@ -7,7 +7,16 @@ import { CHART_COLORS } from "@/lib/charts/palette";
 export interface TokenUsageData {
   rows: StackedBarRow[];
   models: string[];
+  dailyAverage: { input: number; output: number };
 }
+
+const compact = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+/** "913", "8.2K": whole tokens, kept short enough for a footer in one line. */
+const tokenCount = (tokens: number) => compact.format(Math.round(tokens));
 
 interface TokenUsageChartProps {
   data?: TokenUsageData;
@@ -42,6 +51,10 @@ const TokenUsageChart = ({ data }: TokenUsageChartProps) => (
     description="Daily total of LLM tokens used by your AI Briefing Officer"
     config={buildModelTokenConfig(data?.models ?? [])}
     data={data && { rows: data.rows, keys: data.models.flatMap(seriesOf) }}
+    footer={
+      data &&
+      `${tokenCount(data.dailyAverage.input)} in · ${tokenCount(data.dailyAverage.output)} out per day`
+    }
   />
 );
 

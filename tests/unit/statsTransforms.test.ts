@@ -143,14 +143,26 @@ describe("feedKey", () => {
 
 describe("shapeTokenUsage", () => {
   it("returns empty result for empty input", () => {
-    expect(shapeTokenUsage([])).toEqual({ rows: [], models: [] });
+    expect(shapeTokenUsage([], 0)).toEqual({
+      rows: [],
+      models: [],
+      dailyAverage: { input: 0, output: 0 },
+    });
+  });
+
+  it("averages input and output separately across every day in the range", () => {
+    const result = shapeTokenUsage(
+      [tu("d1", "a", 10, 2), tu("d1", "b", 30, 4), tu("d2", "a", 20, 6)],
+      4,
+    );
+    expect(result.dailyAverage).toEqual({ input: 15, output: 3 });
   });
 
   it("collapses multiple models on the same date into one row", () => {
-    const result = shapeTokenUsage([
-      tu("d1", "modelA", 10, 20),
-      tu("d1", "modelB", 30, 40),
-    ]);
+    const result = shapeTokenUsage(
+      [tu("d1", "modelA", 10, 20), tu("d1", "modelB", 30, 40)],
+      1,
+    );
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0]).toStrictEqual({
       date: "d1",
@@ -163,7 +175,10 @@ describe("shapeTokenUsage", () => {
   });
 
   it("creates one row per distinct date", () => {
-    const result = shapeTokenUsage([tu("d1", "m", 1, 2), tu("d2", "m", 3, 4)]);
+    const result = shapeTokenUsage(
+      [tu("d1", "m", 1, 2), tu("d2", "m", 3, 4)],
+      2,
+    );
     expect(result.rows.map((r) => r.date)).toEqual(["d1", "d2"]);
     expect(result.models).toEqual(["m"]);
   });
