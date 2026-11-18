@@ -53,6 +53,21 @@ export const getUnreadArticlesPerFeed = async () => {
 };
 
 /**
+ * When the oldest article still waiting to be read was published, or `null`
+ * when nothing is unread.
+ */
+export const getOldestUnreadPublicationDate = async () => {
+  const userId = await getUserId();
+  const oldest = await prisma.article.findFirst({
+    select: { publicationDate: true },
+    where: { status: "UNREAD", userId },
+    orderBy: { publicationDate: "asc" },
+  });
+
+  return oldest?.publicationDate ?? null;
+};
+
+/**
  * Every feed of the user, in the order the dashboard hands its charts.
  *
  * The charts sit side by side, so a feed has to keep the same color in each of
@@ -199,6 +214,5 @@ export const getTokenUsageHistory = async (from: Date, to: Date) => {
     },
   });
 
-  const { rows, models } = shapeTokenUsage(raw);
-  return { rows, models };
+  return shapeTokenUsage(raw, dates.length);
 };

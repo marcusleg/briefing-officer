@@ -1,6 +1,7 @@
 "use client";
 
 import ChartCard from "@/app/feed/chart-card";
+import IntlRelativeTime from "@/components/intl-relative-time";
 import {
   ChartConfig,
   ChartTooltip,
@@ -20,11 +21,14 @@ interface UnreadArticlesChartProps {
    *  reads as the same color across the row. */
   config: ChartConfig;
   chartData?: UnreadArticlesChartData[];
+  /** When the oldest unread article was published; `null` when none is. */
+  oldestUnread?: Date | null;
 }
 
 const UnreadArticlesPieChart = ({
   config,
   chartData,
+  oldestUnread,
 }: UnreadArticlesChartProps) => {
   const unreadArticlesInTotal = (chartData ?? []).reduce(
     (acc, feed) => acc + feed.unread,
@@ -44,7 +48,14 @@ const UnreadArticlesPieChart = ({
       description="Articles you haven’t dismissed or read yet"
       config={config}
       data={chartData}
-      containerClassName="mx-auto aspect-square max-h-[250px]"
+      footer={
+        oldestUnread && (
+          <span>
+            Oldest from <IntlRelativeTime date={oldestUnread} />
+          </span>
+        )
+      }
+      containerClassName="mx-auto aspect-square"
     >
       <PieChart>
         <ChartTooltip
@@ -55,7 +66,8 @@ const UnreadArticlesPieChart = ({
           data={slices}
           dataKey="unread"
           nameKey="feed"
-          innerRadius="50%"
+          innerRadius="60%"
+          outerRadius="95%"
           strokeWidth={5}
         >
           {slices.map((slice) => (

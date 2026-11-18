@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { cn } from "@/lib/utils";
 
 interface ChartCardProps {
   title: string;
@@ -37,18 +38,28 @@ const ChartCard = ({
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="gap-4 py-4">
+      <CardHeader className="px-4">
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={config} className={containerClassName}>
+      <CardContent className="px-4">
+        {/*
+          A fixed height rather than the container's default `aspect-video`,
+          which ties the height to the card's width and makes every card in a
+          row taller the wider the columns get.
+        */}
+        <ChartContainer
+          config={config}
+          className={cn("aspect-auto h-40 w-full", containerClassName)}
+        >
           {children as React.ComponentProps<typeof ChartContainer>["children"]}
         </ChartContainer>
       </CardContent>
       {footer && (
-        <CardFooter className="text-center text-sm font-medium">
+        // `mt-auto` pins the footer to the bottom of the card, so footers line
+        // up across a row whose cards have headers of different heights.
+        <CardFooter className="mt-auto px-4 text-center text-sm font-medium">
           {footer}
         </CardFooter>
       )}

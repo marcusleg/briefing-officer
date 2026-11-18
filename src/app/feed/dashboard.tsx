@@ -11,6 +11,7 @@ import { buildFeedPalette } from "@/lib/charts/palette";
 import {
   getChartFeeds,
   getFilteredArticlesPerDay,
+  getOldestUnreadPublicationDate,
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
   getWeeklyArticleCountPerFeed,
@@ -59,6 +60,7 @@ const Dashboard = () => {
   const [feeds, setFeeds] = useState<{ id: number; title: string }[]>();
   const [unreadArticlesChartData, setUnreadArticlesChartData] =
     useState<UnreadArticlesChartData[]>();
+  const [oldestUnread, setOldestUnread] = useState<Date | null>();
   const [tokenUsageData, setTokenUsageData] = useState<TokenUsageData>();
   const [dailyNewArticlesData, setDailyNewArticlesData] =
     useState<ArticlesPerFeedData>();
@@ -72,7 +74,14 @@ const Dashboard = () => {
   // refetched when it changes.
   useEffect(() => {
     getChartFeeds().then((data) => setFeeds(data));
-    getUnreadArticlesPerFeed().then((data) => setUnreadArticlesChartData(data));
+    // Fetched together so the card's chart and its footer appear at once.
+    Promise.all([
+      getUnreadArticlesPerFeed(),
+      getOldestUnreadPublicationDate(),
+    ]).then(([perFeed, oldest]) => {
+      setUnreadArticlesChartData(perFeed);
+      setOldestUnread(oldest);
+    });
   }, []);
 
   // One color per feed for the whole row of charts. Deriving it per chart from
@@ -138,6 +147,7 @@ const Dashboard = () => {
           <UnreadArticlesPieChart
             config={feedConfig}
             chartData={feeds && unreadArticlesChartData}
+            oldestUnread={oldestUnread}
           />
         </div>
         <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
