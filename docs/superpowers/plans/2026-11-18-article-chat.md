@@ -1,5 +1,11 @@
 # Article Chat Implementation Plan
 
+> **Note:** The implementation was revised after review: the AI Elements
+> components are vendored unmodified (Mermaid stays off), the chat's own fixes
+> live in `src/components/chat`, the step budget is enforced in code, usage is
+> recorded per step and there is a single candidate count. The design spec
+> describes the final behavior.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:subagent-driven-development (recommended) or
 > superpowers:executing-plans to implement this plan task-by-task. Steps use
