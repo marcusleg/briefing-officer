@@ -66,16 +66,24 @@ worker inside the application process. No external cron job is needed.
 
 One provider must be configured.
 
-| Environment Variable         | Description                                                                                      |
-| ---------------------------- | ------------------------------------------------------------------------------------------------ |
-| `AZURE_OPENAI_API_KEY`       | Azure OpenAI API key.                                                                            |
-| `AZURE_OPENAI_MODEL`         | Azure OpenAI model name.                                                                         |
-| `AZURE_OPENAI_RESOURCE_NAME` | Azure OpenAI resource name.                                                                      |
-| `ANTHROPIC_API_KEY`          | Anthropic API key.                                                                               |
-| `ANTHROPIC_MODEL`            | Anthropic model name.                                                                            |
-| `OPENAI_BASE_URL`            | Optional base URL for OpenAI-compatible API. Defaults to `https://api.openai.com/v1` if not set. |
-| `OPENAI_API_KEY`             | API key for OpenAI or OpenAI-compatible provider.                                                |
-| `OPENAI_MODEL`               | Model name for OpenAI or OpenAI-compatible provider.                                             |
+| Environment Variable         | Description                                                                                                                                                                 |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AI_REASONING_EFFORT`        | How much the model reasons before answering: `none`, `minimal`, `low`, `medium`, `high`, `xhigh` or `max`. Defaults to `provider-default`, which leaves it to the provider. |
+| `AZURE_OPENAI_API_KEY`       | Azure OpenAI API key.                                                                                                                                                       |
+| `AZURE_OPENAI_MODEL`         | Azure OpenAI model name.                                                                                                                                                    |
+| `AZURE_OPENAI_RESOURCE_NAME` | Azure OpenAI resource name.                                                                                                                                                 |
+| `ANTHROPIC_API_KEY`          | Anthropic API key.                                                                                                                                                          |
+| `ANTHROPIC_MODEL`            | Anthropic model name.                                                                                                                                                       |
+| `OPENAI_BASE_URL`            | Optional base URL for OpenAI-compatible API. Defaults to `https://api.openai.com/v1` if not set.                                                                            |
+| `OPENAI_API_KEY`             | API key for OpenAI or OpenAI-compatible provider.                                                                                                                           |
+| `OPENAI_MODEL`               | Model name for OpenAI or OpenAI-compatible provider.                                                                                                                        |
+
+For OpenAI and Azure OpenAI, setting a level also tells the AI SDK to treat the
+model as a reasoning model, so the level is sent even when the SDK does not
+recognize the model or deployment name. Choose a level your model supports:
+depending on the provider and model, an unsupported level is replaced by the
+nearest supported one, dropped with a warning, or rejected by the API. A model
+that cannot reason at all rejects any level other than `provider-default`.
 
 ### Authentication
 
