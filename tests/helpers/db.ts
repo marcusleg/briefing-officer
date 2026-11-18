@@ -1,4 +1,5 @@
 import prisma from "@/lib/prismaClient";
+import { clearSearchIndex } from "@/lib/search/searchIndex";
 
 /**
  * Clears every table in foreign-key-safe order (children before parents).
@@ -17,4 +18,5 @@ export const resetDb = async () => {
   await prisma.account.deleteMany();
   await prisma.verification.deleteMany();
   await prisma.user.deleteMany();
+  clearSearchIndex();
 };

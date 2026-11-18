@@ -12,6 +12,7 @@ import {
 } from "@/lib/jobs/jobRepository";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
+import { syncSearchIndex } from "@/lib/search/articleIndexing";
 
 /**
  * Queues a refresh for every auto-refresh feed whose last fetch is older than
@@ -82,6 +83,14 @@ export const runCleanup = async (now = new Date()) => {
   );
   if (deleted > 0) {
     logger.info({ count: deleted }, "Deleted stale failed jobs.");
+  }
+  // Last, so it sees the purge above. The scheduler runs cleanup on its first
+  // pass, which also fills a new or recreated index. A failure here must not
+  // fail the pass, or the purge and full sync would rerun every minute.
+  try {
+    await syncSearchIndex();
+  } catch (err) {
+    logger.error({ err }, "Failed to synchronize search index.");
   }
 };
 

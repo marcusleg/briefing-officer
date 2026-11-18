@@ -2,8 +2,11 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import logger from "./logger";
 
+// The adapter types `url` as `string` (@types/better-sqlite3 is installed), so
+// the `?? ""` fallback keeps an unset DATABASE_URL from failing at import, as in
+// prisma.config.ts.
 const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL,
+  url: process.env.DATABASE_URL ?? "",
 });
 const prisma = new PrismaClient({ adapter });
 

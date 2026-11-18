@@ -1,5 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@source "../../node_modules/streamdown/dist/*.js";
+@source "../../node_modules/@streamdown/cjk/dist/*.js";
+@source "../../node_modules/@streamdown/code/dist/*.js";
+@source "../../node_modules/@streamdown/math/dist/*.js";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -267,4 +271,13 @@
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
+}
+
+/*
+  Streamdown's code blocks take Shiki's theme background (#fff, #24292e),
+  which is off-brand. Unlayered, so it wins over the utility layer. Shiki's
+  token colors stay.
+*/
+[data-streamdown="code-block-body"] pre {
+  background-color: var(--color-muted);
 }

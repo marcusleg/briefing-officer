@@ -1,5 +1,5 @@
 import prisma from "@/lib/prismaClient";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createArticle, createFeed, createUser } from "../helpers/factories";
 
 vi.mock("@/lib/scraper", () => ({
@@ -12,10 +12,17 @@ vi.mock("@/lib/ai/services/leadService", () => ({
 
 import { generateAiLead } from "@/lib/ai/services/leadService";
 import { processArticleJob } from "@/lib/jobs/handlers/processArticleJob";
+import logger from "@/lib/logger";
 import { scrapeArticle } from "@/lib/scraper";
+import * as articleIndexing from "@/lib/search/articleIndexing";
+import { indexedArticleIds } from "@/lib/search/searchIndex";
 
 let userId: string;
 let feedId: number;
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 beforeEach(async () => {
   userId = (await createUser()).id;
@@ -70,5 +77,32 @@ describe("processArticleJob", () => {
     expect(owner).toBeNull();
     expect(scrapeArticle).not.toHaveBeenCalled();
     expect(generateAiLead).not.toHaveBeenCalled();
+  });
+});
+
+describe("processArticleJob indexing", () => {
+  it("indexes the article after generating the lead", async () => {
+    const article = await createArticle({ userId, feedId });
+
+    await processArticleJob(article.id);
+
+    expect(indexedArticleIds()).toEqual([article.id]);
+  });
+});
+
+describe("processArticleJob when indexing fails", () => {
+  it("still succeeds, so the lead is not regenerated, and logs the failure", async () => {
+    vi.spyOn(articleIndexing, "indexArticle").mockRejectedValueOnce(
+      new Error("disk I/O error"),
+    );
+    const article = await createArticle({ userId, feedId });
+
+    await expect(processArticleJob(article.id)).resolves.toBe(userId);
+
+    expect(generateAiLead).toHaveBeenCalledOnce();
+    expect(logger.error).toHaveBeenCalledWith(
+      { err: expect.any(Error), article: { id: article.id } },
+      "Failed to index article for search.",
+    );
   });
 });
