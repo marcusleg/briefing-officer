@@ -24,6 +24,8 @@ AI summaries for your favorite news feeds.
   - **Audio Briefing**: A spoken briefing of roughly one minute, read aloud by
     the browser's own speech voices at an adjustable speed, alongside a
     transcript that highlights each sentence as it is spoken.
+- Chat with your articles: ask questions in plain language and get answers drawn
+  only from your own feeds, with links to the articles they come from.
 - Summaries are written in the language the article itself is written in.
 - Save articles for later using the "Read Later" and "Star" feature.
 - Support for multiple AI providers (OpenAI, Azure OpenAI, Anthropic, and any

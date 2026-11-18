@@ -5,14 +5,22 @@ import {
   purgeOldArticles,
   runCleanup,
 } from "@/lib/jobs/scheduler";
+import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as articleIndexing from "@/lib/search/articleIndexing";
+import { indexArticle } from "@/lib/search/articleIndexing";
+import { indexedArticleIds } from "@/lib/search/searchIndex";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createArticle, createFeed, createUser } from "../helpers/factories";
 
 let userId: string;
 
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000);
 const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000);
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 beforeEach(async () => {
   userId = (await createUser()).id;
@@ -170,6 +178,43 @@ describe("runCleanup", () => {
     expect((await prisma.job.findMany()).map((job) => job.targetId)).toEqual([
       2,
     ]);
+  });
+
+  it("drops purged articles from the search index and indexes the rest", async () => {
+    const feed = await createFeed({ userId });
+    const old = await createArticle({
+      userId,
+      feedId: feed.id,
+      publicationDate: daysAgo(400),
+    });
+    const recent = await createArticle({ userId, feedId: feed.id });
+    await indexArticle(old.id);
+
+    await runCleanup();
+
+    expect(indexedArticleIds()).toEqual([recent.id]);
+  });
+});
+
+describe("runCleanup when the search index fails", () => {
+  it("still purges old articles and logs the failure", async () => {
+    vi.spyOn(articleIndexing, "syncSearchIndex").mockRejectedValueOnce(
+      new Error("disk I/O error"),
+    );
+    const feed = await createFeed({ userId });
+    await createArticle({
+      userId,
+      feedId: feed.id,
+      publicationDate: daysAgo(400),
+    });
+
+    await expect(runCleanup()).resolves.toBeUndefined();
+
+    expect(await prisma.article.count()).toBe(0);
+    expect(logger.error).toHaveBeenCalledWith(
+      { err: expect.any(Error) },
+      "Failed to synchronize search index.",
+    );
   });
 });
 

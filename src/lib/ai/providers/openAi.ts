@@ -17,8 +17,8 @@ const openAiModel: AiLanguageModelFactory = async () => ({
     });
 
     // OpenAI-compatible services implement Chat Completions reliably but the
-    // Responses API only partly: one router streams tool-call arguments in a
-    // shape the SDK rejects, which broke the chat's searches mid-answer.
+    // Responses API only partly; some stream tool-call arguments in a shape
+    // the SDK rejects, which would end chat answers at their first search.
     return customBaseUrl ? openai.chat(model!) : openai(model!);
   },
 });

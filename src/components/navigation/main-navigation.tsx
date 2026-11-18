@@ -15,6 +15,7 @@ import {
   BookmarkIcon,
   FilterIcon,
   HistoryIcon,
+  MessageSquareTextIcon,
   NewspaperIcon,
   StarIcon,
 } from "lucide-react";
@@ -46,6 +47,7 @@ const MainNavigation = async () => {
     // No badge: unlike Read Later this is not a queue to work down, and the
     // count only ever grows.
     { href: "/feed/filtered", icon: FilterIcon, label: "Filtered" },
+    { href: "/chat", icon: MessageSquareTextIcon, label: "Chat" },
   ];
 
   return (
