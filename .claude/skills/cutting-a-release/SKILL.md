@@ -43,8 +43,13 @@ Run the scripts from the repository root with `bash`.
 5. Commit `CHANGELOG.md`, `package.json`, `package-lock.json` and
    `helm-chart/Chart.yaml` with the message `chore: release <version>`. The
    `tag-and-publish-release.sh` finds the release commit by this exact message.
-6. Push and open a PR titled `chore: release <version>`. Put the new changelog
-   section in the PR body.
+6. Push and open a PR titled `chore: release <version>`, with the new changelog
+   section as its body:
+   `bash .claude/skills/cutting-a-release/scripts/print-changelog-section.sh <version> > <scratch file>`,
+   then append the PR attribution line and pass the file to
+   `gh pr create --body-file`. The script joins wrapped bullets into single
+   lines, because GitHub shows every line break in a PR description. Don't
+   paste the section from `CHANGELOG.md` by hand.
 7. Stop. The user reviews the notes and merges the PR. Do not merge it yourself
    unless the user tells you to (see AGENTS.md).
 
