@@ -1,3 +1,6 @@
 CHANGELOG.md
 helm-chart/*
 src/generated/
+.claude/skills/shadcn/
+.claude/skills/migrate-radix-to-base/
+skills-lock.json
