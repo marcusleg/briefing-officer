@@ -155,8 +155,12 @@ const Chat = () => {
 
       <Conversation className={cn("min-h-0", isEmpty && "hidden")}>
         <ConversationContent className="max-w-content mx-auto w-full gap-6 px-0">
-          {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
+          {messages.map((message, index) => (
+            <ChatMessage
+              key={message.id}
+              message={message}
+              answering={busy && index === messages.length - 1}
+            />
           ))}
 
           {error &&

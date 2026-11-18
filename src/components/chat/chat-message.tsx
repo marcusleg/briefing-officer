@@ -12,7 +12,14 @@ const isToolPart = (
 ): part is ChatToolPart =>
   part.type === "tool-searchArticles" || part.type === "tool-getArticle";
 
-const ChatMessage = ({ message }: { message: ChatUIMessage }) => {
+const ChatMessage = ({
+  message,
+  answering = false,
+}: {
+  message: ChatUIMessage;
+  /** Whether this answer is still being written. */
+  answering?: boolean;
+}) => {
   if (message.role === "user") {
     const text = message.parts
       .flatMap((part) => (part.type === "text" ? [part.text] : []))
@@ -30,7 +37,9 @@ const ChatMessage = ({ message }: { message: ChatUIMessage }) => {
   return (
     <Message from="assistant">
       <MessageContent className="w-full">
-        {toolParts.length > 0 && <ToolActivity parts={toolParts} />}
+        {toolParts.length > 0 && (
+          <ToolActivity parts={toolParts} answering={answering} />
+        )}
         {message.parts.map((part, index) =>
           part.type === "text" ? (
             <SafeMarkdown key={index} className="text-prose">

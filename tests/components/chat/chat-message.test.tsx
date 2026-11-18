@@ -1,6 +1,7 @@
 import ChatMessage from "@/components/chat/chat-message";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import Link from "next/link";
 import { createElement, type ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -359,9 +360,11 @@ describe("ChatMessage", () => {
     expectNothingFetches(container);
   }, 10_000);
 
-  it("describes each tool call and lists found articles", () => {
+  it("describes each tool call and lists found articles", async () => {
+    const user = userEvent.setup();
     render(
       <ChatMessage
+        answering
         message={assistant([
           searchPart("input-available"),
           searchPart("output-available", {
@@ -393,7 +396,9 @@ describe("ChatMessage", () => {
       />,
     );
 
-    expect(screen.getByText("Searching your articles…")).toBeInTheDocument();
+    // The header follows the latest step; the steps open on request.
+    await user.click(screen.getByRole("button", { name: "Article not found" }));
+
     expect(
       screen.getByText("Searching: Alphabet, Google…"),
     ).toBeInTheDocument();
@@ -402,11 +407,79 @@ describe("ChatMessage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Search failed")).toBeInTheDocument();
     expect(screen.getByText("Read: Alphabet beats")).toBeInTheDocument();
-    expect(screen.getByText("Article not found")).toBeInTheDocument();
+    // Once in the header, once as a step.
+    expect(screen.getAllByText("Article not found")).toHaveLength(2);
     expect(screen.getAllByText("Alphabet beats").length).toBeGreaterThan(0);
   });
 
-  it("says the search is done once every step has finished", () => {
+  it("keeps the steps collapsed while the answer moves between tool calls", () => {
+    const running = searchPart("input-available", {
+      toolCallId: "call-1",
+    });
+    const done = {
+      ...running,
+      state: "output-available",
+      output: { results: [result(2, "Alphabet beats")] },
+    };
+    const reading = {
+      type: "tool-getArticle",
+      toolCallId: "call-2",
+      state: "input-available",
+      input: { id: 2 },
+    };
+    const header = () => screen.getByRole("button", { expanded: false });
+    const { rerender } = render(
+      <ChatMessage answering message={assistant([running])} />,
+    );
+
+    expect(header()).toHaveTextContent("Searching: Alphabet, Google…");
+
+    rerender(<ChatMessage answering message={assistant([done])} />);
+    expect(header()).toHaveTextContent(
+      "Searched: Alphabet, Google · 2026-01-01 – 2026-11-18",
+    );
+
+    rerender(<ChatMessage answering message={assistant([done, reading])} />);
+    expect(header()).toHaveTextContent("Opening an article…");
+    expect(screen.queryByText("Alphabet beats")).not.toBeInTheDocument();
+  });
+
+  it("keeps the steps open once the reader opens them", async () => {
+    const user = userEvent.setup();
+    const done = searchPart("output-available", {
+      toolCallId: "call-1",
+      output: { results: [result(2, "Alphabet beats")] },
+    });
+    const reading = {
+      type: "tool-getArticle",
+      toolCallId: "call-2",
+      state: "input-available",
+      input: { id: 2 },
+    };
+    const { rerender } = render(
+      <ChatMessage answering message={assistant([done])} />,
+    );
+
+    await user.click(screen.getByRole("button", { expanded: false }));
+    rerender(<ChatMessage answering message={assistant([done, reading])} />);
+    rerender(
+      <ChatMessage
+        message={assistant([
+          done,
+          {
+            ...reading,
+            state: "output-available",
+            output: { ...result(2, "Alphabet beats"), text: "", link: "" },
+          },
+        ])}
+      />,
+    );
+
+    expect(screen.getByRole("button", { expanded: true })).toBeInTheDocument();
+    expect(screen.getByText("Read: Alphabet beats")).toBeInTheDocument();
+  });
+
+  it("says the search is done once the answer is finished", () => {
     render(
       <ChatMessage
         message={assistant([
@@ -417,9 +490,8 @@ describe("ChatMessage", () => {
       />,
     );
 
-    expect(screen.getByText("Searched your articles")).toBeInTheDocument();
-    expect(
-      screen.queryByText("Searching your articles…"),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button")).toHaveTextContent(
+      "Searched your articles",
+    );
   });
 });
