@@ -6,6 +6,21 @@ on:
       - main
     tags:
       - "v*"
+    # Only files that end up in, or shape, the image. GitHub does not evaluate
+    # path filters for tag pushes, so releases always build.
+    paths:
+      - "src/**"
+      - "public/**"
+      - "prisma/**"
+      - "prisma.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.mjs"
+      - "postcss.config.js"
+      - "tsconfig.json"
+      - "Containerfile"
+      - ".containerignore"
+      - ".github/workflows/container-image.yaml"
   workflow_dispatch:
 
 permissions:
