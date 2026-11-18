@@ -80,10 +80,11 @@ One provider must be configured.
 
 For OpenAI and Azure OpenAI, setting a level also tells the AI SDK to treat the
 model as a reasoning model, so the level is sent even when the SDK does not
-recognize the model or deployment name. Choose a level your model supports:
-depending on the provider and model, an unsupported level is replaced by the
-nearest supported one, dropped with a warning, or rejected by the API. A model
-that cannot reason at all rejects any level other than `provider-default`.
+recognize the model or deployment name, and the system prompt is sent with the
+`developer` role. Choose a level your model supports: depending on the provider
+and model, an unsupported level is replaced by the nearest supported one,
+dropped with a warning, or rejected by the API. A model that cannot reason at
+all may reject any level other than `provider-default`.
 
 ### Authentication
 
