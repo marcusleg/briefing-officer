@@ -55,22 +55,32 @@ union.
 
 ### Wiring
 
-`getFirstConfiguredLanguageModel()` in `src/lib/ai/registry.ts` wraps the model
-it returns:
+`reasoningEffort.ts` also exports
+`withReasoningEffort(model, reasoning): LanguageModelV4`, which wraps a model in
+a middleware that fills in `reasoning` for any call that does not set its own:
 
 ```ts
 wrapLanguageModel({
   model,
-  middleware: defaultSettingsMiddleware({
-    settings: { reasoning: reasoningEffort },
-  }),
+  middleware: {
+    specificationVersion: "v4",
+    transformParams: async ({ params }) => ({
+      ...params,
+      reasoning: params.reasoning ?? reasoning,
+    }),
+  },
 });
 ```
 
-Every caller — `streamGeneration`, the lead service and the filter-suggestion
-service — already gets its model from this function, so none of them change, and
-any future generation picks the setting up automatically. The wrapped model
-keeps its `modelId`, so logging and token-usage billing are unaffected.
+The SDK's `defaultSettingsMiddleware` would do the same at runtime, but its
+`settings` type has no `reasoning` field.
+
+`getFirstConfiguredLanguageModel()` in `src/lib/ai/registry.ts` returns its
+model wrapped with the configured `reasoningEffort`. Every caller —
+`streamGeneration`, the lead service and the filter-suggestion service — already
+gets its model from this function, so none of them change, and any future
+generation picks the setting up automatically. The wrapped model keeps its
+`modelId`, so logging and token-usage billing are unaffected.
 
 The model is always wrapped, including for `provider-default`. The SDK treats
 `provider-default` as "send nothing", so the request is identical to today's,
@@ -111,10 +121,10 @@ variables to the container.
   unset, empty, each valid level, mixed case and surrounding whitespace, and an
   invalid value — asserting the `provider-default` fallback and the logged
   warning.
-- **Unit, registry wrapping:** a model wrapped as the registry wraps it, backed
-  by the SDK's `MockLanguageModelV4`, passes the configured `reasoning` to
-  `doGenerate`/`doStream`; with `provider-default` it passes `provider-default`,
-  which providers treat as unset.
+- **Unit, same file:** `withReasoningEffort` around the SDK's
+  `MockLanguageModelV4` keeps the `modelId`, passes the level to `doGenerate`
+  (`generateText`/`generateObject`) and `doStream` (`streamText`), and yields to
+  a call that sets its own `reasoning`.
 - The existing generation tests keep passing unchanged, which shows the call
   sites are unaffected.
 
