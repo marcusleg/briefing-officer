@@ -9,13 +9,13 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Prisma } from "@/generated/prisma/client";
 import { articleAuthor, isInInbox } from "@/lib/article";
 import {
   markArticleAsRead,
   restoreArticleToInbox,
 } from "@/lib/repository/articleRepository";
-import { LoaderCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -100,7 +100,12 @@ const ArticleCard = (props: ArticleCardProps) => {
     }
 
     if (!aiLead) {
-      return <LoaderCircleIcon className="mx-auto my-12 size-8 animate-spin" />;
+      return (
+        <Spinner
+          aria-label="Writing summary"
+          className="mx-auto my-12 size-8"
+        />
+      );
     }
 
     return <p className={className}>{aiLead}</p>;
