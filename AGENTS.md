@@ -71,7 +71,7 @@ Example: `feat: add user registration form`
 
 ### Workflow
 
-Pushing directly to `main` is prohibited unless the user explicitly authorises
+Pushing directly to `main` is prohibited unless the user explicitly authorizes
 it for a specific commit.
 
 Standard flow:
@@ -130,6 +130,13 @@ Comments describe the code as it is: what it does when that isn't obvious, and
 why. They don't record history: what was removed, replaced, restored or fixed,
 or which bug or review led to a change. That belongs in the commit message and
 the PR description.
+
+## Spelling
+
+Write American English everywhere: code, comments, docs, commit messages and PR
+descriptions (`color`, `behavior`, `organize`, `center`, `gray`). This holds
+when a skill is written in British English too: what it produces for this
+repository uses American spelling.
 
 <!-- prettier-ignore-start -->
 
