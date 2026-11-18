@@ -1,5 +1,17 @@
 {
   "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
+    "superpowers@claude-plugins-official": true,
+    "mattpocock-skills@briefing-officer": true
+  },
+  "extraKnownMarketplaces": {
+    "briefing-officer": {
+      "source": {
+        "source": "github",
+        "repo": "marcusleg/briefing-officer",
+        "path": ".claude/marketplace/.claude-plugin/marketplace.json",
+        "sparsePaths": [".claude/marketplace"]
+      },
+      "autoUpdate": true
+    }
   }
 }
