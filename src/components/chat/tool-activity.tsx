@@ -70,24 +70,27 @@ const foundTitles = (part: ChatToolPart): string[] => {
 };
 
 /**
- * The assistant's searches and reads for one answer. Open while a step is
- * still running, collapsed once all are done; the reader can expand it.
+ * The assistant's searches and reads for one answer, collapsed unless the
+ * reader opens it. A turn often makes several quick calls; opening and closing
+ * the steps for each one would flash, so only the header follows them.
  */
-const ToolActivity = ({ parts }: { parts: ChatToolPart[] }) => {
-  const active = parts.some((part) => !isFinished(part));
-  const [open, setOpen] = useState(active);
-  const [wasActive, setWasActive] = useState(active);
-
-  // Follow the steps: open when a new one starts, collapse when all finish.
-  if (active !== wasActive) {
-    setWasActive(active);
-    setOpen(active);
-  }
+const ToolActivity = ({
+  parts,
+  answering = false,
+}: {
+  parts: ChatToolPart[];
+  /** Whether the assistant is still working on this answer. */
+  answering?: boolean;
+}) => {
+  const [open, setOpen] = useState(false);
+  const latest = parts[parts.length - 1];
 
   return (
     <ChainOfThought open={open} onOpenChange={setOpen}>
       <ChainOfThoughtHeader>
-        {active ? "Searching your articles…" : "Searched your articles"}
+        {answering && latest
+          ? describeToolActivity(latest)
+          : "Searched your articles"}
       </ChainOfThoughtHeader>
       <ChainOfThoughtContent>
         {parts.map((part) => {
