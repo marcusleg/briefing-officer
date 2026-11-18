@@ -8,8 +8,7 @@
       "source": {
         "source": "github",
         "repo": "marcusleg/briefing-officer",
-        "path": ".claude/marketplace/.claude-plugin/marketplace.json",
-        "sparsePaths": [".claude/marketplace"]
+        "sparsePaths": [".claude-plugin"]
       },
       "autoUpdate": true
     }
