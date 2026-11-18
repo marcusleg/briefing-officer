@@ -1,115 +1,41 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in this repository.
+## Checks
 
-## Before every commit
+A Husky pre-commit hook runs `eslint --fix` and Prettier on staged files. Never
+bypass it or CI (`--no-verify`, `gh pr merge --admin`, disabling a job); fix the
+underlying issue.
 
-A Husky pre-commit hook runs `lint-staged`, which automatically applies
-`eslint --fix` and Prettier to staged files. It installs automatically via the
-`prepare` script on `npm install`. Do **not** bypass it with
-`git commit --no-verify`; if the hook reports an error it cannot auto-fix, fix
-the underlying issue instead.
-
-The hook only touches staged files, so still run Prettier across the project
-before committing to catch anything the hook misses — otherwise the
-`format-check` CI job will fail:
+Before pushing, run what CI gates on:
 
 ```bash
-npm run format
+npm run format:check  # fix with `npm run format`
+npm run lint
+npm run typecheck     # covers tests; the build does not
+npm run test
+npm run build
 ```
 
-To verify formatting without writing changes (this is what CI runs):
-
-```bash
-npm run format:check
-```
-
-Prettier configuration lives in `.prettierrc.json` (with
-`prettier-plugin-organize-imports`, `prettier-plugin-prisma`, and
-`prettier-plugin-tailwindcss`). `proseWrap` is set to `always`, so Markdown is
-reflowed too. Ignored paths are in `.prettierignore`.
-
-## Other checks
-
-Run these before pushing; CI gates on all of them:
-
-```bash
-npm run lint       # ESLint
-npm run typecheck  # tsc --noEmit, covers tests too (the build does not)
-npm run test       # Vitest unit + integration tests
-npm run build      # Next.js production build
-```
+Run `npx prisma generate` first in a fresh checkout or worktree. If you change
+`helm-chart/values.yaml`, regenerate its README with `npm run helm:readme`.
 
 ## Git
 
-### Commit messages
-
-Use [Conventional Commits](https://www.conventionalcommits.org/) **without
-scopes**. The commit types decide the next version number when a release is cut
-(see [Releases](#releases)), so non-conforming messages produce the wrong
-version.
-
-Valid prefixes:
-
-- `feat:` — new feature
-- `fix:` — bug fix
-- `docs:` — documentation only changes
-- `style:` — code style changes (formatting, semicolons, etc.)
-- `refactor:` — code changes that don't change behavior
-- `perf:` — performance improvement
-- `test:` — adding or correcting tests
-- `build:` — build system or dependency changes
-- `ci:` — CI/CD configuration changes
-- `chore:` — maintenance, other changes
-
-`feat:` and `fix:` commits are the starting point for the public changelog, so
-word the first line with end users in mind — describe what changed from their
-perspective, not how the code changed internally. The commit body may go into
-implementation details and technical context.
-
-Example: `feat: add user registration form`
-
-### Workflow
-
-Pushing directly to `main` is prohibited unless the user explicitly authorizes
-it for a specific commit.
-
-Standard flow:
-
-1. Create a branch named `<type>/<short-slug>`, where `<type>` matches a
-   Conventional Commits prefix (e.g. `feat/user-registration`,
-   `docs/add-git-instructions`).
-2. Commit changes.
-3. Push the branch.
-4. Open a PR against `main` with `gh pr create`. Each commit on the branch
-   should already follow Conventional Commits, since PRs are merged by
-   **rebase** — individual commits land on `main` as-is, preserving the branch
-   history.
-5. Wait for CI (`format-check`, `lint`, `typecheck`, `test`, `build`) to pass.
-6. The user reviews the PR before it can be merged. The user will either merge
-   the PR themselves or explicitly instruct the agent to merge it. Do **not**
-   merge a PR without that explicit instruction, even after CI passes. When
-   merging on the user's behalf, use `gh pr merge --rebase`.
-
-If any check fails, fix the underlying issue and re-push. Do **not** bypass with
-`git commit --no-verify`, `gh pr merge --admin`, or by disabling the failing
-job.
-
-### Commit granularity
-
-Avoid making commits that are too small. Especially `feat:` and `fix:` commits
-should be substantial enough to be meaningful in a changelog. Group related
-changes into a single commit rather than committing every minor edit. At the
-same time, keep changes sensibly sized — don't bundle unrelated work together.
-
-### Releases
-
-Releases are cut with the `cutting-a-release` skill
-(`.claude/skills/cutting-a-release/SKILL.md`). It writes the changelog, bumps
-the version in `package.json`, `package-lock.json` and `helm-chart/Chart.yaml`
-through a release PR, and tags the release once the user has merged that PR.
-Pushing a `v*` tag publishes the container image and Helm chart, so don't create
-tags or GitHub releases outside that skill.
+- Commit messages follow Conventional Commits **without scopes**. The types
+  decide the next version number, so pick them accurately.
+- `feat:` and `fix:` subjects become the public changelog: describe the change
+  from the end user's perspective. Implementation detail goes in the body.
+- Group related changes into one commit; a `feat:` or `fix:` should be worth a
+  changelog line. Don't bundle unrelated work.
+- Never push to `main` unless the user authorizes that specific commit. Work on
+  a branch and open a PR against `main`.
+- PRs are merged by rebase, so every commit lands on `main` as-is and must
+  conform on its own.
+- Never merge a PR unless the user tells you to, even when CI is green. When
+  told to, use `gh pr merge --rebase`.
+- Release only via the `cutting-a-release` skill. Pushing a `v*` tag publishes
+  the container image and Helm chart, so never create tags or GitHub releases
+  outside it.
 
 ## Design
 
