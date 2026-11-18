@@ -75,187 +75,29 @@ npm run test            # baseline: everything passes
 
 ## File Structure
 
-| File                                                                               | Responsibility                                                                 |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `src/components/prose-markdown.tsx`                                                | Shared Markdown renderer with the app's prose styles; in-app links use `Link`. |
-| `src/lib/search/searchIndex.ts`                                                    | The FTS5 file: open/recover, upsert, delete, list ids, search. No Prisma.      |
-| `src/lib/search/articleIndexing.ts`                                                | Prisma → index: `indexArticle`, `syncSearchIndex`.                             |
-| `src/lib/ai/chat/articleTools.ts`                                                  | Tool logic and output types: `searchArticlesForUser`, `getArticleForUser`.     |
-| `src/lib/ai/chat/tools.ts`                                                         | AI SDK tool definitions bound to a user; `ChatTools`, `ChatUIMessage` types.   |
-| `src/lib/ai/chat/compactHistory.ts`                                                | Shrinks earlier turns' tool outputs before sending them to the model.          |
-| `src/lib/ai/prompts.ts` (modify)                                                   | `buildChatSystemPrompt`.                                                       |
-| `src/app/api/chat/route.ts`                                                        | Auth, message conversion, `streamText` tool loop, usage tracking.              |
-| `src/components/chat/*.tsx`                                                        | Chat UI: conversation, message, tool activity line, input.                     |
-| `src/app/chat/layout.tsx`, `page.tsx`                                              | The `/chat` page with the sidebar.                                             |
-| `src/lib/jobs/handlers/processArticleJob.ts`, `src/lib/jobs/scheduler.ts` (modify) | Index after the lead; sync during cleanup.                                     |
-| `src/proxy.ts`, `src/components/navigation/main-navigation.tsx` (modify)           | Guard `/chat`; sidebar link.                                                   |
+| File                                                                               | Responsibility                                                                                    |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `src/lib/search/searchIndex.ts`                                                    | The FTS5 file: open/recover, upsert, delete, list ids, search. No Prisma.                         |
+| `src/lib/search/articleIndexing.ts`                                                | Prisma → index: `indexArticle`, `syncSearchIndex`.                                                |
+| `src/lib/ai/chat/articleTools.ts`                                                  | Tool logic and output types: `searchArticlesForUser`, `getArticleForUser`.                        |
+| `src/lib/ai/chat/tools.ts`                                                         | AI SDK tool definitions bound to a user; `ChatTools`, `ChatUIMessage` types.                      |
+| `src/lib/ai/chat/compactHistory.ts`                                                | Shrinks earlier turns' tool outputs before sending them to the model.                             |
+| `src/lib/ai/prompts.ts` (modify)                                                   | `buildChatSystemPrompt`.                                                                          |
+| `src/app/api/chat/route.ts`                                                        | Auth, message conversion, `streamText` tool loop, usage tracking.                                 |
+| `src/components/ai-elements/*.tsx`                                                 | shadcn AI Elements (conversation, message, prompt input, suggestion, chain of thought), vendored. |
+| `src/components/chat/*.tsx`                                                        | Chat UI built from AI Elements: conversation, message, tool activity.                             |
+| `src/app/chat/layout.tsx`, `page.tsx`                                              | The `/chat` page with the sidebar.                                                                |
+| `src/lib/jobs/handlers/processArticleJob.ts`, `src/lib/jobs/scheduler.ts` (modify) | Index after the lead; sync during cleanup.                                                        |
+| `src/proxy.ts`, `src/components/navigation/main-navigation.tsx` (modify)           | Guard `/chat`; sidebar link.                                                                      |
 
 ---
 
-### Task 1: Shared prose Markdown component
+### Task 1: (dropped)
 
-Extract the Markdown renderer from `text-summary-stream.tsx` so the chat can
-reuse the same typography, and make in-app links client-side navigations.
-
-**Files:**
-
-- Create: `src/components/prose-markdown.tsx`
-- Modify: `src/components/article/text-summary-stream.tsx`
-- Test: `tests/components/prose-markdown.test.tsx`
-
-**Interfaces:**
-
-- Produces:
-  `default export ProseMarkdown({ children: string; className?: string })`.
-  Links whose `href` starts with `/` render through `next/link`; other links
-  open in a new tab with `rel="noopener noreferrer"`.
-
-- [ ] **Step 1: Write the failing test**
-
-`tests/components/prose-markdown.test.tsx`:
-
-```tsx
-import ProseMarkdown from "@/components/prose-markdown";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-
-describe("ProseMarkdown", () => {
-  it("renders paragraphs with the prose style", () => {
-    render(<ProseMarkdown>{"Hello **world**"}</ProseMarkdown>);
-
-    const paragraph = screen.getByText(/Hello/);
-    expect(paragraph.tagName).toBe("P");
-    expect(paragraph).toHaveClass("text-prose");
-    expect(screen.getByText("world").tagName).toBe("STRONG");
-  });
-
-  it("keeps in-app links in the same tab", () => {
-    render(
-      <ProseMarkdown>
-        {"[Alphabet beats](/feed/1/article/2/text-summary)"}
-      </ProseMarkdown>,
-    );
-
-    const link = screen.getByRole("link", { name: "Alphabet beats" });
-    expect(link).toHaveAttribute("href", "/feed/1/article/2/text-summary");
-    expect(link).not.toHaveAttribute("target");
-  });
-
-  it("opens external links in a new tab", () => {
-    render(<ProseMarkdown>{"[Source](https://example.com/a)"}</ProseMarkdown>);
-
-    const link = screen.getByRole("link", { name: "Source" });
-    expect(link).toHaveAttribute("href", "https://example.com/a");
-    expect(link).toHaveAttribute("target", "_blank");
-    expect(link).toHaveAttribute("rel", "noopener noreferrer");
-  });
-});
-```
-
-- [ ] **Step 2: Run it to verify it fails**
-
-Run:
-`npx vitest run --project components tests/components/prose-markdown.test.tsx`
-Expected: FAIL — cannot resolve `@/components/prose-markdown`.
-
-- [ ] **Step 3: Implement**
-
-`src/components/prose-markdown.tsx`:
-
-```tsx
-import Markdown from "markdown-to-jsx";
-import Link from "next/link";
-import type { ComponentProps } from "react";
-
-const MarkdownLink = ({
-  href = "",
-  children,
-  ...props
-}: ComponentProps<"a">) =>
-  href.startsWith("/") ? (
-    <Link href={href} {...props}>
-      {children}
-    </Link>
-  ) : (
-    <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
-      {children}
-    </a>
-  );
-
-const headingClassName = "text-base font-semibold";
-
-const overrides = {
-  a: {
-    component: MarkdownLink,
-    props: { className: "text-primary underline underline-offset-2" },
-  },
-  h1: {
-    props: {
-      className:
-        "text-[1.44rem] leading-tight font-bold tracking-[-0.01em] text-balance",
-    },
-  },
-  h2: { props: { className: "text-[1.2rem] leading-snug font-semibold" } },
-  h3: { props: { className: headingClassName } },
-  h4: { props: { className: headingClassName } },
-  h5: { props: { className: headingClassName } },
-  h6: { props: { className: headingClassName } },
-  ul: {
-    props: {
-      className:
-        "text-prose ml-6 list-disc text-justify hyphens-auto [&>li]:mt-2",
-    },
-  },
-  ol: {
-    props: {
-      className:
-        "text-prose ml-6 list-decimal text-justify hyphens-auto [&>li]:mt-2",
-    },
-  },
-  p: { props: { className: "text-prose text-justify hyphens-auto" } },
-};
-
-interface ProseMarkdownProps {
-  children: string;
-  className?: string;
-}
-
-/** Markdown in the app's reading typography, shared by summaries and chat. */
-const ProseMarkdown = ({
-  children,
-  className = "flex flex-col gap-4",
-}: ProseMarkdownProps) => (
-  <Markdown className={className} options={{ overrides }}>
-    {children}
-  </Markdown>
-);
-
-export default ProseMarkdown;
-```
-
-In `src/components/article/text-summary-stream.tsx`, replace
-`import Markdown from "markdown-to-jsx";` with
-`import ProseMarkdown from "@/components/prose-markdown";` and replace the whole
-`<Markdown className=… options={{ overrides: { … } }}>{generation}</Markdown>`
-element with:
-
-```tsx
-<ProseMarkdown>{generation}</ProseMarkdown>
-```
-
-The summaries contain no links, so their rendering does not change.
-
-- [ ] **Step 4: Run the tests**
-
-Run: `npx vitest run --project components` Expected: PASS (new file and all
-existing component tests).
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add src/components/prose-markdown.tsx src/components/article/text-summary-stream.tsx tests/components/prose-markdown.test.tsx
-git commit -m "refactor: share prose Markdown rendering between summaries and chat"
-```
+A shared prose Markdown component was planned here so the chat could reuse the
+summary typography. The user then asked for shadcn's AI Elements, whose
+`MessageResponse` renders the chat's Markdown, so this task was implemented,
+then reverted (commits `dabeee4` and its revert). Nothing to do.
 
 ---
 
@@ -2202,31 +2044,124 @@ git commit -m "feat: add the chat endpoint"
 
 ---
 
-### Task 7: Chat UI components
+### Task 7: Chat UI from shadcn AI Elements
+
+The user asked to use shadcn's AI Elements registry (`@ai-elements/*`) rather
+than hand-built chat components. These are copied into the repo like any shadcn
+component and become ours to adjust.
 
 **Files:**
 
+- Create (via the shadcn CLI): `src/components/ai-elements/conversation.tsx`,
+  `message.tsx`, `prompt-input.tsx`, `suggestion.tsx`, `chain-of-thought.tsx`,
+  plus any shadcn primitives they need that `src/components/ui/` lacks
+  (expected: `button-group`, `collapsible`, `command`, `hover-card`,
+  `input-group`, `scroll-area`, `select`, `spinner`).
+- Modify: `src/app/globals.css` (Streamdown `@source`), `package.json`,
+  `package-lock.json`.
 - Create: `src/components/chat/tool-activity.tsx`,
-  `src/components/chat/chat-message.tsx`, `src/components/chat/chat-input.tsx`,
-  `src/components/chat/chat.tsx`
+  `src/components/chat/chat-message.tsx`, `src/components/chat/chat.tsx`
 - Test: `tests/components/chat/chat-message.test.tsx`,
   `tests/components/chat/chat.test.tsx`
 
 **Interfaces:**
 
-- Consumes: `ChatUIMessage` (type only, Task 4); `ProseMarkdown` (Task 1);
-  `useChat` from `@ai-sdk/react`; `DefaultChatTransport` from `ai`.
+- Consumes: `ChatUIMessage` (type only, Task 4); `useChat` from `@ai-sdk/react`;
+  `DefaultChatTransport` from `ai`.
 - Produces:
   - `describeToolActivity(part: ChatToolPart): string` and default
-    `ToolActivity({ part })`
+    `ToolActivity({ parts: ChatToolPart[] })`
   - default `ChatMessage({ message: ChatUIMessage })`
-  - default `ChatInput({ busy, onSend, onStop })`
   - default `Chat()` and `SUGGESTIONS: string[]`
 
-Only `import type` from `@/lib/ai/chat/tools` in these client files, so no
-server code (Prisma, the index) reaches the browser bundle.
+Only `import type` from `@/lib/ai/chat/tools` in client files, so no server code
+(Prisma, the index) reaches the browser bundle.
 
-- [ ] **Step 1: Write the failing tests**
+**Behavior required (the tests below pin it):**
+
+- Empty chat: a one-line explanation ("Ask anything about the articles in your
+  feeds. Answers link to the articles they come from.") and the three
+  `SUGGESTIONS` as AI Elements `Suggestion`s; clicking one sends it.
+- Messages render in an AI Elements `Conversation` (sticks to the bottom while
+  streaming, with its scroll-to-bottom button), inside a column no wider than
+  `max-w-content`.
+- User messages: `Message from="user"` with the plain text.
+- Assistant messages: `Message from="assistant"`. All tool parts of the message
+  are shown first, together, as one `ToolActivity`; then text parts through
+  `MessageResponse` (Streamdown). Links whose `href` starts with `/` but not
+  `//` render through `next/link` in the same tab; all other links open in a new
+  tab with `rel="noopener noreferrer"`. Answer text uses `text-prose`.
+- `ToolActivity` is an AI Elements `ChainOfThought`: header "Searched your
+  articles"; one `ChainOfThoughtStep` per tool part whose label is
+  `describeToolActivity(part)` and whose status is `complete` once the part has
+  an output or error, else `active`; for a finished search with results, a
+  `ChainOfThoughtSearchResults` row with up to 5 `ChainOfThoughtSearchResult`
+  badges showing article titles. Open while any step is active, collapsed
+  otherwise (the reader can expand it).
+- Input: AI Elements `PromptInput` with its textarea (accessible name "Ask about
+  your articles", same placeholder text plus "…") and submit button. Enter
+  sends, Shift+Enter inserts a line break, empty input does not send. While
+  `status` is `submitted` or `streaming` the submit button stops the stream
+  (`stop()`) instead of sending.
+- Error: an element with `role="alert"` reading "The answer could not be
+  generated." and a "Retry" button calling `regenerate()`.
+- "New chat" button (only when there are messages): `stop()`, `clearError()`,
+  `setMessages([])`.
+
+- [ ] **Step 1: Install the elements**
+
+```bash
+npx shadcn@latest add @ai-elements/conversation @ai-elements/message @ai-elements/prompt-input @ai-elements/suggestion @ai-elements/chain-of-thought
+```
+
+When the CLI asks whether to overwrite an existing file, answer **no** every
+time; never pass `--overwrite`. Existing `src/components/ui/*` files are
+customized for this app's design.
+
+Then check:
+
+```bash
+git status --short
+git diff --stat -- src/components/ui components.json
+```
+
+Expected: new files under `src/components/ai-elements/` and possibly new
+primitives under `src/components/ui/`; **no modified** existing files in
+`src/components/ui/`. If `components.json` changed, keep only changes the CLI
+needed to resolve paths, and explain them in the report. If the CLI writes files
+somewhere other than `src/components/…`, stop and report NEEDS_CONTEXT.
+
+- [ ] **Step 2: Trim and conform the copied code**
+
+1. In `src/components/ai-elements/message.tsx`, remove the `@streamdown/cjk`,
+   `@streamdown/code`, `@streamdown/math` and `@streamdown/mermaid` imports and
+   the `plugins` prop (answers are prose with links; those plugins bring Shiki,
+   Mermaid and KaTeX). Then uninstall them:
+   `npm uninstall @streamdown/cjk @streamdown/code @streamdown/math @streamdown/mermaid`
+   (only those that were installed). Keep `streamdown` itself.
+2. Add to `src/app/globals.css`, next to the existing `@import`/`@source` lines
+   at the top, so Tailwind sees Streamdown's classes:
+
+   ```css
+   @source "../../node_modules/streamdown/dist/*.js";
+   ```
+
+3. Design rules: run
+
+   ```bash
+   grep -rnE '\b(text|bg|border|fill|stroke|ring)-(red|green|blue|yellow|orange|gray|slate|zinc|neutral|stone|black|white|emerald|amber|sky|indigo|violet|purple|pink|rose|lime|teal|cyan)(-[0-9]+)?\b|shadow-(sm|md|lg|xl|2xl)\b' src/components/ai-elements src/components/ui
+   ```
+
+   Replace every hit in the newly added files with the matching token
+   (`text-muted-foreground`, `bg-muted`, `border`, `text-destructive`, …).
+   Floating surfaces (hover cards, dropdowns, command popovers) may keep their
+   shadow. Leave pre-existing files alone.
+
+4. `npm run lint` and `npm run typecheck`. Fix errors in the copied files
+   minimally (unused imports, missing types); do not disable rules file-wide.
+   Report each change.
+
+- [ ] **Step 3: Write the failing tests**
 
 `tests/components/chat/chat-message.test.tsx`:
 
@@ -2241,7 +2176,7 @@ const assistant = (parts: unknown[]) =>
 
 const searchPart = (state: string, extra: object = {}) => ({
   type: "tool-searchArticles",
-  toolCallId: `call-${state}`,
+  toolCallId: `call-${state}-${Math.random()}`,
   state,
   input: {
     terms: ["Alphabet", "Google"],
@@ -2253,6 +2188,18 @@ const searchPart = (state: string, extra: object = {}) => ({
   ...extra,
 });
 
+const result = (id: number, title: string) => ({
+  id,
+  title,
+  feed: "Markets Daily",
+  published: "2026-04-25",
+  status: "UNREAD",
+  starred: false,
+  lead: null,
+  snippet: "",
+  path: `/feed/1/article/${id}/text-summary`,
+});
+
 describe("ChatMessage", () => {
   it("shows the reader's question as plain text", () => {
     render(
@@ -2261,38 +2208,45 @@ describe("ChatMessage", () => {
           {
             id: "u1",
             role: "user",
-            parts: [{ type: "text", text: "What about **Alphabet**?" }],
+            parts: [{ type: "text", text: "What about Alphabet?" }],
           } as ChatUIMessage
         }
       />,
     );
 
-    expect(screen.getByText("What about **Alphabet**?")).toBeInTheDocument();
+    expect(screen.getByText("What about Alphabet?")).toBeInTheDocument();
   });
 
-  it("renders the answer as Markdown with in-app links", () => {
+  it("renders the answer as Markdown, keeping in-app links in the tab", async () => {
     render(
       <ChatMessage
         message={assistant([
           {
             type: "text",
-            text: "Shares rose ([Alphabet beats](/feed/1/article/2/text-summary)).",
+            text: "Shares rose ([Alphabet beats](/feed/1/article/2/text-summary)). See [source](https://example.com/a) and [odd](//evil.example).",
           },
         ])}
       />,
     );
 
-    expect(
-      screen.getByRole("link", { name: "Alphabet beats" }),
-    ).toHaveAttribute("href", "/feed/1/article/2/text-summary");
+    const inApp = await screen.findByRole("link", { name: "Alphabet beats" });
+    expect(inApp).toHaveAttribute("href", "/feed/1/article/2/text-summary");
+    expect(inApp).not.toHaveAttribute("target");
+    for (const name of ["source", "odd"]) {
+      const external = screen.getByRole("link", { name });
+      expect(external).toHaveAttribute("target", "_blank");
+      expect(external).toHaveAttribute("rel", "noopener noreferrer");
+    }
   });
 
-  it("describes each tool call", () => {
+  it("describes each tool call and lists found articles", () => {
     render(
       <ChatMessage
         message={assistant([
           searchPart("input-available"),
-          searchPart("output-available", { output: { results: [] } }),
+          searchPart("output-available", {
+            output: { results: [result(2, "Alphabet beats")] },
+          }),
           searchPart("output-available", {
             output: { error: "Search is unavailable right now." },
           }),
@@ -2302,9 +2256,10 @@ describe("ChatMessage", () => {
             state: "output-available",
             input: { id: 2 },
             output: {
-              id: 2,
-              title: "Alphabet beats",
-              path: "/feed/1/article/2/text-summary",
+              ...result(2, "Alphabet beats"),
+              text: "",
+              link: "",
+              truncated: false,
             },
           },
           {
@@ -2318,6 +2273,7 @@ describe("ChatMessage", () => {
       />,
     );
 
+    expect(screen.getByText("Searched your articles")).toBeInTheDocument();
     expect(
       screen.getByText("Searching: Alphabet, Google…"),
     ).toBeInTheDocument();
@@ -2327,6 +2283,7 @@ describe("ChatMessage", () => {
     expect(screen.getByText("Search failed")).toBeInTheDocument();
     expect(screen.getByText("Read: Alphabet beats")).toBeInTheDocument();
     expect(screen.getByText("Article not found")).toBeInTheDocument();
+    expect(screen.getAllByText("Alphabet beats").length).toBeGreaterThan(0);
   });
 });
 ```
@@ -2364,6 +2321,9 @@ const oneExchange = [
   { id: "a1", role: "assistant", parts: [{ type: "text", text: "Hello" }] },
 ];
 
+const box = () =>
+  screen.getByRole("textbox", { name: "Ask about your articles" });
+
 beforeEach(() => {
   mockChat();
 });
@@ -2381,41 +2341,35 @@ describe("Chat", () => {
   it("sends the typed question on Enter and clears the box", async () => {
     const user = userEvent.setup();
     render(<Chat />);
-    const box = screen.getByRole("textbox", {
-      name: "Ask about your articles",
-    });
 
-    await user.type(box, "Alphabet news?{Enter}");
+    await user.type(box(), "Alphabet news?{Enter}");
 
     expect(actions.sendMessage).toHaveBeenCalledWith({
       text: "Alphabet news?",
     });
-    expect(box).toHaveValue("");
+    expect(box()).toHaveValue("");
   });
 
-  it("adds a line break on Shift+Enter instead of sending", async () => {
+  it("does not send on Shift+Enter or when empty", async () => {
     const user = userEvent.setup();
     render(<Chat />);
 
-    await user.type(
-      screen.getByRole("textbox", { name: "Ask about your articles" }),
-      "a{Shift>}{Enter}{/Shift}b",
-    );
+    await user.type(box(), "a{Shift>}{Enter}{/Shift}b");
+    await user.clear(box());
+    await user.type(box(), "{Enter}");
 
     expect(actions.sendMessage).not.toHaveBeenCalled();
   });
 
-  it("swaps Send for Stop while an answer streams", async () => {
+  it("stops the stream from the submit button while answering", async () => {
     mockChat({ status: "streaming", messages: oneExchange });
     const user = userEvent.setup();
     render(<Chat />);
 
-    expect(
-      screen.queryByRole("button", { name: "Send" }),
-    ).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Stop" }));
+    await user.click(screen.getByRole("button", { name: /stop/i }));
 
     expect(actions.stop).toHaveBeenCalled();
+    expect(actions.sendMessage).not.toHaveBeenCalled();
   });
 
   it("shows an error with Retry", async () => {
@@ -2442,24 +2396,38 @@ describe("Chat", () => {
 
     await user.click(screen.getByRole("button", { name: "New chat" }));
 
-    expect(actions.setMessages).toHaveBeenCalledWith([]);
+    expect(actions.stop).toHaveBeenCalled();
     expect(actions.clearError).toHaveBeenCalled();
+    expect(actions.setMessages).toHaveBeenCalledWith([]);
   });
 });
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+If the installed `PromptInputSubmit` gives its stop state a different accessible
+name, pass `aria-label="Stop"` while busy (and `"Send"` otherwise) rather than
+loosening the test. If a jsdom gap (e.g. a missing browser API used by
+`use-stick-to-bottom` or Streamdown) breaks rendering, add the smallest stub to
+`tests/components/setup.ts` with a comment, as that file already does for
+`ResizeObserver` and `matchMedia`. Do not mock the AI Elements themselves.
+
+- [ ] **Step 4: Run them to verify they fail**
 
 Run: `npx vitest run --project components tests/components/chat` Expected: FAIL
 — cannot resolve `@/components/chat/chat-message` and `@/components/chat/chat`.
 
-- [ ] **Step 3: Implement**
+- [ ] **Step 5: Implement**
 
-`src/components/chat/tool-activity.tsx`:
+Read the installed `src/components/ai-elements/*.tsx` files for the exact
+exports and props before writing these; the shapes below name the exports the
+registry ships today.
+
+`src/components/chat/tool-activity.tsx` — the pure description function is
+fixed; build the component from `ChainOfThought`, `ChainOfThoughtHeader`,
+`ChainOfThoughtContent`, `ChainOfThoughtStep`, `ChainOfThoughtSearchResults` and
+`ChainOfThoughtSearchResult`:
 
 ```tsx
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
-import { FileTextIcon, SearchIcon } from "lucide-react";
 
 export type ChatToolPart = Extract<
   ChatUIMessage["parts"][number],
@@ -2499,264 +2467,46 @@ export const describeToolActivity = (part: ChatToolPart): string => {
       return "Opening an article…";
   }
 };
-
-const ToolActivity = ({ part }: { part: ChatToolPart }) => {
-  const Icon = part.type === "tool-searchArticles" ? SearchIcon : FileTextIcon;
-
-  return (
-    <p className="text-muted-foreground flex items-center gap-2 text-sm">
-      <Icon className="size-3.5 shrink-0" aria-hidden />
-      {describeToolActivity(part)}
-    </p>
-  );
-};
-
-export default ToolActivity;
 ```
 
-`src/components/chat/chat-message.tsx`:
+`src/components/chat/chat-message.tsx` — `Message`, `MessageContent`,
+`MessageResponse` from `@/components/ai-elements/message`. Pass
+`MessageResponse` a `components={{ a: ChatLink }}` override where `ChatLink`
+implements the link rule above (`next/link` for `/…` but not `//…`; otherwise
+`<a target="_blank" rel="noopener noreferrer">` with `target`/`rel` set after
+the spread props so they cannot be overridden), and `className="text-prose"`.
 
-```tsx
-import ToolActivity from "@/components/chat/tool-activity";
-import ProseMarkdown from "@/components/prose-markdown";
-import type { ChatUIMessage } from "@/lib/ai/chat/tools";
+`src/components/chat/chat.tsx` — `"use client"`;
+`useChat<ChatUIMessage>({ transport })` with a module-level
+`new DefaultChatTransport<ChatUIMessage>({ api: "/api/chat" })`; `Conversation`,
+`ConversationContent`, `ConversationEmptyState`, `ConversationScrollButton`;
+`Suggestions`/`Suggestion`; `PromptInput`, `PromptInputTextarea`,
+`PromptInputSubmit` (read its props: it takes the chat `status`; wire stopping
+per the behavior above). Suggestions:
 
-const ChatMessage = ({ message }: { message: ChatUIMessage }) => {
-  if (message.role === "user") {
-    const text = message.parts
-      .map((part) => (part.type === "text" ? part.text : ""))
-      .join("");
-    return (
-      <div className="text-prose bg-muted max-w-[85%] self-end rounded-md border px-3 py-2 whitespace-pre-wrap">
-        {text}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      {message.parts.map((part, index) => {
-        switch (part.type) {
-          case "text":
-            return <ProseMarkdown key={index}>{part.text}</ProseMarkdown>;
-          case "tool-searchArticles":
-          case "tool-getArticle":
-            return <ToolActivity key={part.toolCallId} part={part} />;
-          default:
-            return null;
-        }
-      })}
-    </div>
-  );
-};
-
-export default ChatMessage;
-```
-
-`src/components/chat/chat-input.tsx`:
-
-```tsx
-"use client";
-
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowUpIcon, SquareIcon } from "lucide-react";
-import { useState } from "react";
-
-interface ChatInputProps {
-  busy: boolean;
-  onSend: (text: string) => void;
-  onStop: () => void;
-}
-
-const ChatInput = ({ busy, onSend, onStop }: ChatInputProps) => {
-  const [text, setText] = useState("");
-
-  const submit = () => {
-    const question = text.trim();
-    if (!question || busy) {
-      return;
-    }
-    onSend(question);
-    setText("");
-  };
-
-  return (
-    <form
-      className="flex items-end gap-2"
-      onSubmit={(event) => {
-        event.preventDefault();
-        submit();
-      }}
-    >
-      <Textarea
-        aria-label="Ask about your articles"
-        placeholder="Ask about your articles…"
-        rows={1}
-        className="max-h-48 min-h-10 resize-none"
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        onKeyDown={(event) => {
-          // Enter sends; Shift+Enter is a line break; IME composition is left
-          // alone so confirming a character doesn't send.
-          if (
-            event.key === "Enter" &&
-            !event.shiftKey &&
-            !event.nativeEvent.isComposing
-          ) {
-            event.preventDefault();
-            submit();
-          }
-        }}
-      />
-      {busy ? (
-        <Button
-          type="button"
-          size="icon"
-          variant="outline"
-          aria-label="Stop"
-          onClick={onStop}
-        >
-          <SquareIcon />
-        </Button>
-      ) : (
-        <Button
-          type="submit"
-          size="icon"
-          aria-label="Send"
-          disabled={!text.trim()}
-        >
-          <ArrowUpIcon />
-        </Button>
-      )}
-    </form>
-  );
-};
-
-export default ChatInput;
-```
-
-`src/components/chat/chat.tsx`:
-
-```tsx
-"use client";
-
-import ChatInput from "@/components/chat/chat-input";
-import ChatMessage from "@/components/chat/chat-message";
-import { Button } from "@/components/ui/button";
-import type { ChatUIMessage } from "@/lib/ai/chat/tools";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-
+```ts
 export const SUGGESTIONS = [
   "What was in the news regarding the Alphabet stock this year?",
   "I read an article about creating presentations that made a point about defining the target audiences. Find it for me!",
   "Which new AI models made the news last month?",
 ];
-
-const transport = new DefaultChatTransport<ChatUIMessage>({
-  api: "/api/chat",
-});
-
-/** The conversation lives in this component only; a reload starts over. */
-const Chat = () => {
-  const {
-    messages,
-    sendMessage,
-    status,
-    error,
-    stop,
-    regenerate,
-    setMessages,
-    clearError,
-  } = useChat<ChatUIMessage>({ transport });
-
-  const busy = status === "submitted" || status === "streaming";
-  const send = (text: string) => void sendMessage({ text });
-  const startOver = () => {
-    void stop();
-    clearError();
-    setMessages([]);
-  };
-
-  return (
-    <div className="max-w-content mx-auto flex w-full flex-col gap-6 px-4">
-      {messages.length === 0 ? (
-        <div className="flex flex-col gap-3">
-          <p className="text-muted-foreground">
-            Ask anything about the articles in your feeds. Answers link to the
-            articles they come from.
-          </p>
-          {SUGGESTIONS.map((suggestion) => (
-            <Button
-              key={suggestion}
-              variant="outline"
-              className="h-auto justify-start py-2 text-left whitespace-normal"
-              onClick={() => send(suggestion)}
-            >
-              {suggestion}
-            </Button>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-6">
-          {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
-          ))}
-        </div>
-      )}
-
-      {status === "submitted" && (
-        <p className="text-muted-foreground text-sm">Thinking…</p>
-      )}
-
-      {error && (
-        <div
-          role="alert"
-          className="bg-muted flex items-center justify-between gap-3 rounded-md border p-3 text-sm"
-        >
-          <span>The answer could not be generated.</span>
-          <Button size="sm" variant="outline" onClick={() => void regenerate()}>
-            Retry
-          </Button>
-        </div>
-      )}
-
-      <div className="bg-background sticky bottom-0 flex flex-col gap-2 pt-2 pb-4">
-        <ChatInput busy={busy} onSend={send} onStop={() => void stop()} />
-        {messages.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="self-start"
-            onClick={startOver}
-          >
-            New chat
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default Chat;
 ```
 
-- [ ] **Step 4: Run the tests and the type check**
+Keep the page chrome compact (UI density); only answer text is `text-prose`.
 
-Run: `npx vitest run --project components tests/components/chat` Expected: PASS.
+- [ ] **Step 6: Run the tests and checks**
 
-Run: `npm run typecheck` Expected: no errors. `describeToolActivity` relies on
-the AI SDK's tool part union (`state` values `input-streaming`,
-`input-available`, `output-available`, `output-error`, …; `input` may be partial
-while streaming). If narrowing on `part.output` fails, narrow with
-`part.state === "output-available"` before reading it rather than casting.
+Run: `npx vitest run --project components` Expected: PASS (new and existing
+component tests).
 
-- [ ] **Step 5: Commit**
+Run: `npm run lint && npm run typecheck && npm run format:check` Expected: no
+errors (run `npm run format` first if needed).
+
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/components/chat tests/components/chat
-git commit -m "feat: add chat UI components"
+git add src/components/ai-elements src/components/ui src/components/chat src/app/globals.css package.json package-lock.json tests/components/chat tests/components/setup.ts components.json
+git commit -m "feat: add the chat UI from AI Elements"
 ```
 
 ---
@@ -2942,26 +2692,28 @@ description.
 - [ ] **Step 4: Fold the task commits into one feature commit**
 
 The repo merges by rebase, so every commit lands on `main` and every `feat:`
-line reaches the changelog. Keep the spec, the plan and the refactor commits;
-fold Tasks 2–8 into one `feat:` commit:
+line reaches the changelog. Keep the spec commit and the first plan commit
+(`11c95e1 docs: add article chat implementation plan`); fold everything after it
+(the dropped Task 1 and its revert, the plan update, Tasks 2–8) into one `docs:`
+commit for the plan and one `feat:` commit. `git reset --soft` keeps every
+change staged; it only rewrites this unpushed branch's history. If the harness
+refuses it, stop and ask the user.
 
 ```bash
-git log --oneline main..HEAD
-```
-
-Note the hash of
-`refactor: share prose Markdown rendering between summaries and chat`, then
-(with that hash):
-
-```bash
-git reset --soft <refactor-commit-hash>
+git reset --soft 11c95e1
+git restore --staged .
+git add docs/superpowers/plans/2026-11-18-article-chat.md
+git commit -m "docs: build the chat UI from AI Elements in the plan" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git add -A
+git status --short   # only intended files; no .env, no .tmp
 git commit -m "feat: ask questions about your articles in a chat" -m "A new Chat page answers plain-language questions using only the reader's own articles, and links every claim to the article it came from.
 
-Articles are indexed with SQLite FTS5 in a separate file next to the main database (Prisma would treat FTS5 shadow tables as drift). The worker indexes each article after its lead and the hourly cleanup syncs the index with the articles table, which also fills a new or deleted index. The chat endpoint runs an AI SDK tool loop with read-only searchArticles and getArticle tools bound to the signed-in user, sends the whole conversation with earlier tool results compacted, and records token usage." -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+Articles are indexed with SQLite FTS5 in a separate file next to the main database (Prisma would treat FTS5 shadow tables as drift). The worker indexes each article after its lead and the hourly cleanup syncs the index with the articles table, which also fills a new or deleted index. The chat endpoint runs an AI SDK tool loop with read-only searchArticles and getArticle tools bound to the signed-in user, sends the whole conversation with earlier tool results compacted, and records token usage. The UI is built from shadcn AI Elements (conversation, message, prompt input, suggestion, chain of thought)." -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
 Run: `git log --oneline main..HEAD` Expected, oldest last: the `feat:` commit,
-the `refactor:` commit, the plan commit, the spec commit. `git status` is clean.
+the plan-update `docs:` commit, the plan commit, the spec commit. `git status`
+is clean.
 
 - [ ] **Step 5: Align the spec with what was built**
 
