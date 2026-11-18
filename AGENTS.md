@@ -125,6 +125,13 @@ use `bg-primary`, `text-muted-foreground` and the like.
 - Text people read (summary leads, key facts, transcripts) uses `text-prose` in
   a column no wider than `max-w-content`. UI chrome stays compact.
 
+## Code comments
+
+Comments describe the code as it is: what it does when that isn't obvious, and
+why. They don't record history: what was removed, replaced, restored or fixed,
+or which bug or review led to a change. That belongs in the commit message and
+the PR description.
+
 <!-- prettier-ignore-start -->
 
 <!-- BEGIN:nextjs-agent-rules -->
