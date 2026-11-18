@@ -1,4 +1,4 @@
-CHANGELOG.md
+*.md
 helm-chart/*
 src/generated/
 .claude/skills/shadcn/
