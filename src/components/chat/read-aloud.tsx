@@ -51,39 +51,56 @@ const ChatSpeech = ({
   sentences,
   onReadEnd,
 }: ChatSpeechProps & { speech: SpeechControls }) => {
-  const { buffering, enqueue, error, paused, playFrom, speaking } = speech;
+  const {
+    activeIndex,
+    buffering,
+    enqueue,
+    error,
+    finish,
+    paused,
+    playFrom,
+    speaking,
+  } = speech;
   // Strict Mode remounts with the hook's sentences retained, so the replay only
   // restarts playback instead of queuing every sentence a second time.
   const queued = useRef(false);
   // Playback is idle before it starts, which is not the same as having ended.
   const started = useRef(false);
+  // Whether any of the answer has been heard yet.
+  const heard = useRef(false);
   const ended = useRef(false);
 
   useEffect(() => {
     if (!queued.current) {
       queued.current = true;
       sentences.forEach(enqueue);
+      finish();
     }
     playFrom(0);
-  }, [sentences, enqueue, playFrom]);
+  }, [sentences, enqueue, finish, playFrom]);
 
   useEffect(() => {
     if (ended.current) return;
+    if (activeIndex !== undefined) heard.current = true;
 
-    // This component never pauses playback, so a paused engine means the
-    // browser blocked it, such as autoplay without a user gesture. Nothing
-    // would resume it, so reading ends like it does on an error.
-    if (error || paused) {
+    // This component never pauses playback. A pause before anything was heard
+    // means the browser blocked it, such as autoplay without a user gesture.
+    // Nothing would resume it, so reading ends like it does on an error. A
+    // later pause came from outside the page, such as a headset button, which
+    // can also resume it.
+    if (error || (paused && !heard.current)) {
       ended.current = true;
       reportFailure();
       onReadEnd();
+    } else if (paused) {
+      return;
     } else if (speaking) {
       started.current = true;
     } else if (started.current) {
       ended.current = true;
       onReadEnd();
     }
-  }, [error, paused, speaking, onReadEnd]);
+  }, [activeIndex, error, paused, speaking, onReadEnd]);
 
   return (
     <MessageAction

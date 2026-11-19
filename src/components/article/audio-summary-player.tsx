@@ -46,6 +46,7 @@ const SpeechPlayer = (props: SpeechPlayerProps) => {
     buffering,
     enqueue,
     error,
+    finish,
     pause,
     paused,
     playFrom,
@@ -137,6 +138,7 @@ const SpeechPlayer = (props: SpeechPlayerProps) => {
         // script failed to arrive. Surface that without touching playback.
         setGenerationFailed(true);
       }
+      if (!cancelled.current) finish();
     };
 
     void streamScript();
@@ -144,7 +146,7 @@ const SpeechPlayer = (props: SpeechPlayerProps) => {
     return () => {
       cancelled.current = true;
     };
-  }, [props.articleId, props.title, enqueue, playFrom]);
+  }, [props.articleId, props.title, enqueue, finish, playFrom]);
 
   const togglePlayback = () => {
     if (paused) return resume();

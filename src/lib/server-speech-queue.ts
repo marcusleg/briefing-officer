@@ -9,12 +9,17 @@
  * at most two at a time, which keeps a clip ready ahead of the voice without
  * flooding the service.
  *
+ * Every clip ends the element's playback before the next one starts, and
+ * mobile browsers can suspend a page in the background at that moment, so
+ * `StreamSpeechQueue` is used wherever Media Source Extensions can play MP3.
+ * This queue covers the browsers that cannot.
+ *
  * Framework-free on purpose: fetching, playback and ending call each other,
  * which a class expresses directly. `useServerSpeech` binds it to React.
  */
 
-const PREFETCH_AHEAD = 2;
-const MAX_IN_FLIGHT = 2;
+export const PREFETCH_AHEAD = 2;
+export const MAX_IN_FLIGHT = 2;
 
 type Clip =
   | { status: "loading"; controller: AbortController }
@@ -43,7 +48,40 @@ export const INITIAL_SERVER_SPEECH_SNAPSHOT: ServerSpeechSnapshot = {
   speaking: false,
 };
 
-export class ServerSpeechQueue {
+/** What `useServerSpeech` drives, whichever way the clips are played. */
+export interface SpeechQueue {
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => ServerSpeechSnapshot;
+  enqueue: (sentence: string) => void;
+  /** No more sentences will be enqueued. */
+  finish: () => void;
+  playFrom: (index: number) => void;
+  pause: () => void;
+  resume: () => void;
+  setRate: (rate: number) => void;
+  /** Stops playback and releases every request and clip. Sentences are kept. */
+  dispose: () => void;
+}
+
+/** Requests one sentence's audio. Rejects unless the service answered with it. */
+export const requestSpeech = async (
+  articleId: number | undefined,
+  text: string,
+  signal: AbortSignal,
+) => {
+  const response = await fetch("/api/speech", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ articleId, text }),
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(`Speech request failed with ${response.status}`);
+  }
+  return response;
+};
+
+export class ServerSpeechQueue implements SpeechQueue {
   private readonly articleId: number | undefined;
   private sentences: string[] = [];
   private clips = new Map<number, Clip>();
@@ -88,6 +126,9 @@ export class ServerSpeechQueue {
       this.prefetch();
     }
   };
+
+  // Each clip plays on its own, so the end of the script changes nothing.
+  finish = () => {};
 
   playFrom = (index: number) => {
     this.element?.pause();
@@ -152,7 +193,6 @@ export class ServerSpeechQueue {
     this.update({ rate });
   };
 
-  /** Stops playback and releases every request and clip. Sentences are kept. */
   dispose = () => {
     this.playback = "idle";
     this.waiting = false;
@@ -325,21 +365,8 @@ export class ServerSpeechQueue {
     // abort, before an object URL is created for it.
     const current = () => this.clips.get(index) === entry;
 
-    fetch("/api/speech", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        articleId: this.articleId,
-        text: this.sentences[index],
-      }),
-      signal: controller.signal,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Speech request failed with ${response.status}`);
-        }
-        return response.blob();
-      })
+    requestSpeech(this.articleId, this.sentences[index], controller.signal)
+      .then((response) => response.blob())
       .then(
         (blob) => {
           if (!current()) return;
