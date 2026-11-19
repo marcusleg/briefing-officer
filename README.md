@@ -22,8 +22,9 @@ AI summaries for your favorite news feeds.
   - **Key Facts / Takeaways**: A bullet-point list of 5–12 concise sentences
     highlighting the most important points from the article.
   - **Audio Briefing**: A spoken briefing of roughly one minute, read aloud by
-    the browser's own speech voices at an adjustable speed, alongside a
-    transcript that highlights each sentence as it is spoken.
+    a configured text-to-speech service or otherwise by the browser's own
+    voices, at an adjustable speed, alongside a transcript that highlights each
+    sentence as it is spoken.
 - Chat with your articles: ask questions in plain language and get answers drawn
   only from your own feeds, with links to the articles they come from.
 - Summaries are written in the language the article itself is written in.
@@ -87,6 +88,21 @@ recognize the model or deployment name, and the system prompt is sent with the
 and model, an unsupported level is replaced by the nearest supported one,
 dropped with a warning, or rejected by the API. A model that cannot reason at
 all may reject any level other than `provider-default`.
+
+### Text-to-Speech
+
+Optional. Audio summaries are read by an OpenAI-compatible speech API when one
+is configured for the article's language, and by the browser's own voices
+otherwise. The service is used only when both `OPENAI_TTS_MODEL` and
+`OPENAI_TTS_VOICE` are set.
+
+| Environment Variable   | Description                                                                                               |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| `OPENAI_TTS_BASE_URL`  | Optional base URL for an OpenAI-compatible speech API. Defaults to `https://api.openai.com/v1`.           |
+| `OPENAI_TTS_API_KEY`   | Optional API key for the speech API; local services often run without one.                                |
+| `OPENAI_TTS_MODEL`     | Speech model name, e.g. `gpt-4o-mini-tts`.                                                                |
+| `OPENAI_TTS_VOICE`     | Voice name, e.g. `alloy`.                                                                                 |
+| `OPENAI_TTS_LANGUAGES` | Comma-separated ISO 639-1 codes of the article languages the voice reads, e.g. `en,de`. Defaults to `en`. |
 
 ### Authentication
 
