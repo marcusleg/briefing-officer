@@ -5,6 +5,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { APICallError } from "ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { installServerSpeech } from "../../helpers/server-speech";
 
 vi.mock("@ai-sdk/react", () => ({ useChat: vi.fn() }));
 
@@ -42,9 +43,11 @@ beforeEach(() => {
   URL.createObjectURL = createObjectURL;
 });
 
+afterEach(() => vi.unstubAllGlobals());
+
 describe("Chat", () => {
   it("shows only a heading and the prompt on an empty chat", () => {
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
 
     expect(
       screen.getByRole("heading", { name: "What would you like to know?" }),
@@ -59,11 +62,11 @@ describe("Chat", () => {
   });
 
   it("keeps the same input when the first question moves it to the bottom", () => {
-    const { rerender } = render(<Chat />);
+    const { rerender } = render(<Chat speechEngine="server" />);
     const before = box();
 
     mockChat({ messages: oneExchange });
-    rerender(<Chat />);
+    rerender(<Chat speechEngine="server" />);
 
     expect(box()).toBe(before);
     expect(
@@ -72,7 +75,7 @@ describe("Chat", () => {
   });
 
   it("leaves pasting to the browser when the clipboard also holds an image", () => {
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
     const image = new File(["x"], "clip.png", { type: "image/png" });
     // Office apps put the copied text and a rendering of it on the clipboard.
     const clipboardData = {
@@ -93,7 +96,7 @@ describe("Chat", () => {
   });
 
   it("keeps a dropped file out of the tab but leaves text drops alone", () => {
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
     const dropped = new File(["x"], "notes.pdf", { type: "application/pdf" });
     const file = { dataTransfer: { types: ["Files"], files: [dropped] } };
     const text = { dataTransfer: { types: ["text/plain"], files: [] } };
@@ -107,7 +110,7 @@ describe("Chat", () => {
 
   it("sends the typed question on Enter and clears the box", async () => {
     const user = userEvent.setup();
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
 
     await user.type(box(), "Alphabet news?{Enter}");
 
@@ -119,7 +122,7 @@ describe("Chat", () => {
 
   it("does not send on Shift+Enter or when empty", async () => {
     const user = userEvent.setup();
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
 
     await user.type(box(), "a{Shift>}{Enter}{/Shift}b");
     await user.clear(box());
@@ -131,7 +134,7 @@ describe("Chat", () => {
   it("stops the stream from the submit button while answering", async () => {
     mockChat({ status: "streaming", messages: oneExchange });
     const user = userEvent.setup();
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
 
     await user.click(screen.getByRole("button", { name: /stop/i }));
 
@@ -146,7 +149,7 @@ describe("Chat", () => {
       messages: oneExchange,
     });
     const user = userEvent.setup();
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       "The answer could not be generated.",
@@ -163,7 +166,7 @@ describe("Chat", () => {
       messages: oneExchange,
     });
     const user = userEvent.setup();
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
 
     expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
     expect(
@@ -186,7 +189,7 @@ describe("Chat", () => {
       }),
       messages: oneExchange,
     });
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Your session has expired. Sign in again.",
@@ -212,7 +215,7 @@ describe("Chat", () => {
       }),
       messages: oneExchange,
     });
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       "This conversation is too long. Start a new chat.",
@@ -225,13 +228,88 @@ describe("Chat", () => {
   it("starts over with New chat", async () => {
     mockChat({ messages: oneExchange });
     const user = userEvent.setup();
-    render(<Chat />);
+    render(<Chat speechEngine="server" />);
 
     await user.click(screen.getByRole("button", { name: "New chat" }));
 
     expect(actions.stop).toHaveBeenCalled();
     expect(actions.clearError).toHaveBeenCalled();
     expect(actions.setMessages).toHaveBeenCalledWith([]);
+  });
+
+  const twoExchanges = [
+    ...oneExchange,
+    { id: "u2", role: "user", parts: [{ type: "text", text: "More?" }] },
+    {
+      id: "a2",
+      role: "assistant",
+      parts: [{ type: "text", text: "Goodbye." }],
+    },
+  ];
+
+  it("reads one answer at a time", async () => {
+    const speech = installServerSpeech();
+    mockChat({ messages: twoExchanges });
+    const user = userEvent.setup();
+    render(<Chat speechEngine="server" />);
+
+    const [first, second] = screen.getAllByRole("button", {
+      name: "Read aloud",
+    });
+    await user.click(first);
+    expect(speech.requested()).toEqual(["Hello"]);
+
+    await user.click(second);
+
+    expect(speech.requests[0].signal.aborted).toBe(true);
+    expect(speech.requested()).toEqual(["Hello", "Goodbye."]);
+    expect(
+      screen.getAllByRole("button", { name: "Stop reading" }),
+    ).toHaveLength(1);
+  });
+
+  it("stops reading on New chat", async () => {
+    const speech = installServerSpeech();
+    mockChat({ messages: oneExchange });
+    const user = userEvent.setup();
+    render(<Chat speechEngine="server" />);
+
+    await user.click(screen.getByRole("button", { name: "Read aloud" }));
+    await user.click(screen.getByRole("button", { name: "New chat" }));
+
+    expect(speech.requests[0].signal.aborted).toBe(true);
+    expect(
+      screen.queryByRole("button", { name: "Stop reading" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("stops reading on Retry", async () => {
+    const speech = installServerSpeech();
+    mockChat({
+      status: "error",
+      error: new Error("boom"),
+      messages: oneExchange,
+    });
+    const user = userEvent.setup();
+    render(<Chat speechEngine="server" />);
+
+    await user.click(screen.getByRole("button", { name: "Read aloud" }));
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(actions.regenerate).toHaveBeenCalled();
+    expect(speech.requests[0].signal.aborted).toBe(true);
+    expect(
+      screen.queryByRole("button", { name: "Stop reading" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers no read aloud while the answer is being written", () => {
+    mockChat({ messages: oneExchange, status: "streaming" });
+    render(<Chat speechEngine="server" />);
+
+    expect(
+      screen.queryByRole("button", { name: "Read aloud" }),
+    ).not.toBeInTheDocument();
   });
 });
 

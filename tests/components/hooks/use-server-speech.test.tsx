@@ -62,6 +62,19 @@ describe("useServerSpeech", () => {
     expect(result.current.voiceAvailable).toBe(true);
   });
 
+  it("sends no article id when it reads text without an article", () => {
+    const speech = installServerSpeech();
+    const { result } = renderHook(() => useServerSpeech());
+
+    act(() => {
+      result.current.enqueue("One.");
+      result.current.playFrom(0);
+    });
+
+    const init = speech.fetch.mock.calls[0][1];
+    expect(JSON.parse(init.body as string)).toEqual({ text: "One." });
+  });
+
   it("does not request anything before playback starts", () => {
     const speech = installServerSpeech();
     const { result } = renderHook(() => useServerSpeech(42));

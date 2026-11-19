@@ -18,6 +18,17 @@ const speechEngine = () =>
     ? window.speechSynthesis
     : undefined;
 
+// Engines disagree on the separator. Browsers report the BCP-47 form
+// ("de-DE"), while some Linux speech backends surface a POSIX locale
+// ("de_DE") instead.
+const findVoice = (language: string) =>
+  speechEngine()
+    ?.getVoices()
+    .find(
+      (candidate) =>
+        candidate.lang?.toLowerCase().split(/[-_]/)[0] === language,
+    );
+
 /**
  * Drives the Web Speech API as a queue of sentences.
  *
@@ -83,13 +94,7 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
       const voices = window.speechSynthesis.getVoices();
       setSupported(voices.length > 0);
 
-      // Engines disagree on the separator. Browsers report the BCP-47 form
-      // ("de-DE"), while some Linux speech backends surface a POSIX locale
-      // ("de_DE") instead.
-      const match = voices.find(
-        (candidate) =>
-          candidate.lang?.toLowerCase().split(/[-_]/)[0] === spokenLanguage,
-      );
+      const match = findVoice(spokenLanguage);
       voice.current = match;
       setVoiceAvailable(match !== undefined);
     };
@@ -110,10 +115,13 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
       utterance.rate = rateValue.current;
       utterance.lang = spokenLanguage;
 
-      // Assigned only when a match exists: handing the engine an undefined
-      // voice is not the same as leaving it to pick its own default.
-      if (voice.current) {
-        utterance.voice = voice.current;
+      // A caller can queue utterances before this hook's effects have run, so
+      // the voice may not have been synced yet. Assigned only when a match
+      // exists: handing the engine an undefined voice is not the same as
+      // leaving it to pick its own default.
+      const speakingVoice = voice.current ?? findVoice(spokenLanguage);
+      if (speakingVoice) {
+        utterance.voice = speakingVoice;
       }
 
       utterance.onstart = () => {
