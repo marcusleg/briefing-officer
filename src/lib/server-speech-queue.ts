@@ -44,7 +44,7 @@ export const INITIAL_SERVER_SPEECH_SNAPSHOT: ServerSpeechSnapshot = {
 };
 
 export class ServerSpeechQueue {
-  private readonly articleId: number;
+  private readonly articleId: number | undefined;
   private sentences: string[] = [];
   private clips = new Map<number, Clip>();
   // The sentence playing, or the one playback is waiting for.
@@ -60,7 +60,8 @@ export class ServerSpeechQueue {
   private snapshot = INITIAL_SERVER_SPEECH_SNAPSHOT;
   private listeners = new Set<() => void>();
 
-  constructor(articleId: number) {
+  /** Without an article id, the text is read as English. */
+  constructor(articleId?: number) {
     this.articleId = articleId;
   }
 

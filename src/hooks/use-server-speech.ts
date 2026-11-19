@@ -8,13 +8,14 @@ import * as React from "react";
 const getServerSnapshot = () => INITIAL_SERVER_SPEECH_SNAPSHOT;
 
 /**
- * Reads an article's briefing through the TTS service behind /api/speech.
+ * Reads text through the TTS service behind /api/speech: an article's
+ * briefing, or, without an article id, English text such as a chat answer.
  *
  * The queue is bound to the article it was created for. Each instance owns its
  * own <audio> element, so the overlap a client-side navigation creates needs no
  * coordination between pages.
  */
-export function useServerSpeech(articleId: number): SpeechControls {
+export function useServerSpeech(articleId?: number): SpeechControls {
   const [queue] = React.useState(() => new ServerSpeechQueue(articleId));
   const state = React.useSyncExternalStore(
     queue.subscribe,

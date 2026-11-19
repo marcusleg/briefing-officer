@@ -5,10 +5,10 @@ import prisma from "@/lib/prismaClient";
 import { generateSpeech } from "ai";
 import { headers } from "next/headers";
 
-// Briefing sentences are far shorter. The cap keeps the route from serving as
-// a general-purpose TTS proxy for signed-in users, and is large enough that a
-// script that arrived without line breaks can still be read as one clip. It
-// matches the input limit of OpenAI's TTS API.
+// Briefing and chat sentences are far shorter. The cap bounds what one request
+// can make the speech service do, and is large enough that a script that
+// arrived without line breaks can still be read as one clip. It matches the
+// input limit of OpenAI's TTS API.
 const MAX_TEXT_LENGTH = 4096;
 
 // Article ids are 32-bit integers in the database.
@@ -20,32 +20,41 @@ const textResponse = (text: string, status: number) =>
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 
+const isArticleId = (value: unknown): value is number =>
+  typeof value === "number" &&
+  Number.isSafeInteger(value) &&
+  value > 0 &&
+  value <= MAX_ARTICLE_ID;
+
+/**
+ * An absent `articleId` means text that belongs to no article, such as a chat
+ * answer. One that is present must be valid.
+ */
 const parseBody = async (
   request: Request,
-): Promise<{ articleId: number; text: string } | null> => {
+): Promise<{ articleId: number | undefined; text: string } | null> => {
   const body = (await request.json().catch(() => null)) as {
     articleId?: unknown;
     text?: unknown;
   } | null;
   const text = typeof body?.text === "string" ? body.text.trim() : "";
 
-  const articleId = body?.articleId;
-
-  if (
-    typeof articleId !== "number" ||
-    !Number.isSafeInteger(articleId) ||
-    articleId <= 0 ||
-    articleId > MAX_ARTICLE_ID ||
-    text === "" ||
-    text.length > MAX_TEXT_LENGTH
-  ) {
+  if (text === "" || text.length > MAX_TEXT_LENGTH) {
     return null;
   }
 
-  return { articleId, text };
+  const articleId = body?.articleId;
+  if (articleId === undefined) {
+    return { articleId: undefined, text };
+  }
+
+  return isArticleId(articleId) ? { articleId, text } : null;
 };
 
-/** Synthesizes one sentence of an article's audio briefing as mp3. */
+/**
+ * Synthesizes one sentence as mp3: of an article's audio briefing, or of text
+ * that belongs to no article, such as a chat answer.
+ */
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
@@ -57,20 +66,26 @@ export async function POST(request: Request) {
     return textResponse("Invalid speech request.", 400);
   }
 
-  const article = await prisma.article.findUnique({
-    where: { id: body.articleId, userId: session.user.id },
-    select: { language: true },
-  });
-  if (!article) {
-    return textResponse("Article not found.", 404);
+  // The language comes from the stored article, never from the client, so a
+  // voice only ever reads the languages it was configured for. Text without
+  // an article is read as English: getSpeechModelFor resolves null to the
+  // default language.
+  let language: string | null = null;
+  if (body.articleId !== undefined) {
+    const article = await prisma.article.findUnique({
+      where: { id: body.articleId, userId: session.user.id },
+      select: { language: true },
+    });
+    if (!article) {
+      return textResponse("Article not found.", 404);
+    }
+    language = article.language;
   }
 
-  // The language comes from the stored article, never from the client, so a
-  // voice only ever reads the languages it was configured for.
-  const speech = getSpeechModelFor(article.language);
+  const speech = getSpeechModelFor(language);
   if (!speech) {
     return textResponse(
-      "No speech voice is configured for this article's language.",
+      "No speech voice is configured for this language.",
       422,
     );
   }

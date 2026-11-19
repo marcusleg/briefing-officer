@@ -92,6 +92,25 @@ describe("POST /api/speech", () => {
     expect(getSpeechModelFor).toHaveBeenCalledWith("de");
   });
 
+  it("reads text without an article as English", async () => {
+    const response = await POST(speechRequest({ text: "Hello." }));
+
+    expect(response.status).toBe(200);
+    expect(getSpeechModelFor).toHaveBeenCalledWith(null);
+    expect(generateSpeech).toHaveBeenCalledWith(
+      expect.objectContaining({ text: "Hello." }),
+    );
+  });
+
+  it("returns 422 for text without an article when no voice covers English", async () => {
+    vi.mocked(getSpeechModelFor).mockReturnValue(undefined);
+
+    const response = await POST(speechRequest({ text: "Hello." }));
+
+    expect(response.status).toBe(422);
+    expect(generateSpeech).not.toHaveBeenCalled();
+  });
+
   it("returns 401 without a session", async () => {
     vi.mocked(auth.api.getSession).mockResolvedValue(null as never);
 
@@ -119,6 +138,10 @@ describe("POST /api/speech", () => {
     {
       name: "article id of zero",
       body: () => ({ articleId: 0, text: "Hi." }),
+    },
+    {
+      name: "null article id",
+      body: () => ({ articleId: null, text: "Hi." }),
     },
     { name: "malformed JSON", body: () => undefined },
   ])("returns 400 for $name", async ({ body }) => {

@@ -26,7 +26,8 @@ AI summaries for your favorite news feeds.
     voices, at an adjustable speed, alongside a transcript that highlights each
     sentence as it is spoken.
 - Chat with your articles: ask questions in plain language and get answers drawn
-  only from your own feeds, with links to the articles they come from.
+  only from your own feeds, with links to the articles they come from. Answers
+  can be read aloud.
 - Summaries are written in the language the article itself is written in.
 - Save articles for later using the "Read Later" and "Star" feature.
 - Support for multiple AI providers (OpenAI, Azure OpenAI, Anthropic, and any
@@ -93,7 +94,8 @@ all may reject any level other than `provider-default`.
 
 Optional. Audio summaries are read by an OpenAI-compatible speech API when one
 is configured for the article's language, and by the browser's own voices
-otherwise. The service is used only when both `OPENAI_TTS_MODEL` and
+otherwise. Chat answers are read as English, by the speech API when `en` is
+among its languages. The service is used only when both `OPENAI_TTS_MODEL` and
 `OPENAI_TTS_VOICE` are set.
 
 | Environment Variable   | Description                                                                                               |

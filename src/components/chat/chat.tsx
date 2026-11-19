@@ -12,7 +12,8 @@ import {
   PromptInputTextarea,
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
-import ChatMessage from "@/components/chat/chat-message";
+import ChatMessage, { messageText } from "@/components/chat/chat-message";
+import { ReadAloud, type SpeechEngine } from "@/components/chat/read-aloud";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { compactEarlierTurns } from "@/lib/ai/chat/compactHistory";
@@ -22,7 +23,13 @@ import { useChat } from "@ai-sdk/react";
 import { APICallError, DefaultChatTransport } from "ai";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
-import type { ClipboardEvent, DragEvent, KeyboardEvent } from "react";
+import {
+  useCallback,
+  useState,
+  type ClipboardEvent,
+  type DragEvent,
+  type KeyboardEvent,
+} from "react";
 
 /**
  * The whole conversation goes to the route on every question. Earlier article
@@ -84,7 +91,7 @@ const promptSurface = cn(
   "[&>[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:border-primary [&>[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:ring-primary/30 [&>[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:ring-[3px]",
 );
 
-const Chat = () => {
+const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
   const {
     messages,
     status,
@@ -95,6 +102,11 @@ const Chat = () => {
     setMessages,
     clearError,
   } = useChat<ChatUIMessage>({ transport });
+
+  // The answer being read aloud. Only one is read at a time: reading another
+  // replaces it, and the one it replaces stops as its player unmounts.
+  const [readingId, setReadingId] = useState<string | undefined>(undefined);
+  const stopReading = useCallback(() => setReadingId(undefined), []);
 
   const busy = status === "submitted" || status === "streaming";
 
@@ -120,6 +132,7 @@ const Chat = () => {
     void stop();
     clearError();
     setMessages([]);
+    setReadingId(undefined);
   };
 
   const isEmpty = messages.length === 0;
@@ -160,6 +173,15 @@ const Chat = () => {
               key={message.id}
               message={message}
               answering={busy && index === messages.length - 1}
+              actions={
+                <ReadAloud
+                  engine={speechEngine}
+                  text={messageText(message)}
+                  reading={message.id === readingId}
+                  onRead={() => setReadingId(message.id)}
+                  onReadEnd={stopReading}
+                />
+              }
             />
           ))}
 
@@ -190,7 +212,12 @@ const Chat = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => regenerate()}
+                  onClick={() => {
+                    // Regenerating rewrites the last answer, which unmounts its
+                    // reader without ending the reading.
+                    stopReading();
+                    void regenerate();
+                  }}
                 >
                   Retry
                 </Button>

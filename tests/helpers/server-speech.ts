@@ -58,7 +58,7 @@ export class FakeAudio extends EventTarget {
 }
 
 export interface FakeSpeechRequest {
-  articleId: number;
+  articleId?: number;
   text: string;
   signal: AbortSignal;
   settled: boolean;
@@ -89,7 +89,7 @@ export const installServerSpeech = ({
     (_url: string, init: RequestInit) =>
       new Promise((resolve, reject) => {
         const body = JSON.parse(init.body as string) as {
-          articleId: number;
+          articleId?: number;
           text: string;
         };
         const signal = init.signal as AbortSignal;

@@ -1,4 +1,4 @@
-import ChatMessage from "@/components/chat/chat-message";
+import ChatMessage, { messageText } from "@/components/chat/chat-message";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -493,5 +493,39 @@ describe("ChatMessage", () => {
     expect(screen.getByRole("button")).toHaveTextContent(
       "Searched your articles",
     );
+  });
+});
+
+describe("ChatMessage actions", () => {
+  const answer = assistant([{ type: "text", text: "Hello." }]);
+
+  it("shows the actions under a finished answer", () => {
+    render(<ChatMessage message={answer} actions={<button>Act</button>} />);
+
+    expect(screen.getByRole("button", { name: "Act" })).toBeInTheDocument();
+  });
+
+  it("hides the actions while the answer is being written", () => {
+    render(
+      <ChatMessage message={answer} answering actions={<button>Act</button>} />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Act" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("messageText", () => {
+  it("joins the text parts like paragraphs and leaves out tool calls", () => {
+    expect(
+      messageText(
+        assistant([
+          { type: "text", text: "First." },
+          searchPart("output-available"),
+          { type: "text", text: "Second." },
+        ]),
+      ),
+    ).toBe("First.\n\nSecond.");
   });
 });
