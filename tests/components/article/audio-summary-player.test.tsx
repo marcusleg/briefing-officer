@@ -1,9 +1,10 @@
 import AudioSummaryPlayer from "@/components/article/audio-summary-player";
 import { readStreamableValue } from "@ai-sdk/rsc";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { FakeAudio, installServerSpeech } from "../../helpers/server-speech";
 import { installSpeechEngine } from "../../helpers/speech-synthesis";
 
 vi.mock("@/lib/ai/services/audioScriptService", () => ({
@@ -31,6 +32,7 @@ afterEach(() => {
 
 const props = {
   articleId: 42,
+  engine: "browser" as const,
   language: "en",
   title: "Kernel 7.2 removes strncpy",
 };
@@ -292,5 +294,100 @@ describe("AudioSummaryPlayer", () => {
     expect(await screen.findByText(/no German voice/i)).toBeInTheDocument();
     // The reader can still play it, knowing it will be mispronounced.
     expect(screen.getByRole("button", { name: /pause|play/i })).toBeEnabled();
+  });
+});
+
+describe("AudioSummaryPlayer with server speech", () => {
+  const serverProps = { ...props, engine: "server" as const };
+
+  /** Answers the latest live request for `text` and lets playback react. */
+  const respond = async (
+    speech: ReturnType<typeof installServerSpeech>,
+    text: string,
+  ) => {
+    await act(async () => {
+      speech.requests
+        .filter((request) => request.text === text && !request.settled)
+        .at(-1)!
+        .respond();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  };
+
+  it("requests the spoken title at mount and never touches browser speech", () => {
+    const speech = installServerSpeech();
+    const engine = installSpeechEngine();
+
+    render(<AudioSummaryPlayer {...serverProps} />);
+
+    expect(speech.requested()).toEqual([SPOKEN_TITLE]);
+    expect(engine.speak).not.toHaveBeenCalled();
+  });
+
+  it("shows a spinner while the first clip loads", () => {
+    installServerSpeech();
+
+    render(<AudioSummaryPlayer {...serverProps} />);
+
+    const button = screen.getByRole("button", { name: /pause/i });
+    expect(within(button).getByRole("status")).toBeInTheDocument();
+    expect(button).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("does not warn about browser voices", async () => {
+    // No installSpeechEngine(): the browser has no voices at all.
+    installServerSpeech();
+
+    render(<AudioSummaryPlayer {...serverProps} language="en" />);
+
+    await screen.findByText(/It landed after 362 patches\./);
+    expect(screen.queryByText(/no speech voices/i)).not.toBeInTheDocument();
+  });
+
+  it("highlights the sentence whose clip is playing", async () => {
+    const speech = installServerSpeech();
+
+    render(<AudioSummaryPlayer {...serverProps} />);
+    await screen.findByText(/Maintainers had warned for years\./);
+
+    await respond(speech, SPOKEN_TITLE);
+    await respond(speech, "Published at Hacker News, written by Jane Doe.");
+    act(() => speech.audio().finish());
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Published at Hacker News, written by Jane Doe\./),
+      ).toHaveAttribute("data-active", "true"),
+    );
+  });
+
+  it("explains itself when the speech service fails", async () => {
+    const speech = installServerSpeech();
+
+    render(<AudioSummaryPlayer {...serverProps} />);
+    await act(async () => {
+      speech.requests[0].fail();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(await screen.findByText(/speech unavailable/i)).toBeInTheDocument();
+    // Play retries from the failed sentence.
+    await userEvent.click(screen.getByRole("button", { name: /play/i }));
+    expect(
+      speech.requested().filter((text) => text === SPOKEN_TITLE),
+    ).toHaveLength(2);
+  });
+
+  it("plays the title under Strict Mode", async () => {
+    const speech = installServerSpeech();
+
+    render(
+      <React.StrictMode>
+        <AudioSummaryPlayer {...serverProps} />
+      </React.StrictMode>,
+    );
+    await respond(speech, SPOKEN_TITLE);
+
+    expect(FakeAudio.instances.at(-1)?.src).toBe(`blob:${SPOKEN_TITLE}`);
   });
 });

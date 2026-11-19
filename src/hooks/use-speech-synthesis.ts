@@ -1,19 +1,6 @@
+import type { SpeechControls } from "@/hooks/speech-controls";
 import { DEFAULT_LANGUAGE } from "@/lib/language";
 import * as React from "react";
-
-interface SpeechSynthesisControls {
-  activeIndex: number | undefined;
-  enqueue: (sentence: string) => void;
-  pause: () => void;
-  paused: boolean;
-  playFrom: (index: number) => void;
-  rate: number;
-  resume: () => void;
-  setRate: (rate: number) => void;
-  speaking: boolean;
-  supported: boolean;
-  voiceAvailable: boolean;
-}
 
 // `speechSynthesis` is a single global shared by every instance of this hook,
 // so exactly one of them may own it at a time. Module scope rather than a ref
@@ -42,9 +29,7 @@ const speechEngine = () =>
  * Only one audio surface is mounted at a time, but a client-side navigation
  * briefly overlaps two, so the module-level owner token above arbitrates.
  */
-export function useSpeechSynthesis(
-  language: string | null,
-): SpeechSynthesisControls {
+export function useSpeechSynthesis(language: string | null): SpeechControls {
   const [supported, setSupported] = React.useState(false);
   const [voiceAvailable, setVoiceAvailable] = React.useState(false);
   const [speaking, setSpeaking] = React.useState(false);
@@ -264,7 +249,11 @@ export function useSpeechSynthesis(
 
   return {
     activeIndex,
+    // The browser engine has no network round trip to wait on, and reports no
+    // failures it could recover from.
+    buffering: false,
     enqueue,
+    error: false,
     pause,
     paused,
     playFrom,

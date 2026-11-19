@@ -4,6 +4,7 @@ import IntlRelativeTime from "@/components/intl-relative-time";
 import BackButton from "@/components/navigation/back-button";
 import TopNavigation from "@/components/navigation/top-navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getSpeechModelFor } from "@/lib/ai/speechRegistry";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
@@ -67,6 +68,9 @@ const AudioSummary = async ({
         {article.scrape ? (
           <AudioSummaryPlayer
             articleId={article.id}
+            // A configured voice for the article's language reads it;
+            // otherwise the browser's own voices do.
+            engine={getSpeechModelFor(article.language) ? "server" : "browser"}
             language={article.language}
             title={article.title}
           />

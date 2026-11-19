@@ -10,6 +10,9 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
+import type { SpeechControls } from "@/hooks/speech-controls";
+import { useServerSpeech } from "@/hooks/use-server-speech";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { streamAudioScript } from "@/lib/ai/services/audioScriptService";
 import { splitIntoSentences, spokenTitle } from "@/lib/audio-script";
@@ -28,14 +31,21 @@ const formatRate = (value: number) => value.toFixed(1);
 
 interface AudioSummaryPlayerProps {
   articleId: number;
+  engine: "browser" | "server";
   language: string | null;
   title: string;
 }
 
-const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
+type SpeechPlayerProps = Omit<AudioSummaryPlayerProps, "engine"> & {
+  speech: SpeechControls;
+};
+
+const SpeechPlayer = (props: SpeechPlayerProps) => {
   const {
     activeIndex,
+    buffering,
     enqueue,
+    error,
     pause,
     paused,
     playFrom,
@@ -45,7 +55,7 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
     speaking,
     supported,
     voiceAvailable,
-  } = useSpeechSynthesis(props.language);
+  } = props.speech;
   // The hook keeps its own copy of the sentences for playback, but that copy is
   // a ref and cannot drive rendering. This one is for display.
   const [sentences, setSentences] = useState<string[]>([]);
@@ -187,16 +197,29 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
         </Alert>
       )}
 
+      {error && (
+        <Alert>
+          <AlertTitle>Speech unavailable</AlertTitle>
+          <AlertDescription>
+            The speech service could not read this briefing aloud. Press play to
+            try again. The transcript below is unaffected.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex flex-wrap items-center gap-4 border-b pb-4">
         <Button
           variant="secondary"
           size="icon"
           className="cursor-pointer"
           aria-label={playing ? "Pause" : "Play"}
+          aria-busy={buffering && !paused}
           onClick={togglePlayback}
           disabled={!supported}
         >
-          {playing ? (
+          {buffering && !paused ? (
+            <Spinner />
+          ) : playing ? (
             <PauseIcon className="size-4 fill-current" />
           ) : (
             <PlayIcon className="size-4 fill-current" />
@@ -265,5 +288,28 @@ const AudioSummaryPlayer = (props: AudioSummaryPlayerProps) => {
     </div>
   );
 };
+
+// Each wrapper calls exactly one speech hook. Mounting only the selected one
+// matters: the browser hook claims the global speechSynthesis on mount, and an
+// idle instance on a server-speech page would take that ownership from the
+// page being navigated away from, leaving its speech playing.
+const BrowserSpeechPlayer = (
+  props: Omit<AudioSummaryPlayerProps, "engine">,
+) => {
+  const speech = useSpeechSynthesis(props.language);
+  return <SpeechPlayer {...props} speech={speech} />;
+};
+
+const ServerSpeechPlayer = (props: Omit<AudioSummaryPlayerProps, "engine">) => {
+  const speech = useServerSpeech(props.articleId);
+  return <SpeechPlayer {...props} speech={speech} />;
+};
+
+const AudioSummaryPlayer = ({ engine, ...props }: AudioSummaryPlayerProps) =>
+  engine === "server" ? (
+    <ServerSpeechPlayer {...props} />
+  ) : (
+    <BrowserSpeechPlayer {...props} />
+  );
 
 export default AudioSummaryPlayer;
