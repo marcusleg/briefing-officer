@@ -6,6 +6,7 @@ import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FakeAudio, installServerSpeech } from "../../helpers/server-speech";
 import { installSpeechEngine } from "../../helpers/speech-synthesis";
+import { installStreamSpeech } from "../../helpers/stream-speech";
 
 vi.mock("@/lib/ai/services/audioScriptService", () => ({
   streamAudioScript: vi.fn().mockResolvedValue({ output: "streamable" }),
@@ -389,5 +390,44 @@ describe("AudioSummaryPlayer with server speech", () => {
     await respond(speech, SPOKEN_TITLE);
 
     expect(FakeAudio.instances.at(-1)?.src).toBe(`blob:${SPOKEN_TITLE}`);
+  });
+});
+
+describe("AudioSummaryPlayer with streamed server speech", () => {
+  const serverProps = { ...props, engine: "server" as const };
+
+  const respondToAll = async (
+    speech: ReturnType<typeof installStreamSpeech>,
+  ) => {
+    await act(async () => {
+      for (let round = 0; round < 6; round++) {
+        for (const request of speech.requests) {
+          if (!request.settled && !request.signal.aborted) request.respond();
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        // Playing on moves the look-ahead window forward.
+        speech.audio().advanceTo(Math.max(0, speech.source().end - 0.5));
+      }
+    });
+  };
+
+  it("ends the stream only once the whole script is in it", async () => {
+    const speech = installStreamSpeech();
+
+    render(
+      <React.StrictMode>
+        <AudioSummaryPlayer {...serverProps} />
+      </React.StrictMode>,
+    );
+    await screen.findByText("Maintainers had warned for years.");
+    await respondToAll(speech);
+
+    expect(speech.appended()).toEqual([
+      SPOKEN_TITLE,
+      "Published at Hacker News, written by Jane Doe.",
+      "It landed after 362 patches.",
+      "Maintainers had warned for years.",
+    ]);
+    expect(speech.source().endOfStream).toHaveBeenCalledOnce();
   });
 });

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FakeAudio, installServerSpeech } from "../../helpers/server-speech";
 import { installSpeechEngine } from "../../helpers/speech-synthesis";
+import { installStreamSpeech } from "../../helpers/stream-speech";
 
 vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
 
@@ -163,6 +164,57 @@ describe("ReadAloud with the speech service", () => {
     render(<Harness engine="server" text={"```\ncode\n```"} />);
 
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+});
+
+describe("ReadAloud with streamed speech", () => {
+  it("returns to idle once the stream has played to its end", async () => {
+    const speech = installStreamSpeech();
+    const user = userEvent.setup();
+    render(<Harness engine="server" />);
+
+    await user.click(readAloud());
+    await act(async () => {
+      for (const request of speech.requests) request.respond();
+      for (let i = 0; i < 5; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    });
+    expect(speech.appended()).toEqual([
+      "Alphabet rose.",
+      "Analysts expected less.",
+    ]);
+    expect(stopReading()).toBeInTheDocument();
+
+    act(() => speech.audio().playToEnd());
+
+    expect(readAloud()).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("keeps reading through a pause from outside the page", async () => {
+    const speech = installStreamSpeech();
+    const user = userEvent.setup();
+    render(<Harness engine="server" />);
+
+    await user.click(readAloud());
+    await act(async () => {
+      for (const request of speech.requests) request.respond();
+      for (let i = 0; i < 5; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    });
+
+    // A headset button or the media notification pauses the element.
+    act(() => speech.audio().pause());
+    expect(stopReading()).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
+
+    await act(() => speech.audio().play());
+    act(() => speech.audio().playToEnd());
+
+    expect(readAloud()).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });
 

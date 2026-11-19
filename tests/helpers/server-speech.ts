@@ -109,11 +109,18 @@ export const installServerSpeech = ({
               ok: true,
               status: 200,
               blob: async () => ({ text: body.text }),
+              arrayBuffer: async () =>
+                new TextEncoder().encode(body.text).buffer,
             });
           },
           fail: (status = 502) => {
             request.settled = true;
-            resolve({ ok: false, status, blob: async () => ({}) });
+            resolve({
+              ok: false,
+              status,
+              blob: async () => ({}),
+              arrayBuffer: async () => new ArrayBuffer(0),
+            });
           },
         };
         requests.push(request);

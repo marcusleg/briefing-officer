@@ -2,6 +2,10 @@ import type { SpeechControls } from "@/hooks/speech-controls";
 import { DEFAULT_LANGUAGE } from "@/lib/language";
 import * as React from "react";
 
+// The engine plays whatever it was handed and needs no word that the script
+// is complete.
+const finish = () => {};
+
 // `speechSynthesis` is a single global shared by every instance of this hook,
 // so exactly one of them may own it at a time. Module scope rather than a ref
 // because the point is coordination *between* instances during the overlap a
@@ -262,6 +266,7 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
     buffering: false,
     enqueue,
     error: false,
+    finish,
     pause,
     paused,
     playFrom,

@@ -96,7 +96,9 @@ Optional. Audio summaries are read by an OpenAI-compatible speech API when one
 is configured for the article's language, and by the browser's own voices
 otherwise. Chat answers are read as English, by the speech API when `en` is
 among its languages. The service is used only when both `OPENAI_TTS_MODEL` and
-`OPENAI_TTS_VOICE` are set.
+`OPENAI_TTS_VOICE` are set. In browsers that support Media Source Extensions,
+such as Firefox and Chrome, its speech keeps playing while the phone's screen
+is off or another app is open; the browser's own voices usually stop there.
 
 | Environment Variable   | Description                                                                                               |
 | ---------------------- | --------------------------------------------------------------------------------------------------------- |

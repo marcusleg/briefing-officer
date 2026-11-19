@@ -11,6 +11,8 @@ export interface SpeechControls {
   enqueue: (sentence: string) => void;
   /** Playback stopped because a sentence could not be synthesized. */
   error: boolean;
+  /** No more sentences will be enqueued. */
+  finish: () => void;
   pause: () => void;
   paused: boolean;
   playFrom: (index: number) => void;
