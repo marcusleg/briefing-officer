@@ -38,7 +38,7 @@ by the same voice that reads audio summaries.
 ```
 /chat page (server) ── engine: getSpeechModelFor(null) ? "server" : "browser"
   └─ Chat ── readingId
-       └─ ChatMessage ── ReadAloudButton
+       └─ ChatMessage ── actions: ReadAloud
             └─ ChatSpeech (mounted only while reading, keyed by message id)
                  ├─ server: useServerSpeech() ─▶ POST /api/speech { text }
                  └─ browser: useSpeechSynthesis(null)
@@ -58,9 +58,11 @@ by the same voice that reads audio summaries.
   the button returns to idle.
 - Only one answer is read at a time. Starting another answer stops the current
   one. "New chat" stops playback.
-- If a clip fails, or the browser engine has no English voice, playback stops,
-  the button returns to idle and a toast says "This answer could not be read
-  aloud."
+- If a clip fails, playback stops, the button returns to idle and a toast says
+  "This answer could not be read aloud." The same toast appears, and nothing
+  plays, when the browser engine is clicked in a browser with no voices at all.
+- With the browser engine and no English voice installed, the browser's default
+  voice reads the answer, as on the audio summary page.
 - With the browser engine in a browser without `speechSynthesis`, the button is
   not rendered.
 
@@ -126,40 +128,40 @@ The server component computes
 
 - Takes `speechEngine: "server" | "browser"`.
 - Holds `readingId: string | undefined`, the id of the answer being read.
-- Passes each `ChatMessage` the engine, `reading={message.id === readingId}`,
-  `onRead={() => setReadingId(message.id)}` and
-  `onReadEnd={() => setReadingId(undefined)}`.
+- Passes each `ChatMessage` a `<ReadAloud>` as `actions`, with the engine,
+  `messageText(message)`, `reading={message.id === readingId}`,
+  `onRead={() => setReadingId(message.id)}` and a stable `onReadEnd` that
+  clears `readingId`.
 - `startOver` also clears `readingId`.
 
 ### Message — `src/components/chat/chat-message.tsx`
 
-For an assistant message that is not `answering` and whose text parts are not
-empty, renders `<ReadAloudButton>` in a `MessageActions` row below the content.
-The text is the message's text parts joined with blank lines.
+- Takes an optional `actions: ReactNode`, rendered below an assistant answer
+  only when it is not `answering`. `ChatMessage` knows nothing about speech.
+- Exports `messageText(message)`: the message's text parts joined with blank
+  lines.
 
 ### Read aloud — `src/components/chat/read-aloud.tsx`
 
-- **`ReadAloudButton`** takes `engine`, `text`, `reading`, `onRead` and
-  `onReadEnd`.
-  - With the browser engine, it renders nothing until an effect has confirmed
-    `"speechSynthesis" in window`, so the server render and the first client
-    render agree.
-  - When `reading`, it mounts `<ChatSpeech>` and shows the buffering or reading
-    state that `ChatSpeech` reports back. When not reading, it shows the idle
-    state.
-  - A click calls `onRead` when idle and `onReadEnd` when reading.
-- **`ChatSpeech`** mounts only the selected engine's hook, through one small
-  component per engine (`ServerChatSpeech`, `BrowserChatSpeech`), as the audio
-  summary player does. On mount it enqueues `spokenSentences(text)` and calls
-  `playFrom(0)`. It then:
-  - reports `buffering` to the button;
-  - calls `onReadEnd` once playback has started and `speaking` turns false
-    without an error (the answer has been read to the end);
-  - on `error`, or when the browser engine reports no English voice, shows the
-    toast and calls `onReadEnd`.
-  - It is guarded against Strict Mode's double mount the way the audio summary
-    player is, so sentences are enqueued once.
-- When `spokenSentences` returns no sentences, the button is not rendered.
+- **`ReadAloud`** takes `engine`, `text` (the answer's Markdown), `reading`,
+  `onRead` and `onReadEnd`, and renders a `MessageActions` row holding the
+  button.
+  - It renders nothing when `spokenSentences(text)` is empty, or for the browser
+    engine when `"speechSynthesis" in window` is false. That check goes through
+    `useSyncExternalStore` with a server snapshot of `false`, so the server
+    render and the first client render agree.
+  - Idle, a click calls `onRead`. For the browser engine it first checks
+    `speechSynthesis.getVoices()`: with no voices the toast appears instead,
+    because such a browser accepts utterances but never plays or ends them.
+  - When `reading`, it mounts `ServerChatSpeech` or `BrowserChatSpeech`, each of
+    which calls only its own engine's hook and renders `ChatSpeech`, as the
+    audio summary player does.
+- **`ChatSpeech`** renders the stop button (spinner while `buffering`), which
+  calls `onReadEnd`. On mount it enqueues the sentences once (a ref guards
+  against Strict Mode's remount, which then only calls `playFrom(0)` again) and
+  calls `playFrom(0)`. It calls `onReadEnd` once `speaking` has been true and
+  turns false, and on `error` shows the toast and calls `onReadEnd`. Each fires
+  at most once.
 
 ## Error handling
 
@@ -169,7 +171,8 @@ The text is the message's text parts joined with blank lines.
 | No English voice on the server        | Engine is "browser"; the route's 422 is a backstop |
 | Synthesis failure                     | Route 502, clip fails, toast, button idle        |
 | Browser without `speechSynthesis`     | Button not rendered                              |
-| Browser with no English voice         | Toast, button idle                               |
+| Browser with no voices at all         | Toast on click, nothing plays                    |
+| Browser with no English voice         | The default voice reads the answer               |
 | Navigating away or "New chat"         | `ChatSpeech` unmounts and playback stops         |
 
 ## Testing
