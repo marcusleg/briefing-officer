@@ -58,13 +58,15 @@ by the same voice that reads audio summaries.
   the button returns to idle.
 - Only one answer is read at a time. Starting another answer stops the current
   one. "New chat" stops playback.
-- If a clip fails, playback stops, the button returns to idle and a toast says
-  "This answer could not be read aloud." The same toast appears, and nothing
-  plays, when the browser engine is clicked in a browser with no voices at all.
+- If a clip fails, or the browser blocks its playback (autoplay), playback
+  stops, the button returns to idle and a toast says "This answer could not be
+  read aloud."
 - With the browser engine and no English voice installed, the browser's default
   voice reads the answer, as on the audio summary page.
-- With the browser engine in a browser without `speechSynthesis`, the button is
-  not rendered.
+- With the browser engine, the button is rendered only once the browser
+  reports at least one voice. A browser without `speechSynthesis`, or without
+  any voices, shows no button. Browsers that load their voices asynchronously
+  show it once `voiceschanged` fires.
 
 ### Spoken text — `src/lib/chat-speech-text.ts`
 
@@ -147,12 +149,11 @@ The server component computes
   `onRead` and `onReadEnd`, and renders a `MessageActions` row holding the
   button.
   - It renders nothing when `spokenSentences(text)` is empty, or for the browser
-    engine when `"speechSynthesis" in window` is false. That check goes through
-    `useSyncExternalStore` with a server snapshot of `false`, so the server
-    render and the first client render agree.
-  - Idle, a click calls `onRead`. For the browser engine it first checks
-    `speechSynthesis.getVoices()`: with no voices the toast appears instead,
-    because such a browser accepts utterances but never plays or ends them.
+    engine until `speechSynthesis.getVoices()` is non-empty. A browser without
+    voices accepts utterances but never plays or ends them. The check goes
+    through `useSyncExternalStore`, subscribed to `voiceschanged`, with a server
+    snapshot of `false`, so hydration agrees with the server render.
+  - Idle, a click calls `onRead`.
   - When `reading`, it mounts `ServerChatSpeech` or `BrowserChatSpeech`, each of
     which calls only its own engine's hook and renders `ChatSpeech`, as the
     audio summary player does.
@@ -160,8 +161,12 @@ The server component computes
   calls `onReadEnd`. On mount it enqueues the sentences once (a ref guards
   against Strict Mode's remount, which then only calls `playFrom(0)` again) and
   calls `playFrom(0)`. It calls `onReadEnd` once `speaking` has been true and
-  turns false, and on `error` shows the toast and calls `onReadEnd`. Each fires
-  at most once.
+  turns false, and on `error` or `paused` (it never pauses itself, so a pause
+  means the browser blocked playback) shows the toast and calls `onReadEnd`.
+  Each fires at most once.
+- `useSpeechSynthesis` looks up its voice when it speaks if it has not found it
+  yet, because `ChatSpeech` queues every sentence before the hook's own effects
+  run.
 
 ## Error handling
 
@@ -171,7 +176,8 @@ The server component computes
 | No English voice on the server        | Engine is "browser"; the route's 422 is a backstop |
 | Synthesis failure                     | Route 502, clip fails, toast, button idle        |
 | Browser without `speechSynthesis`     | Button not rendered                              |
-| Browser with no voices at all         | Toast on click, nothing plays                    |
+| Browser with no voices at all         | Button not rendered                              |
+| Autoplay blocked (server engine)      | Toast, button idle                               |
 | Browser with no English voice         | The default voice reads the answer               |
 | Navigating away or "New chat"         | `ChatSpeech` unmounts and playback stops         |
 
@@ -194,4 +200,7 @@ The server component computes
   - starting a second answer stops the first;
   - reaching the end returns the button to idle;
   - a failed clip shows the toast and returns the button to idle;
-  - the browser engine without `speechSynthesis` renders no button.
+  - the browser engine without `speechSynthesis` or without voices renders no
+    button, and the button appears once voices load;
+  - the browser engine reads with the English voice;
+  - blocked autoplay shows the toast and returns the button to idle.
