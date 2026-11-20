@@ -31,8 +31,7 @@ until a pull request is open.
 The user judges a change by how the application behaves, not by its code. When
 reporting, lead with what changed for the user. Leave a demo instance of the
 branch running and give its URL with sign-in credentials you have verified
-work, plus screenshots where they help. Don't walk through code or diffs
-unless asked.
+work, plus screenshots where they help.
 
 ## Checks
 
