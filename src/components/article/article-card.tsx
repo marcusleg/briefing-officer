@@ -64,7 +64,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     "a",
     createHotkeyHandler(() => {
       router.push(
-        `/feed/${props.article.feedId}/article/${props.article.id}/audio-summary`,
+        `/feed/${props.article.feedId}/article/${props.article.id}/audio-briefing`,
       );
     }),
   );

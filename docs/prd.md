@@ -123,7 +123,7 @@ Ordered by importance to the core job of triaging news.
 ## 5. Key flows
 
 - **Daily triage.** Sign in, land on the home inbox, skim leads, dismiss or read
-  later as you go, open a text or audio summary for the few articles that
+  later as you go, open a text summary or audio briefing for the few articles that
   warrant it, open the original for the ones that warrant more. Articles saved
   for later stay in the inbox, below the unread ones, until they are dismissed.
 - **Adding a feed.** Paste a URL in the sidebar form, optionally set a title and
@@ -151,7 +151,7 @@ Screenshots of the main screens live in `docs/screenshots/`.
 - Articles older than 365 days are purged hourly by the background worker,
   except archived and read-later articles.
 - The lead and the filter decision come from one AI call per article at ingest.
-  Text and audio summaries are generated on demand and streamed.
+  Text summaries and audio briefings are generated on demand and streamed.
 - The AI provider is chosen by environment variables; the first configured
   provider wins, in the order Anthropic, Azure OpenAI, OpenAI-compatible.
 - All data is scoped by user. There is no sharing between accounts.
