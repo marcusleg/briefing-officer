@@ -137,7 +137,7 @@ export const getArticleForUser = async (
   };
 };
 
-/** The statuses the chat may set. Starring and dismissing stay manual. */
+/** The statuses the chat may set. Starring and Not Interested stay manual. */
 export const CHAT_STATUS_TARGETS = ["READ", "UNREAD", "READ_LATER"] as const;
 export type ChatStatusTarget = (typeof CHAT_STATUS_TARGETS)[number];
 
