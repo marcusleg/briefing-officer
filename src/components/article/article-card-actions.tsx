@@ -1,6 +1,5 @@
 "use client";
 
-import AudioBriefingButton from "@/components/article/audio-briefing-button";
 import CommentsButton from "@/components/article/comments-button";
 import DismissButton from "@/components/article/dismiss-button";
 import NotInterestedButton from "@/components/article/not-interested-button";
@@ -21,7 +20,7 @@ type ReadingTime = ReturnType<typeof readingTime>;
 interface ArticleCardActionsProps {
   article: Article;
   /** The page rendering this row, so it can suppress its own entry. */
-  currentPage?: "text-summary" | "audio-briefing";
+  currentPage?: "text-summary";
   onAfterDismiss?: () => void;
 }
 
@@ -34,11 +33,9 @@ const ReadingTimeLabel = ({ readingTime }: { readingTime: ReadingTime }) => (
 
 const IconActions = ({
   article,
-  currentPage,
   variant,
 }: {
   article: Article;
-  currentPage?: ArticleCardActionsProps["currentPage"];
   variant?: "ghost";
 }) => (
   <>
@@ -48,13 +45,6 @@ const IconActions = ({
       <NotInterestedButton article={article} variant={variant} />
     )}
     <CommentsButton article={article} variant={variant} />
-    {currentPage !== "audio-briefing" && (
-      <AudioBriefingButton
-        feedId={article.feedId}
-        articleId={article.id}
-        variant={variant}
-      />
-    )}
   </>
 );
 
@@ -99,11 +89,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => {
           <ReadingTimeLabel readingTime={articleReadingTime} />
         )}
         <div className="grow" />
-        <IconActions
-          article={props.article}
-          currentPage={props.currentPage}
-          variant="ghost"
-        />
+        <IconActions article={props.article} variant="ghost" />
       </div>
 
       {/* Mobile: row 2 — full-width labeled buttons */}
@@ -122,7 +108,7 @@ const ArticleCardActions = (props: ArticleCardActionsProps) => {
           <ReadingTimeLabel readingTime={articleReadingTime} />
         )}
         <div className="grow" />
-        <IconActions article={props.article} currentPage={props.currentPage} />
+        <IconActions article={props.article} />
         <LabelledActions
           article={props.article}
           className="cursor-pointer justify-start text-sm"

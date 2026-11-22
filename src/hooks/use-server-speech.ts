@@ -10,8 +10,8 @@ import * as React from "react";
 const getServerSnapshot = () => INITIAL_SERVER_SPEECH_SNAPSHOT;
 
 /**
- * Reads text through the TTS service behind /api/speech: an article's
- * briefing, or, without an article id, English text such as a chat answer.
+ * Reads text through the TTS service behind /api/speech: text about an
+ * article, or, without an article id, English text such as a chat answer.
  *
  * Where Media Source Extensions can play MP3, the clips form one continuous
  * stream, which keeps playing in the background. Elsewhere they play one after
@@ -35,7 +35,7 @@ export function useServerSpeech(articleId?: number): SpeechControls {
   );
 
   // Strict Mode runs this cleanup between its two mount passes. The queue
-  // keeps its sentences through dispose(), so the player's replay works.
+  // keeps its sentences through dispose(), so the reader's replay works.
   React.useEffect(() => () => queue.dispose(), [queue]);
 
   return {

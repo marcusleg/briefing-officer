@@ -5,10 +5,8 @@ import prisma from "@/lib/prismaClient";
 import { generateSpeech } from "ai";
 import { headers } from "next/headers";
 
-// Briefing and chat sentences are far shorter. The cap bounds what one request
-// can make the speech service do, and is large enough that a script that
-// arrived without line breaks can still be read as one clip. It matches the
-// input limit of OpenAI's TTS API.
+// Chat sentences are far shorter. The cap bounds what one request can make the
+// speech service do. It matches the input limit of OpenAI's TTS API.
 const MAX_TEXT_LENGTH = 4096;
 
 // Article ids are 32-bit integers in the database.
@@ -52,8 +50,8 @@ const parseBody = async (
 };
 
 /**
- * Synthesizes one sentence as mp3: of an article's audio briefing, or of text
- * that belongs to no article, such as a chat answer.
+ * Synthesizes one sentence as mp3: of text about an article, read in its
+ * language, or of text that belongs to no article, such as a chat answer.
  */
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });

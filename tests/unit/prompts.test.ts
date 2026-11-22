@@ -1,5 +1,4 @@
 import {
-  buildAudioScriptPrompt,
   buildChatSystemPrompt,
   buildFilterSuggestionPrompt,
   buildLeadPrompt,
@@ -196,64 +195,6 @@ describe("buildChatSystemPrompt with an article", () => {
 
   it("leaves the article out of a chat opened without one", () => {
     expect(buildChatSystemPrompt({ today })).not.toContain("<current_article");
-  });
-});
-
-describe("buildAudioScriptPrompt", () => {
-  const args = {
-    title: "My Title",
-    author: "Jane Doe",
-    feedTitle: "Hacker News",
-    textContent: "Body text here",
-    language: null as string | null,
-  };
-
-  it("includes the title, the article text, and the publication", () => {
-    const prompt = buildAudioScriptPrompt(args);
-    expect(prompt).toContain("My Title");
-    expect(prompt).toContain("Body text here");
-    expect(prompt).toContain("Hacker News");
-  });
-
-  it("asks for spoken prose of about one minute", () => {
-    expect(buildAudioScriptPrompt(args)).toContain("150 to 200 words");
-  });
-
-  it("forbids Markdown, since the output is spoken rather than rendered", () => {
-    const prompt = buildAudioScriptPrompt(args);
-    expect(prompt).toContain("Markdown");
-    expect(prompt).toContain("plain text only");
-  });
-
-  it("supplies the author when one is known", () => {
-    const prompt = buildAudioScriptPrompt(args);
-    expect(prompt).toContain("<author>Jane Doe</author>");
-    expect(prompt).toContain("naming the publication and the author");
-  });
-
-  it("omits the author entirely when none is known", () => {
-    // Structural guard: with no author element in the prompt there is nothing
-    // for the model to invent one from.
-    const prompt = buildAudioScriptPrompt({ ...args, author: null });
-    expect(prompt).not.toContain("<author>");
-    expect(prompt).toContain("do not mention one");
-  });
-
-  it("asks for one sentence per line", () => {
-    // Playback splits the stream on newlines, so this instruction is what
-    // makes sentence boundaries work in every language.
-    expect(buildAudioScriptPrompt(args)).toContain("own line");
-  });
-
-  it("names the article's language", () => {
-    const prompt = buildAudioScriptPrompt({ ...args, language: "de" });
-    expect(prompt).toContain("Write entirely in German.");
-  });
-
-  it("falls back to English when no language was established", () => {
-    expect(buildAudioScriptPrompt(args)).toContain(
-      "Write entirely in English.",
-    );
   });
 });
 

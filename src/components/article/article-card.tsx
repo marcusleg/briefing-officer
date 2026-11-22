@@ -61,15 +61,6 @@ const ArticleCard = (props: ArticleCardProps) => {
   );
 
   useHotkeys(
-    "a",
-    createHotkeyHandler(() => {
-      router.push(
-        `/feed/${props.article.feedId}/article/${props.article.id}/audio-briefing`,
-      );
-    }),
-  );
-
-  useHotkeys(
     "v",
     createHotkeyHandler(async () => {
       window.open(props.article.link, "_blank");

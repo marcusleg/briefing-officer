@@ -39,7 +39,6 @@
     "@ai-sdk/anthropic": "^4.0.62",
     "@ai-sdk/azure": "^4.0.78",
     "@ai-sdk/react": "^4.0.116",
-    "@ai-sdk/rsc": "^3.0.113",
     "@hookform/resolvers": "^5.9.1",
     "@mozilla/readability": "^0.6.0",
     "@prisma/adapter-better-sqlite3": "^7.10.0",
