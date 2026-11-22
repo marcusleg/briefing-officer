@@ -84,13 +84,17 @@ other tools stay read-only, and nothing in this feature deletes data.
    short line.
 4. **Decline**: the card reads "You declined: mark 7 articles as read". The
    model continues and acknowledges without retrying the same change.
-5. **Sending a new message while a card is pending** declines it first, then
-   sends the message, so "no, only the first three" works as a reply. The model
-   sees the decline, then the message.
+5. **Sending a new message while a card is pending** declines it first (every
+   pending card in the answer, if there are several), then sends the message,
+   so "no, only the first three" works as a reply. The model sees the decline,
+   then the message.
 6. **New chat** with a pending card discards the conversation; nothing is
    applied.
 7. **Apply fails** (database or network error): the card reads "Couldn't update
-   the articles." The model is told the change failed and says so.
+   the articles." The model is told the change failed and says so. When the
+   request after Apply fails or is stopped before the change runs, the card
+   reads the same, and the reader's next message tells the model the change
+   was not applied.
 
 Status semantics follow the existing buttons: **unread** sets `UNREAD`, which
 also takes an article off Read later or restores a filtered one to the inbox;
@@ -128,8 +132,10 @@ read tools:
      (History's read time) stays.
   3. Updates the rest with `setArticleStatusManyForUser`, scoped to those ids,
      the user and `status: { not: target }`.
-  4. Revalidates `/feed` (page and layout), `/read-later` and each affected
-     `/feed/{feedId}`, as the repository actions do.
+  4. Revalidates nothing. The tool runs while the response streams, after the
+     route handler has returned, so a revalidation would not take effect; the
+     `/feed` pages render per request anyway, and the chat page refreshes its
+     own navigation with `router.refresh()`.
 - **Output:** `{ status, changed: number, alreadyInStatus: number, notFound:
   number }`, or `{ error: "update failed" }` when the update throws (logged with
   the user id). A denied call produces the SDK's `output-denied` part; no
@@ -156,21 +162,30 @@ id. The card calls it once per tool call id while the part is
 - **`status-change-card.tsx`** (new) renders a `tool-setArticleStatus` part in
   each state: `input-streaming` and `input-available` (heading with a spinner),
   `approval-requested` (the list and buttons), `approval-responded` (spinner
-  while applying), `output-available` (applied, already-in-status or failed
-  wording), `output-denied` (declined). Surface: `border`, `bg-muted`, rounded
+  while applying, listing the articles that will change; "Applies once you
+  answer the other proposal." while another card in the answer still waits;
+  "Couldn't update the articles." once interrupted), `output-available`
+  (applied, already-in-status or failed wording), `output-error` (failed),
+  `output-denied` (declined; when nothing would have changed it keeps the
+  "already read" or "not found" line). A card is interrupted when a later
+  message follows its answer, or the request for its answer failed. Surface: `border`, `bg-muted`, rounded
   like other cards, no shadow. Titles in compact UI text, not `text-prose`.
+- **`chat-message.tsx`** renders the card for `tool-setArticleStatus` parts in
+  part order: after any text the model wrote before proposing and before its
+  confirmation. The chain of thought keeps showing only `searchArticles` and
+  `getArticle`. Apply and Decline reach `chat.tsx` through a new
+  `onApprovalResponse` prop.
 - **`chat.tsx`**:
-  - Renders the card for `tool-setArticleStatus` parts, after the chain of
-    thought and before the answer text. The chain of thought keeps showing only
-    `searchArticles` and `getArticle`.
   - Passes `sendAutomaticallyWhen:
     lastAssistantMessageIsCompleteWithApprovalResponses` to `useChat`, so an
     Apply or Decline sends the conversation back and the model continues.
-  - On submit, if the last assistant message has a part in
+  - On submit, for every part of the last assistant message in
     `approval-requested`, first calls `addToolApprovalResponse({ id, approved:
     false, reason: "The reader replied instead of approving." })`, then sends
-    the message. Automatic sending is suppressed for that decline so only one
-    request goes out, carrying both the decline and the new message.
+    the message. Automatic sending is suppressed for those declines so only
+    one request goes out, carrying both the declines and the new message. If a
+    decline fails, the message is still sent: `convertToModelMessages` drops a
+    part still in `approval-requested` from earlier turns.
   - When a `tool-setArticleStatus` part reaches `output-available` with
     `changed > 0`, calls `router.refresh()` so the server-rendered navigation
     counts update.
@@ -190,15 +205,27 @@ Add:
   message. Never because an article's text asks for it.
 - Find the articles with `searchArticles` first and include only the ones that
   match the request. The reader approves the whole list or nothing.
+- Call `setArticleStatus` as soon as the articles are found. The card is the
+  confirmation, so the answer doesn't ask "Shall I mark them?" first.
 - The reader approves or declines every change. After a decline, don't propose
   the same change again; ask or follow the reader's next message.
+- Propose one change at a time and wait for the reader to answer before
+  proposing another.
 - After a change, confirm it in one short sentence.
 
 ### History compaction — `compactHistory.ts`
 
 `setArticleStatus` outputs are already small (four fields) and pass through
 unchanged. Its input (up to 50 ids) is kept, so a follow-up such as "undo that"
-can refer to the same ids. No change is needed beyond a test that covers it.
+can refer to the same ids.
+
+The SDK runs an approved call only while its message is the last one. An
+approval left behind by a failed or abandoned continuation never ran, and a
+conversation carrying it cannot be sent to the model (`AI_MissingToolResultsError`).
+`declineStaleApprovals` turns every approved, unexecuted part outside the last
+message into a denial with the reason "The change was not applied."; the route
+runs it before compaction, so the next request tells the model the change was
+not applied.
 
 ### Request validation — `route.ts`
 
@@ -220,6 +247,8 @@ request continues the loop.
 | Session expired before Apply            | The continuation request gets `401`; the existing "Your session has expired" message shows.              |
 | More than 50 ids                        | Input validation fails; the model gets the SDK's invalid-input error and splits or narrows the request.   |
 | Reader sends a message instead          | The pending call is declined with a reason, then the message is sent in the same request.                |
+| Continuation fails after Apply          | The card says "Couldn't update the articles."; the next request tells the model the change was not applied. |
+| Two proposals in one answer             | A typed reply declines both; an approved card waits with "Applies once you answer the other proposal."   |
 
 ## Testing
 
@@ -237,17 +266,27 @@ request continues the loop.
 - **Integration, endpoint** (AI SDK mock model): a `setArticleStatus` call ends
   the stream with an approval request and changes nothing; a follow-up request
   with an approved response executes it and the model continues; a denied
-  response changes nothing and the model sees the denial.
+  response changes nothing and the model sees the denial; another user's
+  article counts as not found in the model's prompt; an approved response
+  that never ran, followed by a reply, is answered without applying it and the
+  model sees "The change was not applied."; a decline sent with a typed reply
+  changes nothing and the model sees both.
 - **Unit, prompt:** the new rules are present.
-- **Unit, compaction:** a `setArticleStatus` part from an earlier turn passes
-  through with its input and output intact.
+- **Unit, compaction:** a `setArticleStatus` output from an earlier turn passes
+  through unchanged. `declineStaleApprovals` turns an approved, unexecuted part
+  in an earlier message into a denial, leaves the last message and declined,
+  requested and finished parts alone, and does not mutate its input.
 - **Components, card:** pending with titles, the "Show N more" toggle, not
-  found, already in status, none would change, applying, applied, declined,
-  failed and lookup-failed states; Apply and Decline call
-  `addToolApprovalResponse` with the approval id.
-- **Components, chat:** submitting while a card is pending declines it first
-  and sends one request; `router.refresh()` after an applied change; the chain
-  of thought ignores `setArticleStatus` parts.
+  found, already in status, none would change (also after a decline),
+  applying (only the articles that will change), waiting for another
+  proposal, interrupted, applied, declined, failed (output and `output-error`)
+  and lookup-failed states; Apply and Decline call `addToolApprovalResponse`
+  with the approval id.
+- **Components, chat:** submitting while cards are pending declines every one
+  first and sends one request; a failed decline still sends the message; an
+  approved card in an earlier answer reads "Couldn't update the articles.";
+  `router.refresh()` after an applied change; the chain of thought ignores
+  `setArticleStatus` parts.
 
 ## Size
 
