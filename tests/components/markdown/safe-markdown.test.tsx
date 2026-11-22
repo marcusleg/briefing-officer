@@ -61,4 +61,38 @@ describe("SafeMarkdown", () => {
     expect(container.querySelector("[data-leak]")).toBeNull();
     expect(container.innerHTML).not.toContain("evil.example");
   });
+
+  it("opens a link where newTabHref sends it, in a new tab", async () => {
+    render(
+      <SafeMarkdown
+        newTabHref={(href) =>
+          href === "/feed/1/article/2/text-summary"
+            ? "https://news.example/a"
+            : undefined
+        }
+      >
+        {"[cited](/feed/1/article/2/text-summary) and [feeds](/feed)"}
+      </SafeMarkdown>,
+    );
+
+    const cited = await screen.findByRole("link", { name: "cited" });
+    expect(cited).toHaveAttribute("href", "https://news.example/a");
+    expect(screen.getByText("(news.example)")).toBeInTheDocument();
+    expect(cited).toHaveAttribute("target", "_blank");
+    expect(cited).toHaveAttribute("rel", "noopener noreferrer");
+    const feeds = screen.getByRole("link", { name: "feeds" });
+    expect(feeds).toHaveAttribute("href", "/feed");
+    expect(feeds).not.toHaveAttribute("target");
+  });
+
+  it("shows a link as text where newTabHref says so", async () => {
+    render(
+      <SafeMarkdown newTabHref={() => null}>
+        {"See [the report](https://evil.example/?d=secret)."}
+      </SafeMarkdown>,
+    );
+
+    await screen.findByText("the report");
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
 });

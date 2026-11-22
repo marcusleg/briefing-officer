@@ -27,8 +27,8 @@ AI briefings on your favorite news feeds.
     voices, at an adjustable speed, alongside a transcript that highlights each
     sentence as it is spoken.
 - Chat with your articles: ask questions in plain language and get answers drawn
-  only from your own feeds, with links to the articles they come from. Answers
-  can be read aloud.
+  only from your own feeds, with links to the articles' sources. Answers can be
+  read aloud.
 - Leads, text summaries and audio briefings are written in the language of the
   article itself.
 - Save articles for later with "Read Later", or keep them for good with "Archive".

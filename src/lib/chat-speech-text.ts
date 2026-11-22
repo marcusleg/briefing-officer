@@ -46,8 +46,8 @@ const inlineText = (node: Nodes): string => {
 };
 
 /**
- * Answers end with a list of their sources, whose items are only a link to an
- * article. Read aloud, such a list is a string of headlines.
+ * Answers end with a list of the articles they draw on, whose items are only
+ * a link to an article. Read aloud, such a list is a string of headlines.
  */
 const isCitation = (item: ListItem) => {
   const [only, ...rest] = item.children;

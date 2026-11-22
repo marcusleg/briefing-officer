@@ -2,8 +2,12 @@
 
 import type { ArticleStatus } from "@/generated/prisma/client";
 import { MAX_STATUS_CHANGE_IDS } from "@/lib/ai/chat/articleTools";
+import { isArticleId } from "@/lib/articleId";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
+
+/** Far more than one conversation cites; bounds what one call looks up. */
+const MAX_SOURCE_IDS = 200;
 
 export interface StatusChangeArticle {
   id: number;
@@ -62,4 +66,42 @@ export const getArticlesForStatusChange = async (
   });
 
   return { articles, notFound: unique.length - articles.length };
+};
+
+/** The link as the browser will read it, if it is a web address. */
+const webUrl = (link: string) => {
+  try {
+    const url = new URL(link);
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.href
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * The source URLs of the reader's articles that a chat answer cites, by
+ * article id. The chat links a citation to its source from here rather than
+ * from the model's text, so a hostile article cannot steer a citation to
+ * another site. Links that are not web addresses are left out, as are other
+ * readers' articles.
+ */
+export const getArticleSources = async (
+  ids: number[],
+): Promise<Record<number, string>> => {
+  const userId = await getUserId();
+  const unique = [...new Set(ids.filter(isArticleId))].slice(0, MAX_SOURCE_IDS);
+
+  const rows = await prisma.article.findMany({
+    where: { id: { in: unique }, userId },
+    select: { id: true, link: true },
+  });
+
+  return Object.fromEntries(
+    rows.flatMap((row) => {
+      const url = webUrl(row.link);
+      return url ? [[row.id, url]] : [];
+    }),
+  );
 };
