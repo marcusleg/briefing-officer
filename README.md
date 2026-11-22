@@ -20,7 +20,8 @@ AI briefings on your favorite news feeds.
   - **Lead**: A single paragraph on what the article reports, dense enough to
     stand on its own, capped at 80 words.
   - **Text Summary**: A bullet-point list of 5–12 concise sentences with the
-    article's key facts or takeaways.
+    article's key facts or takeaways, written in a chat about the article, where
+    you can go on to ask about it.
   - **Audio Briefing**: A spoken briefing of roughly one minute, read aloud by
     a configured text-to-speech service or otherwise by the browser's own
     voices, at an adjustable speed, alongside a transcript that highlights each
@@ -96,7 +97,8 @@ all may reject any level other than `provider-default`.
 Optional. Audio briefings are read by an OpenAI-compatible speech API when one
 is configured for the article's language, and by the browser's own voices
 otherwise. Chat answers are read as English, by the speech API when `en` is
-among its languages. The service is used only when both `OPENAI_TTS_MODEL` and
+among its languages; in a chat opened on an article, they are read in the
+article's language. The service is used only when both `OPENAI_TTS_MODEL` and
 `OPENAI_TTS_VOICE` are set. In browsers that support Media Source Extensions,
 such as Firefox and Chrome, its speech keeps playing while the phone's screen
 is off or another app is open; the browser's own voices usually stop there.

@@ -502,3 +502,89 @@ describe("POST /api/chat", () => {
     expect(prompt).toContain("only the first");
   });
 });
+
+describe("POST /api/chat opened on an article", () => {
+  const answer = () =>
+    new MockLanguageModelV4({
+      modelId: "mock-model",
+      doStream: [
+        streamOf([
+          { type: "text-start", id: "t1" },
+          { type: "text-delta", id: "t1", delta: "### Key Facts" },
+          { type: "text-end", id: "t1" },
+          {
+            type: "finish",
+            finishReason: { unified: "stop", raw: undefined },
+            usage,
+          },
+        ]),
+      ],
+    });
+
+  const withText = async (forUserId: string, text: string) => {
+    const feedId = (await createFeed({ userId: forUserId })).id;
+    const article = await createArticle({
+      userId: forUserId,
+      feedId,
+      title: "Alphabet beats estimates",
+    });
+    await prisma.articleScrape.create({
+      data: { articleId: article.id, textContent: text, author: "" },
+    });
+    return article;
+  };
+
+  it("grounds the chat in the article's text", async () => {
+    const article = await withText(userId, "Revenue rose 12 percent.");
+    const model = answer();
+    vi.mocked(getFirstConfiguredLanguageModel).mockResolvedValue(model);
+
+    const response = await POST(
+      chatRequest({
+        ...question("Summarize “Alphabet beats estimates”."),
+        articleId: article.id,
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("Key Facts");
+    const prompt = JSON.stringify(model.doStreamCalls[0].prompt);
+    expect(prompt).toContain("Revenue rose 12 percent.");
+    expect(prompt).toContain("<current_article");
+  });
+
+  it.each([["7"], [1.5], [0], [1e30]])(
+    "returns 400 for %s, which cannot be an article id",
+    async (articleId) => {
+      const response = await POST(
+        chatRequest({ ...question("Summarize."), articleId }),
+      );
+
+      expect(response.status).toBe(400);
+      expect(getFirstConfiguredLanguageModel).not.toHaveBeenCalled();
+    },
+  );
+
+  it("returns 404 for another user's article and never calls the model", async () => {
+    const foreign = await withText((await createUser()).id, "Secret memo.");
+
+    const response = await POST(
+      chatRequest({ ...question("Summarize."), articleId: foreign.id }),
+    );
+
+    expect(response.status).toBe(404);
+    expect(getFirstConfiguredLanguageModel).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 for an article without article text", async () => {
+    const feedId = (await createFeed({ userId })).id;
+    const article = await createArticle({ userId, feedId });
+
+    const response = await POST(
+      chatRequest({ ...question("Summarize."), articleId: article.id }),
+    );
+
+    expect(response.status).toBe(404);
+    expect(getFirstConfiguredLanguageModel).not.toHaveBeenCalled();
+  });
+});

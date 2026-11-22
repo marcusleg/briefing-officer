@@ -1,10 +1,15 @@
-import Chat, { DECLINED_BY_REPLY, transport } from "@/components/chat/chat";
+import Chat, {
+  DECLINED_BY_REPLY,
+  showsOnlyTextSummary,
+  transport,
+} from "@/components/chat/chat";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
 import { useChat } from "@ai-sdk/react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { APICallError, type ChatInit } from "ai";
 import { useRouter } from "next/navigation";
+import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { installServerSpeech } from "../../helpers/server-speech";
 
@@ -599,5 +604,103 @@ describe("status changes", () => {
     rerender(<Chat speechEngine="server" />);
 
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("opened on an article", () => {
+  const article = { id: 7 };
+
+  it("asks for the text summary once, in fixed words", async () => {
+    render(<Chat speechEngine="server" article={article} />);
+
+    await waitFor(() =>
+      expect(actions.sendMessage).toHaveBeenCalledWith({
+        text: "Summarize this article.",
+      }),
+    );
+    expect(actions.sendMessage).toHaveBeenCalledOnce();
+  });
+
+  it("asks once under Strict Mode's trial unmount and remount", async () => {
+    render(
+      <StrictMode>
+        <Chat speechEngine="server" article={article} />
+      </StrictMode>,
+    );
+
+    await waitFor(() => expect(actions.sendMessage).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(actions.sendMessage).toHaveBeenCalledOnce();
+  });
+
+  it("does not ask again once the conversation has started", async () => {
+    mockChat({ messages: oneExchange });
+    render(<Chat speechEngine="server" article={article} />);
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(actions.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it("sends the article's id with every request", async () => {
+    const fetch = vi.fn(async () => new Response("nope", { status: 500 }));
+    vi.stubGlobal("fetch", fetch);
+    render(<Chat speechEngine="server" article={article} />);
+
+    await expect(
+      chatOptions().transport!.sendMessages({
+        chatId: "chat-1",
+        messages: oneExchange as ChatUIMessage[],
+        trigger: "submit-message",
+        messageId: undefined,
+        abortSignal: undefined,
+      }),
+    ).rejects.toThrow();
+
+    const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toMatchObject({ articleId: 7 });
+  });
+
+  it("shows the article's heading and leaves for the chat page on New chat", () => {
+    mockChat({ messages: oneExchange });
+    render(
+      <Chat
+        speechEngine="server"
+        article={article}
+        header={<h2>Alphabet beats</h2>}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Alphabet beats" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "New chat" })).toHaveAttribute(
+      "href",
+      "/chat",
+    );
+    expect(
+      screen.getByRole("textbox", { name: "Ask about this article" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("showsOnlyTextSummary", () => {
+  const ask = (id: string) => ({
+    id,
+    role: "user",
+    parts: [{ type: "text", text: "?" }],
+  });
+  const answer = (id: string) => ({
+    id,
+    role: "assistant",
+    parts: [{ type: "text", text: "." }],
+  });
+
+  it("holds until the reader asks their own first question", () => {
+    const opening = [ask("u1"), answer("a1")] as ChatUIMessage[];
+    const asked = [...opening, ask("u2")] as ChatUIMessage[];
+
+    expect(showsOnlyTextSummary([])).toBe(true);
+    expect(showsOnlyTextSummary(opening)).toBe(true);
+    expect(showsOnlyTextSummary(asked)).toBe(false);
   });
 });

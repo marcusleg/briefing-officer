@@ -2,6 +2,7 @@ import {
   ARTICLE_TEXT_LIMIT,
   changeArticleStatusForUser,
   getArticleForUser,
+  getOpenedArticleForUser,
   searchArticlesForUser,
   type SearchArticlesInput,
 } from "@/lib/ai/chat/articleTools";
@@ -238,6 +239,58 @@ describe("getArticleForUser", () => {
     expect(await getArticleForUser(userId, 987_654)).toEqual({
       error: "not found",
     });
+  });
+});
+
+describe("getOpenedArticleForUser", () => {
+  it("returns the article text with what the chat's instructions carry", async () => {
+    const article = await indexed({ userId, feedId, body: "Full text." });
+    await prisma.article.update({
+      where: { id: article.id },
+      data: { language: "de" },
+    });
+
+    expect(await getOpenedArticleForUser(userId, article.id)).toEqual({
+      id: article.id,
+      title: article.title,
+      feed: "Markets Daily",
+      path: `/feed/${feedId}/article/${article.id}/text-summary`,
+      language: "de",
+      text: "Full text.",
+      truncated: false,
+    });
+  });
+
+  it("cuts very long text and says so", async () => {
+    const article = await indexed({
+      userId,
+      feedId,
+      body: "a".repeat(ARTICLE_TEXT_LIMIT + 10),
+    });
+
+    const opened = await getOpenedArticleForUser(userId, article.id);
+
+    expect(opened?.text).toHaveLength(ARTICLE_TEXT_LIMIT);
+    expect(opened?.truncated).toBe(true);
+  });
+
+  it("returns nothing for an article without article text", async () => {
+    // A text summary is never written from the feed's description.
+    const article = await createArticle({ userId, feedId });
+    await prisma.article.update({
+      where: { id: article.id },
+      data: { description: "Only the feed's teaser." },
+    });
+
+    expect(await getOpenedArticleForUser(userId, article.id)).toBeNull();
+  });
+
+  it("returns nothing for another user's article", async () => {
+    const otherUserId = (await createUser()).id;
+    const otherFeedId = (await createFeed({ userId: otherUserId })).id;
+    const foreign = await indexed({ userId: otherUserId, feedId: otherFeedId });
+
+    expect(await getOpenedArticleForUser(userId, foreign.id)).toBeNull();
   });
 });
 

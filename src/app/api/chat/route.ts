@@ -1,3 +1,4 @@
+import { getOpenedArticleForUser } from "@/lib/ai/chat/articleTools";
 import {
   compactEarlierTurns,
   declineStaleApprovals,
@@ -6,6 +7,7 @@ import { createChatTools, type ChatUIMessage } from "@/lib/ai/chat/tools";
 import { buildChatSystemPrompt } from "@/lib/ai/prompts";
 import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
 import { trackTokenUsage } from "@/lib/ai/services/tokenUsageService";
+import { isArticleId } from "@/lib/articleId";
 import { auth } from "@/lib/auth";
 import logger from "@/lib/logger";
 import {
@@ -21,9 +23,14 @@ import { headers } from "next/headers";
 const MAX_STEPS = 10;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 
-const parseBody = (text: string): { messages?: unknown } | null => {
+const parseBody = (
+  text: string,
+): { messages?: unknown; articleId?: unknown } | null => {
   try {
-    return JSON.parse(text) as { messages?: unknown } | null;
+    return JSON.parse(text) as {
+      messages?: unknown;
+      articleId?: unknown;
+    } | null;
   } catch {
     return null;
   }
@@ -69,6 +76,19 @@ export async function POST(request: Request) {
     return textResponse("Invalid chat request.", 400);
   }
 
+  // A chat opened on an article carries its id on every request, so the text
+  // summary and every answer after it are grounded in it.
+  let article;
+  if (body?.articleId !== undefined) {
+    if (!isArticleId(body.articleId)) {
+      return textResponse("Invalid chat request.", 400);
+    }
+    article = await getOpenedArticleForUser(userId, body.articleId);
+    if (!article) {
+      return textResponse("Article not found.", 404);
+    }
+  }
+
   let model;
   try {
     model = await getFirstConfiguredLanguageModel();
@@ -104,7 +124,7 @@ export async function POST(request: Request) {
 
   const result = streamText({
     model,
-    instructions: buildChatSystemPrompt({ today: new Date() }),
+    instructions: buildChatSystemPrompt({ today: new Date(), article }),
     messages: await convertToModelMessages(
       compactEarlierTurns(declineStaleApprovals(validation.data)),
       { tools },
