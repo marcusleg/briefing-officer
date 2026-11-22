@@ -5,12 +5,12 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/repository/articleRepository", () => ({
   markArticleAsRead: vi.fn().mockResolvedValue(undefined),
   markArticleAsReadLater: vi.fn().mockResolvedValue(undefined),
-  markArticleAsStarred: vi.fn().mockResolvedValue(undefined),
+  archiveArticle: vi.fn().mockResolvedValue(undefined),
   markArticleAsNotInteresting: vi.fn().mockResolvedValue(undefined),
   restoreArticleStatus: vi.fn().mockResolvedValue(undefined),
   restoreArticleToInbox: vi.fn().mockResolvedValue(undefined),
   unmarkArticleAsReadLater: vi.fn().mockResolvedValue(undefined),
-  unmarkArticleAsStarred: vi.fn().mockResolvedValue(undefined),
+  unarchiveArticle: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("sonner", () => ({
@@ -33,7 +33,7 @@ const article = {
   commentsLink: null,
   publicationDate: new Date("2026-09-01T00:00:00Z"),
   status: "UNREAD",
-  starred: false,
+  archived: false,
   filterReason: null,
   feedId: 1,
   feed: { id: 1, title: "Feed" },

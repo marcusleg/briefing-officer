@@ -100,12 +100,12 @@ Ordered by importance to the core job of triaging news.
 7. **Not interested.** One click files an article as filtered and suggests three
    keywords at different breadths to add to the feed's filter, so the filter
    learns from the rejection. Every action can be undone from a toast.
-8. **Triage actions.** Dismiss, restore, read later, star, open the original,
+8. **Triage actions.** Dismiss, restore, read later, archive, open the original,
    open the comments link when the feed provides one, and bulk mark as read for
    all articles or those older than a chosen number of days or weeks.
 9. **Views.** Home inbox across all feeds, listing unread articles and then
    those saved for later; per-feed and per-category views with an All / Unread /
-   Filtered switch, Read Later, Starred, History of the last 50 read articles,
+   Filtered switch, Read Later, Archived, History of the last 50 read articles,
    and full-text search over titles and article text.
 10. **Keyboard navigation.** Move between articles and trigger summary, audio,
     visit, and dismiss from the keyboard.
@@ -146,10 +146,10 @@ Screenshots of the main screens live in `docs/screenshots/`.
 ## 6. Key logic and constraints
 
 - Article state is a single status (unread, read later, read, filtered) plus an
-  independent star flag. The state machine is documented in
+  independent archived flag. The state machine is documented in
   `docs/reference/article-status.md`.
 - Articles older than 365 days are purged hourly by the background worker,
-  except starred and read-later articles.
+  except archived and read-later articles.
 - The lead and the filter decision come from one AI call per article at ingest.
   Text and audio summaries are generated on demand and streamed.
 - The AI provider is chosen by environment variables; the first configured

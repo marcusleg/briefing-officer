@@ -86,7 +86,7 @@ model Article {
   language        String?
   link            String
   commentsLink    String?
-  starred         Boolean        @default(false)
+  archived        Boolean        @default(false)
   status          ArticleStatus  @default(UNREAD)
   statusChangedAt DateTime       @default(now())
   filterReason    String?

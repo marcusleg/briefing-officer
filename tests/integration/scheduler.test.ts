@@ -128,7 +128,7 @@ describe("enqueueMissingLeads", () => {
 });
 
 describe("purgeOldArticles", () => {
-  it("deletes old articles except starred and read-later ones", async () => {
+  it("deletes old articles except archived and read-later ones", async () => {
     const feed = await createFeed({ userId });
     await createArticle({
       userId,
@@ -139,7 +139,7 @@ describe("purgeOldArticles", () => {
       userId,
       feedId: feed.id,
       publicationDate: daysAgo(400),
-      starred: true,
+      archived: true,
     });
     await createArticle({
       userId,

@@ -65,7 +65,7 @@ export const purgeOldArticles = async (days = ARTICLE_RETENTION_DAYS) => {
     where: {
       publicationDate: { lte: cutoff },
       status: { not: "READ_LATER" },
-      starred: false,
+      archived: false,
     },
   });
 

@@ -1,14 +1,14 @@
 import prisma from "@/lib/prismaClient";
 import {
+  archiveArticle,
   markArticleAsNotInteresting,
   markArticleAsRead,
   markArticleAsReadLater,
-  markArticleAsStarred,
   markArticlesOlderThanXDaysAsRead,
   restoreArticleStatus,
   restoreArticleToInbox,
+  unarchiveArticle,
   unmarkArticleAsReadLater,
-  unmarkArticleAsStarred,
 } from "@/lib/repository/articleRepository";
 import { getUserId } from "@/lib/repository/userRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -109,19 +109,19 @@ describe("articleRepository", () => {
     );
   });
 
-  it("stars and unstars an article", async () => {
+  it("archives and unarchives an article", async () => {
     const article = await createArticle({ userId, feedId });
 
-    await markArticleAsStarred(article.id);
+    await archiveArticle(article.id);
     expect(
       (await prisma.article.findUniqueOrThrow({ where: { id: article.id } }))
-        .starred,
+        .archived,
     ).toBe(true);
 
-    await unmarkArticleAsStarred(article.id);
+    await unarchiveArticle(article.id);
     expect(
       (await prisma.article.findUniqueOrThrow({ where: { id: article.id } }))
-        .starred,
+        .archived,
     ).toBe(false);
   });
 
@@ -162,7 +162,7 @@ describe("articleRepository", () => {
     expect(history.map((a) => a.id)).toEqual([newest.id, middle.id, oldest.id]);
   });
 
-  it("does not move statusChangedAt when only starred changes", async () => {
+  it("does not move statusChangedAt when only archived changes", async () => {
     const readAtTime = new Date("2026-01-01T00:00:00.000Z");
     const article = await createArticle({
       userId,
@@ -171,7 +171,7 @@ describe("articleRepository", () => {
       statusChangedAt: readAtTime,
     });
 
-    await markArticleAsStarred(article.id);
+    await archiveArticle(article.id);
 
     const updated = await prisma.article.findUniqueOrThrow({
       where: { id: article.id },
@@ -190,8 +190,8 @@ describe("articleRepository ownership", () => {
     ["markArticleAsNotInteresting", markArticleAsNotInteresting],
     ["restoreArticleToInbox", restoreArticleToInbox],
     ["unmarkArticleAsReadLater", unmarkArticleAsReadLater],
-    ["markArticleAsStarred", markArticleAsStarred],
-    ["unmarkArticleAsStarred", unmarkArticleAsStarred],
+    ["archiveArticle", archiveArticle],
+    ["unarchiveArticle", unarchiveArticle],
     ["restoreArticleStatus", (id: number) => restoreArticleStatus(id, "READ")],
   ])("%s refuses an article that belongs to someone else", async (_, act) => {
     const other = await createUser();
@@ -200,7 +200,7 @@ describe("articleRepository ownership", () => {
       userId: other.id,
       feedId: otherFeed.id,
       status: "READ_LATER",
-      starred: true,
+      archived: true,
     });
 
     await expect(act(theirs.id)).rejects.toThrow();
@@ -209,7 +209,7 @@ describe("articleRepository ownership", () => {
       where: { id: theirs.id },
     });
     expect(untouched.status).toBe("READ_LATER");
-    expect(untouched.starred).toBe(true);
+    expect(untouched.archived).toBe(true);
     expect(untouched.statusChangedAt.getTime()).toBe(
       theirs.statusChangedAt.getTime(),
     );

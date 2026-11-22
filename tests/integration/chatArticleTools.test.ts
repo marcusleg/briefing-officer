@@ -72,7 +72,7 @@ describe("searchArticlesForUser", () => {
           feed: "Markets Daily",
           published: "2026-04-25",
           status: "UNREAD",
-          starred: false,
+          archived: false,
           lead: "Revenue rose 12%.",
           snippet: expect.any(String),
           path: `/feed/${feedId}/article/${article.id}/text-summary`,
@@ -113,7 +113,7 @@ describe("searchArticlesForUser", () => {
     expect(ids(await searchArticlesForUser(userId, input()))).toEqual([own.id]);
   });
 
-  it("filters by status and starred, then applies the limit", async () => {
+  it("filters by status and archived, then applies the limit", async () => {
     const unreadOld = await indexed({
       userId,
       feedId,
@@ -127,19 +127,24 @@ describe("searchArticlesForUser", () => {
         publicationDate: new Date(`2026-01-${day}T00:00:00Z`),
       });
     }
-    const starred = await indexed({ userId, feedId, starred: true });
+    const archived = await indexed({ userId, feedId, archived: true });
 
     expect(
       ids(
         await searchArticlesForUser(
           userId,
-          input({ status: "UNREAD", sort: "newest", limit: 1, starred: false }),
+          input({
+            status: "UNREAD",
+            sort: "newest",
+            limit: 1,
+            archived: false,
+          }),
         ),
       ),
     ).toEqual([unreadOld.id]);
     expect(
-      ids(await searchArticlesForUser(userId, input({ starred: true }))),
-    ).toEqual([starred.id]);
+      ids(await searchArticlesForUser(userId, input({ archived: true }))),
+    ).toEqual([archived.id]);
   });
 
   it("finds a rare status even when it ranks far down the candidates", async () => {

@@ -23,11 +23,11 @@ const setArticleStatus = async (
 ) =>
   setArticleStatusForUser(await getUserId(), articleId, status, filterReason);
 
-/** Scoped like `setArticleStatus`; starring leaves `statusChangedAt` be. */
-const setArticleStarred = async (articleId: number, starred: boolean) =>
+/** Scoped like `setArticleStatus`; archiving leaves `statusChangedAt` be. */
+const setArticleArchived = async (articleId: number, archived: boolean) =>
   prisma.article.update({
     where: { id: articleId, userId: await getUserId() },
-    data: { starred },
+    data: { archived },
   });
 
 export const markArticleAsRead = async (articleId: number) => {
@@ -42,16 +42,16 @@ export const markArticleAsReadLater = async (articleId: number) => {
   const updatedArticle = await setArticleStatus(articleId, "READ_LATER");
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
-  revalidatePath("/read-later");
+  revalidatePath("/feed/read-later");
   revalidatePath("/feed");
   revalidatePath("/feed", "layout");
 };
 
-export const markArticleAsStarred = async (articleId: number) => {
-  const updatedArticle = await setArticleStarred(articleId, true);
+export const archiveArticle = async (articleId: number) => {
+  const updatedArticle = await setArticleArchived(articleId, true);
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
-  revalidatePath("/starred-articles");
+  revalidatePath("/feed/archived");
   revalidatePath("/feed");
 };
 
@@ -144,15 +144,15 @@ export const unmarkArticleAsReadLater = async (articleId: number) => {
   const updatedArticle = await setArticleStatus(articleId, "UNREAD");
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
-  revalidatePath("/read-later");
+  revalidatePath("/feed/read-later");
   revalidatePath("/feed");
   revalidatePath("/feed", "layout");
 };
 
-export const unmarkArticleAsStarred = async (articleId: number) => {
-  const updatedArticle = await setArticleStarred(articleId, false);
+export const unarchiveArticle = async (articleId: number) => {
+  const updatedArticle = await setArticleArchived(articleId, false);
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
-  revalidatePath("/starred-articles");
+  revalidatePath("/feed/archived");
   revalidatePath("/feed");
 };

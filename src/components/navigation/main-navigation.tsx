@@ -12,12 +12,12 @@ import {
   getNumberOfUnreadArticles,
 } from "@/lib/repository/statsRepository";
 import {
+  ArchiveIcon,
   BookmarkIcon,
   FilterIcon,
   HistoryIcon,
   MessageSquareTextIcon,
   NewspaperIcon,
-  StarIcon,
 } from "lucide-react";
 
 const MainNavigation = async () => {
@@ -40,9 +40,9 @@ const MainNavigation = async () => {
     },
     { href: "/feed/history", icon: HistoryIcon, label: "History" },
     {
-      href: "/feed/starred-articles",
-      icon: StarIcon,
-      label: "Starred Articles",
+      href: "/feed/archived",
+      icon: ArchiveIcon,
+      label: "Archived Articles",
     },
     // No badge: unlike Read Later this is not a queue to work down, and the
     // count only ever grows.

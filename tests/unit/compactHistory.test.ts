@@ -13,7 +13,7 @@ const fullResult = {
   feed: "Markets Daily",
   published: "2026-04-25",
   status: "UNREAD",
-  starred: false,
+  archived: false,
   lead: "Revenue rose 12%.",
   snippet: "…GOOGL rose…",
   path: "/feed/1/article/2/text-summary",

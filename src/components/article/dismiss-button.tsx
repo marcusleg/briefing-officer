@@ -7,7 +7,7 @@ import {
   restoreArticleStatus,
   restoreArticleToInbox,
 } from "@/lib/repository/articleRepository";
-import { ArchiveRestoreIcon, CheckIcon } from "lucide-react";
+import { CheckIcon, Undo2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -68,7 +68,7 @@ const DismissButton = ({
         </>
       ) : (
         <>
-          <ArchiveRestoreIcon className="size-4" />
+          <Undo2Icon className="size-4" />
           Restore
         </>
       )}

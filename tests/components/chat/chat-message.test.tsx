@@ -75,7 +75,7 @@ const result = (id: number, title: string) => ({
   feed: "Markets Daily",
   published: "2026-04-25",
   status: "UNREAD",
-  starred: false,
+  archived: false,
   lead: null,
   snippet: "",
   path: `/feed/1/article/${id}/text-summary`,
