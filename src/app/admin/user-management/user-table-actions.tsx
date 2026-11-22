@@ -46,7 +46,7 @@ const UserTableActions = ({ user }: UserListActionsProps) => {
 
   const handleToggleBan = async () => {
     if (isAdmin) {
-      toast.error("Admin accounts cannot be disabled.");
+      toast.error("Administrator accounts cannot be disabled.");
       return;
     }
 

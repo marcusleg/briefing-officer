@@ -71,7 +71,7 @@ const SignUpForm = () => {
     router.push("/feed");
 
     toast.success("Approval Pending", {
-      description: "Your account is awaiting approval by an administrator..",
+      description: "Your account is awaiting approval by an administrator.",
       dismissible: false,
       duration: 10000,
     });

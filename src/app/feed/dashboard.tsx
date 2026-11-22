@@ -174,7 +174,7 @@ const Dashboard = () => {
         <div className="md:col-span-2 2xl:col-span-1 [&>*]:h-full">
           <StackedBarChart
             title="Filtered Articles"
-            description="Number of articles that never reached you each day, filtered by your keywords or rejected by hand, split by the feed they came from"
+            description="Number of articles that never reached you each day, filtered by your keywords or marked Not Interested, split by the feed they came from"
             config={feedConfig}
             data={feedSeries(dailyFilteredArticlesData)}
             footer={articlesPerDay(dailyFilteredArticlesData)}

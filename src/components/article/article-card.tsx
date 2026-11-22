@@ -101,10 +101,7 @@ const ArticleCard = (props: ArticleCardProps) => {
 
     if (!aiLead) {
       return (
-        <Spinner
-          aria-label="Writing summary"
-          className="mx-auto my-12 size-8"
-        />
+        <Spinner aria-label="Writing lead" className="mx-auto my-12 size-8" />
       );
     }
 

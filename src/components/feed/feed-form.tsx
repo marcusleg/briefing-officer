@@ -198,7 +198,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                 <FormControl>
                   <KeywordListField
                     disabled={submitting}
-                    inputLabel="Add an interest"
+                    inputLabel="Add a keyword you are interested in"
                     onChange={field.onChange}
                     placeholder="Linux kernel development"
                     value={field.value ?? []}
@@ -218,7 +218,7 @@ const FeedForm = ({ editFeed, onSubmitComplete }: FeedFormProps) => {
                 <FormControl>
                   <KeywordListField
                     disabled={submitting}
-                    inputLabel="Add a disinterest"
+                    inputLabel="Add a keyword you are not interested in"
                     onChange={field.onChange}
                     placeholder="USB driver development"
                     value={field.value ?? []}
