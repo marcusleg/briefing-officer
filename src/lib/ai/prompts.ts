@@ -317,7 +317,17 @@ ${article.text}
  * have called a tool for them.
  */
 export const buildFollowUpPrompt = (question: string, answer: string) =>
-  `A reader asked a question about the news articles in their feeds and got the answer below. Propose 2 or 3 short follow-up questions they are likely to ask next, phrased the way the reader would type them ("What did …", "How does … compare"). Each should lead somewhere new: more detail on one point, background, or related coverage in their other articles. Don't propose a question the answer already settles. Write them in the language of the answer.
+  `A reader asked a question about the news articles in their feeds and got the answer below. Propose 2 or 3 short follow-up questions they are likely to ask next, phrased the way the reader would type them.
+
+Most readers want the bigger picture after a briefing, so at least two questions must step back from the details and ask about the broader context, for example:
+- what led up to this, or what came before
+- why it matters and who it affects
+- how it fits into a wider trend, debate or market
+- what other coverage in their feeds says about the same subject
+
+At most one question may zoom in on a single detail, and only one a curious reader would find surprising or striking, not a technical step or a definition.
+
+Keep each question short and general enough to make sense without rereading the answer. Don't propose a question the answer already settles. Write them in the language of the answer.
 
 <question>
 ${question}
