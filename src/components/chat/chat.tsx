@@ -38,6 +38,7 @@ import {
   type ClipboardEvent,
   type DragEvent,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
 
 /**
@@ -146,6 +147,7 @@ const Chat = ({
   hideSummaryRequest = false,
   inline = false,
   answerClassName,
+  header,
 }: {
   speechEngine: SpeechEngine;
   /** PROTOTYPE: opens the chat on this article and asks for its summary. */
@@ -156,6 +158,8 @@ const Chat = ({
   inline?: boolean;
   /** PROTOTYPE: classes for the first answer's text. */
   answerClassName?: string;
+  /** PROTOTYPE: shown above the conversation, scrolling with it. */
+  header?: ReactNode;
 }) => {
   // Set while a typed reply declines a pending card, so the decline goes out
   // with the reply in one request instead of on its own first.
@@ -457,6 +461,7 @@ const Chat = ({
 
       <Conversation className={cn("min-h-0", isEmpty && "hidden")}>
         <ConversationContent className="max-w-content mx-auto w-full gap-6 px-0">
+          {header}
           {thread}
           {waiting}
           {suggestionChips}

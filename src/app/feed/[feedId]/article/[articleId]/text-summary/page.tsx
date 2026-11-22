@@ -58,6 +58,24 @@ const TextSummary = async ({
 
   const switcher = <PrototypeSwitcher variants={VARIANTS} current={variant} />;
 
+  const articleHeading = (
+    <>
+      <div className="flex items-baseline gap-2 text-base">
+        <span className="text-muted-foreground font-semibold tracking-wide uppercase">
+          {article.feed.title}
+        </span>
+        <span className="text-muted-foreground">·</span>
+        <span className="text-muted-foreground">
+          <IntlRelativeTime date={article.publicationDate} />
+        </span>
+      </div>
+      <h2 className="text-[1.728rem] leading-tight font-bold tracking-[-0.02em] text-balance">
+        {article.title}
+      </h2>
+      <ArticleMeta author={articleAuthor(article)} />
+    </>
+  );
+
   if (variant === "C" && article.scrape) {
     return (
       <div className="m-2 flex h-[calc(100svh-3rem)] min-h-0 flex-col gap-4">
@@ -72,6 +90,11 @@ const TextSummary = async ({
           key={variant}
           speechEngine={speechEngine}
           article={{ id: article.id, title: article.title }}
+          header={
+            <div className="flex flex-col gap-4 border-b pb-6">
+              {articleHeading}
+            </div>
+          }
         />
         {switcher}
       </div>
@@ -92,19 +115,7 @@ const TextSummary = async ({
         <div className="-ml-3 self-start">
           <BackButton />
         </div>
-        <div className="flex items-baseline gap-2 text-base">
-          <span className="text-muted-foreground font-semibold tracking-wide uppercase">
-            {article.feed.title}
-          </span>
-          <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">
-            <IntlRelativeTime date={article.publicationDate} />
-          </span>
-        </div>
-        <h2 className="text-[1.728rem] leading-tight font-bold tracking-[-0.02em] text-balance">
-          {article.title}
-        </h2>
-        <ArticleMeta author={articleAuthor(article)} />
+        {articleHeading}
         {article.scrape ? (
           <div>
             {variant === "A" ? (
