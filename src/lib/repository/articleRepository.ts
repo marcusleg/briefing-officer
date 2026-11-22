@@ -1,54 +1,33 @@
 "use server";
 
-import { ArticleStatus, Prisma } from "@/generated/prisma/client";
+import { ArticleStatus } from "@/generated/prisma/client";
 import { READER_FILTER_REASON } from "@/lib/article";
+import {
+  setArticleStatusForUser,
+  setArticleStatusManyForUser,
+} from "@/lib/articleStatus";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
 import { revalidatePath } from "next/cache";
 
 /**
- * The only writers of `status` and `statusChangedAt`. Pairing the two writes
- * here is what lets History treat `statusChangedAt` as the read timestamp: for
- * a READ article it is, by construction, the moment it became read. Anything
- * that writes one without the other breaks that.
- *
- * `filterReason` is optional and only ever set alongside `FILTERED`. It is
- * accepted here rather than written separately so a rejection cannot land as a
- * status without its explanation.
- *
  * Scoped to the signed-in reader: every export of this module is a server
  * action a client can call with any article id, so the id alone must never be
- * enough. An article that is not theirs fails the update just like a missing
- * one.
+ * enough. Status writes go through `@/lib/articleStatus` with the session's
+ * user id; an article that is not theirs fails just like a missing one.
  */
 const setArticleStatus = async (
   articleId: number,
   status: ArticleStatus,
   filterReason?: string,
 ) =>
-  prisma.article.update({
-    where: { id: articleId, userId: await getUserId() },
-    data: {
-      status,
-      statusChangedAt: new Date(),
-      ...(filterReason === undefined ? {} : { filterReason }),
-    },
-  });
+  setArticleStatusForUser(await getUserId(), articleId, status, filterReason);
 
-/** Same scoping as `setArticleStatus`; starring leaves `statusChangedAt` be. */
+/** Scoped like `setArticleStatus`; starring leaves `statusChangedAt` be. */
 const setArticleStarred = async (articleId: number, starred: boolean) =>
   prisma.article.update({
     where: { id: articleId, userId: await getUserId() },
     data: { starred },
-  });
-
-const setArticleStatusMany = (
-  where: Prisma.ArticleWhereInput,
-  status: ArticleStatus,
-) =>
-  prisma.article.updateMany({
-    where,
-    data: { status, statusChangedAt: new Date() },
   });
 
 export const markArticleAsRead = async (articleId: number) => {
@@ -85,12 +64,12 @@ export const markArticlesOlderThanXDaysAsRead = async (
   const date = new Date();
   date.setDate(date.getDate() - days);
 
-  const { count } = await setArticleStatusMany(
+  const { count } = await setArticleStatusManyForUser(
+    userId,
     {
       feedId: feedId,
       publicationDate: { lte: date },
       status: "UNREAD",
-      userId,
     },
     "READ",
   );
@@ -111,11 +90,11 @@ export const markCategoryArticlesOlderThanXDaysAsRead = async (
   const date = new Date();
   date.setDate(date.getDate() - days);
 
-  const { count } = await setArticleStatusMany(
+  const { count } = await setArticleStatusManyForUser(
+    userId,
     {
       publicationDate: { lte: date },
       status: "UNREAD",
-      userId,
       feed: { is: { feedCategoryId: categoryId } },
     },
     "READ",
