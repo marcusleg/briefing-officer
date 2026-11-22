@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
   // The cap bounds what is parsed and sent to the model. A chunked body has no
   // Content-Length, so it is buffered before the size check; acceptable, as
-  // only signed-in users get this far.
+  // only signed-in readers get this far.
   if (Number(request.headers.get("Content-Length")) > MAX_BODY_BYTES) {
     return textResponse("Chat request too large.", 413);
   }

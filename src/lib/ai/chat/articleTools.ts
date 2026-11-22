@@ -16,7 +16,7 @@ export const ARTICLE_TEXT_LIMIT = 60_000;
 // Status and archived filters run after the index lookup, so ask for plenty.
 const CANDIDATES = 200;
 
-export interface ArticleSummary {
+export interface ChatArticle {
   id: number;
   title: string;
   feed: string;
@@ -39,25 +39,25 @@ export interface SearchArticlesInput {
 }
 
 export type SearchArticlesOutput =
-  { results: (ArticleSummary & { snippet: string })[] } | { error: string };
+  { results: (ChatArticle & { snippet: string })[] } | { error: string };
 
 export type GetArticleOutput =
-  | (ArticleSummary & { link: string; text: string; truncated: boolean })
+  | (ChatArticle & { link: string; text: string; truncated: boolean })
   | { error: string };
 
 export const articlePath = (article: { id: number; feedId: number }) =>
   `/feed/${article.feedId}/article/${article.id}/text-summary`;
 
-const summaryInclude = {
+const chatArticleInclude = {
   feed: { select: { title: true } },
   lead: true,
 } as const;
 
-type SummarizableArticle = Prisma.ArticleGetPayload<{
-  include: typeof summaryInclude;
+type ChatArticleRow = Prisma.ArticleGetPayload<{
+  include: typeof chatArticleInclude;
 }>;
 
-const summarize = (article: SummarizableArticle): ArticleSummary => ({
+const toChatArticle = (article: ChatArticleRow): ChatArticle => ({
   id: article.id,
   title: article.title,
   feed: article.feed.title,
@@ -99,14 +99,16 @@ export const searchArticlesForUser = async (
       status: input.status,
       archived: input.archived,
     },
-    include: summaryInclude,
+    include: chatArticleInclude,
   });
   const byId = new Map(articles.map((article) => [article.id, article]));
 
   const results = hits
     .flatMap((hit) => {
       const article = byId.get(hit.articleId);
-      return article ? [{ ...summarize(article), snippet: hit.snippet }] : [];
+      return article
+        ? [{ ...toChatArticle(article), snippet: hit.snippet }]
+        : [];
     })
     .slice(0, input.limit);
 
@@ -119,20 +121,20 @@ export const getArticleForUser = async (
 ): Promise<GetArticleOutput> => {
   const article = await prisma.article.findFirst({
     where: { id, userId },
-    include: { ...summaryInclude, scrape: true },
+    include: { ...chatArticleInclude, scrape: true },
   });
   if (!article) {
     // Same answer for "someone else's" and "doesn't exist".
     return { error: "not found" };
   }
 
-  const fullText = article.scrape?.textContent ?? article.description ?? "";
-  const truncated = fullText.length > ARTICLE_TEXT_LIMIT;
+  const articleText = article.scrape?.textContent ?? article.description ?? "";
+  const truncated = articleText.length > ARTICLE_TEXT_LIMIT;
 
   return {
-    ...summarize(article),
+    ...toChatArticle(article),
     link: article.link,
-    text: truncated ? fullText.slice(0, ARTICLE_TEXT_LIMIT) : fullText,
+    text: truncated ? articleText.slice(0, ARTICLE_TEXT_LIMIT) : articleText,
     truncated,
   };
 };

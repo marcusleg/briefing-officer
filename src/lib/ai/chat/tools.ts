@@ -62,13 +62,13 @@ const setArticleStatusInput = z.object({
 export const createChatTools = (userId: string) => ({
   searchArticles: tool({
     description:
-      "Full-text search over the reader's articles (title, summary and article text). Returns the best matches with their lead, a snippet and a link path.",
+      "Full-text search over the reader's articles (title, lead and article text). Returns the best matches with their lead, a snippet and a link path.",
     inputSchema: searchArticlesInput,
     execute: (input) => searchArticlesForUser(userId, input),
   }),
   getArticle: tool({
     description:
-      "Returns one article's full text by id. Use it when the lead and snippet from searchArticles are not enough.",
+      "Returns one article's text by id: the scraped article text, or the feed's description when scraping failed. Use it when the lead and snippet from searchArticles are not enough.",
     inputSchema: z.object({
       id: z.number().int().describe("An article id from searchArticles."),
     }),

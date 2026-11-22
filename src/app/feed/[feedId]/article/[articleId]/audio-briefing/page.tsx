@@ -1,5 +1,5 @@
+import ArticleSubpageActions from "@/components/article/article-subpage-actions";
 import AudioBriefingPlayer from "@/components/article/audio-briefing-player";
-import SummaryArticleActions from "@/components/article/summary-article-actions";
 import IntlRelativeTime from "@/components/intl-relative-time";
 import BackButton from "@/components/navigation/back-button";
 import TopNavigation from "@/components/navigation/top-navigation";
@@ -87,7 +87,7 @@ const AudioBriefingPage = async ({
           Source: <Link href={article.link}>{article.link}</Link>
         </div>
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:gap-2">
-          <SummaryArticleActions
+          <ArticleSubpageActions
             article={article}
             currentPage="audio-briefing"
           />

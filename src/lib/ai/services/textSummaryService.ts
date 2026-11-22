@@ -1,6 +1,6 @@
 "use server";
 
-import { buildSummaryPrompt } from "@/lib/ai/prompts";
+import { buildTextSummaryPrompt } from "@/lib/ai/prompts";
 import { streamGeneration } from "@/lib/ai/streamGeneration";
 import prisma from "@/lib/prismaClient";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -21,7 +21,7 @@ export const streamTextSummary = async (articleId: number) => {
       feedId: article.feedId,
       language: article.language,
     },
-    prompt: buildSummaryPrompt(
+    prompt: buildTextSummaryPrompt(
       article.title,
       article.scrape?.textContent ?? "",
       article.language,

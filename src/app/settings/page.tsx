@@ -104,7 +104,7 @@ export default async function SettingsPage({
         </CardContent>
       </Card>
 
-      {/* Only users who can use SSO, or already have, need to see it. */}
+      {/* Only readers who can use SSO, or already have, need to see it. */}
       {(isGenericOAuthEnabled || ssoAccount) && (
         <Card>
           <CardHeader>
