@@ -16,6 +16,7 @@ import ChatMessage, { messageText } from "@/components/chat/chat-message";
 import { ReadAloud, type SpeechEngine } from "@/components/chat/read-aloud";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { compactEarlierTurns } from "@/lib/ai/chat/compactHistory";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
 import { cn } from "@/lib/utils";
@@ -25,12 +26,13 @@ import {
   DefaultChatTransport,
   lastAssistantMessageIsCompleteWithApprovalResponses,
 } from "ai";
-import { PlusIcon } from "lucide-react";
+import { CornerDownRightIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ClipboardEvent,
@@ -43,18 +45,42 @@ import {
  * texts would soon pass its size limit, so they are sent as references only,
  * the way the route compacts them for the model anyway.
  */
-export const transport = new DefaultChatTransport<ChatUIMessage>({
-  api: "/api/chat",
-  prepareSendMessagesRequest: ({ id, messages, body, trigger, messageId }) => ({
-    body: {
-      ...body,
+const createTransport = (articleId?: number) =>
+  new DefaultChatTransport<ChatUIMessage>({
+    api: "/api/chat",
+    prepareSendMessagesRequest: ({
       id,
-      messages: compactEarlierTurns(messages),
+      messages,
+      body,
       trigger,
       messageId,
-    },
-  }),
-});
+    }) => ({
+      body: {
+        ...body,
+        id,
+        messages: compactEarlierTurns(messages),
+        trigger,
+        messageId,
+        articleId,
+      },
+    }),
+  });
+
+export const transport = createTransport();
+
+/** PROTOTYPE: what the reader asks first when a chat opens from an article. */
+const summaryRequest = (title: string) => `Summarize “${title}”.`;
+
+/** PROTOTYPE: the follow-up questions the last answer offers, if any. */
+const followUps = (messages: ChatUIMessage[]) => {
+  const last = messages.at(-1);
+  if (last?.role !== "assistant") {
+    return [];
+  }
+  return last.parts.flatMap((part) =>
+    part.type === "data-followUps" ? part.data.questions : [],
+  );
+};
 
 const hasStatus = (error: Error, statusCode: number) =>
   APICallError.isInstance(error) && error.statusCode === statusCode;
@@ -114,10 +140,33 @@ const promptSurface = cn(
   "[&>[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:border-primary [&>[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:ring-primary/30 [&>[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:ring-[3px]",
 );
 
-const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
+const Chat = ({
+  speechEngine,
+  article,
+  hideSummaryRequest = false,
+  inline = false,
+  answerClassName,
+}: {
+  speechEngine: SpeechEngine;
+  /** PROTOTYPE: opens the chat on this article and asks for its summary. */
+  article?: { id: number; title: string };
+  /** PROTOTYPE: leaves out the automatic first question. */
+  hideSummaryRequest?: boolean;
+  /** PROTOTYPE: flows with the page instead of filling a fixed height. */
+  inline?: boolean;
+  /** PROTOTYPE: classes for the first answer's text. */
+  answerClassName?: string;
+}) => {
   // Set while a typed reply declines a pending card, so the decline goes out
   // with the reply in one request instead of on its own first.
   const decliningForReply = useRef(false);
+
+  // PROTOTYPE: one transport per article, not one per render.
+  const articleTransport = useMemo(
+    () => (article ? createTransport(article.id) : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [article?.id],
+  );
 
   const {
     messages,
@@ -130,7 +179,7 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
     clearError,
     addToolApprovalResponse,
   } = useChat<ChatUIMessage>({
-    transport,
+    transport: articleTransport ?? transport,
     // Apply and Decline on a card send the conversation back so the server
     // runs (or skips) the change and the assistant can confirm it.
     sendAutomaticallyWhen: ({ messages }) =>
@@ -214,7 +263,159 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
     setReadingId(undefined);
   };
 
-  const isEmpty = messages.length === 0;
+  // PROTOTYPE: ask for the summary when the chat opens. Deferred so that
+  // Strict Mode's trial unmount, which stops the chat, cancels it instead.
+  const articleId = article?.id;
+  const articleTitle = article?.title;
+  const hasMessages = messages.length > 0;
+  useEffect(() => {
+    if (articleTitle === undefined || hasMessages) {
+      return;
+    }
+    const timer = setTimeout(
+      () => void sendMessage({ text: summaryRequest(articleTitle) }),
+      0,
+    );
+    return () => clearTimeout(timer);
+  }, [articleId, articleTitle, hasMessages, sendMessage]);
+
+  const suggestions = busy ? [] : followUps(messages);
+
+  const isEmpty = messages.length === 0 && !article;
+
+  const thread = messages.map((message, index) =>
+    hideSummaryRequest && index === 0 && message.role === "user" ? null : (
+      <ChatMessage
+        key={message.id}
+        message={message}
+        textClassName={index === 1 ? answerClassName : undefined}
+        answering={busy && index === messages.length - 1}
+        interrupted={
+          index < messages.length - 1 ||
+          (status === "error" && index === messages.length - 1)
+        }
+        onApprovalResponse={(response) =>
+          void addToolApprovalResponse(response)
+        }
+        actions={
+          <ReadAloud
+            engine={speechEngine}
+            text={messageText(message)}
+            reading={message.id === readingId}
+            onRead={() => setReadingId(message.id)}
+            onReadEnd={stopReading}
+          />
+        }
+      />
+    ),
+  );
+
+  const waiting = status === "submitted" && (
+    <Spinner className="text-muted-foreground size-5" aria-label="Answering" />
+  );
+
+  const suggestionChips = suggestions.length > 0 && (
+    <div className="flex flex-col items-start gap-2">
+      {suggestions.map((question) => (
+        <Button
+          key={question}
+          variant="outline"
+          size="sm"
+          className="h-auto max-w-full justify-start py-1.5 text-left whitespace-normal"
+          onClick={() => void send(question)}
+        >
+          <CornerDownRightIcon className="text-muted-foreground" />
+          {question}
+        </Button>
+      ))}
+    </div>
+  );
+
+  const errorAlert =
+    error &&
+    (isSessionExpired(error) ? (
+      <Alert variant="destructive">
+        <span>
+          Your session has expired.{" "}
+          <Link
+            href="/sign-in"
+            className="font-medium underline underline-offset-4"
+          >
+            Sign in again
+          </Link>
+          .
+        </span>
+      </Alert>
+    ) : isTooLong(error) ? (
+      <Alert variant="destructive">
+        <span>This conversation is too long. Start a new chat.</span>
+      </Alert>
+    ) : (
+      <Alert
+        variant="destructive"
+        className="flex items-center justify-between gap-2"
+      >
+        <span>The answer could not be generated.</span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            // Regenerating rewrites the last answer, which unmounts its
+            // reader without ending the reading.
+            stopReading();
+            void regenerate();
+          }}
+        >
+          Retry
+        </Button>
+      </Alert>
+    ));
+
+  const prompt = (
+    <div
+      className="max-w-content mx-auto w-full"
+      onPasteCapture={keepPastedFilesOut}
+      onDragOverCapture={keepDroppedFilesOut}
+      onDropCapture={keepDroppedFilesOut}
+    >
+      <PromptInput
+        onSubmit={handleSubmit}
+        maxFiles={0}
+        className={promptSurface}
+      >
+        <PromptInputTextarea
+          aria-label={
+            article ? "Ask about this article" : "Ask about your articles"
+          }
+          placeholder={
+            article ? "Ask about this article…" : "Ask about your articles…"
+          }
+          onKeyDown={handleKeyDown}
+        />
+        <PromptInputFooter className="justify-end">
+          {/* After an error the button still sends, so it keeps the Send icon. */}
+          <PromptInputSubmit
+            status={busy ? status : "ready"}
+            onStop={() => void stop()}
+            aria-label={busy ? "Stop" : "Send"}
+          />
+        </PromptInputFooter>
+      </PromptInput>
+    </div>
+  );
+
+  // PROTOTYPE: the article page's variant, scrolling with the page.
+  if (inline) {
+    return (
+      <div className="flex flex-col gap-6">
+        {thread}
+        {waiting}
+        {suggestionChips}
+        {errorAlert}
+        {!busy && messages.length > 0 && prompt}
+      </div>
+    );
+  }
 
   // A fresh chat centers the prompt; once there is a conversation the prompt
   // moves to the bottom. The input stays the last child either way, so React
@@ -238,108 +439,34 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
         </div>
       ) : (
         <div className="max-w-content mx-auto flex w-full justify-end">
-          <Button variant="ghost" size="sm" onClick={startOver}>
-            <PlusIcon />
-            New chat
-          </Button>
+          {article ? (
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/chat">
+                <PlusIcon />
+                New chat
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={startOver}>
+              <PlusIcon />
+              New chat
+            </Button>
+          )}
         </div>
       )}
 
       <Conversation className={cn("min-h-0", isEmpty && "hidden")}>
         <ConversationContent className="max-w-content mx-auto w-full gap-6 px-0">
-          {messages.map((message, index) => (
-            <ChatMessage
-              key={message.id}
-              message={message}
-              answering={busy && index === messages.length - 1}
-              interrupted={
-                index < messages.length - 1 ||
-                (status === "error" && index === messages.length - 1)
-              }
-              onApprovalResponse={(response) =>
-                void addToolApprovalResponse(response)
-              }
-              actions={
-                <ReadAloud
-                  engine={speechEngine}
-                  text={messageText(message)}
-                  reading={message.id === readingId}
-                  onRead={() => setReadingId(message.id)}
-                  onReadEnd={stopReading}
-                />
-              }
-            />
-          ))}
-
-          {error &&
-            (isSessionExpired(error) ? (
-              <Alert variant="destructive">
-                <span>
-                  Your session has expired.{" "}
-                  <Link
-                    href="/sign-in"
-                    className="font-medium underline underline-offset-4"
-                  >
-                    Sign in again
-                  </Link>
-                  .
-                </span>
-              </Alert>
-            ) : isTooLong(error) ? (
-              <Alert variant="destructive">
-                <span>This conversation is too long. Start a new chat.</span>
-              </Alert>
-            ) : (
-              <Alert
-                variant="destructive"
-                className="flex items-center justify-between gap-2"
-              >
-                <span>The answer could not be generated.</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    // Regenerating rewrites the last answer, which unmounts its
-                    // reader without ending the reading.
-                    stopReading();
-                    void regenerate();
-                  }}
-                >
-                  Retry
-                </Button>
-              </Alert>
-            ))}
+          {thread}
+          {waiting}
+          {suggestionChips}
+          {errorAlert}
         </ConversationContent>
         {/* The vendored button is see-through in light mode over text. */}
         <ConversationScrollButton className="bg-background" />
       </Conversation>
 
-      <div
-        className="max-w-content mx-auto w-full"
-        onPasteCapture={keepPastedFilesOut}
-        onDragOverCapture={keepDroppedFilesOut}
-        onDropCapture={keepDroppedFilesOut}
-      >
-        <PromptInput
-          onSubmit={handleSubmit}
-          maxFiles={0}
-          className={promptSurface}
-        >
-          <PromptInputTextarea
-            aria-label="Ask about your articles"
-            placeholder="Ask about your articles…"
-            onKeyDown={handleKeyDown}
-          />
-          <PromptInputFooter className="justify-end">
-            {/* After an error the button still sends, so it keeps the Send icon. */}
-            <PromptInputSubmit
-              status={busy ? status : "ready"}
-              onStop={() => void stop()}
-              aria-label={busy ? "Stop" : "Send"}
-            />
-          </PromptInputFooter>
-        </PromptInput>
-      </div>
+      {prompt}
     </div>
   );
 };

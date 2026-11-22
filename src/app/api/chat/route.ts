@@ -1,29 +1,39 @@
+import { getArticleForUser } from "@/lib/ai/chat/articleTools";
 import {
   compactEarlierTurns,
   declineStaleApprovals,
 } from "@/lib/ai/chat/compactHistory";
 import { createChatTools, type ChatUIMessage } from "@/lib/ai/chat/tools";
-import { buildChatSystemPrompt } from "@/lib/ai/prompts";
+import { buildChatSystemPrompt, buildFollowUpPrompt } from "@/lib/ai/prompts";
 import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
 import { trackTokenUsage } from "@/lib/ai/services/tokenUsageService";
 import { auth } from "@/lib/auth";
 import logger from "@/lib/logger";
+import prisma from "@/lib/prismaClient";
 import {
   convertToModelMessages,
+  createUIMessageStream,
   createUIMessageStreamResponse,
+  generateObject,
   safeValidateUIMessages,
   stepCountIs,
   streamText,
   toUIMessageStream,
 } from "ai";
 import { headers } from "next/headers";
+import { z } from "zod";
 
 const MAX_STEPS = 10;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 
-const parseBody = (text: string): { messages?: unknown } | null => {
+const parseBody = (
+  text: string,
+): { messages?: unknown; articleId?: unknown } | null => {
   try {
-    return JSON.parse(text) as { messages?: unknown } | null;
+    return JSON.parse(text) as {
+      messages?: unknown;
+      articleId?: unknown;
+    } | null;
   } catch {
     return null;
   }
@@ -69,6 +79,26 @@ export async function POST(request: Request) {
     return textResponse("Invalid chat request.", 400);
   }
 
+  // PROTOTYPE: a chat opened from an article carries its id on every request,
+  // so follow-ups stay grounded in it.
+  let article;
+  if (body?.articleId !== undefined) {
+    if (!Number.isInteger(body.articleId)) {
+      return textResponse("Invalid chat request.", 400);
+    }
+    const found = await getArticleForUser(userId, body.articleId as number);
+    if ("error" in found) {
+      return textResponse("Article not found.", 404);
+    }
+    const language = (
+      await prisma.article.findUniqueOrThrow({
+        where: { id: found.id },
+        select: { language: true },
+      })
+    ).language;
+    article = { ...found, language };
+  }
+
   let model;
   try {
     model = await getFirstConfiguredLanguageModel();
@@ -104,7 +134,7 @@ export async function POST(request: Request) {
 
   const result = streamText({
     model,
-    instructions: buildChatSystemPrompt({ today: new Date() }),
+    instructions: buildChatSystemPrompt({ today: new Date(), article }),
     messages: await convertToModelMessages(
       compactEarlierTurns(declineStaleApprovals(validation.data)),
       { tools },
@@ -129,10 +159,52 @@ export async function POST(request: Request) {
     },
   });
 
-  return createUIMessageStreamResponse({
-    stream: toUIMessageStream({
-      stream: result.stream,
-      onError: () => "The answer could not be generated. Please try again.",
-    }),
+  const lastQuestion = validation.data
+    .findLast((message) => message.role === "user")
+    ?.parts.flatMap((part) => (part.type === "text" ? [part.text] : []))
+    .join("\n");
+
+  // PROTOTYPE: once the answer is written, a second call proposes follow-up
+  // questions, sent as a data part the client shows as buttons.
+  const stream = createUIMessageStream<ChatUIMessage>({
+    execute: async ({ writer }) => {
+      writer.merge(
+        toUIMessageStream({
+          stream: result.stream,
+          sendFinish: false,
+          onError: () => "The answer could not be generated. Please try again.",
+        }),
+      );
+
+      let answer;
+      try {
+        answer = await result.text;
+      } catch {
+        return;
+      }
+      if (!answer.trim() || request.signal.aborted) {
+        return;
+      }
+      try {
+        const { object, usage } = await generateObject({
+          model,
+          schema: z.object({
+            questions: z.array(z.string().min(1)).min(2).max(3),
+          }),
+          prompt: buildFollowUpPrompt(lastQuestion ?? "", answer),
+          abortSignal: request.signal,
+        });
+        await record({
+          inputTokens: usage.inputTokens ?? 0,
+          outputTokens: usage.outputTokens ?? 0,
+        });
+        writer.write({ type: "data-followUps", data: object });
+      } catch (error) {
+        logger.warn({ err: error, ...context }, "Follow-ups not generated.");
+      }
+      writer.write({ type: "finish" });
+    },
   });
+
+  return createUIMessageStreamResponse({ stream });
 }

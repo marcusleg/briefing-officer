@@ -1,6 +1,7 @@
 "use client";
 
 import { Message, MessageContent } from "@/components/ai-elements/message";
+import { summaryComponents } from "@/components/article/summary-markdown";
 import StatusChangeCard, {
   type ApprovalResponse,
 } from "@/components/chat/status-change-card";
@@ -28,7 +29,10 @@ const ChatMessage = ({
   interrupted = false,
   actions,
   onApprovalResponse,
+  textClassName,
 }: {
+  /** PROTOTYPE: classes for the answer's text. */
+  textClassName?: string;
   message: ChatUIMessage;
   /** Whether this answer is still being written. */
   answering?: boolean;
@@ -65,7 +69,11 @@ const ChatMessage = ({
         {message.parts.map((part, index) => {
           if (part.type === "text") {
             return (
-              <SafeMarkdown key={index} className="text-prose">
+              <SafeMarkdown
+                key={index}
+                className={textClassName ?? "text-prose"}
+                components={textClassName ? summaryComponents : undefined}
+              >
                 {part.text}
               </SafeMarkdown>
             );

@@ -1,10 +1,13 @@
 import ArticleMeta from "@/components/article/article-meta";
 import ArticleSubpageActions from "@/components/article/article-subpage-actions";
 import TextSummaryStream from "@/components/article/text-summary-stream";
+import Chat from "@/components/chat/chat";
 import IntlRelativeTime from "@/components/intl-relative-time";
 import BackButton from "@/components/navigation/back-button";
 import TopNavigation from "@/components/navigation/top-navigation";
+import PrototypeSwitcher from "@/components/prototype/prototype-switcher";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getSpeechModelFor } from "@/lib/ai/speechRegistry";
 import { articleAuthor } from "@/lib/article";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
@@ -14,12 +17,25 @@ import { notFound } from "next/navigation";
 
 export const maxDuration = 30;
 
+// PROTOTYPE (chat-based summary spike): three takes on the summary page,
+// switchable with `?variant=`. A is today's page, B generates the summary
+// in an embedded chat on the page, C hands the article to a full chat.
+const VARIANTS = [
+  { key: "A", name: "Today's summary" },
+  { key: "B", name: "Embedded chat" },
+  { key: "C", name: "Full chat" },
+];
+
 const TextSummary = async ({
   params,
+  searchParams,
 }: {
   params: Promise<{ feedId: string; articleId: string }>;
+  searchParams: Promise<{ variant?: string }>;
 }) => {
   const articleId = parseInt((await params).articleId);
+  const variant = (await searchParams).variant ?? "B";
+  const speechEngine = getSpeechModelFor(null) ? "server" : "browser";
 
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
@@ -38,6 +54,28 @@ const TextSummary = async ({
   });
   if (!article) {
     notFound();
+  }
+
+  const switcher = <PrototypeSwitcher variants={VARIANTS} current={variant} />;
+
+  if (variant === "C" && article.scrape) {
+    return (
+      <div className="m-2 flex h-[calc(100svh-3rem)] min-h-0 flex-col gap-4">
+        <TopNavigation
+          segments={[
+            { name: "Feeds", href: "/feed" },
+            { name: article.feed.title, href: `/feed/${article.feed.id}` },
+          ]}
+          page="Text Summary"
+        />
+        <Chat
+          key={variant}
+          speechEngine={speechEngine}
+          article={{ id: article.id, title: article.title }}
+        />
+        {switcher}
+      </div>
+    );
   }
 
   return (
@@ -69,7 +107,18 @@ const TextSummary = async ({
         <ArticleMeta author={articleAuthor(article)} />
         {article.scrape ? (
           <div>
-            <TextSummaryStream articleId={article.id} />
+            {variant === "A" ? (
+              <TextSummaryStream articleId={article.id} />
+            ) : (
+              <Chat
+                key={variant}
+                inline
+                hideSummaryRequest
+                speechEngine={speechEngine}
+                article={{ id: article.id, title: article.title }}
+                answerClassName="flex flex-col gap-4 space-y-0 [&>*]:my-0"
+              />
+            )}
           </div>
         ) : (
           <Alert className="mx-auto my-12 max-w-md">
@@ -87,6 +136,7 @@ const TextSummary = async ({
           <ArticleSubpageActions article={article} currentPage="text-summary" />
         </div>
       </article>
+      {switcher}
     </div>
   );
 };
