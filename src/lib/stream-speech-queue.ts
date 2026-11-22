@@ -216,31 +216,6 @@ export class StreamSpeechQueue implements SpeechQueue {
     this.appendNext();
   };
 
-  pause = () => {
-    this.element?.pause();
-    this.update({ paused: true });
-  };
-
-  resume = () => {
-    if (this.snapshot.error) {
-      // playFrom also clears the other failed clips, so one press retries
-      // every sentence that failed.
-      this.playFrom(this.position);
-      return;
-    }
-
-    this.update({ paused: false });
-    if (this.playback === "playing") this.startElement();
-  };
-
-  setRate = (rate: number) => {
-    if (this.element) {
-      this.element.defaultPlaybackRate = rate;
-      this.element.playbackRate = rate;
-    }
-    this.update({ rate });
-  };
-
   dispose = () => {
     this.playback = "idle";
     this.target = undefined;
@@ -263,8 +238,6 @@ export class StreamSpeechQueue implements SpeechQueue {
   private audio() {
     if (!this.element) {
       const element = new Audio();
-      element.defaultPlaybackRate = this.snapshot.rate;
-      element.playbackRate = this.snapshot.rate;
       element.addEventListener("playing", this.handlePlaying);
       element.addEventListener("timeupdate", this.handleTimeUpdate);
       element.addEventListener("waiting", this.handleWaiting);
@@ -319,10 +292,7 @@ export class StreamSpeechQueue implements SpeechQueue {
       { once: true },
     );
 
-    const element = this.audio();
-    element.src = stream.url;
-    // Loading a new src resets playbackRate to defaultPlaybackRate.
-    element.playbackRate = this.snapshot.rate;
+    this.audio().src = stream.url;
   }
 
   private closeStream() {
@@ -486,7 +456,7 @@ export class StreamSpeechQueue implements SpeechQueue {
     }
 
     // The stream holds no more than what played before the failure, so the
-    // element is held until the reader retries from the page.
+    // element is held until playFrom() starts over.
     if (this.snapshot.error) {
       this.element!.pause();
       return;
@@ -519,8 +489,7 @@ export class StreamSpeechQueue implements SpeechQueue {
       .play()
       .catch((error: unknown) => {
         // Autoplay is blocked until the reader interacts with the page, as on
-        // a reload. Waiting for the Play button is the expected outcome, not
-        // an error. An AbortError is play() being interrupted by a newer src or
+        // a reload. That is reported as a pause rather than an error. An AbortError is play() being interrupted by a newer src or
         // a pause, which needs nothing.
         if (error instanceof DOMException && error.name === "NotAllowedError") {
           this.update({ paused: true });

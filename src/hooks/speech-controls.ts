@@ -13,12 +13,12 @@ export interface SpeechControls {
   error: boolean;
   /** No more sentences will be enqueued. */
   finish: () => void;
-  pause: () => void;
+  /**
+   * Playback was stopped from outside the page, such as by a headset button,
+   * or blocked before it could start.
+   */
   paused: boolean;
   playFrom: (index: number) => void;
-  rate: number;
-  resume: () => void;
-  setRate: (rate: number) => void;
   speaking: boolean;
   supported: boolean;
   voiceAvailable: boolean;

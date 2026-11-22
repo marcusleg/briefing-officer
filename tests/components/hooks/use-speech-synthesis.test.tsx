@@ -114,68 +114,15 @@ describe("useSpeechSynthesis", () => {
     expect(result.current.speaking).toBe(true);
   });
 
-  it("pauses and resumes without ending playback", () => {
+  it("un-pauses the engine when playing from a sentence, since cancel does not clear it", () => {
     const { engine, result } = startPlayback(["One."]);
 
-    act(() => result.current.pause());
-    expect(engine.pause).toHaveBeenCalledOnce();
-    expect(result.current.paused).toBe(true);
-    expect(result.current.speaking).toBe(true);
-
     engine.resume.mockClear();
-    act(() => result.current.resume());
+    act(() => result.current.playFrom(0));
+
+    // A paused flag left on the engine survives cancel(), so without an
+    // explicit resume the re-spoken queue would be silent.
     expect(engine.resume).toHaveBeenCalledOnce();
-    expect(result.current.paused).toBe(false);
-  });
-
-  it("applies the rate to newly spoken utterances", () => {
-    const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis("en"));
-
-    act(() => result.current.setRate(1.5));
-    act(() => {
-      result.current.enqueue("One.");
-      result.current.playFrom(0);
-    });
-
-    expect(result.current.rate).toBe(1.5);
-    expect(engine.spoken()[0].rate).toBe(1.5);
-  });
-
-  it("re-speaks from the active sentence when the rate changes mid-playback", () => {
-    const { engine, result } = startPlayback(["One.", "Two."]);
-    act(() => engine.spoken()[1].onstart!());
-
-    act(() => result.current.setRate(1.5));
-
-    // rate is read at speak() time, so queued utterances keep the old value.
-    // Only the sentence being spoken and those after it are re-queued.
-    expect(spokenText(engine)).toEqual(["Two."]);
-    expect(engine.spoken()[0].rate).toBe(1.5);
-  });
-
-  it("only stores the rate when nothing is playing", () => {
-    const engine = installSpeechEngine();
-    const { result } = renderHook(() => useSpeechSynthesis("en"));
-
-    act(() => result.current.enqueue("One."));
-    act(() => result.current.setRate(1.5));
-
-    expect(engine.speak).not.toHaveBeenCalled();
-    expect(result.current.rate).toBe(1.5);
-  });
-
-  it("un-pauses the engine when re-speaking, since cancel does not clear it", () => {
-    const { engine, result } = startPlayback(["One."]);
-    act(() => result.current.pause());
-
-    engine.resume.mockClear();
-    act(() => result.current.setRate(1.5));
-
-    // speechSynthesis.pause() latches a flag that cancel() leaves set, so
-    // without an explicit resume the re-spoken queue would be silent.
-    expect(engine.resume).toHaveBeenCalledOnce();
-    expect(result.current.paused).toBe(false);
   });
 
   it("resumes speaking when a sentence arrives after the stream stalled", () => {
@@ -190,18 +137,6 @@ describe("useSpeechSynthesis", () => {
     expect(result.current.speaking).toBe(true);
     // Appended rather than restarted: the engine was never cancelled.
     expect(engine.cancel).toHaveBeenCalledOnce();
-  });
-
-  it("keeps its place when the rate changes twice before speech starts", () => {
-    const { engine, result } = startPlayback(["One.", "Two.", "Three."]);
-    act(() => engine.spoken()[2].onstart!());
-
-    act(() => result.current.setRate(1.2));
-    act(() => result.current.setRate(1.4));
-
-    // Without a remembered position the second change would fall back to 0 and
-    // restart the briefing from the top, re-speaking "One." and "Two." too.
-    expect(spokenText(engine)).toEqual(["Three."]);
   });
 
   it.each([

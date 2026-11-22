@@ -48,17 +48,13 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
   const [supported, setSupported] = React.useState(false);
   const [voiceAvailable, setVoiceAvailable] = React.useState(false);
   const [speaking, setSpeaking] = React.useState(false);
-  const [paused, setPaused] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState<number | undefined>(
     undefined,
   );
-  const [rate, setRateState] = React.useState(1);
 
   // Every sentence handed to enqueue(), retained so playFrom() can re-speak
   // from an arbitrary point.
   const sentences = React.useRef<string[]>([]);
-  const rateValue = React.useRef(1);
-  const queuedFromIndex = React.useRef<number | undefined>(undefined);
 
   // "ranDry" means playback stopped because handleDone reached the last
   // retained sentence, as opposed to a deliberate playFrom(). Lets enqueue()
@@ -116,7 +112,6 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
       if (!engine) return;
 
       const utterance = new SpeechSynthesisUtterance(sentences.current[index]);
-      utterance.rate = rateValue.current;
       utterance.lang = spokenLanguage;
 
       // A caller can queue utterances before this hook's effects have run, so
@@ -130,7 +125,6 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
 
       utterance.onstart = () => {
         if (generation.current !== forGeneration) return;
-        queuedFromIndex.current = index;
         setActiveIndex(index);
       };
 
@@ -142,8 +136,6 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
         if (index !== sentences.current.length - 1) return;
 
         setPlayback("ranDry");
-        queuedFromIndex.current = undefined;
-        setPaused(false);
         setActiveIndex(undefined);
       };
 
@@ -163,17 +155,13 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
       generation.current += 1;
       const forGeneration = generation.current;
       engine.cancel();
-      // cancel() empties the queue but does not clear the paused flag it
-      // latches on the engine, so a speak() right after would sit silent
-      // until something called resume(). This is a deliberate transition,
-      // so it never leaves playback stalled at the tail.
+      // cancel() empties the queue but does not clear a paused flag left on
+      // the engine, so a speak() right after would sit silent until
+      // something called resume().
       engine.resume();
 
       setPlayback("playing");
-      // The queued-from position, known synchronously. `activeIndex` below is
-      // the engine-confirmed highlight and stays undefined until onstart fires.
-      queuedFromIndex.current = index;
-      setPaused(false);
+      // Set once the engine confirms the sentence has started, in onstart.
       setActiveIndex(undefined);
 
       for (
@@ -210,36 +198,6 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
     [speakSentence, setPlayback],
   );
 
-  const pause = React.useCallback(() => {
-    const engine = speechEngine();
-    if (!engine) return;
-
-    engine.pause();
-    setPaused(true);
-  }, []);
-
-  const resume = React.useCallback(() => {
-    const engine = speechEngine();
-    if (!engine) return;
-
-    engine.resume();
-    setPaused(false);
-  }, []);
-
-  const setRate = React.useCallback(
-    (next: number) => {
-      rateValue.current = next;
-      setRateState(next);
-
-      // rate is read at speak() time, so utterances already queued keep the old
-      // value. Re-speak from the current sentence to apply it immediately.
-      if (playback.current === "playing") {
-        playFrom(queuedFromIndex.current ?? 0);
-      }
-    },
-    [playFrom],
-  );
-
   // Stop playback when the page goes away — but only while this instance is
   // still the engine's owner.
   //
@@ -267,12 +225,10 @@ export function useSpeechSynthesis(language: string | null): SpeechControls {
     enqueue,
     error: false,
     finish,
-    pause,
-    paused,
+    // speechSynthesis reports neither a pause from outside the page nor a
+    // blocked start.
+    paused: false,
     playFrom,
-    rate,
-    resume,
-    setRate,
     speaking,
     supported,
     voiceAvailable,
