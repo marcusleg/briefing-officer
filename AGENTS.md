@@ -38,18 +38,7 @@ Run `npx prisma generate` first in a fresh checkout or worktree. If you change
 
 ## Git
 
-- Commit messages follow Conventional Commits **without scopes**. The types
-  decide the next version number, so pick them accurately.
-- `feat:` and `fix:` subjects become the public changelog: describe the change
-  from the end user's perspective. Implementation detail goes in the body.
-- Group related changes into one commit; a `feat:` or `fix:` should be worth a
-  changelog line. Don't bundle unrelated work.
-- Never push to `main` unless the user authorizes that specific commit. Work on
-  a branch and open a PR against `main`.
-- PRs are merged by rebase, so every commit lands on `main` as-is and must
-  conform on its own.
-- Never merge a PR unless the user tells you to, even when CI is green. When
-  told to, use `gh pr merge --rebase`.
+- Never merge a PR unless the user tells you to, even when CI is green.
 - Release only via the `cutting-a-release` skill. Pushing a `v*` tag publishes
   the container image and Helm chart, so never create tags or GitHub releases
   outside it.
