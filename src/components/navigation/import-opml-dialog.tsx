@@ -27,7 +27,7 @@ const ACCEPTED_TYPES = ".opml,.xml,text/xml,application/xml,text/x-opml";
 const count = (n: number, singular: string, pluralForm = `${singular}s`) =>
   `${n} ${n === 1 ? singular : pluralForm}`;
 
-const summarise = (result: Extract<OpmlImportResult, { ok: true }>) =>
+const summarize = (result: Extract<OpmlImportResult, { ok: true }>) =>
   `Imported ${count(result.imported, "feed")}. ` +
   `Skipped ${result.skipped} you already had. ` +
   `${count(result.categoriesCreated, "category", "categories")} created.`;
@@ -99,7 +99,7 @@ const ImportOpmlDialog = ({ open, onOpenChange }: ImportOpmlDialogProps) => {
 
         {result?.ok ? (
           <div className="flex flex-col gap-4">
-            <p className="text-sm">{summarise(result)}</p>
+            <p className="text-sm">{summarize(result)}</p>
             {result.unusable.length > 0 && (
               <div className="flex flex-col gap-1 text-sm">
                 <p>Could not import:</p>

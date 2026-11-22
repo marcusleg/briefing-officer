@@ -3,7 +3,7 @@ import { readStreamableValue } from "@ai-sdk/rsc";
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/ai/services/summaryService", () => ({
+vi.mock("@/lib/ai/services/textSummaryService", () => ({
   streamTextSummary: vi.fn().mockResolvedValue({ output: "streamable" }),
 }));
 

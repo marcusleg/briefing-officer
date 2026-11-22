@@ -1,5 +1,5 @@
 import ArticleMeta from "@/components/article/article-meta";
-import SummaryArticleActions from "@/components/article/summary-article-actions";
+import ArticleSubpageActions from "@/components/article/article-subpage-actions";
 import TextSummaryStream from "@/components/article/text-summary-stream";
 import IntlRelativeTime from "@/components/intl-relative-time";
 import BackButton from "@/components/navigation/back-button";
@@ -84,7 +84,7 @@ const TextSummary = async ({
           Source: <Link href={article.link}>{article.link}</Link>
         </div>
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:gap-2">
-          <SummaryArticleActions article={article} currentPage="text-summary" />
+          <ArticleSubpageActions article={article} currentPage="text-summary" />
         </div>
       </article>
     </div>

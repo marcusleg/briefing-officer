@@ -41,7 +41,7 @@ export function buildPalette(entries: PaletteEntry[]): ChartConfig {
 /**
  * The one feed-to-color map the dashboard hands every chart.
  *
- * Built once from the user's whole feed list rather than per chart from the
+ * Built once from the reader's whole feed list rather than per chart from the
  * feeds that happen to have rows there: a feed absent from one chart would
  * otherwise shift the color of every feed after it, and the same feed would
  * read as a different color in each chart of the row.

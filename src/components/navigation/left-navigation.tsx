@@ -1,6 +1,6 @@
 "use server";
 
-import AdminNavigation from "@/components/navigation/admin-navigation";
+import AdministrationNavigation from "@/components/navigation/administration-navigation";
 import ArticleSearch from "@/components/navigation/article-search";
 import FeedNavigation from "@/components/navigation/feed-navigation";
 import MainNavigation from "@/components/navigation/main-navigation";
@@ -26,7 +26,7 @@ const LeftNavigation = async () => {
     return null;
   }
 
-  const isAdmin = session.user.role === "admin";
+  const isAdministrator = session.user.role === "admin";
 
   return (
     <Sidebar>
@@ -48,7 +48,7 @@ const LeftNavigation = async () => {
 
         <MainNavigation />
         <FeedNavigation />
-        {isAdmin && <AdminNavigation className="mt-auto" />}
+        {isAdministrator && <AdministrationNavigation className="mt-auto" />}
       </SidebarContent>
       <SidebarFooter>
         <UserNavigation />

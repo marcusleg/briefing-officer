@@ -3,7 +3,7 @@ import {
   buildChatSystemPrompt,
   buildFilterSuggestionPrompt,
   buildLeadPrompt,
-  buildSummaryPrompt,
+  buildTextSummaryPrompt,
 } from "@/lib/ai/prompts";
 import { describe, expect, it } from "vitest";
 
@@ -120,9 +120,9 @@ describe("buildLeadPrompt", () => {
   });
 });
 
-describe("buildSummaryPrompt", () => {
+describe("buildTextSummaryPrompt", () => {
   it("includes the article text and Markdown structure cues", () => {
-    const prompt = buildSummaryPrompt("My Title", "Body text here", null);
+    const prompt = buildTextSummaryPrompt("My Title", "Body text here", null);
     expect(prompt).toContain("My Title");
     expect(prompt).toContain("Body text here");
     expect(prompt).toContain("Key Facts");
@@ -130,12 +130,12 @@ describe("buildSummaryPrompt", () => {
   });
 
   it("names the article's language", () => {
-    const prompt = buildSummaryPrompt("My Title", "Body text here", "de");
+    const prompt = buildTextSummaryPrompt("My Title", "Body text here", "de");
     expect(prompt).toContain("Write entirely in German.");
   });
 
   it("falls back to English when no language was established", () => {
-    const prompt = buildSummaryPrompt("My Title", "Body text here", null);
+    const prompt = buildTextSummaryPrompt("My Title", "Body text here", null);
     expect(prompt).toContain("Write entirely in English.");
   });
 
@@ -143,7 +143,7 @@ describe("buildSummaryPrompt", () => {
     // The heading names are given in English as selection criteria, so
     // without this a German summary gets German bullets under an English
     // heading.
-    const prompt = buildSummaryPrompt("My Title", "Body text here", "de");
+    const prompt = buildTextSummaryPrompt("My Title", "Body text here", "de");
     expect(prompt).toContain("translate the one you choose");
   });
 });

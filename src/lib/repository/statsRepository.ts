@@ -68,7 +68,7 @@ export const getOldestUnreadPublicationDate = async () => {
 };
 
 /**
- * Every feed of the user, in the order the dashboard hands its charts.
+ * Every feed of the reader, in the order the dashboard hands its charts.
  *
  * The charts sit side by side, so a feed has to keep the same color in each of
  * them. Colors follow this list's order, and `id` only ever grows, so adding a
@@ -119,7 +119,7 @@ const noArticlesPerFeed = (): ArticlesPerFeedData => ({
   dailyAverage: 0,
 });
 
-/** The ids of the user's feeds, to key the per-feed series by. */
+/** The ids of the reader's feeds, to key the per-feed series by. */
 const getFeedIds = async (userId: string) => {
   const feeds = await prisma.feed.findMany({
     where: { userId },

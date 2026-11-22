@@ -17,7 +17,7 @@ const UserTableActions = ({ user }: UserListActionsProps) => {
   // @ts-ignore the correct type `UserWithRole` cannot be imported
   const isBanned = user.banned;
   // @ts-ignore the correct type `UserWithRole` cannot be imported
-  const isAdmin = user.role === "admin";
+  const isAdministrator = user.role === "admin";
 
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this user?")) {
@@ -45,7 +45,7 @@ const UserTableActions = ({ user }: UserListActionsProps) => {
   };
 
   const handleToggleBan = async () => {
-    if (isAdmin) {
+    if (isAdministrator) {
       toast.error("Administrator accounts cannot be disabled.");
       return;
     }

@@ -117,7 +117,7 @@ ${textContent}
 </content>
 </article>`;
 
-export const buildSummaryPrompt = (
+export const buildTextSummaryPrompt = (
   title: string,
   textContent: string,
   language: string | null,
@@ -199,7 +199,7 @@ ${textContent}
  */
 export const buildFilterSuggestionPrompt = (
   title: string,
-  summary: string,
+  leadOrDescription: string,
   existingDisinterests: string[],
   existingInterests: string[],
 ) => {
@@ -245,7 +245,7 @@ what the article is about, never the fact that the reader disliked it.${alreadyE
 <article>
 <title>${title}</title>
 <summary>
-${summary}
+${leadOrDescription}
 </summary>
 </article>`;
 };

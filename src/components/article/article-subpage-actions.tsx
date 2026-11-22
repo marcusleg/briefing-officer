@@ -4,7 +4,7 @@ import ArticleCardActions from "@/components/article/article-card-actions";
 import { Prisma } from "@/generated/prisma/client";
 import { useRouter } from "next/navigation";
 
-const SummaryArticleActions = ({
+const ArticleSubpageActions = ({
   article,
   currentPage,
 }: {
@@ -22,4 +22,4 @@ const SummaryArticleActions = ({
   );
 };
 
-export default SummaryArticleActions;
+export default ArticleSubpageActions;

@@ -6,7 +6,7 @@ import {
 } from "@/components/markdown/safe-markdown";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
-import { streamTextSummary } from "@/lib/ai/services/summaryService";
+import { streamTextSummary } from "@/lib/ai/services/textSummaryService";
 import { cn } from "@/lib/utils";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import {
