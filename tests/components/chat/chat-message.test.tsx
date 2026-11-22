@@ -18,6 +18,10 @@ vi.mock("next/link", async (importOriginal) => {
   };
 });
 
+vi.mock("@/lib/repository/chatRepository", () => ({
+  getArticlesForStatusChange: vi.fn(() => new Promise(() => {})),
+}));
+
 const assistant = (parts: unknown[]) =>
   ({ id: "a1", role: "assistant", parts }) as ChatUIMessage;
 
@@ -527,5 +531,36 @@ describe("messageText", () => {
         ]),
       ),
     ).toBe("First.\n\nSecond.");
+  });
+
+  it("renders a status change as a card in place, outside the chain of thought", async () => {
+    const onApprovalResponse = vi.fn();
+    render(
+      <ChatMessage
+        onApprovalResponse={onApprovalResponse}
+        message={
+          {
+            id: "a1",
+            role: "assistant",
+            parts: [
+              { type: "text", text: "I found two articles." },
+              {
+                type: "tool-setArticleStatus",
+                toolCallId: "call-1",
+                state: "approval-requested",
+                input: { ids: [1, 2], status: "READ" },
+                approval: { id: "approval-1" },
+              },
+            ],
+          } as never
+        }
+      />,
+    );
+
+    expect(screen.getByText("I found two articles.")).toBeInTheDocument();
+    expect(screen.getByText("Loading the articles…")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Searched your articles"),
+    ).not.toBeInTheDocument();
   });
 });

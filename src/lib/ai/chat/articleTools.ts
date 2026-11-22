@@ -1,4 +1,5 @@
 import type { ArticleStatus, Prisma } from "@/generated/prisma/client";
+import { setArticleStatusManyForUser } from "@/lib/articleStatus";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
 import { searchDocuments, type SearchSort } from "@/lib/search/searchIndex";
@@ -133,5 +134,74 @@ export const getArticleForUser = async (
     link: article.link,
     text: truncated ? fullText.slice(0, ARTICLE_TEXT_LIMIT) : fullText,
     truncated,
+  };
+};
+
+/** The statuses the chat may set. Starring and dismissing stay manual. */
+export const CHAT_STATUS_TARGETS = ["READ", "UNREAD", "READ_LATER"] as const;
+export type ChatStatusTarget = (typeof CHAT_STATUS_TARGETS)[number];
+
+/** Keeps one confirmation card readable. */
+export const MAX_STATUS_CHANGE_IDS = 50;
+
+export interface SetArticleStatusInput {
+  ids: number[];
+  status: ChatStatusTarget;
+}
+
+export type SetArticleStatusOutput =
+  | {
+      status: ChatStatusTarget;
+      changed: number;
+      alreadyInStatus: number;
+      notFound: number;
+    }
+  | { error: string };
+
+/**
+ * Runs only after the reader approved the change in the chat. Articles that
+ * already have the target status are left untouched so History keeps the
+ * moment they were first read.
+ */
+export const changeArticleStatusForUser = async (
+  userId: string,
+  { ids, status }: SetArticleStatusInput,
+): Promise<SetArticleStatusOutput> => {
+  const unique = [...new Set(ids)];
+
+  let changed: number;
+  let found: number;
+  try {
+    const articles = await prisma.article.findMany({
+      where: { id: { in: unique }, userId },
+      select: { id: true, status: true },
+    });
+    found = articles.length;
+    const toChange = articles
+      .filter((article) => article.status !== status)
+      .map((article) => article.id);
+
+    // Nothing is revalidated: the /feed pages render per request, and the
+    // chat page refreshes its own navigation.
+    changed =
+      toChange.length === 0
+        ? 0
+        : (
+            await setArticleStatusManyForUser(
+              userId,
+              { id: { in: toChange }, status: { not: status } },
+              status,
+            )
+          ).count;
+  } catch (error) {
+    logger.error({ err: error, userId }, "Chat status change failed.");
+    return { error: "update failed" };
+  }
+
+  return {
+    status,
+    changed,
+    alreadyInStatus: found - changed,
+    notFound: unique.length - found,
   };
 };

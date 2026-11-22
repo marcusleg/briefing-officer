@@ -1,4 +1,7 @@
-import { compactEarlierTurns } from "@/lib/ai/chat/compactHistory";
+import {
+  compactEarlierTurns,
+  declineStaleApprovals,
+} from "@/lib/ai/chat/compactHistory";
 import { createChatTools, type ChatUIMessage } from "@/lib/ai/chat/tools";
 import { buildChatSystemPrompt } from "@/lib/ai/prompts";
 import { getFirstConfiguredLanguageModel } from "@/lib/ai/registry";
@@ -103,10 +106,13 @@ export async function POST(request: Request) {
     model,
     instructions: buildChatSystemPrompt({ today: new Date() }),
     messages: await convertToModelMessages(
-      compactEarlierTurns(validation.data),
+      compactEarlierTurns(declineStaleApprovals(validation.data)),
       { tools },
     ),
     tools,
+    // The reader approves every status change in the chat before it runs; a
+    // hostile article can make the model propose one, never apply it.
+    toolApproval: { setArticleStatus: "user-approval" },
     stopWhen: stepCountIs(MAX_STEPS),
     abortSignal: request.signal,
     // The last allowed step cannot call tools, so the loop ends on text.

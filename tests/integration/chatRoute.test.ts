@@ -267,4 +267,238 @@ describe("POST /api/chat", () => {
       ]);
     });
   });
+
+  const statusCall = (ids: number[], status = "READ") =>
+    streamOf([
+      {
+        type: "tool-call",
+        toolCallId: "call-status",
+        toolName: "setArticleStatus",
+        input: JSON.stringify({ ids, status }),
+      },
+      {
+        type: "finish",
+        finishReason: { unified: "tool-calls", raw: undefined },
+        usage,
+      },
+    ]);
+
+  const textAnswer = (text: string) =>
+    streamOf([
+      { type: "text-start", id: "t1" },
+      { type: "text-delta", id: "t1", delta: text },
+      { type: "text-end", id: "t1" },
+      {
+        type: "finish",
+        finishReason: { unified: "stop", raw: undefined },
+        usage,
+      },
+    ]);
+
+  // The conversation as the browser sends it after the reader answered the
+  // card: the assistant's tool part carries the approval response.
+  const afterApproval = (
+    ids: number[],
+    approval: { approved: boolean; reason?: string },
+  ) => ({
+    id: "chat-1",
+    trigger: "submit-message",
+    messages: [
+      {
+        id: "m1",
+        role: "user",
+        parts: [{ type: "text", text: "Mark them as read" }],
+      },
+      {
+        id: "a1",
+        role: "assistant",
+        parts: [
+          { type: "step-start" },
+          {
+            type: "tool-setArticleStatus",
+            toolCallId: "call-status",
+            state: "approval-responded",
+            input: { ids, status: "READ" },
+            approval: { id: "approval-1", ...approval },
+          },
+        ],
+      },
+    ],
+  });
+
+  it("holds a status change for approval and changes nothing yet", async () => {
+    const feedId = (await createFeed({ userId })).id;
+    const article = await createArticle({ userId, feedId });
+    const model = new MockLanguageModelV4({
+      modelId: "mock-model",
+      doStream: [statusCall([article.id])],
+    });
+    vi.mocked(getFirstConfiguredLanguageModel).mockResolvedValue(model);
+
+    const response = await POST(chatRequest(question("Mark it as read")));
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).toContain("tool-approval-request");
+    expect(model.doStreamCalls).toHaveLength(1);
+    const unchanged = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(unchanged.status).toBe("UNREAD");
+  });
+
+  it("applies an approved change and lets the model confirm it", async () => {
+    const feedId = (await createFeed({ userId })).id;
+    const article = await createArticle({ userId, feedId });
+    const model = new MockLanguageModelV4({
+      modelId: "mock-model",
+      doStream: [textAnswer("Done.")],
+    });
+    vi.mocked(getFirstConfiguredLanguageModel).mockResolvedValue(model);
+
+    const response = await POST(
+      chatRequest(afterApproval([article.id], { approved: true })),
+    );
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).toContain("Done.");
+    const updated = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(updated.status).toBe("READ");
+    expect(JSON.stringify(model.doStreamCalls[0].prompt)).toContain(
+      '"changed":1',
+    );
+  });
+
+  it("changes nothing after a decline and tells the model", async () => {
+    const feedId = (await createFeed({ userId })).id;
+    const article = await createArticle({ userId, feedId });
+    const model = new MockLanguageModelV4({
+      modelId: "mock-model",
+      doStream: [textAnswer("Okay, left them.")],
+    });
+    vi.mocked(getFirstConfiguredLanguageModel).mockResolvedValue(model);
+
+    const response = await POST(
+      chatRequest(
+        afterApproval([article.id], {
+          approved: false,
+          reason: "The reader declined.",
+        }),
+      ),
+    );
+    await response.text();
+
+    const unchanged = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(unchanged.status).toBe("UNREAD");
+    expect(JSON.stringify(model.doStreamCalls[0].prompt)).toContain(
+      "The reader declined.",
+    );
+  });
+
+  it("never changes another user's article, even when approved", async () => {
+    const otherUserId = (await createUser()).id;
+    const otherFeedId = (await createFeed({ userId: otherUserId })).id;
+    const foreign = await createArticle({
+      userId: otherUserId,
+      feedId: otherFeedId,
+    });
+    const model = new MockLanguageModelV4({
+      modelId: "mock-model",
+      doStream: [textAnswer("Done.")],
+    });
+    vi.mocked(getFirstConfiguredLanguageModel).mockResolvedValue(model);
+
+    const response = await POST(
+      chatRequest(afterApproval([foreign.id], { approved: true })),
+    );
+    await response.text();
+
+    const unchanged = await prisma.article.findUniqueOrThrow({
+      where: { id: foreign.id },
+    });
+    expect(unchanged.status).toBe("UNREAD");
+    expect(JSON.stringify(model.doStreamCalls[0].prompt)).toContain(
+      '"notFound":1',
+    );
+  });
+
+  // The approval responses above followed by a typed reply from the reader.
+  const thenReply = (
+    conversation: ReturnType<typeof afterApproval>,
+    text: string,
+  ) => ({
+    ...conversation,
+    messages: [
+      ...conversation.messages,
+      { id: "m2", role: "user", parts: [{ type: "text", text }] },
+    ],
+  });
+
+  it("approved but never applied, then a reply: answers without applying it", async () => {
+    const feedId = (await createFeed({ userId })).id;
+    const article = await createArticle({ userId, feedId });
+    const model = new MockLanguageModelV4({
+      modelId: "mock-model",
+      doStream: [textAnswer("Okay.")],
+    });
+    vi.mocked(getFirstConfiguredLanguageModel).mockResolvedValue(model);
+
+    const response = await POST(
+      chatRequest(
+        thenReply(
+          afterApproval([article.id], { approved: true }),
+          "never mind",
+        ),
+      ),
+    );
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).toContain("Okay.");
+    expect(model.doStreamCalls).toHaveLength(1);
+    const unchanged = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(unchanged.status).toBe("UNREAD");
+    const prompt = JSON.stringify(model.doStreamCalls[0].prompt);
+    expect(prompt).toContain("The change was not applied.");
+    expect(prompt).toContain("never mind");
+  });
+
+  it("a decline sent together with a typed reply: answers and changes nothing", async () => {
+    const feedId = (await createFeed({ userId })).id;
+    const article = await createArticle({ userId, feedId });
+    const model = new MockLanguageModelV4({
+      modelId: "mock-model",
+      doStream: [textAnswer("Only the first, then.")],
+    });
+    vi.mocked(getFirstConfiguredLanguageModel).mockResolvedValue(model);
+
+    const response = await POST(
+      chatRequest(
+        thenReply(
+          afterApproval([article.id], {
+            approved: false,
+            reason: "The reader replied instead of approving.",
+          }),
+          "only the first",
+        ),
+      ),
+    );
+    await response.text();
+
+    expect(response.status).toBe(200);
+    const unchanged = await prisma.article.findUniqueOrThrow({
+      where: { id: article.id },
+    });
+    expect(unchanged.status).toBe("UNREAD");
+    const prompt = JSON.stringify(model.doStreamCalls[0].prompt);
+    expect(prompt).toContain("The reader replied instead of approving.");
+    expect(prompt).toContain("only the first");
+  });
 });

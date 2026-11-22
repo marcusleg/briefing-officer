@@ -1,6 +1,9 @@
 "use client";
 
 import { Message, MessageContent } from "@/components/ai-elements/message";
+import StatusChangeCard, {
+  type ApprovalResponse,
+} from "@/components/chat/status-change-card";
 import ToolActivity, {
   type ChatToolPart,
 } from "@/components/chat/tool-activity";
@@ -22,13 +25,22 @@ export const messageText = (message: ChatUIMessage) =>
 const ChatMessage = ({
   message,
   answering = false,
+  interrupted = false,
   actions,
+  onApprovalResponse,
 }: {
   message: ChatUIMessage;
   /** Whether this answer is still being written. */
   answering?: boolean;
+  /**
+   * Whether the conversation moved on past this answer, or the request for it
+   * failed, so approved changes in it will not run.
+   */
+  interrupted?: boolean;
   /** Controls shown under the answer once it has been written. */
   actions?: ReactNode;
+  /** Answers a status-change card's Apply or Decline. */
+  onApprovalResponse?: (response: ApprovalResponse) => void;
 }) => {
   if (message.role === "user") {
     const text = message.parts
@@ -50,13 +62,32 @@ const ChatMessage = ({
         {toolParts.length > 0 && (
           <ToolActivity parts={toolParts} answering={answering} />
         )}
-        {message.parts.map((part, index) =>
-          part.type === "text" ? (
-            <SafeMarkdown key={index} className="text-prose">
-              {part.text}
-            </SafeMarkdown>
-          ) : null,
-        )}
+        {message.parts.map((part, index) => {
+          if (part.type === "text") {
+            return (
+              <SafeMarkdown key={index} className="text-prose">
+                {part.text}
+              </SafeMarkdown>
+            );
+          }
+          if (part.type === "tool-setArticleStatus") {
+            return (
+              <StatusChangeCard
+                key={part.toolCallId}
+                part={part}
+                interrupted={interrupted}
+                otherPending={message.parts.some(
+                  (other) =>
+                    other.type === "tool-setArticleStatus" &&
+                    other.toolCallId !== part.toolCallId &&
+                    other.state === "approval-requested",
+                )}
+                onRespond={(response) => onApprovalResponse?.(response)}
+              />
+            );
+          }
+          return null;
+        })}
       </MessageContent>
       {!answering && actions}
     </Message>

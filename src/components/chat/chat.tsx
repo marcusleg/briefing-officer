@@ -20,11 +20,18 @@ import { compactEarlierTurns } from "@/lib/ai/chat/compactHistory";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
 import { cn } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
-import { APICallError, DefaultChatTransport } from "ai";
+import {
+  APICallError,
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithApprovalResponses,
+} from "ai";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useCallback,
+  useEffect,
+  useRef,
   useState,
   type ClipboardEvent,
   type DragEvent,
@@ -57,6 +64,22 @@ const isSessionExpired = (error: Error) => hasStatus(error, 401);
 
 /** Even compacted, a very long conversation can pass the route's size limit. */
 const isTooLong = (error: Error) => hasStatus(error, 413);
+
+/** The reason the model sees when the reader types instead of answering a card. */
+export const DECLINED_BY_REPLY = "The reader replied instead of approving.";
+
+/** The approval ids of the status-change cards still waiting in the last answer. */
+const pendingApprovalIds = (messages: ChatUIMessage[]) => {
+  const last = messages.at(-1);
+  if (last?.role !== "assistant") {
+    return [];
+  }
+  return last.parts.flatMap((part) =>
+    part.type === "tool-setArticleStatus" && part.state === "approval-requested"
+      ? [part.approval.id]
+      : [],
+  );
+};
 
 /**
  * The chat sends text only, so `PromptInput` must never pick up files: it would
@@ -92,6 +115,10 @@ const promptSurface = cn(
 );
 
 const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
+  // Set while a typed reply declines a pending card, so the decline goes out
+  // with the reply in one request instead of on its own first.
+  const decliningForReply = useRef(false);
+
   const {
     messages,
     status,
@@ -101,7 +128,40 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
     regenerate,
     setMessages,
     clearError,
-  } = useChat<ChatUIMessage>({ transport });
+    addToolApprovalResponse,
+  } = useChat<ChatUIMessage>({
+    transport,
+    // Apply and Decline on a card send the conversation back so the server
+    // runs (or skips) the change and the assistant can confirm it.
+    sendAutomaticallyWhen: ({ messages }) =>
+      !decliningForReply.current &&
+      lastAssistantMessageIsCompleteWithApprovalResponses({ messages }),
+  });
+
+  // The navigation's unread counts are server-rendered; refresh them once per
+  // applied change.
+  const router = useRouter();
+  const refreshedCalls = useRef(new Set<string>());
+  useEffect(() => {
+    let changed = false;
+    for (const message of messages) {
+      for (const part of message.parts) {
+        if (
+          part.type === "tool-setArticleStatus" &&
+          part.state === "output-available" &&
+          !("error" in part.output) &&
+          part.output.changed > 0 &&
+          !refreshedCalls.current.has(part.toolCallId)
+        ) {
+          refreshedCalls.current.add(part.toolCallId);
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      router.refresh();
+    }
+  }, [messages, router]);
 
   // The answer being read aloud. Only one is read at a time: reading another
   // replaces it, and the one it replaces stops as its player unmounts.
@@ -110,15 +170,34 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
 
   const busy = status === "submitted" || status === "streaming";
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (busy || !text.trim()) {
       return;
+    }
+    // Typing instead of answering the cards declines them, so "no, only the
+    // first three" reaches the assistant as a reply to its proposal.
+    decliningForReply.current = true;
+    try {
+      for (const id of pendingApprovalIds(messages)) {
+        await addToolApprovalResponse({
+          id,
+          approved: false,
+          reason: DECLINED_BY_REPLY,
+        });
+      }
+    } catch {
+      // The reply still goes out. A card left in approval-requested is safe:
+      // convertToModelMessages drops such a part from earlier turns.
+    } finally {
+      decliningForReply.current = false;
     }
     void sendMessage({ text });
   };
 
   // Files never get attached (see above), and the route takes text only.
-  const handleSubmit = ({ text }: PromptInputMessage) => send(text);
+  const handleSubmit = ({ text }: PromptInputMessage) => {
+    void send(text);
+  };
 
   // While answering, Enter would submit (and clear) the form without sending;
   // keep the draft instead. The submit button stops the stream meanwhile.
@@ -173,6 +252,13 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
               key={message.id}
               message={message}
               answering={busy && index === messages.length - 1}
+              interrupted={
+                index < messages.length - 1 ||
+                (status === "error" && index === messages.length - 1)
+              }
+              onApprovalResponse={(response) =>
+                void addToolApprovalResponse(response)
+              }
               actions={
                 <ReadAloud
                   engine={speechEngine}

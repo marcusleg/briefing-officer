@@ -68,3 +68,43 @@ export const compactEarlierTurns = <M extends UIMessage>(
         } as M),
   );
 };
+
+/** What the model is told about an approved change that never ran. */
+export const NOT_APPLIED_REASON = "The change was not applied.";
+
+type MessagePart = UIMessage["parts"][number];
+
+const isUnexecutedApproval = (
+  part: MessagePart,
+): part is Extract<MessagePart, { state: "approval-responded" }> =>
+  isToolUIPart(part) &&
+  part.state === "approval-responded" &&
+  part.approval.approved === true;
+
+/**
+ * The SDK runs an approved tool call only while its message is the last one.
+ * An approval left behind by a failed or abandoned request never ran, and a
+ * conversation carrying it cannot be sent to the model; it becomes a denial.
+ */
+export const declineStaleApprovals = <M extends UIMessage>(
+  messages: M[],
+): M[] =>
+  messages.map((message, index) =>
+    index === messages.length - 1 || !message.parts.some(isUnexecutedApproval)
+      ? message
+      : {
+          ...message,
+          parts: message.parts.map((part) =>
+            isUnexecutedApproval(part)
+              ? {
+                  ...part,
+                  approval: {
+                    ...part.approval,
+                    approved: false,
+                    reason: NOT_APPLIED_REASON,
+                  },
+                }
+              : part,
+          ),
+        },
+  );
