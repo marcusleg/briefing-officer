@@ -2,31 +2,15 @@
 
 ## Workflow
 
-The user takes part in brainstorming and design, and every question that needs
-the user is settled there. Once the spec is approved, agents work unattended
-until a pull request is open.
+Get the user's approval before making any of these hard-to-undo changes:
 
-1. **Design, with the user.** Brainstorm with `superpowers:brainstorming` until
-   the user approves the spec. Ask about user-observable behavior, scope and
-   real trade-offs; decide implementation details yourself and record them in
-   the spec. Before asking for approval, work out which hard-to-undo changes
-   the feature needs and spell each one out in the spec so the user signs off
-   on it there:
-   - database schema changes and migrations
-   - API changes: HTTP routes, request or response shapes, anything outside
-     clients rely on
-   - configuration operators set: environment variables, Helm values
-   - anything that deletes or rewrites existing user data
-2. **Everything after the spec, unattended.** Write the plan with
-   `superpowers:writing-plans` without asking for its review, then execute it
-   with `superpowers:subagent-driven-development` in a git worktree. Don't pause
-   between plan, implementation, review and PR to ask whether to continue.
-   Where a skill offers a choice (execution mode, how to finish the branch),
-   take the path that ends in a PR.
-3. **Report back** only when the PR is open, or when you hit a brick wall:
-   still blocked after reasonable attempts, or the spec turns out wrong or
-   incomplete, for example because the work needs a hard-to-undo change the
-   spec doesn't cover. Treat that as a return to design, not a quick check-in.
+- database schema changes and migrations
+- API changes: HTTP routes, request or response shapes, anything outside
+  clients rely on
+- configuration operators set: environment variables, Helm values
+- anything that deletes or rewrites existing user data
+
+When the work is done, open a pull request against `main`.
 
 The user judges a change by how the application behaves, not by its code. When
 reporting, lead with what changed for the user. Leave a demo instance of the

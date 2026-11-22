@@ -27,8 +27,8 @@ export const spokenTitle = (title: string): string => {
  * its own way.
  *
  * If the model emits no newlines at all, the whole briefing becomes one
- * utterance and hits Chrome's ~15-second truncation. Accepted, not defended
- * against — see docs/superpowers/specs/2026-08-06-article-language-design.md.
+ * utterance and hits Chrome's ~15-second truncation. That is accepted, not
+ * defended against.
  *
  * Safe to call repeatedly against a growing stream: feed the remainder back in
  * with the next delta appended.
