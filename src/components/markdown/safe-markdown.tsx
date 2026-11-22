@@ -10,7 +10,7 @@ import { code } from "@streamdown/code";
 import { math } from "@streamdown/math";
 import "katex/dist/katex.min.css";
 import Link from "next/link";
-import type { ComponentProps } from "react";
+import { createContext, useContext, type ComponentProps } from "react";
 import {
   defaultRehypePlugins,
   type Components,
@@ -26,11 +26,35 @@ const isInApp = (href: string | undefined): href is string =>
   (href.startsWith("#") || (href.startsWith("/") && !href.startsWith("//")));
 
 /**
+ * What a caller decides about a link the model wrote, given its href: a URL
+ * to open instead, in a new tab; `null` to show the link's text without a
+ * link; or `undefined` to keep the link as it is. A URL returned here is not
+ * checked again, so it must come from the app, never from the model.
+ */
+export type NewTabHref = (href: string) => string | null | undefined;
+
+/**
+ * Set by `SafeMarkdown`. A context rather than a prop of the link component:
+ * `MessageResponse` re-renders only when the Markdown changes, and a context
+ * still reaches the links when this does.
+ */
+const NewTabHrefContext = createContext<NewTabHref | undefined>(undefined);
+
+const hostOf = (url: string) => {
+  try {
+    return new URL(url).host;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
  * Links to the reader's own articles and footnotes stay in the tab; anything
- * else, such as the original source, opens in a new one. Streamdown adds
- * `target` and `rel` to every link and passes its syntax tree node, so in-tab
- * links drop the former and nothing passes the node on to the DOM. The model
- * picks the paths, so they are not prefetched before a click.
+ * else, such as a source, opens in a new one. `NewTabHref` can send a link
+ * elsewhere, which then names the site it opens, or turn it into text.
+ * Streamdown adds `target` and `rel` to every link and passes its syntax tree
+ * node, so in-tab links drop the former and nothing passes the node on to the
+ * DOM. The model picks the paths, so they are not prefetched before a click.
  */
 const SafeLink = ({
   href,
@@ -41,12 +65,18 @@ const SafeLink = ({
   rel: _rel,
   ...props
 }: ComponentProps<"a"> & ExtraProps) => {
+  const newTabHref = useContext(NewTabHrefContext);
   const linkClassName = cn(
     "text-primary hover:text-hover underline underline-offset-2",
     className,
   );
+  const newTab = href === undefined ? undefined : newTabHref?.(href);
 
-  if (isInApp(href)) {
+  if (newTab === null) {
+    return <span>{children}</span>;
+  }
+
+  if (isInApp(href) && newTab === undefined) {
     return (
       <Link href={href} prefetch={false} {...props} className={linkClassName}>
         {children}
@@ -54,9 +84,10 @@ const SafeLink = ({
     );
   }
 
-  return (
+  const host = newTab === undefined ? undefined : hostOf(newTab);
+  const link = (
     <a
-      href={href}
+      href={newTab ?? href}
       {...props}
       className={linkClassName}
       target="_blank"
@@ -64,6 +95,14 @@ const SafeLink = ({
     >
       {children}
     </a>
+  );
+
+  return host ? (
+    <>
+      {link} <span className="text-muted-foreground text-sm">({host})</span>
+    </>
+  ) : (
+    link
   );
 };
 
@@ -134,6 +173,8 @@ export type SafeMarkdownProps = Pick<
   "children" | "className" | "isAnimating"
 > & {
   components?: Omit<Components, "a" | "img">;
+  /** What becomes of each link the model wrote; see `NewTabHref`. */
+  newTabHref?: NewTabHref;
 };
 
 /**
@@ -147,14 +188,17 @@ export const SafeMarkdown = ({
   className,
   isAnimating,
   components,
+  newTabHref,
 }: SafeMarkdownProps) => (
-  <MessageResponse
-    className={className}
-    isAnimating={isAnimating}
-    components={{ ...components, a: SafeLink, img: AltTextImage }}
-    rehypePlugins={rehypePlugins}
-    plugins={streamdownPlugins}
-  >
-    {children}
-  </MessageResponse>
+  <NewTabHrefContext value={newTabHref}>
+    <MessageResponse
+      className={className}
+      isAnimating={isAnimating}
+      components={{ ...components, a: SafeLink, img: AltTextImage }}
+      rehypePlugins={rehypePlugins}
+      plugins={streamdownPlugins}
+    >
+      {children}
+    </MessageResponse>
+  </NewTabHrefContext>
 );

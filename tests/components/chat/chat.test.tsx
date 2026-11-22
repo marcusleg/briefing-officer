@@ -4,6 +4,7 @@ import Chat, {
   transport,
 } from "@/components/chat/chat";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
+import { getArticleSources } from "@/lib/repository/chatRepository";
 import { useChat } from "@ai-sdk/react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -16,6 +17,7 @@ import { installServerSpeech } from "../../helpers/server-speech";
 vi.mock("@ai-sdk/react", () => ({ useChat: vi.fn() }));
 vi.mock("@/lib/repository/chatRepository", () => ({
   getArticlesForStatusChange: vi.fn(() => new Promise(() => {})),
+  getArticleSources: vi.fn(() => new Promise(() => {})),
 }));
 
 const actions = {
@@ -702,5 +704,144 @@ describe("showsOnlyTextSummary", () => {
     expect(showsOnlyTextSummary([])).toBe(true);
     expect(showsOnlyTextSummary(opening)).toBe(true);
     expect(showsOnlyTextSummary(asked)).toBe(false);
+  });
+});
+
+describe("citations", () => {
+  const later = [
+    { id: "u2", role: "user", parts: [{ type: "text", text: "And Meta?" }] },
+    {
+      id: "a2",
+      role: "assistant",
+      parts: [
+        {
+          type: "text",
+          text: "Meta fell ([Meta](/feed/3/article/4/text-summary)).",
+        },
+      ],
+    },
+  ];
+  const cited = [
+    { id: "u1", role: "user", parts: [{ type: "text", text: "Alphabet?" }] },
+    {
+      id: "a1",
+      role: "assistant",
+      parts: [
+        {
+          type: "text",
+          text: "It beat estimates ([report](/feed/1/article/2/text-summary)).",
+        },
+      ],
+    },
+  ];
+
+  it("links a cited article to its source once the answer is complete", async () => {
+    vi.mocked(getArticleSources).mockResolvedValue({
+      2: "https://news.example/alphabet",
+    });
+    mockChat({ messages: cited });
+    render(<Chat speechEngine="server" />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("link", { name: "report" })).toHaveAttribute(
+        "href",
+        "https://news.example/alphabet",
+      ),
+    );
+    expect(screen.getByRole("link", { name: "report" })).toHaveAttribute(
+      "target",
+      "_blank",
+    );
+    expect(getArticleSources).toHaveBeenCalledWith([2]);
+  });
+
+  it("opens a citation in the app, in a new tab, until its source is known", async () => {
+    vi.mocked(getArticleSources).mockReturnValue(new Promise(() => {}));
+    mockChat({ messages: cited });
+    render(<Chat speechEngine="server" />);
+
+    const link = await screen.findByRole("link", { name: "report" });
+    expect(link).toHaveAttribute("href", "/feed/1/article/2/text-summary");
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("looks sources up only once the answer is complete", async () => {
+    mockChat({ messages: cited, status: "streaming" });
+    render(<Chat speechEngine="server" />);
+
+    await screen.findByRole("link", { name: "report" });
+    expect(getArticleSources).not.toHaveBeenCalled();
+  });
+
+  it("looks up a failed lookup again once the next answer is complete", async () => {
+    vi.mocked(getArticleSources)
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce({ 2: "https://news.example/alphabet" });
+    mockChat({ messages: cited });
+    const { rerender } = render(<Chat speechEngine="server" />);
+    await waitFor(() => expect(getArticleSources).toHaveBeenCalledOnce());
+
+    mockChat({ messages: [...cited, ...later] });
+    rerender(<Chat speechEngine="server" />);
+
+    await waitFor(() =>
+      expect(getArticleSources).toHaveBeenLastCalledWith([2, 4]),
+    );
+  });
+
+  it("looks up only the articles a new answer adds", async () => {
+    vi.mocked(getArticleSources).mockResolvedValue({});
+    mockChat({ messages: cited });
+    const { rerender } = render(<Chat speechEngine="server" />);
+    await waitFor(() => expect(getArticleSources).toHaveBeenCalledWith([2]));
+
+    mockChat({ messages: [...cited, ...later] });
+    rerender(<Chat speechEngine="server" />);
+
+    await waitFor(() =>
+      expect(getArticleSources).toHaveBeenLastCalledWith([4]),
+    );
+  });
+
+  it("shows links the model writes to other sites as text", async () => {
+    mockChat({
+      messages: [
+        cited[0],
+        {
+          id: "a1",
+          role: "assistant",
+          parts: [
+            {
+              type: "text",
+              text: "See [the full report](https://evil.example/?d=secret).",
+            },
+          ],
+        },
+      ],
+    });
+    render(<Chat speechEngine="server" />);
+
+    await screen.findByText("the full report");
+    expect(
+      screen.queryByRole("link", { name: "the full report" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens other paths in the app in a new tab", async () => {
+    mockChat({
+      messages: [
+        cited[0],
+        {
+          id: "a1",
+          role: "assistant",
+          parts: [{ type: "text", text: "See [your feeds](/feed)." }],
+        },
+      ],
+    });
+    render(<Chat speechEngine="server" />);
+
+    const link = await screen.findByRole("link", { name: "your feeds" });
+    expect(link).toHaveAttribute("href", "/feed");
+    expect(link).toHaveAttribute("target", "_blank");
   });
 });

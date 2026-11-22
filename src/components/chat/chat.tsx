@@ -14,11 +14,14 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import ChatMessage, { messageText } from "@/components/chat/chat-message";
 import { ReadAloud, type SpeechEngine } from "@/components/chat/read-aloud";
+import type { NewTabHref } from "@/components/markdown/safe-markdown";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { articleIdFromPath, citedArticleIds } from "@/lib/ai/chat/articlePath";
 import { compactEarlierTurns } from "@/lib/ai/chat/compactHistory";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
+import { getArticleSources } from "@/lib/repository/chatRepository";
 import { cn } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
 import {
@@ -216,6 +219,63 @@ const Chat = ({
 
   const busy = status === "submitted" || status === "streaming";
 
+  const conversation = useRef<StickToBottomContext>(null);
+
+  // Cited articles link to their sources, which come from the reader's own
+  // articles once an answer is complete. Until then a citation opens the
+  // article in the app, in a new tab so the conversation stays. A failed
+  // lookup is tried again once the next answer is complete.
+  const [sources, setSources] = useState<Record<number, string>>({});
+  const lookedUp = useRef(new Set<number>());
+  useEffect(() => {
+    if (busy) {
+      return;
+    }
+    const ids = messages
+      .flatMap((message) =>
+        message.role === "assistant"
+          ? citedArticleIds(messageText(message))
+          : [],
+      )
+      .filter((id) => !lookedUp.current.has(id));
+    if (ids.length === 0) {
+      return;
+    }
+    for (const id of ids) {
+      lookedUp.current.add(id);
+    }
+    getArticleSources(ids)
+      .then((found) => setSources((current) => ({ ...current, ...found })))
+      .catch(() => {
+        for (const id of ids) {
+          lookedUp.current.delete(id);
+        }
+      });
+  }, [busy, messages]);
+  // A resolved citation names its site, which can add lines after the answer
+  // is complete; a reader at or near the bottom is taken to the new bottom.
+  useEffect(() => {
+    if (conversation.current?.state.isNearBottom) {
+      void conversation.current.scrollToBottom();
+    }
+  }, [sources]);
+  // Links the model writes to other sites show as text: their address is the
+  // model's, which a hostile article can choose. Every other path in the app
+  // opens in a new tab, so the unsaved conversation stays.
+  const newTabHref = useCallback<NewTabHref>(
+    (href) => {
+      const id = articleIdFromPath(href);
+      if (id !== undefined) {
+        return sources[id] ?? href;
+      }
+      if (href.startsWith("#")) {
+        return undefined;
+      }
+      return href.startsWith("/") && !href.startsWith("//") ? href : null;
+    },
+    [sources],
+  );
+
   // The text summary is asked for once the chat is open. Deferred so that
   // Strict Mode's trial unmount, which stops the chat, cancels it instead of
   // leaving it stopped.
@@ -234,7 +294,6 @@ const Chat = ({
 
   // The conversation stays at the top until the reader asks a question;
   // from then on it follows the answers as usual.
-  const conversation = useRef<StickToBottomContext>(null);
   const atTop = opensOnArticle && showsOnlyTextSummary(messages);
   // The conversation keeps the first function it is given, so this one reads
   // where to stay from a ref.
@@ -313,7 +372,7 @@ const Chat = ({
           </h2>
           <p className="text-muted-foreground text-sm">
             Ask anything about the articles in your feeds. Answers link to the
-            articles they come from.
+            sources of the articles they draw on.
           </p>
         </div>
       ) : (
@@ -354,6 +413,7 @@ const Chat = ({
               onApprovalResponse={(response) =>
                 void addToolApprovalResponse(response)
               }
+              newTabHref={newTabHref}
               actions={
                 <ReadAloud
                   engine={speechEngine}

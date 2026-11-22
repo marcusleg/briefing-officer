@@ -22,8 +22,8 @@ _Avoid_: Sysadmin, host
 ### Feeds and articles
 
 **Feed**:
-An RSS or Atom source a reader has subscribed to.
-_Avoid_: Subscription, source
+An RSS or Atom channel a reader has subscribed to.
+_Avoid_: Subscription
 
 **Category**:
 A reader-named group of feeds.
@@ -33,18 +33,22 @@ _Avoid_: Folder
 One item published by a feed.
 _Avoid_: Entry, item, post, story
 
+**Source**:
+An article as written at its URL on the publisher's site.
+_Avoid_: Original, link
+
 **Ingest**:
 The moment a fetched article enters a reader's feed and gets its lead and
 filter decision.
 _Avoid_: Arrival, import
 
 **Article Text**:
-The full text of an article, scraped from its original page. Leads, text
+The full text of an article, scraped from its source. Leads, text
 summaries and audio briefings are written from it alone.
 _Avoid_: Full text, content, body, description
 
 **Scrape**:
-To fetch an article's text from its original page.
+To fetch an article's text from its source.
 _Avoid_: Crawl, download
 
 ### What the AI writes
@@ -66,9 +70,9 @@ _Avoid_: Audio summary
 
 **Chat**:
 A conversation in which the AI answers the reader's questions from their
-articles, citing them, and can change articles' status when the reader asks. A
-chat opened on an article is grounded in that article and starts with its text
-summary.
+articles, linking to their sources, and can change articles' status when the
+reader asks. A chat opened on an article is grounded in that article and starts
+with its text summary.
 _Avoid_: Assistant, Briefing Officer, article chat
 
 ### Triage

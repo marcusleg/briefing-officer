@@ -7,7 +7,10 @@ import StatusChangeCard, {
 import ToolActivity, {
   type ChatToolPart,
 } from "@/components/chat/tool-activity";
-import { SafeMarkdown } from "@/components/markdown/safe-markdown";
+import {
+  SafeMarkdown,
+  type NewTabHref,
+} from "@/components/markdown/safe-markdown";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
 import type { ReactNode } from "react";
 
@@ -28,6 +31,7 @@ const ChatMessage = ({
   interrupted = false,
   actions,
   onApprovalResponse,
+  newTabHref,
 }: {
   message: ChatUIMessage;
   /** Whether this answer is still being written. */
@@ -41,6 +45,8 @@ const ChatMessage = ({
   actions?: ReactNode;
   /** Answers a status-change card's Apply or Decline. */
   onApprovalResponse?: (response: ApprovalResponse) => void;
+  /** What becomes of each link in the answer; see `NewTabHref`. */
+  newTabHref?: NewTabHref;
 }) => {
   if (message.role === "user") {
     const text = message.parts
@@ -65,7 +71,11 @@ const ChatMessage = ({
         {message.parts.map((part, index) => {
           if (part.type === "text") {
             return (
-              <SafeMarkdown key={index} className="text-prose">
+              <SafeMarkdown
+                key={index}
+                className="text-prose"
+                newTabHref={newTabHref}
+              >
                 {part.text}
               </SafeMarkdown>
             );

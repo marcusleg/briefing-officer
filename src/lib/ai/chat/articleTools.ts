@@ -1,4 +1,5 @@
 import type { ArticleStatus, Prisma } from "@/generated/prisma/client";
+import { articlePath } from "@/lib/ai/chat/articlePath";
 import { setArticleStatusManyForUser } from "@/lib/articleStatus";
 import logger from "@/lib/logger";
 import prisma from "@/lib/prismaClient";
@@ -44,9 +45,6 @@ export type SearchArticlesOutput =
 export type GetArticleOutput =
   | (ChatArticle & { link: string; text: string; truncated: boolean })
   | { error: string };
-
-export const articlePath = (article: { id: number; feedId: number }) =>
-  `/feed/${article.feedId}/article/${article.id}/text-summary`;
 
 const chatArticleInclude = {
   feed: { select: { title: true } },
