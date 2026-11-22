@@ -19,10 +19,10 @@ export const articleAuthor = (article: {
 
 /**
  * Whether an article's status still counts as being in the inbox — i.e. not
- * yet dismissed to a terminal state.
+ * yet dismissed or filtered.
  *
  * `READ_LATER` belongs here alongside `UNREAD`: saving an article for later
- * does not remove it from the reader's queue, it just defers it. `READ` and
+ * does not remove it from the reader's queue, it just defers it. `DISMISSED` and
  * `FILTERED` are the states an article leaves the inbox for.
  */
 export const isInInbox = (status: ArticleStatus): boolean =>

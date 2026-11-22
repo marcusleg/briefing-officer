@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Article } from "@/generated/prisma/client";
 import { isInInbox } from "@/lib/article";
 import {
-  markArticleAsRead,
+  dismissArticle,
   restoreArticleStatus,
   restoreArticleToInbox,
 } from "@/lib/repository/articleRepository";
@@ -23,14 +23,14 @@ const DismissButton = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isInbox = isInInbox(article.status);
 
-  const handleMarkAsRead = async () => {
+  const handleDismiss = async () => {
     const previous = article.status;
     setIsSubmitting(true);
-    await markArticleAsRead(article.id);
+    await dismissArticle(article.id);
     setIsSubmitting(false);
     onAfterDismiss?.();
 
-    toast("Article marked as read", {
+    toast("Article dismissed", {
       description: <span className="italic">{article.title}</span>,
       action: {
         label: "Undo",
@@ -58,7 +58,7 @@ const DismissButton = ({
     <Button
       className={className ?? "cursor-pointer justify-start text-sm"}
       disabled={isSubmitting}
-      onClick={isInbox ? handleMarkAsRead : handleRestore}
+      onClick={isInbox ? handleDismiss : handleRestore}
       variant="secondary"
     >
       {isInbox ? (

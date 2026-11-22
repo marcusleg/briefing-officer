@@ -5,7 +5,7 @@ import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
 import FeedTitle from "../feed-title";
 
-const ReadHistoryPage = async () => {
+const HistoryPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) {
@@ -19,7 +19,7 @@ const ReadHistoryPage = async () => {
       scrape: true,
     },
     where: {
-      status: "READ",
+      status: "DISMISSED",
       userId: session.user.id,
     },
     orderBy: {
@@ -44,4 +44,4 @@ const ReadHistoryPage = async () => {
   );
 };
 
-export default ReadHistoryPage;
+export default HistoryPage;

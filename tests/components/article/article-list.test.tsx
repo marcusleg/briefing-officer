@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/repository/articleRepository", () => ({
-  markArticleAsRead: vi.fn().mockResolvedValue(undefined),
+  dismissArticle: vi.fn().mockResolvedValue(undefined),
   markArticleAsReadLater: vi.fn().mockResolvedValue(undefined),
   archiveArticle: vi.fn().mockResolvedValue(undefined),
   markArticleAsNotInteresting: vi.fn().mockResolvedValue(undefined),
@@ -145,7 +145,7 @@ describe("ArticleList", () => {
     expect(screen.queryByRole("button", { name: /new article/ })).toBeNull();
   });
 
-  it("highlights the article that took the place of one marked as read", async () => {
+  it("highlights the article that took the place of one dismissed", async () => {
     const { rerender } = render(
       <ArticleList articles={[article(1), article(2), article(3)]} />,
     );
@@ -172,7 +172,7 @@ describe("ArticleList", () => {
     expect(cardOf("Article 2")).not.toHaveClass("border-primary");
   });
 
-  it("highlights the new last article when the last one is marked as read", async () => {
+  it("highlights the new last article when the last one is dismissed", async () => {
     const { rerender } = render(
       <ArticleList articles={[article(1), article(2)]} />,
     );
@@ -185,14 +185,14 @@ describe("ArticleList", () => {
     expect(cardOf("Article 1")).toHaveClass("border-primary");
   });
 
-  it("forgets the selection when the last remaining article is marked as read", async () => {
+  it("forgets the selection when the last remaining article is dismissed", async () => {
     const { rerender } = render(<ArticleList articles={[article(1)]} />);
     await userEvent.keyboard("n");
     await userEvent.keyboard("m");
     rerender(<ArticleList articles={[]} />);
 
     // An article arriving after the list emptied must not inherit the
-    // highlight of the article that was marked as read.
+    // highlight of the article that was dismissed.
     rerender(<ArticleList articles={[article(2)]} />);
     await userEvent.click(
       screen.getByRole("button", { name: "Show 1 new article" }),
@@ -205,7 +205,7 @@ describe("ArticleList", () => {
     expect(cardOf("Article 2")).toHaveClass("border-primary");
   });
 
-  it("keeps the highlight when an article above it is marked as read", async () => {
+  it("keeps the highlight when an article above it is dismissed", async () => {
     const { rerender } = render(
       <ArticleList articles={[article(1), article(2), article(3)]} />,
     );

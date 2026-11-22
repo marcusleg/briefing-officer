@@ -101,15 +101,15 @@ Ordered by importance to the core job of triaging news.
    keywords at different breadths to add to the feed's filter, so the filter
    learns from the rejection. Every action can be undone from a toast.
 8. **Triage actions.** Dismiss, restore, read later, archive, open the original,
-   open the comments link when the feed provides one, and bulk mark as read for
+   open the comments link when the feed provides one, and bulk dismiss for
    all articles or those older than a chosen number of days or weeks.
 9. **Views.** Home inbox across all feeds, listing unread articles and then
    those saved for later; per-feed and per-category views with an All / Unread /
-   Filtered switch, Read Later, Archived, History of the last 50 read articles,
+   Filtered switch, Read Later, Archived, History of the last 50 dismissed articles,
    and full-text search over titles and article text.
 10. **Keyboard navigation.** Move between articles and trigger summary, audio,
     visit, and dismiss from the keyboard.
-11. **Dashboard.** Charts of unread articles by feed, daily new, read, and
+11. **Dashboard.** Charts of unread articles by feed, daily new, dismissed, and
     filtered articles, and daily AI token usage by model, over 7 days, 30 days,
     or 3 months.
 12. **Accounts and multi-user.** Email and password sign-in and sign-up,
@@ -145,7 +145,7 @@ Screenshots of the main screens live in `docs/screenshots/`.
 
 ## 6. Key logic and constraints
 
-- Article state is a single status (unread, read later, read, filtered) plus an
+- Article state is a single status (unread, read later, dismissed, filtered) plus an
   independent archived flag. The state machine is documented in
   `docs/reference/article-status.md`.
 - Articles older than 365 days are purged hourly by the background worker,

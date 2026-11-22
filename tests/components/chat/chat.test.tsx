@@ -388,7 +388,7 @@ const pendingChange = [
         type: "tool-setArticleStatus",
         toolCallId: "call-1",
         state: "approval-requested",
-        input: { ids: [1], status: "READ" },
+        input: { ids: [1], status: "DISMISSED" },
         approval: { id: "approval-1" },
       },
     ],
@@ -562,7 +562,7 @@ describe("status changes", () => {
     } as never);
     render(<Chat speechEngine="server" />);
 
-    await screen.findByText("Mark 1 article as read?");
+    await screen.findByText("Dismiss 1 article?");
     await user.click(screen.getByRole("button", { name: "Apply" }));
 
     expect(actions.addToolApprovalResponse).toHaveBeenCalledWith({
@@ -584,7 +584,7 @@ describe("status changes", () => {
             state: "output-available",
             approval: { id: "approval-1", approved: true },
             output: {
-              status: "READ",
+              status: "DISMISSED",
               changed: 1,
               alreadyInStatus: 0,
               notFound: 0,

@@ -285,10 +285,10 @@ async function main() {
       });
     }
 
-    // 5–10 already-read articles per feed within the last 7 days (for Daily Activity chart)
-    const readCount = 5 + Math.floor(Math.random() * 6);
-    for (let i = 0; i < readCount; i++) {
-      const readAt = randomDateInLastNDays(7);
+    // 5–10 dismissed articles per feed within the last 7 days (for Daily Activity chart)
+    const dismissedCount = 5 + Math.floor(Math.random() * 6);
+    for (let i = 0; i < dismissedCount; i++) {
+      const dismissedAt = randomDateInLastNDays(7);
       const article = await prisma.article.create({
         data: {
           userId,
@@ -296,9 +296,9 @@ async function main() {
           title: loremTitle(),
           description: lorem(50 + Math.floor(Math.random() * 11)),
           link: `https://example.com/article/${randomUUID()}`,
-          publicationDate: new Date(readAt.getTime() - 3600_000),
-          status: "READ",
-          statusChangedAt: readAt,
+          publicationDate: new Date(dismissedAt.getTime() - 3600_000),
+          status: "DISMISSED",
+          statusChangedAt: dismissedAt,
         },
       });
       const textContent = lorem(300 + Math.floor(Math.random() * 1201));

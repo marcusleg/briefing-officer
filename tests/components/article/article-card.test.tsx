@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/repository/articleRepository", () => ({
-  markArticleAsRead: vi.fn().mockResolvedValue(undefined),
+  dismissArticle: vi.fn().mockResolvedValue(undefined),
   markArticleAsReadLater: vi.fn().mockResolvedValue(undefined),
   archiveArticle: vi.fn().mockResolvedValue(undefined),
   markArticleAsNotInteresting: vi.fn().mockResolvedValue(undefined),

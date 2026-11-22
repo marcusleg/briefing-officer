@@ -13,7 +13,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Prisma } from "@/generated/prisma/client";
 import { articleAuthor, isInInbox } from "@/lib/article";
 import {
-  markArticleAsRead,
+  dismissArticle,
   restoreArticleToInbox,
 } from "@/lib/repository/articleRepository";
 import Link from "next/link";
@@ -73,7 +73,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     "v",
     createHotkeyHandler(async () => {
       window.open(props.article.link, "_blank");
-      await markArticleAsRead(props.article.id);
+      await dismissArticle(props.article.id);
     }),
   );
 
@@ -81,7 +81,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     "m",
     createHotkeyHandler(async () => {
       if (isInInbox(props.article.status)) {
-        await markArticleAsRead(props.article.id);
+        await dismissArticle(props.article.id);
       } else {
         await restoreArticleToInbox(props.article.id);
       }

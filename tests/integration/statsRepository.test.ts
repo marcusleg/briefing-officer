@@ -1,6 +1,7 @@
 import prisma from "@/lib/prismaClient";
 import {
   getChartFeeds,
+  getDismissedArticlesPerDay,
   getFilteredArticlesPerDay,
   getNumberOfReadLaterArticles,
   getNumberOfUnreadArticles,
@@ -8,7 +9,6 @@ import {
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
   getWeeklyArticleCountPerFeed,
-  getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
 import { feedKey } from "@/lib/repository/statsTransforms";
 import { getUserId } from "@/lib/repository/userRepository";
@@ -32,7 +32,7 @@ beforeEach(async () => {
 describe("statsRepository counts", () => {
   it("counts unread articles (not read, not read-later)", async () => {
     await createArticle({ userId, feedId });
-    await createArticle({ userId, feedId, status: "READ" });
+    await createArticle({ userId, feedId, status: "DISMISSED" });
     await createArticle({ userId, feedId, status: "READ_LATER" });
 
     expect(await getNumberOfUnreadArticles()).toBe(1);
@@ -47,7 +47,7 @@ describe("statsRepository counts", () => {
 
   it("does not count read-later articles as unread per feed", async () => {
     await createArticle({ userId, feedId });
-    await createArticle({ userId, feedId, status: "READ" });
+    await createArticle({ userId, feedId, status: "DISMISSED" });
     await createArticle({ userId, feedId, status: "READ_LATER" });
 
     const perFeed = await getUnreadArticlesPerFeed();
@@ -134,12 +134,12 @@ describe("statsRepository counts", () => {
     ]);
   });
 
-  it("counts read articles but not hand-rejected ones as read that day", async () => {
+  it("counts dismissed articles but not hand-rejected ones as dismissed that day", async () => {
     const day = new Date("2026-02-10T12:00:00.000Z");
     await createArticle({
       userId,
       feedId,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: day,
     });
     await createArticle({
@@ -149,7 +149,7 @@ describe("statsRepository counts", () => {
       statusChangedAt: day,
     });
 
-    const { rows } = await getWeeklyArticlesRead(
+    const { rows } = await getDismissedArticlesPerDay(
       new Date("2026-02-10T00:00:00.000Z"),
       new Date("2026-02-10T00:00:00.000Z"),
     );
@@ -157,29 +157,29 @@ describe("statsRepository counts", () => {
     expect(rows).toEqual([{ date: "2026-02-10", [feedKey(feedId)]: 1 }]);
   });
 
-  it("splits the read articles of a day across their feeds", async () => {
+  it("splits the dismissed articles of a day across their feeds", async () => {
     const day = new Date("2026-02-10T12:00:00.000Z");
     const otherFeedId = (await createFeed({ userId, title: "Feed B" })).id;
     await createArticle({
       userId,
       feedId,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: day,
     });
     await createArticle({
       userId,
       feedId: otherFeedId,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: day,
     });
     await createArticle({
       userId,
       feedId: otherFeedId,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: day,
     });
 
-    const { rows, feedKeys, dailyAverage } = await getWeeklyArticlesRead(
+    const { rows, feedKeys, dailyAverage } = await getDismissedArticlesPerDay(
       new Date("2026-02-10T00:00:00.000Z"),
       new Date("2026-02-10T00:00:00.000Z"),
     );
@@ -193,18 +193,18 @@ describe("statsRepository counts", () => {
     expect(dailyAverage).toBe(3);
   });
 
-  it("does not count another user's read articles", async () => {
+  it("does not count another user's dismissed articles", async () => {
     const day = new Date("2026-02-10T12:00:00.000Z");
     const otherUser = await createUser();
     const otherFeed = await createFeed({ userId: otherUser.id });
     await createArticle({
       userId: otherUser.id,
       feedId: otherFeed.id,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: day,
     });
 
-    const { rows, feedKeys } = await getWeeklyArticlesRead(
+    const { rows, feedKeys } = await getDismissedArticlesPerDay(
       new Date("2026-02-10T00:00:00.000Z"),
       new Date("2026-02-10T00:00:00.000Z"),
     );
@@ -272,13 +272,13 @@ describe("statsRepository counts", () => {
     );
   });
 
-  it("leaves unread and read articles out of the rejected counts", async () => {
+  it("leaves unread and dismissed articles out of the rejected counts", async () => {
     const day = new Date("2026-02-10T12:00:00.000Z");
     await createArticle({ userId, feedId, statusChangedAt: day });
     await createArticle({
       userId,
       feedId,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: day,
     });
     await createArticle({
@@ -356,7 +356,7 @@ describe("statsRepository counts", () => {
     await expect(
       getWeeklyArticleCountPerFeed(invalid, invalid),
     ).resolves.toEqual(empty);
-    await expect(getWeeklyArticlesRead(invalid, invalid)).resolves.toEqual(
+    await expect(getDismissedArticlesPerDay(invalid, invalid)).resolves.toEqual(
       empty,
     );
     await expect(getFilteredArticlesPerDay(invalid, invalid)).resolves.toEqual(
@@ -463,7 +463,7 @@ describe("statsRepository counts", () => {
     await createArticle({
       userId,
       feedId,
-      status: "READ",
+      status: "DISMISSED",
       publicationDate: older,
     });
     await createArticle({
@@ -484,7 +484,7 @@ describe("statsRepository counts", () => {
   });
 
   it("has no oldest unread article when nothing is unread", async () => {
-    await createArticle({ userId, feedId, status: "READ" });
+    await createArticle({ userId, feedId, status: "DISMISSED" });
 
     expect(await getOldestUnreadPublicationDate()).toBeNull();
   });

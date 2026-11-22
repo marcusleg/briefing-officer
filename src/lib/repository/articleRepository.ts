@@ -30,8 +30,8 @@ const setArticleArchived = async (articleId: number, archived: boolean) =>
     data: { archived },
   });
 
-export const markArticleAsRead = async (articleId: number) => {
-  const updatedArticle = await setArticleStatus(articleId, "READ");
+export const dismissArticle = async (articleId: number) => {
+  const updatedArticle = await setArticleStatus(articleId, "DISMISSED");
 
   revalidatePath(`/feed/${updatedArticle.feedId}`);
   revalidatePath("/feed");
@@ -55,7 +55,7 @@ export const archiveArticle = async (articleId: number) => {
   revalidatePath("/feed");
 };
 
-export const markArticlesOlderThanXDaysAsRead = async (
+export const dismissArticlesOlderThanXDays = async (
   feedId: number,
   days: number,
 ) => {
@@ -71,7 +71,7 @@ export const markArticlesOlderThanXDaysAsRead = async (
       publicationDate: { lte: date },
       status: "UNREAD",
     },
-    "READ",
+    "DISMISSED",
   );
 
   revalidatePath(`/feed/${feedId}`);
@@ -81,7 +81,7 @@ export const markArticlesOlderThanXDaysAsRead = async (
   return count;
 };
 
-export const markCategoryArticlesOlderThanXDaysAsRead = async (
+export const dismissCategoryArticlesOlderThanXDays = async (
   categoryId: number,
   days: number,
 ) => {
@@ -97,7 +97,7 @@ export const markCategoryArticlesOlderThanXDaysAsRead = async (
       status: "UNREAD",
       feed: { is: { feedCategoryId: categoryId } },
     },
-    "READ",
+    "DISMISSED",
   );
 
   revalidatePath(`/feed/category/${categoryId}`);

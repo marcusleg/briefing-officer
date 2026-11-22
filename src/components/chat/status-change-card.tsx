@@ -31,11 +31,11 @@ const wording: Record<
     declined: (n: number) => string;
   }
 > = {
-  READ: {
-    propose: (n) => `Mark ${articles(n)} as read?`,
-    already: "already read",
-    applied: (n) => `Marked ${articles(n)} as read`,
-    declined: (n) => `You declined: mark ${articles(n)} as read`,
+  DISMISSED: {
+    propose: (n) => `Dismiss ${articles(n)}?`,
+    already: "already dismissed",
+    applied: (n) => `Dismissed ${articles(n)}`,
+    declined: (n) => `You declined: dismiss ${articles(n)}`,
   },
   UNREAD: {
     propose: (n) => `Mark ${articles(n)} as unread?`,

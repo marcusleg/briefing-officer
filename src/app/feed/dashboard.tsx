@@ -10,12 +10,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { buildFeedPalette } from "@/lib/charts/palette";
 import {
   getChartFeeds,
+  getDismissedArticlesPerDay,
   getFilteredArticlesPerDay,
   getOldestUnreadPublicationDate,
   getTokenUsageHistory,
   getUnreadArticlesPerFeed,
   getWeeklyArticleCountPerFeed,
-  getWeeklyArticlesRead,
 } from "@/lib/repository/statsRepository";
 import { ArticlesPerFeedData } from "@/lib/repository/statsTransforms";
 import { useEffect, useMemo, useState } from "react";
@@ -109,7 +109,7 @@ const Dashboard = () => {
       setDailyNewArticlesData(data),
     );
 
-    getWeeklyArticlesRead(dateRange.from, dateRange.to).then((data) =>
+    getDismissedArticlesPerDay(dateRange.from, dateRange.to).then((data) =>
       setDailyActivityData(data),
     );
 
@@ -165,7 +165,7 @@ const Dashboard = () => {
         <div className="md:col-span-2 md:col-start-2 2xl:col-span-1 2xl:col-start-auto [&>*]:h-full">
           <StackedBarChart
             title="Your Daily Activity"
-            description="Number of articles you read each day, split by the feed they came from"
+            description="Number of articles you dismissed each day, split by the feed they came from"
             config={feedConfig}
             data={feedSeries(dailyActivityData)}
             footer={articlesPerDay(dailyActivityData)}

@@ -23,7 +23,7 @@ describe("getArticlesForStatusChange", () => {
       feedId,
       title: "First",
       publicationDate: new Date("2026-04-25T09:00:00Z"),
-      status: "READ",
+      status: "DISMISSED",
     });
     const second = await createArticle({ userId, feedId, title: "Second" });
 
@@ -36,7 +36,7 @@ describe("getArticlesForStatusChange", () => {
       title: "First",
       feed: "Markets Daily",
       published: "2026-04-25",
-      status: "READ",
+      status: "DISMISSED",
     });
   });
 

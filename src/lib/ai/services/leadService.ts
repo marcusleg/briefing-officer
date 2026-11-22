@@ -129,10 +129,10 @@ export const generateAiLead = async (articleId: number) => {
   // This function is not only called at ingest, where the design intends
   // filtering to happen. `article-card.tsx` also calls it lazily from the
   // client to backfill a lead for any rendered article that is missing one —
-  // including a `READ` or `READ_LATER` article whose lead generation failed
+  // including a `DISMISSED` or `READ_LATER` article whose lead generation failed
   // the first time around. Without this guard, a late verdict could flip an
   // article the reader already acted on into `FILTERED`, silently pulling it
-  // out of Read Later or clobbering its read timestamp. Only an article still
+  // out of Read Later or clobbering its dismissal time. Only an article still
   // sitting in the inbox (`UNREAD`) is eligible to be filtered.
   const shouldApplyFilterVerdict = filtered && article.status === "UNREAD";
 

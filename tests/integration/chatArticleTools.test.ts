@@ -123,7 +123,7 @@ describe("searchArticlesForUser", () => {
       await indexed({
         userId,
         feedId,
-        status: "READ",
+        status: "DISMISSED",
         publicationDate: new Date(`2026-01-${day}T00:00:00Z`),
       });
     }
@@ -160,7 +160,7 @@ describe("searchArticlesForUser", () => {
     const readOld = await indexed({
       userId,
       feedId,
-      status: "READ",
+      status: "DISMISSED",
       publicationDate: new Date("2026-01-01T00:00:00Z"),
     });
 
@@ -168,7 +168,7 @@ describe("searchArticlesForUser", () => {
       ids(
         await searchArticlesForUser(
           userId,
-          input({ status: "READ", sort: "newest", limit: 1 }),
+          input({ status: "DISMISSED", sort: "newest", limit: 1 }),
         ),
       ),
     ).toEqual([readOld.id]);
@@ -247,9 +247,9 @@ describe("changeArticleStatusForUser", () => {
     prisma.article.findUniqueOrThrow({ where: { id } });
 
   it.each([
-    ["READ", "UNREAD"],
+    ["DISMISSED", "UNREAD"],
     ["UNREAD", "READ_LATER"],
-    ["READ_LATER", "READ"],
+    ["READ_LATER", "DISMISSED"],
     ["UNREAD", "FILTERED"],
   ] as const)("sets %s on a %s article", async (target, from) => {
     const article = await createArticle({
@@ -287,11 +287,11 @@ describe("changeArticleStatusForUser", () => {
 
     const output = await changeArticleStatusForUser(userId, {
       ids: [foreign.id],
-      status: "READ",
+      status: "DISMISSED",
     });
 
     expect(output).toEqual({
-      status: "READ",
+      status: "DISMISSED",
       changed: 0,
       alreadyInStatus: 0,
       notFound: 1,
@@ -299,27 +299,27 @@ describe("changeArticleStatusForUser", () => {
     expect((await reload(foreign.id)).status).toBe("UNREAD");
   });
 
-  it("skips articles already in the target status so their read time stays", async () => {
-    const read = await createArticle({
+  it("skips articles already in the target status so their status time stays", async () => {
+    const dismissed = await createArticle({
       userId,
       feedId,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: longAgo,
     });
     const unread = await createArticle({ userId, feedId });
 
     const output = await changeArticleStatusForUser(userId, {
-      ids: [read.id, unread.id],
-      status: "READ",
+      ids: [dismissed.id, unread.id],
+      status: "DISMISSED",
     });
 
     expect(output).toEqual({
-      status: "READ",
+      status: "DISMISSED",
       changed: 1,
       alreadyInStatus: 1,
       notFound: 0,
     });
-    expect((await reload(read.id)).statusChangedAt).toEqual(longAgo);
+    expect((await reload(dismissed.id)).statusChangedAt).toEqual(longAgo);
   });
 
   it("counts deleted ids as not found and duplicates once", async () => {
@@ -327,11 +327,11 @@ describe("changeArticleStatusForUser", () => {
 
     const output = await changeArticleStatusForUser(userId, {
       ids: [article.id, article.id, 999_999],
-      status: "READ",
+      status: "DISMISSED",
     });
 
     expect(output).toEqual({
-      status: "READ",
+      status: "DISMISSED",
       changed: 1,
       alreadyInStatus: 0,
       notFound: 1,
@@ -346,7 +346,7 @@ describe("changeArticleStatusForUser", () => {
 
     const output = await changeArticleStatusForUser(userId, {
       ids: [article.id],
-      status: "READ",
+      status: "DISMISSED",
     });
 
     expect(output).toEqual({ error: "update failed" });

@@ -17,7 +17,7 @@ enum ArticleStatus {
   UNREAD
   READ_LATER
   FILTERED
-  READ
+  DISMISSED
 }
 
 enum FeedFilterKind {

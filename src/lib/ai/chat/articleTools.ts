@@ -138,7 +138,11 @@ export const getArticleForUser = async (
 };
 
 /** The statuses the chat may set. Archiving and Not Interested stay manual. */
-export const CHAT_STATUS_TARGETS = ["READ", "UNREAD", "READ_LATER"] as const;
+export const CHAT_STATUS_TARGETS = [
+  "DISMISSED",
+  "UNREAD",
+  "READ_LATER",
+] as const;
 export type ChatStatusTarget = (typeof CHAT_STATUS_TARGETS)[number];
 
 /** Keeps one confirmation card readable. */
@@ -161,7 +165,7 @@ export type SetArticleStatusOutput =
 /**
  * Runs only after the reader approved the change in the chat. Articles that
  * already have the target status are left untouched so History keeps the
- * moment they were first read.
+ * moment they were first dismissed.
  */
 export const changeArticleStatusForUser = async (
   userId: string,
