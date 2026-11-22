@@ -42,10 +42,7 @@ export function useServerSpeech(articleId?: number): SpeechControls {
     ...state,
     enqueue: queue.enqueue,
     finish: queue.finish,
-    pause: queue.pause,
     playFrom: queue.playFrom,
-    resume: queue.resume,
-    setRate: queue.setRate,
     supported: true,
     voiceAvailable: true,
   };

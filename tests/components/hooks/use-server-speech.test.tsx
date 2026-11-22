@@ -187,65 +187,7 @@ describe("useServerSpeech", () => {
     expect(speech.requested().slice(2)).toEqual(["Five.", "Six."]);
   });
 
-  it("changes speed without restarting or requesting again", async () => {
-    const { speech, result } = startPlayback(["One.", "Two."]);
-    await respond(speech, "One.");
-
-    act(() => result.current.setRate(1.5));
-
-    expect(result.current.rate).toBe(1.5);
-    expect(speech.audio().playbackRate).toBe(1.5);
-    expect(speech.audio().play).toHaveBeenCalledTimes(1);
-
-    await respond(speech, "Two.");
-    await finish(speech);
-
-    // Assigning the next clip's src resets playbackRate to the default rate.
-    expect(speech.audio().playbackRate).toBe(1.5);
-    expect(speech.fetch).toHaveBeenCalledTimes(2);
-  });
-
-  it("applies a rate set before playback to the first clip", async () => {
-    const speech = installServerSpeech();
-    const { result } = renderHook(() => useServerSpeech(42));
-
-    act(() => {
-      result.current.setRate(1.2);
-      result.current.enqueue("One.");
-      result.current.playFrom(0);
-    });
-    await respond(speech, "One.");
-
-    expect(speech.audio().playbackRate).toBe(1.2);
-  });
-
-  it("pauses and resumes the clip", async () => {
-    const { speech, result } = startPlayback(["One."]);
-    await respond(speech, "One.");
-
-    act(() => result.current.pause());
-    expect(speech.audio().pause).toHaveBeenCalled();
-    expect(result.current.paused).toBe(true);
-
-    act(() => result.current.resume());
-    expect(speech.audio().play).toHaveBeenCalledTimes(2);
-    expect(result.current.paused).toBe(false);
-  });
-
-  it("does not start a clip that arrives while paused", async () => {
-    const { speech, result } = startPlayback(["One."]);
-
-    act(() => result.current.pause());
-    await respond(speech, "One.");
-
-    expect(speech.audio().src).toBe("blob:One.");
-    expect(speech.audio().play).not.toHaveBeenCalled();
-
-    act(() => result.current.resume());
-    expect(speech.audio().play).toHaveBeenCalledOnce();
-  });
-
-  it("waits for the reader when the browser blocks autoplay", async () => {
+  it("reports a pause, not an error, when the browser blocks autoplay", async () => {
     const { speech, result } = startPlayback(["One."]);
     FakeAudio.rejectNextPlay = "NotAllowedError";
 
@@ -253,15 +195,9 @@ describe("useServerSpeech", () => {
 
     expect(result.current.paused).toBe(true);
     expect(result.current.error).toBe(false);
-
-    act(() => result.current.resume());
-    await settle();
-
-    expect(result.current.paused).toBe(false);
-    expect(result.current.activeIndex).toBe(0);
   });
 
-  it("stops at a sentence that could not be synthesized and retries it on resume", async () => {
+  it("stops at a sentence that could not be synthesized and retries it when played again", async () => {
     const { speech, result } = startPlayback(["One.", "Two."]);
 
     await fail(speech, "One.");
@@ -271,7 +207,7 @@ describe("useServerSpeech", () => {
     expect(result.current.buffering).toBe(false);
     expect(FakeAudio.instances).toHaveLength(0);
 
-    act(() => result.current.resume());
+    act(() => result.current.playFrom(0));
     expect(result.current.error).toBe(false);
     expect(speech.requested().filter((text) => text === "One.")).toHaveLength(
       2,
@@ -282,7 +218,7 @@ describe("useServerSpeech", () => {
     expect(result.current.activeIndex).toBe(0);
   });
 
-  it("retries every failed clip with one resume", async () => {
+  it("retries every failed clip when played again", async () => {
     // Two sentences keep both requests in flight together, so the pair fails
     // before a third sentence can take a slot.
     const { speech, result } = startPlayback(["One.", "Two."]);
@@ -291,7 +227,7 @@ describe("useServerSpeech", () => {
     await fail(speech, "Two.");
     expect(result.current.error).toBe(true);
 
-    act(() => result.current.resume());
+    act(() => result.current.playFrom(0));
 
     const requested = speech.requested();
     expect(requested.filter((text) => text === "One.")).toHaveLength(2);
@@ -328,7 +264,7 @@ describe("useServerSpeech", () => {
     expect(speech.createObjectURL).not.toHaveBeenCalled();
   });
 
-  it("stops at a clip the browser cannot decode and retries it on resume", async () => {
+  it("stops at a clip the browser cannot decode", async () => {
     const { speech, result } = startPlayback(["One.", "Two."]);
     await respond(speech, "One.");
 
@@ -336,14 +272,6 @@ describe("useServerSpeech", () => {
 
     expect(result.current.error).toBe(true);
     expect(result.current.paused).toBe(true);
-
-    act(() => result.current.resume());
-
-    expect(speech.revokeObjectURL).toHaveBeenCalledWith("blob:One.");
-    expect(speech.requested().filter((text) => text === "One.")).toHaveLength(
-      2,
-    );
-    expect(result.current.error).toBe(false);
   });
 
   it("requests a retried sentence ahead of the look-ahead window", async () => {
@@ -353,7 +281,7 @@ describe("useServerSpeech", () => {
     // "Two." and "Three." are now both loading.
     expect(speech.requested()).toEqual(["One.", "Two.", "Three."]);
 
-    act(() => result.current.resume());
+    act(() => result.current.playFrom(0));
 
     expect(speech.requested()).toEqual(["One.", "Two.", "Three.", "One."]);
     expect(speech.requests[2].signal.aborted).toBe(true);

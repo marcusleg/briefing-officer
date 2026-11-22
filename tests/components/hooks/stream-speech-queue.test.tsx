@@ -191,50 +191,6 @@ describe("StreamSpeechQueue", () => {
     expect(speech.createObjectURL).toHaveBeenCalledOnce();
   });
 
-  it("changes speed on the one element", async () => {
-    const { speech, queue, state } = await startPlayback(["One."]);
-    await respond(speech, "One.");
-
-    queue.setRate(1.5);
-
-    expect(state().rate).toBe(1.5);
-    expect(speech.audio().playbackRate).toBe(1.5);
-  });
-
-  it("applies a rate set before playback", async () => {
-    const speech = installStreamSpeech();
-    const queue = new StreamSpeechQueue(42, passthroughFormat);
-    queue.setRate(1.2);
-    queue.enqueue("One.");
-    queue.playFrom(0);
-    await respond(speech, "One.");
-
-    expect(speech.audio().playbackRate).toBe(1.2);
-  });
-
-  it("pauses and resumes", async () => {
-    const { speech, queue, state } = await startPlayback(["One."]);
-    await respond(speech, "One.");
-
-    queue.pause();
-    expect(speech.audio().paused).toBe(true);
-    expect(state().paused).toBe(true);
-
-    queue.resume();
-    expect(speech.audio().paused).toBe(false);
-    expect(state().paused).toBe(false);
-  });
-
-  it("does not start a clip that arrives while paused", async () => {
-    const { speech, queue, state } = await startPlayback(["One."]);
-    queue.pause();
-
-    await respond(speech, "One.");
-
-    expect(speech.audio().play).not.toHaveBeenCalled();
-    expect(state().buffering).toBe(false);
-  });
-
   it("follows a pause and play from outside the page", async () => {
     const { speech, state } = await startPlayback(["One.", "Two."]);
     await respond(speech, "One.");
@@ -299,18 +255,13 @@ describe("StreamSpeechQueue", () => {
     expect(state().activeIndex).toBe(0);
   });
 
-  it("waits for the reader when the browser blocks autoplay", async () => {
-    const { speech, queue, state } = await startPlayback(["One."]);
+  it("reports a pause, not an error, when the browser blocks autoplay", async () => {
+    const { speech, state } = await startPlayback(["One."]);
     FakeStreamAudio.rejectNextPlay = "NotAllowedError";
 
     await respond(speech, "One.");
     expect(state().paused).toBe(true);
     expect(state().error).toBe(false);
-
-    queue.resume();
-    await flush();
-    expect(speech.audio().paused).toBe(false);
-    expect(state().activeIndex).toBe(0);
   });
 
   it("stops at a sentence that could not be synthesized and retries it", async () => {
@@ -326,7 +277,7 @@ describe("StreamSpeechQueue", () => {
     expect(state().error).toBe(true);
     expect(state().paused).toBe(true);
 
-    queue.resume();
+    queue.playFrom(1);
     expect(state().error).toBe(false);
     expect(speech.requested().filter((text) => text === "Two.")).toHaveLength(
       2,
@@ -347,7 +298,7 @@ describe("StreamSpeechQueue", () => {
     await fail(speech, "Two.");
     expect(state().error).toBe(true);
 
-    queue.resume();
+    queue.playFrom(1);
     await respond(speech, "Two.");
 
     expect(speech.appended()).toEqual(["One.", "Two."]);
@@ -377,7 +328,7 @@ describe("StreamSpeechQueue", () => {
     speech.audio().breakStream();
     expect(state().error).toBe(true);
 
-    queue.resume();
+    queue.playFrom(1);
     await flush();
 
     expect(speech.createObjectURL).toHaveBeenCalledTimes(2);

@@ -35,7 +35,6 @@ export interface ServerSpeechSnapshot {
   buffering: boolean;
   error: boolean;
   paused: boolean;
-  rate: number;
   speaking: boolean;
 }
 
@@ -44,7 +43,6 @@ export const INITIAL_SERVER_SPEECH_SNAPSHOT: ServerSpeechSnapshot = {
   buffering: false,
   error: false,
   paused: false,
-  rate: 1,
   speaking: false,
 };
 
@@ -56,9 +54,6 @@ export interface SpeechQueue {
   /** No more sentences will be enqueued. */
   finish: () => void;
   playFrom: (index: number) => void;
-  pause: () => void;
-  resume: () => void;
-  setRate: (rate: number) => void;
   /** Stops playback and releases every request and clip. Sentences are kept. */
   dispose: () => void;
 }
@@ -159,40 +154,6 @@ export class ServerSpeechQueue implements SpeechQueue {
     this.playCurrent();
   };
 
-  pause = () => {
-    this.element?.pause();
-    this.update({ paused: true });
-  };
-
-  resume = () => {
-    if (this.snapshot.error) {
-      const failed = this.clips.get(this.position);
-      if (failed?.status === "ready") URL.revokeObjectURL(failed.url);
-      this.clips.delete(this.position);
-      // playFrom also clears the other failed clips, so one press retries
-      // every sentence that failed.
-      this.playFrom(this.position);
-      return;
-    }
-
-    this.update({ paused: false });
-
-    // While waiting, the clip starts itself when it arrives.
-    if (this.playback === "playing" && !this.waiting) {
-      this.startElement();
-    }
-  };
-
-  setRate = (rate: number) => {
-    if (this.element) {
-      // Loading a new src resets playbackRate to defaultPlaybackRate, so both
-      // are set to carry the rate across clips.
-      this.element.defaultPlaybackRate = rate;
-      this.element.playbackRate = rate;
-    }
-    this.update({ rate });
-  };
-
   dispose = () => {
     this.playback = "idle";
     this.waiting = false;
@@ -216,8 +177,6 @@ export class ServerSpeechQueue implements SpeechQueue {
   private audio() {
     if (!this.element) {
       const element = new Audio();
-      element.defaultPlaybackRate = this.snapshot.rate;
-      element.playbackRate = this.snapshot.rate;
       element.addEventListener("playing", this.handlePlaying);
       element.addEventListener("ended", this.handleEnded);
       element.addEventListener("error", this.handleElementError);
@@ -283,7 +242,6 @@ export class ServerSpeechQueue implements SpeechQueue {
     const element = this.audio();
     element.src = clip.url;
     this.elementUrl = clip.url;
-    element.playbackRate = this.snapshot.rate;
 
     if (!this.snapshot.paused) {
       this.startElement();
@@ -295,8 +253,7 @@ export class ServerSpeechQueue implements SpeechQueue {
       .play()
       .catch((error: unknown) => {
         // Autoplay is blocked until the reader interacts with the page, as on
-        // a reload. Waiting for the Play button is the expected outcome, not
-        // an error. An AbortError is play() being interrupted by a newer src or
+        // a reload. That is reported as a pause rather than an error. An AbortError is play() being interrupted by a newer src or
         // a pause, which needs nothing. A source the browser cannot decode
         // rejects with NotSupportedError, which the element's error event
         // handles.
