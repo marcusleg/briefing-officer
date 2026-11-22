@@ -10,38 +10,54 @@ Get the user's approval before making any of these hard-to-undo changes:
 - configuration operators set: environment variables, Helm values
 - anything that deletes or rewrites existing user data
 
-When the work is done, open a pull request against `main`.
+When the work is done, open a pull request against `main`. Merge it only when
+the user tells you to, even when CI is green. Until it is merged, fold
+follow-up fixes into the commits they belong to: amending and force-pushing the
+branch (`--force-with-lease`) is fine.
 
 The user judges a change by how the application behaves, not by its code. When
-reporting, lead with what changed for the user. Leave a demo instance of the
-branch running and give its URL with sign-in credentials you have verified
-work, plus screenshots where they help.
+reporting, lead with what changed for the user. For a change the user can see
+in the app, leave a demo instance of the branch running and give its URL with
+sign-in credentials you have verified work, plus screenshots where they help.
+See `docs/agents/demo.md`.
+
+This repository is public: keep personal details, private links and unrelated
+projects out of code, comments, commits and PRs.
 
 ## Checks
+
+In a fresh checkout or worktree, run `npm ci` and `npx prisma generate`, and
+copy `.env` from the main checkout. The app needs a configured AI provider:
+`src/lib/ai/services/leadService.ts` loads its model at import, so anything
+importing it fails without one, and tests mock it.
 
 A Husky pre-commit hook runs `eslint --fix` and Prettier on staged files. Never
 bypass it or CI (`--no-verify`, `gh pr merge --admin`, disabling a job); fix the
 underlying issue.
 
-Before pushing, run what CI gates on:
+Before pushing, run the checks CI requires:
 
 ```bash
-npm run format:check  # fix with `npm run format`
+npm run format:check
 npm run lint
 npm run typecheck     # covers tests; the build does not
 npm run test
 npm run build
 ```
 
-Run `npx prisma generate` first in a fresh checkout or worktree. If you change
-`helm-chart/values.yaml`, regenerate its README with `npm run helm:readme`.
+CI also requires these when you touch the files they cover:
 
-## Git
+- `helm-chart/`: it must render with
+  `helm template briefing-officer helm-chart`. After changing `values.yaml`,
+  regenerate the README with `npm run helm:readme`.
+- a `uses:` in `.github/workflows/`: rerun `gh actions-lock` to update the
+  lockfile.
 
-- Never merge a PR unless the user tells you to, even when CI is green.
-- Release only via the `cutting-a-release` skill. Pushing a `v*` tag publishes
-  the container image and Helm chart, so never create tags or GitHub releases
-  outside it.
+## Releases
+
+Release only via the `cutting-a-release` skill. Pushing a `v*` tag publishes
+the container image and Helm chart, so never create tags or GitHub releases
+outside it.
 
 ## Design
 
