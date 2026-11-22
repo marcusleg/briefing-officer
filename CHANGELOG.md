@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.22.0](https://github.com/marcusleg/briefing-officer/compare/v0.21.0...v0.22.0) (2026-11-22)
+
+### ⚠ Breaking Changes
+
+- The audio summary has been removed, along with its page and the `a`
+  shortcut. Use Read aloud on an article's text summary instead. Bookmarks to
+  audio summary pages no longer open.
+  ([#867](https://github.com/marcusleg/briefing-officer/pull/867))
+- Starred articles are now called Archived, and articles marked as read are now
+  Dismissed. The upgrade renames them in the database; rolling back to 0.21.0
+  afterward needs reverse SQL by hand. Bookmarks to `/feed/starred-articles`
+  no longer open; Archived Articles is at `/feed/archived`.
+  ([#848](https://github.com/marcusleg/briefing-officer/pull/848))
+
+### Features
+
+- Summarize now opens a chat about the article: the text summary is its first
+  answer, and you can ask follow-up questions below it.
+  ([#853](https://github.com/marcusleg/briefing-officer/pull/853))
+- Articles cited in chat answers open at their source in a new tab, with the
+  site's name beside the link. Links the AI writes to other sites are shown as
+  plain text. ([#853](https://github.com/marcusleg/briefing-officer/pull/853))
+- Read chat answers aloud. They are read by your browser's voices, or by an
+  OpenAI-compatible text-to-speech service when you set `OPENAI_TTS_MODEL` and
+  `OPENAI_TTS_VOICE` (with optional `OPENAI_TTS_BASE_URL`,
+  `OPENAI_TTS_API_KEY` and `OPENAI_TTS_LANGUAGES`).
+  ([#841](https://github.com/marcusleg/briefing-officer/pull/841),
+  [#842](https://github.com/marcusleg/briefing-officer/pull/842),
+  [#843](https://github.com/marcusleg/briefing-officer/pull/843))
+- Ask the chat to dismiss articles, mark them unread or save them for later.
+  It shows the articles it would change, and nothing changes until you click
+  Apply. ([#845](https://github.com/marcusleg/briefing-officer/pull/845))
+
 ## [0.21.0](https://github.com/marcusleg/briefing-officer/compare/v0.20.1...v0.21.0) (2026-11-18)
 
 ### Features
