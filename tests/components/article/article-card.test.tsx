@@ -51,11 +51,11 @@ describe("ArticleCard", () => {
     expect(screen.queryByRole("status")).toBeNull();
   });
 
-  it("announces that the summary is being written while the lead is missing", () => {
+  it("announces that the lead is being written while it is missing", () => {
     render(<ArticleCard article={{ ...article, lead: null }} />);
 
     expect(
-      screen.getByRole("status", { name: "Writing summary" }),
+      screen.getByRole("status", { name: "Writing lead" }),
     ).toBeInTheDocument();
   });
 

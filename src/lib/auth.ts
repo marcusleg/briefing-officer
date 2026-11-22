@@ -49,7 +49,7 @@ export const auth = betterAuth({
         // then act on the existing account. This only runs when a user row is
         // really being inserted, and sets the role or hold in the same write.
         before: async (user, ctx) => {
-          // Users created through SSO or by an admin are not affected.
+          // Users created through SSO or by an administrator are not affected.
           if (ctx?.path !== "/sign-up/email") {
             return;
           }

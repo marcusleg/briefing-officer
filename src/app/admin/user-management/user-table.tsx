@@ -26,7 +26,7 @@ const UserTable = async () => {
 
   return (
     <Table>
-      <TableCaption>List of registered users.</TableCaption>
+      <TableCaption>List of registered accounts.</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="text-center">Enabled</TableHead>

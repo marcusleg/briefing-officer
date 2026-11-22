@@ -69,14 +69,14 @@ describe("TextSummaryStream", () => {
     render(<TextSummaryStream articleId={1} />);
 
     expect(
-      await screen.findByRole("status", { name: "Writing summary" }),
+      await screen.findByRole("status", { name: "Writing text summary" }),
     ).toBeInTheDocument();
 
     stream.push("The first sentence.");
 
     expect(await screen.findByText("The first sentence.")).toBeInTheDocument();
     expect(
-      screen.queryByRole("status", { name: "Writing summary" }),
+      screen.queryByRole("status", { name: "Writing text summary" }),
     ).not.toBeInTheDocument();
     stream.end();
   });
@@ -143,9 +143,11 @@ describe("TextSummaryStream", () => {
 
     render(<TextSummaryStream articleId={1} />);
 
-    expect(await screen.findByText("Summary incomplete")).toBeInTheDocument();
     expect(
-      screen.queryByRole("status", { name: "Writing summary" }),
+      await screen.findByText("Text summary incomplete"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("status", { name: "Writing text summary" }),
     ).not.toBeInTheDocument();
   });
 
@@ -154,7 +156,9 @@ describe("TextSummaryStream", () => {
 
     render(<TextSummaryStream articleId={1} />);
 
-    expect(await screen.findByText("Summary incomplete")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Text summary incomplete"),
+    ).toBeInTheDocument();
     expect(screen.getByText("The first half arrived.")).toBeInTheDocument();
   });
 

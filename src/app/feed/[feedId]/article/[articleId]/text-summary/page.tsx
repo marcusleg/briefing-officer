@@ -73,7 +73,7 @@ const TextSummary = async ({
           </div>
         ) : (
           <Alert className="mx-auto my-12 max-w-md">
-            <AlertTitle>Summary unavailable</AlertTitle>
+            <AlertTitle>Text summary unavailable</AlertTitle>
             <AlertDescription>
               The article content could not be retrieved, so a text summary
               cannot be generated.

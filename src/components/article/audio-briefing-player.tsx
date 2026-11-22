@@ -193,8 +193,8 @@ const SpeechPlayer = (props: SpeechPlayerProps) => {
         <Alert>
           <AlertTitle>Briefing incomplete</AlertTitle>
           <AlertDescription>
-            The rest of this summary could not be generated. What was written is
-            shown below.
+            The rest of this briefing could not be generated. What was written
+            is shown below.
           </AlertDescription>
         </Alert>
       )}

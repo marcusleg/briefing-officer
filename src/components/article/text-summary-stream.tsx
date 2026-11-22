@@ -103,7 +103,10 @@ const TextSummaryStream = ({ articleId }: TextSummaryStreamProps) => {
 
   if (status === "streaming" && generation === "") {
     return (
-      <Spinner className="mx-auto my-12 size-8" aria-label="Writing summary" />
+      <Spinner
+        className="mx-auto my-12 size-8"
+        aria-label="Writing text summary"
+      />
     );
   }
 
@@ -111,10 +114,10 @@ const TextSummaryStream = ({ articleId }: TextSummaryStreamProps) => {
     <div className="flex flex-col gap-4">
       {status === "failed" && (
         <Alert>
-          <AlertTitle>Summary incomplete</AlertTitle>
+          <AlertTitle>Text summary incomplete</AlertTitle>
           <AlertDescription>
-            The rest of this summary could not be generated. What was written is
-            shown below.
+            The rest of this text summary could not be generated. What was
+            written is shown below.
           </AlertDescription>
         </Alert>
       )}
