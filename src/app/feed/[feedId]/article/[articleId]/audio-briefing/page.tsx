@@ -8,7 +8,6 @@ import { getSpeechModelFor } from "@/lib/ai/speechRegistry";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export const maxDuration = 30;
@@ -83,9 +82,6 @@ const AudioBriefingPage = async ({
             </AlertDescription>
           </Alert>
         )}
-        <div className="text-muted-foreground text-xs">
-          Source: <Link href={article.link}>{article.link}</Link>
-        </div>
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:gap-2">
           <ArticleSubpageActions
             article={article}

@@ -16,6 +16,7 @@ import ChatMessage, { messageText } from "@/components/chat/chat-message";
 import { ReadAloud, type SpeechEngine } from "@/components/chat/read-aloud";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { compactEarlierTurns } from "@/lib/ai/chat/compactHistory";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
 import { cn } from "@/lib/utils";
@@ -36,25 +37,51 @@ import {
   type ClipboardEvent,
   type DragEvent,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
+import type { StickToBottomContext } from "use-stick-to-bottom";
 
 /**
  * The whole conversation goes to the route on every question. Earlier article
  * texts would soon pass its size limit, so they are sent as references only,
  * the way the route compacts them for the model anyway.
  */
-export const transport = new DefaultChatTransport<ChatUIMessage>({
-  api: "/api/chat",
-  prepareSendMessagesRequest: ({ id, messages, body, trigger, messageId }) => ({
-    body: {
-      ...body,
+const createTransport = (articleId?: number) =>
+  new DefaultChatTransport<ChatUIMessage>({
+    api: "/api/chat",
+    prepareSendMessagesRequest: ({
       id,
-      messages: compactEarlierTurns(messages),
+      messages,
+      body,
       trigger,
       messageId,
-    },
-  }),
-});
+    }) => ({
+      body: {
+        ...body,
+        id,
+        messages: compactEarlierTurns(messages),
+        trigger,
+        messageId,
+        articleId,
+      },
+    }),
+  });
+
+export const transport = createTransport();
+
+/**
+ * What the reader asks first in a chat opened on an article. It names no
+ * title: the heading above shows the article, and a title is the feed's text,
+ * which must not reach the model as the reader's own words.
+ */
+export const TEXT_SUMMARY_REQUEST = "Summarize this article.";
+
+/**
+ * Whether a chat opened on an article still shows only its text summary,
+ * which the reader reads from the top. Their own first question ends that.
+ */
+export const showsOnlyTextSummary = (messages: ChatUIMessage[]) =>
+  messages.filter((message) => message.role === "user").length < 2;
 
 const hasStatus = (error: Error, statusCode: number) =>
   APICallError.isInstance(error) && error.statusCode === statusCode;
@@ -114,10 +141,29 @@ const promptSurface = cn(
   "[&>[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:border-primary [&>[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:ring-primary/30 [&>[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:ring-[3px]",
 );
 
-const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
+const Chat = ({
+  speechEngine,
+  article,
+  header,
+}: {
+  speechEngine: SpeechEngine;
+  /**
+   * Opens the chat on this article: it asks for the text summary right away,
+   * and every request carries the article's id, which grounds the answers in
+   * it.
+   */
+  article?: { id: number };
+  /** Shown above the conversation, scrolling with it. */
+  header?: ReactNode;
+}) => {
   // Set while a typed reply declines a pending card, so the decline goes out
   // with the reply in one request instead of on its own first.
   const decliningForReply = useRef(false);
+
+  // A page shows one article for its whole life, so its transport is made once.
+  const [chatTransport] = useState(() =>
+    article ? createTransport(article.id) : transport,
+  );
 
   const {
     messages,
@@ -130,7 +176,7 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
     clearError,
     addToolApprovalResponse,
   } = useChat<ChatUIMessage>({
-    transport,
+    transport: chatTransport,
     // Apply and Decline on a card send the conversation back so the server
     // runs (or skips) the change and the assistant can confirm it.
     sendAutomaticallyWhen: ({ messages }) =>
@@ -169,6 +215,40 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
   const stopReading = useCallback(() => setReadingId(undefined), []);
 
   const busy = status === "submitted" || status === "streaming";
+
+  // The text summary is asked for once the chat is open. Deferred so that
+  // Strict Mode's trial unmount, which stops the chat, cancels it instead of
+  // leaving it stopped.
+  const opensOnArticle = article !== undefined;
+  const hasMessages = messages.length > 0;
+  useEffect(() => {
+    if (!opensOnArticle || hasMessages) {
+      return;
+    }
+    const timer = setTimeout(
+      () => void sendMessage({ text: TEXT_SUMMARY_REQUEST }),
+      0,
+    );
+    return () => clearTimeout(timer);
+  }, [opensOnArticle, hasMessages, sendMessage]);
+
+  // The conversation stays at the top until the reader asks a question;
+  // from then on it follows the answers as usual.
+  const conversation = useRef<StickToBottomContext>(null);
+  const atTop = opensOnArticle && showsOnlyTextSummary(messages);
+  // The conversation keeps the first function it is given, so this one reads
+  // where to stay from a ref.
+  const stayAtTop = useRef(atTop);
+  const scrollTarget = useCallback(
+    (bottom: number) => (stayAtTop.current ? 0 : bottom),
+    [],
+  );
+  useEffect(() => {
+    if (stayAtTop.current && !atTop) {
+      stayAtTop.current = false;
+      void conversation.current?.scrollToBottom();
+    }
+  }, [atTop]);
 
   const send = async (text: string) => {
     if (busy || !text.trim()) {
@@ -214,7 +294,7 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
     setReadingId(undefined);
   };
 
-  const isEmpty = messages.length === 0;
+  const isEmpty = messages.length === 0 && !article;
 
   // A fresh chat centers the prompt; once there is a conversation the prompt
   // moves to the bottom. The input stays the last child either way, so React
@@ -238,15 +318,30 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
         </div>
       ) : (
         <div className="max-w-content mx-auto flex w-full justify-end">
-          <Button variant="ghost" size="sm" onClick={startOver}>
-            <PlusIcon />
-            New chat
-          </Button>
+          {article ? (
+            // Starting over here would ask for the text summary again.
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/chat">
+                <PlusIcon />
+                New chat
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={startOver}>
+              <PlusIcon />
+              New chat
+            </Button>
+          )}
         </div>
       )}
 
-      <Conversation className={cn("min-h-0", isEmpty && "hidden")}>
+      <Conversation
+        className={cn("min-h-0", isEmpty && "hidden")}
+        contextRef={conversation}
+        targetScrollTop={scrollTarget}
+      >
         <ConversationContent className="max-w-content mx-auto w-full gap-6 px-0">
+          {header}
           {messages.map((message, index) => (
             <ChatMessage
               key={message.id}
@@ -270,6 +365,13 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
               }
             />
           ))}
+
+          {status === "submitted" && (
+            <Spinner
+              className="text-muted-foreground size-5"
+              aria-label="Answering"
+            />
+          )}
 
           {error &&
             (isSessionExpired(error) ? (
@@ -311,7 +413,7 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
             ))}
         </ConversationContent>
         {/* The vendored button is see-through in light mode over text. */}
-        <ConversationScrollButton className="bg-background" />
+        {!atTop && <ConversationScrollButton className="bg-background" />}
       </Conversation>
 
       <div
@@ -326,8 +428,12 @@ const Chat = ({ speechEngine }: { speechEngine: SpeechEngine }) => {
           className={promptSurface}
         >
           <PromptInputTextarea
-            aria-label="Ask about your articles"
-            placeholder="Ask about your articles…"
+            aria-label={
+              article ? "Ask about this article" : "Ask about your articles"
+            }
+            placeholder={
+              article ? "Ask about this article…" : "Ask about your articles…"
+            }
             onKeyDown={handleKeyDown}
           />
           <PromptInputFooter className="justify-end">

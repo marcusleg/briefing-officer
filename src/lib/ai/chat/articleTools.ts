@@ -139,6 +139,47 @@ export const getArticleForUser = async (
   };
 };
 
+/** The article a chat was opened on, as its instructions carry it. */
+export interface OpenedArticle {
+  id: number;
+  title: string;
+  feed: string;
+  path: string;
+  language: string | null;
+  text: string;
+  /** Whether `text` stops short of the whole article text. */
+  truncated: boolean;
+}
+
+/**
+ * The article a chat is opened on, or null when the reader has no such
+ * article or it has no article text: a text summary is written from the
+ * article text alone, never from the feed's description.
+ */
+export const getOpenedArticleForUser = async (
+  userId: string,
+  id: number,
+): Promise<OpenedArticle | null> => {
+  const article = await prisma.article.findFirst({
+    where: { id, userId },
+    include: { feed: { select: { title: true } }, scrape: true },
+  });
+  const articleText = article?.scrape?.textContent;
+  if (!article || !articleText) {
+    return null;
+  }
+
+  return {
+    id: article.id,
+    title: article.title,
+    feed: article.feed.title,
+    path: articlePath(article),
+    language: article.language,
+    text: articleText.slice(0, ARTICLE_TEXT_LIMIT),
+    truncated: articleText.length > ARTICLE_TEXT_LIMIT,
+  };
+};
+
 /** The statuses the chat may set. Archiving and Not Interested stay manual. */
 export const CHAT_STATUS_TARGETS = [
   "DISMISSED",

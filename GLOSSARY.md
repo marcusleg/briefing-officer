@@ -55,7 +55,8 @@ reader what the article reports, densely enough that it is often all they need.
 _Avoid_: Teaser, excerpt
 
 **Text Summary**:
-A bullet list of an article's key facts, written when the reader asks for it.
+A bullet list of an article's key facts: the first answer of a chat opened on
+that article.
 _Avoid_: Summary (on its own), key facts
 
 **Audio Briefing**:
@@ -65,8 +66,10 @@ _Avoid_: Audio summary
 
 **Chat**:
 A conversation in which the AI answers the reader's questions from their
-articles, citing them, and can change articles' status when the reader asks.
-_Avoid_: Assistant, Briefing Officer
+articles, citing them, and can change articles' status when the reader asks. A
+chat opened on an article is grounded in that article and starts with its text
+summary.
+_Avoid_: Assistant, Briefing Officer, article chat
 
 ### Triage
 
