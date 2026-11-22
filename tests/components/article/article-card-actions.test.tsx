@@ -37,41 +37,22 @@ const article = {
 } as any;
 
 describe("ArticleCardActions", () => {
-  it("links to the audio briefing page in both layouts", () => {
-    render(<ArticleCardActions article={article} />);
-
-    // Both the mobile (md:hidden) and desktop (hidden md:flex) layouts render
-    // into the DOM simultaneously; CSS, not JS, decides which is visible.
-    const links = screen.getAllByRole("link", { name: /audio briefing/i });
-    expect(links).toHaveLength(2);
-    expect(links[0]).toHaveAttribute(
-      "href",
-      "/feed/1/article/1/audio-briefing",
-    );
-  });
-
   it("hides the text summary entry on the text summary page", () => {
     render(<ArticleCardActions article={article} currentPage="text-summary" />);
 
     expect(
       screen.queryByRole("link", { name: /text summary/i }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getAllByRole("link", { name: /audio briefing/i }),
-    ).toHaveLength(2);
   });
 
-  it("hides the audio entry on the audio briefing page", () => {
-    render(
-      <ArticleCardActions article={article} currentPage="audio-briefing" />,
-    );
+  it("links to the text summary page in both layouts", () => {
+    render(<ArticleCardActions article={article} />);
 
-    expect(
-      screen.queryByRole("link", { name: /audio briefing/i }),
-    ).not.toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /text summary/i })).toHaveLength(
-      2,
-    );
+    // Both the mobile (md:hidden) and desktop (hidden md:flex) layouts render
+    // into the DOM simultaneously; CSS, not JS, decides which is visible.
+    const links = screen.getAllByRole("link", { name: /text summary/i });
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute("href", "/feed/1/article/1/text-summary");
   });
 
   it("offers the not-interested action for an inbox article", () => {

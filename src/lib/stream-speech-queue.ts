@@ -1,5 +1,5 @@
 /**
- * Plays an audio briefing through a TTS service behind /api/speech as one
+ * Plays text through a TTS service behind /api/speech as one
  * continuous stream.
  *
  * Sentences are synthesized one at a time, as in `ServerSpeechQueue`, but each
@@ -7,7 +7,7 @@
  * The <audio> element therefore plays one unbroken track: it never ends between
  * sentences, and a sentence that is still loading only makes it wait. Mobile
  * browsers keep a page in the background running while its media plays and
- * may suspend it once the media stops, so this is what lets the briefing go on
+ * may suspend it once the media stops, so this is what lets the reading go on
  * with the screen off or in another app.
  *
  * Clips are appended strictly in order, so the stream always holds a run of
@@ -110,7 +110,7 @@ export class StreamSpeechQueue implements SpeechQueue {
   private target: number | undefined;
   // True while the element has played everything appended and waits for more.
   private starved = false;
-  // Set once the whole script has been enqueued.
+  // Set once the whole text has been enqueued.
   private finished = false;
   private element: HTMLAudioElement | undefined;
   private snapshot = INITIAL_SERVER_SPEECH_SNAPSHOT;
@@ -396,7 +396,7 @@ export class StreamSpeechQueue implements SpeechQueue {
     this.update({ buffering: true });
   };
 
-  // The stream is ended once it cannot grow: the whole script is in it, or the
+  // The stream is ended once it cannot grow: the whole text is in it, or the
   // next sentence failed. Until then the element waits at the end of what it
   // has rather than stopping, because a mobile browser may not let a page in
   // the background start it again. A retried sentence reopens the stream.
@@ -469,7 +469,7 @@ export class StreamSpeechQueue implements SpeechQueue {
   private handlePlay = () => {
     if (!this.playsStream() || this.element!.paused) return;
 
-    // Playing an element that has ended starts it over, so the briefing
+    // Playing an element that has ended starts it over, so the text
     // replays from its first sentence.
     if (this.playback === "ranDry" && !this.snapshot.error) {
       this.playback = "playing";

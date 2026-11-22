@@ -9,7 +9,7 @@ const ArticleSubpageActions = ({
   currentPage,
 }: {
   article: Prisma.ArticleGetPayload<{ include: { feed: true; scrape: true } }>;
-  currentPage: "text-summary" | "audio-briefing";
+  currentPage: "text-summary";
 }) => {
   const router = useRouter();
 

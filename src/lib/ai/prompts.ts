@@ -119,53 +119,6 @@ ${textContent}
 </article>`;
 
 /**
- * Takes an object rather than positional arguments: three of the five fields
- * are plain strings, freely transposable at a call site without a type error.
- */
-export const buildAudioScriptPrompt = ({
-  title,
-  author,
-  feedTitle,
-  textContent,
-  language,
-}: {
-  title: string;
-  author: string | null;
-  feedTitle: string;
-  textContent: string;
-  language: string | null;
-}) => {
-  // Omitted rather than left empty when unknown, so there is nothing in the
-  // prompt for the model to invent an author from.
-  const authorInstruction = author
-    ? "naming the publication and the author"
-    : "naming the publication — no author is known, so do not mention one";
-  const authorElement = author ? `<author>${author}</author>\n` : "";
-
-  return `Write a spoken audio briefing that a text-to-speech voice will read aloud.
-
-The article's title has already been spoken aloud before your text begins. Never repeat, paraphrase, translate, or refer back to it. It appears below only as context for writing the body — treat it as already said.
-
-Your first sentence must therefore be a single sentence ${authorInstruction}, phrased the way it would be said aloud. Then go straight into the briefing itself. Do not open with a greeting, and do not begin with a phrase that announces the article as an article — "The article titled", "This piece", "Der Artikel", or any equivalent. The listener has just heard the headline, so such openings carry no information.
-
-After the introduction, write 150 to 200 words of continuous prose — roughly one minute of speech. Use short declarative sentences. Connect them with explicit transitions so the briefing flows when heard rather than read. Write numbers, symbols, and units the way they are spoken, for example "forty percent" rather than "40%". Avoid parenthetical asides, which cannot be heard.
-
-Put each sentence on its own line, separated by a single newline. Do not leave blank lines between sentences.
-
-Output plain text only. Do not use Markdown, headings, bullet lists, bold, or italics.
-
-${languageDirective(language)}
-
-<article>
-<title>${title}</title>
-${authorElement}<publication>${feedTitle}</publication>
-<content>
-${textContent}
-</content>
-</article>`;
-};
-
-/**
  * Three suggestions at deliberately different breadths, because breadth is
  * what decides a conflict between the two lists: an entry that is narrower
  * than an opposing one wins. Three near-synonyms would leave the reader one

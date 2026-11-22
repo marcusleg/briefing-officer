@@ -1,11 +1,11 @@
 /**
- * Plays an audio briefing sentence by sentence through a TTS service behind
+ * Plays text sentence by sentence through a TTS service behind
  * /api/speech.
  *
- * Sentences arrive one at a time while the script is still being generated.
+ * Sentences arrive one at a time while the text is still arriving.
  * Each is synthesized separately and the clips play back to back through one
- * <audio> element, so the briefing starts after one round trip rather than
- * after the whole script. The sentence playing and the next two are requested,
+ * <audio> element, so reading starts after one round trip rather than
+ * after the whole text. The sentence playing and the next two are requested,
  * at most two at a time, which keeps a clip ready ahead of the voice without
  * flooding the service.
  *
@@ -127,7 +127,7 @@ export class ServerSpeechQueue implements SpeechQueue {
     }
   };
 
-  // Each clip plays on its own, so the end of the script changes nothing.
+  // Each clip plays on its own, so the end of the text changes nothing.
   finish = () => {};
 
   playFrom = (index: number) => {

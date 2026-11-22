@@ -13,9 +13,8 @@ export async function proxy(request: NextRequest) {
 
 // Every page under /feed requires a session, so the whole subtree is matched
 // rather than enumerated. An enumeration leaves each new route unprotected
-// until someone remembers to add it, which is how /feed/search,
-// /feed/category/:categoryId, and the audio briefing page all came to be
-// missing from it. /settings and /chat are matched for the same reason.
+// until someone remembers to add it. /settings and /chat are matched for the
+// same reason.
 //
 // This only redirects; it does not authorize. The cookie is checked for
 // presence, not validity, so each page still establishes the session itself

@@ -2,8 +2,8 @@ import type { SpeechControls } from "@/hooks/speech-controls";
 import { DEFAULT_LANGUAGE } from "@/lib/language";
 import * as React from "react";
 
-// The engine plays whatever it was handed and needs no word that the script
-// is complete.
+// The engine plays whatever it was handed and needs no word that the text is
+// complete.
 const finish = () => {};
 
 // `speechSynthesis` is a single global shared by every instance of this hook,
@@ -15,7 +15,7 @@ let engineOwner: symbol | undefined;
 type Playback = "idle" | "playing" | "ranDry";
 
 // Centralizes the "does this environment even have the API" check so no
-// caller can forget it: the player's mount effect calls playFrom(0)
+// caller can forget it: the reader's mount effect calls playFrom(0)
 // unconditionally, before the `supported` flag can gate anything.
 const speechEngine = () =>
   typeof window !== "undefined" && "speechSynthesis" in window
@@ -37,8 +37,8 @@ const findVoice = (language: string) =>
  * Drives the Web Speech API as a queue of sentences.
  *
  * Utterances are handed to `speechSynthesis` one sentence at a time and the
- * engine plays them back to back, so a script can start speaking while the rest
- * of it is still being generated. Short utterances also stay well under the
+ * engine plays them back to back, so text can start speaking while the rest of
+ * it is still arriving. Short utterances also stay well under the
  * roughly 15 second cut-off Chrome applies to a single long one.
  *
  * Only one audio surface is mounted at a time, but a client-side navigation

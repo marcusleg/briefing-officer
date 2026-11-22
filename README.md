@@ -16,21 +16,16 @@ AI briefings on your favorite news feeds.
 
 - News reader with RSS and Atom support.
 - Import and export your feed list as OPML.
-- Three kinds of AI writing per article:
+- Two kinds of AI writing per article:
   - **Lead**: A single paragraph on what the article reports, dense enough to
     stand on its own, capped at 80 words.
   - **Text Summary**: A bullet-point list of 5–12 concise sentences with the
     article's key facts or takeaways, written in a chat about the article, where
-    you can go on to ask about it.
-  - **Audio Briefing**: A spoken briefing of roughly one minute, read aloud by
-    a configured text-to-speech service or otherwise by the browser's own
-    voices, at an adjustable speed, alongside a transcript that highlights each
-    sentence as it is spoken.
+    you can go on to ask about it, and that can be read aloud.
 - Chat with your articles: ask questions in plain language and get answers drawn
   only from your own feeds, with links to the articles' sources. Answers can be
   read aloud.
-- Leads, text summaries and audio briefings are written in the language of the
-  article itself.
+- Leads and text summaries are written in the language of the article itself.
 - Save articles for later with "Read Later", or keep them for good with "Archive".
 - Support for multiple AI providers (OpenAI, Azure OpenAI, Anthropic, and any
   OpenAI-compatible API).
@@ -94,14 +89,16 @@ all may reject any level other than `provider-default`.
 
 ### Text-to-Speech
 
-Optional. Audio briefings are read by an OpenAI-compatible speech API when one
-is configured for the article's language, and by the browser's own voices
-otherwise. Chat answers are read as English, by the speech API when `en` is
-among its languages; in a chat opened on an article, they are read in the
-article's language. The service is used only when both `OPENAI_TTS_MODEL` and
-`OPENAI_TTS_VOICE` are set. In browsers that support Media Source Extensions,
-such as Firefox and Chrome, its speech keeps playing while the phone's screen
-is off or another app is open; the browser's own voices usually stop there.
+Optional. Chat answers, text summaries included, are read aloud by an
+OpenAI-compatible speech API when it is configured for the language of the
+chat's article, or for English in a chat opened without one, and by the
+browser's own voices otherwise. Either way they are read as English, even when
+the article is in another language
+([#868](https://github.com/marcusleg/briefing-officer/issues/868)). The service
+is used only when both `OPENAI_TTS_MODEL` and `OPENAI_TTS_VOICE` are set. In
+browsers that support Media Source Extensions, such as Firefox and Chrome, its
+speech keeps playing while the phone's screen is off or another app is open;
+the browser's own voices usually stop there.
 
 | Environment Variable   | Description                                                                                               |
 | ---------------------- | --------------------------------------------------------------------------------------------------------- |

@@ -25,9 +25,6 @@ describe("articleIdFromPath", () => {
   it("ignores anything that is not an article path", () => {
     expect(articleIdFromPath("/feed/7")).toBeUndefined();
     expect(
-      articleIdFromPath("/feed/7/article/42/audio-briefing"),
-    ).toBeUndefined();
-    expect(
       articleIdFromPath("/feed/7/article/42/text-summary-old"),
     ).toBeUndefined();
     expect(

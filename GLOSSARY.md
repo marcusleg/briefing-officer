@@ -43,8 +43,8 @@ filter decision.
 _Avoid_: Arrival, import
 
 **Article Text**:
-The full text of an article, scraped from its source. Leads, text
-summaries and audio briefings are written from it alone.
+The full text of an article, scraped from its source. Leads and text
+summaries are written from it alone.
 _Avoid_: Full text, content, body, description
 
 **Scrape**:
@@ -62,11 +62,6 @@ _Avoid_: Teaser, excerpt
 A bullet list of an article's key facts: the first answer of a chat opened on
 that article.
 _Avoid_: Summary (on its own), key facts
-
-**Audio Briefing**:
-A spoken script of about one minute about an article, written when the reader
-asks for it and read aloud to them.
-_Avoid_: Audio summary
 
 **Chat**:
 A conversation in which the AI answers the reader's questions from their
