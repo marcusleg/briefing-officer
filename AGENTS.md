@@ -16,10 +16,16 @@ follow-up fixes into the commits they belong to: amending and force-pushing the
 branch (`--force-with-lease`) is fine.
 
 The user judges a change by how the application behaves, not by its code. When
-reporting, lead with what changed for the user. For a change the user can see
-in the app, leave a demo instance of the branch running and give its URL with
-sign-in credentials you have verified work, plus screenshots where they help.
-See `docs/agents/demo.md`.
+reporting, lead with what changed for the user. Show a change the user can see
+in the app in exactly one of two ways:
+
+- **Demo**, when the change is best explored interactively: leave an instance
+  of the branch running and give its URL with sign-in credentials you have
+  verified work. See `docs/agents/demo.md`.
+- **Before and after screenshots**, when the change is purely cosmetic: the
+  same screens on `main` and on the branch.
+
+When in doubt, ask the user whether they want a demo, screenshots or neither.
 
 This repository is public: keep personal details, private links and unrelated
 projects out of code, comments, commits and PRs.
