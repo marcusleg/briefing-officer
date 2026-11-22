@@ -81,6 +81,23 @@ descriptions (`color`, `behavior`, `organize`, `center`, `gray`). This holds
 when a skill is written in British English too: what it produces for this
 repository uses American spelling.
 
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues for `marcusleg/briefing-officer`, managed with
+`gh`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary: each of the five triage roles uses the label of the same
+name. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See
+`docs/agents/domain.md`.
+
 <!-- prettier-ignore-start -->
 
 <!-- BEGIN:nextjs-agent-rules -->
