@@ -26,7 +26,7 @@ import {
   DefaultChatTransport,
   lastAssistantMessageIsCompleteWithApprovalResponses,
 } from "ai";
-import { CornerDownRightIcon, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -69,19 +69,8 @@ const createTransport = (articleId?: number) =>
 
 export const transport = createTransport();
 
-/** PROTOTYPE: what the reader asks first when a chat opens from an article. */
+/** What the reader asks first when a chat opens from an article. */
 const summaryRequest = (title: string) => `Summarize “${title}”.`;
-
-/** PROTOTYPE: the follow-up questions the last answer offers, if any. */
-const followUps = (messages: ChatUIMessage[]) => {
-  const last = messages.at(-1);
-  if (last?.role !== "assistant") {
-    return [];
-  }
-  return last.parts.flatMap((part) =>
-    part.type === "data-followUps" ? part.data.questions : [],
-  );
-};
 
 const hasStatus = (error: Error, statusCode: number) =>
   APICallError.isInstance(error) && error.statusCode === statusCode;
@@ -144,28 +133,22 @@ const promptSurface = cn(
 const Chat = ({
   speechEngine,
   article,
-  hideSummaryRequest = false,
-  inline = false,
-  answerClassName,
   header,
 }: {
   speechEngine: SpeechEngine;
-  /** PROTOTYPE: opens the chat on this article and asks for its summary. */
+  /**
+   * Opens the chat on this article and asks for its text summary. Every
+   * request then carries the article's id, which grounds the answers in it.
+   */
   article?: { id: number; title: string };
-  /** PROTOTYPE: leaves out the automatic first question. */
-  hideSummaryRequest?: boolean;
-  /** PROTOTYPE: flows with the page instead of filling a fixed height. */
-  inline?: boolean;
-  /** PROTOTYPE: classes for the first answer's text. */
-  answerClassName?: string;
-  /** PROTOTYPE: shown above the conversation, scrolling with it. */
+  /** Shown above the conversation, scrolling with it. */
   header?: ReactNode;
 }) => {
   // Set while a typed reply declines a pending card, so the decline goes out
   // with the reply in one request instead of on its own first.
   const decliningForReply = useRef(false);
 
-  // PROTOTYPE: one transport per article, not one per render.
+  // One transport per article, not one per render.
   const articleTransport = useMemo(
     () => (article ? createTransport(article.id) : undefined),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -267,7 +250,7 @@ const Chat = ({
     setReadingId(undefined);
   };
 
-  // PROTOTYPE: ask for the summary when the chat opens. Deferred so that
+  // Asks for the text summary when the chat opens. Deferred so that
   // Strict Mode's trial unmount, which stops the chat, cancels it instead.
   const articleId = article?.id;
   const articleTitle = article?.title;
@@ -283,56 +266,33 @@ const Chat = ({
     return () => clearTimeout(timer);
   }, [articleId, articleTitle, hasMessages, sendMessage]);
 
-  const suggestions = busy ? [] : followUps(messages);
-
   const isEmpty = messages.length === 0 && !article;
 
-  const thread = messages.map((message, index) =>
-    hideSummaryRequest && index === 0 && message.role === "user" ? null : (
-      <ChatMessage
-        key={message.id}
-        message={message}
-        textClassName={index === 1 ? answerClassName : undefined}
-        answering={busy && index === messages.length - 1}
-        interrupted={
-          index < messages.length - 1 ||
-          (status === "error" && index === messages.length - 1)
-        }
-        onApprovalResponse={(response) =>
-          void addToolApprovalResponse(response)
-        }
-        actions={
-          <ReadAloud
-            engine={speechEngine}
-            text={messageText(message)}
-            reading={message.id === readingId}
-            onRead={() => setReadingId(message.id)}
-            onReadEnd={stopReading}
-          />
-        }
-      />
-    ),
-  );
+  const thread = messages.map((message, index) => (
+    <ChatMessage
+      key={message.id}
+      message={message}
+      answering={busy && index === messages.length - 1}
+      interrupted={
+        index < messages.length - 1 ||
+        (status === "error" && index === messages.length - 1)
+      }
+      onApprovalResponse={(response) => void addToolApprovalResponse(response)}
+      actions={
+        <ReadAloud
+          engine={speechEngine}
+          text={messageText(message)}
+          reading={message.id === readingId}
+          onRead={() => setReadingId(message.id)}
+          onReadEnd={stopReading}
+        />
+      }
+    />
+  ));
 
+  // The text summary takes a moment to start; the reader sees it is coming.
   const waiting = status === "submitted" && (
     <Spinner className="text-muted-foreground size-5" aria-label="Answering" />
-  );
-
-  const suggestionChips = suggestions.length > 0 && (
-    <div className="flex flex-col items-start gap-2">
-      {suggestions.map((question) => (
-        <Button
-          key={question}
-          variant="outline"
-          size="sm"
-          className="h-auto max-w-full justify-start py-1.5 text-left whitespace-normal"
-          onClick={() => void send(question)}
-        >
-          <CornerDownRightIcon className="text-muted-foreground" />
-          {question}
-        </Button>
-      ))}
-    </div>
   );
 
   const errorAlert =
@@ -408,19 +368,6 @@ const Chat = ({
     </div>
   );
 
-  // PROTOTYPE: the article page's variant, scrolling with the page.
-  if (inline) {
-    return (
-      <div className="flex flex-col gap-6">
-        {thread}
-        {waiting}
-        {suggestionChips}
-        {errorAlert}
-        {!busy && messages.length > 0 && prompt}
-      </div>
-    );
-  }
-
   // A fresh chat centers the prompt; once there is a conversation the prompt
   // moves to the bottom. The input stays the last child either way, so React
   // keeps the same element and it does not lose focus on the first question.
@@ -464,7 +411,6 @@ const Chat = ({
           {header}
           {thread}
           {waiting}
-          {suggestionChips}
           {errorAlert}
         </ConversationContent>
         {/* The vendored button is see-through in light mode over text. */}

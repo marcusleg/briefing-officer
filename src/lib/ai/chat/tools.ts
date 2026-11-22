@@ -5,7 +5,7 @@ import {
   MAX_STATUS_CHANGE_IDS,
   searchArticlesForUser,
 } from "@/lib/ai/chat/articleTools";
-import { tool, type InferUITools, type UIMessage } from "ai";
+import { tool, type InferUITools, type UIDataTypes, type UIMessage } from "ai";
 import { z } from "zod";
 
 const searchArticlesInput = z.object({
@@ -86,7 +86,6 @@ export type ChatTools = ReturnType<typeof createChatTools>;
 
 export type ChatUIMessage = UIMessage<
   unknown,
-  // PROTOTYPE: questions the reader may ask next, written after each answer.
-  { followUps: { questions: string[] } },
+  UIDataTypes,
   InferUITools<ChatTools>
 >;

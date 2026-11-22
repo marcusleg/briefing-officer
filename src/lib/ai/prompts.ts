@@ -117,22 +117,6 @@ ${textContent}
 </content>
 </article>`;
 
-export const buildTextSummaryPrompt = (
-  title: string,
-  textContent: string,
-  language: string | null,
-) =>
-  `Write a summary using the following Markdown structure: Use a level 3 heading (###) titled "Key Facts" for news and factual reporting, "Key Takeaways" for opinion or commentary, or "Key Points" if the article type is unclear. Follow the heading with a bullet list of 5–12 bullets — fewer for short or focused articles, more for complex ones. Each bullet must be one concise sentence. Bold the single most important named entity, concept, or figure in each bullet.
-
-${languageDirective(language)} The heading names above are given in English; translate the one you choose into that language.
-
-<article>
-<title>${title}</title>
-<content>
-${textContent}
-</content>
-</article>`;
-
 /**
  * Takes an object rather than positional arguments: three of the five fields
  * are plain strings, freely transposable at a call site without a type error.
@@ -259,7 +243,7 @@ export const buildChatSystemPrompt = ({
   article,
 }: {
   today: Date;
-  /** PROTOTYPE: the article the chat was opened from, if any. */
+  /** The article the chat was opened from, if any. */
   article?: {
     id: number;
     title: string;
@@ -289,7 +273,7 @@ export const buildChatSystemPrompt = ({
 </rules>${article ? currentArticleBlock(article) : ""}`;
 };
 
-/** PROTOTYPE: grounds a chat opened from an article's Summarize button. */
+/** Grounds a chat opened from an article's Summarize button. */
 const currentArticleBlock = (article: {
   id: number;
   title: string;
@@ -310,28 +294,3 @@ When the reader asks for a summary, write it using the following Markdown struct
 ${article.text}
 </content>
 </current_article>`;
-
-/**
- * PROTOTYPE: the questions offered as buttons under a chat answer. Written by
- * a separate call so they arrive whether or not the answering model would
- * have called a tool for them.
- */
-export const buildFollowUpPrompt = (question: string, answer: string) =>
-  `A reader asked a question about the news articles in their feeds and got the answer below. Propose 2 or 3 short follow-up questions they are likely to ask next, phrased the way the reader would type them.
-
-Most readers want the bigger picture after a briefing, so at least two questions must step back from the details and ask about the broader context, for example:
-- what led up to this, or what came before
-- why it matters and who it affects
-- how it fits into a wider trend, debate or market
-- what other coverage in their feeds says about the same subject
-
-At most one question may zoom in on a single detail, and only one a curious reader would find surprising or striking, not a technical step or a definition.
-
-Keep each question short and general enough to make sense without rereading the answer. Don't propose a question the answer already settles. Write them in the language of the answer.
-
-<question>
-${question}
-</question>
-<answer>
-${answer}
-</answer>`;
