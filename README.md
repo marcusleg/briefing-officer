@@ -92,7 +92,7 @@ all may reject any level other than `provider-default`.
 
 ### Text-to-Speech
 
-Optional. Audio summaries are read by an OpenAI-compatible speech API when one
+Optional. Audio briefings are read by an OpenAI-compatible speech API when one
 is configured for the article's language, and by the browser's own voices
 otherwise. Chat answers are read as English, by the speech API when `en` is
 among its languages. The service is used only when both `OPENAI_TTS_MODEL` and

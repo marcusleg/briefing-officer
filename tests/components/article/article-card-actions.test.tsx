@@ -37,14 +37,17 @@ const article = {
 } as any;
 
 describe("ArticleCardActions", () => {
-  it("links to the audio summary page in both layouts", () => {
+  it("links to the audio briefing page in both layouts", () => {
     render(<ArticleCardActions article={article} />);
 
     // Both the mobile (md:hidden) and desktop (hidden md:flex) layouts render
     // into the DOM simultaneously; CSS, not JS, decides which is visible.
-    const links = screen.getAllByRole("link", { name: /audio summary/i });
+    const links = screen.getAllByRole("link", { name: /audio briefing/i });
     expect(links).toHaveLength(2);
-    expect(links[0]).toHaveAttribute("href", "/feed/1/article/1/audio-summary");
+    expect(links[0]).toHaveAttribute(
+      "href",
+      "/feed/1/article/1/audio-briefing",
+    );
   });
 
   it("hides the text summary entry on the text summary page", () => {
@@ -54,17 +57,17 @@ describe("ArticleCardActions", () => {
       screen.queryByRole("link", { name: /text summary/i }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getAllByRole("link", { name: /audio summary/i }),
+      screen.getAllByRole("link", { name: /audio briefing/i }),
     ).toHaveLength(2);
   });
 
-  it("hides the audio entry on the audio summary page", () => {
+  it("hides the audio entry on the audio briefing page", () => {
     render(
-      <ArticleCardActions article={article} currentPage="audio-summary" />,
+      <ArticleCardActions article={article} currentPage="audio-briefing" />,
     );
 
     expect(
-      screen.queryByRole("link", { name: /audio summary/i }),
+      screen.queryByRole("link", { name: /audio briefing/i }),
     ).not.toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /text summary/i })).toHaveLength(
       2,

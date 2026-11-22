@@ -29,14 +29,14 @@ const SPEECH_RATES = [1, 1.1, 1.2, 1.3, 1.4, 1.5, 2];
 // and "2.0" rather than "1" and "2", which keeps the selected option matching.
 const formatRate = (value: number) => value.toFixed(1);
 
-interface AudioSummaryPlayerProps {
+interface AudioBriefingPlayerProps {
   articleId: number;
   engine: "browser" | "server";
   language: string | null;
   title: string;
 }
 
-type SpeechPlayerProps = Omit<AudioSummaryPlayerProps, "engine"> & {
+type SpeechPlayerProps = Omit<AudioBriefingPlayerProps, "engine"> & {
   speech: SpeechControls;
 };
 
@@ -296,22 +296,24 @@ const SpeechPlayer = (props: SpeechPlayerProps) => {
 // idle instance on a server-speech page would take that ownership from the
 // page being navigated away from, leaving its speech playing.
 const BrowserSpeechPlayer = (
-  props: Omit<AudioSummaryPlayerProps, "engine">,
+  props: Omit<AudioBriefingPlayerProps, "engine">,
 ) => {
   const speech = useSpeechSynthesis(props.language);
   return <SpeechPlayer {...props} speech={speech} />;
 };
 
-const ServerSpeechPlayer = (props: Omit<AudioSummaryPlayerProps, "engine">) => {
+const ServerSpeechPlayer = (
+  props: Omit<AudioBriefingPlayerProps, "engine">,
+) => {
   const speech = useServerSpeech(props.articleId);
   return <SpeechPlayer {...props} speech={speech} />;
 };
 
-const AudioSummaryPlayer = ({ engine, ...props }: AudioSummaryPlayerProps) =>
+const AudioBriefingPlayer = ({ engine, ...props }: AudioBriefingPlayerProps) =>
   engine === "server" ? (
     <ServerSpeechPlayer {...props} />
   ) : (
     <BrowserSpeechPlayer {...props} />
   );
 
-export default AudioSummaryPlayer;
+export default AudioBriefingPlayer;

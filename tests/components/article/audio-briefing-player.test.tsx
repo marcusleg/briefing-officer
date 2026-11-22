@@ -1,4 +1,4 @@
-import AudioSummaryPlayer from "@/components/article/audio-summary-player";
+import AudioBriefingPlayer from "@/components/article/audio-briefing-player";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -38,11 +38,11 @@ const props = {
   title: "Kernel 7.2 removes strncpy",
 };
 
-describe("AudioSummaryPlayer", () => {
+describe("AudioBriefingPlayer", () => {
   it("speaks the title at mount, before the model has returned anything", () => {
     const engine = installSpeechEngine();
 
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
 
     // Synchronous with render: the title needs no generation, so audio starts
     // without waiting on the model's first token.
@@ -54,7 +54,7 @@ describe("AudioSummaryPlayer", () => {
   it("keeps the title out of the transcript", async () => {
     installSpeechEngine();
 
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
 
     // The page heading above the player already shows it.
     await screen.findByText(/It landed after 362 patches\./);
@@ -64,7 +64,7 @@ describe("AudioSummaryPlayer", () => {
   it("speaks each generated sentence as it streams in", async () => {
     const engine = installSpeechEngine();
 
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
 
     await waitFor(() =>
       expect(engine.spoken().map((utterance) => utterance.text)).toEqual([
@@ -79,7 +79,7 @@ describe("AudioSummaryPlayer", () => {
   it("highlights the sentence the engine reports as started", async () => {
     const engine = installSpeechEngine();
 
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
     await waitFor(() => expect(engine.spoken()).toHaveLength(4));
 
     // Playback index 2 is transcript index 1: the spoken title occupies
@@ -97,7 +97,7 @@ describe("AudioSummaryPlayer", () => {
   it("pauses and resumes playback", async () => {
     const engine = installSpeechEngine();
 
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
 
     await userEvent.click(screen.getByRole("button", { name: /pause/i }));
     expect(engine.pause).toHaveBeenCalledOnce();
@@ -114,7 +114,7 @@ describe("AudioSummaryPlayer", () => {
   it("restarts from the spoken title", async () => {
     const engine = installSpeechEngine();
 
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
     await waitFor(() => expect(engine.spoken()).toHaveLength(4));
 
     await userEvent.click(screen.getByRole("button", { name: /restart/i }));
@@ -127,7 +127,7 @@ describe("AudioSummaryPlayer", () => {
     window.localStorage.setItem("briefing-officer:speech-rate", "1.5");
     const engine = installSpeechEngine();
 
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
 
     await waitFor(() => expect(screen.getByText("1.5×")).toBeInTheDocument());
     await waitFor(() => expect(engine.spoken().at(-1)!.rate).toBe(1.5));
@@ -142,7 +142,7 @@ describe("AudioSummaryPlayer", () => {
       window.localStorage.setItem("briefing-officer:speech-rate", stored);
       installSpeechEngine();
 
-      render(<AudioSummaryPlayer {...props} />);
+      render(<AudioBriefingPlayer {...props} />);
 
       await waitFor(() => expect(screen.getByText("1.0×")).toBeInTheDocument());
     },
@@ -157,7 +157,7 @@ describe("AudioSummaryPlayer", () => {
     async ({ option, stored, rate }) => {
       const engine = installSpeechEngine();
 
-      render(<AudioSummaryPlayer {...props} />);
+      render(<AudioBriefingPlayer {...props} />);
       await waitFor(() => expect(engine.spoken()).toHaveLength(4));
 
       await userEvent.click(screen.getByRole("button", { name: /speed/i }));
@@ -176,7 +176,7 @@ describe("AudioSummaryPlayer", () => {
   it("tells the reader when the browser has no speech voices", async () => {
     installSpeechEngine([]);
 
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
 
     expect(await screen.findByText(/no speech voices/i)).toBeInTheDocument();
     // The transcript still streams, so reading remains possible.
@@ -196,7 +196,7 @@ describe("AudioSummaryPlayer", () => {
         }) as never,
     );
 
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
 
     expect(await screen.findByText(/briefing incomplete/i)).toBeInTheDocument();
   });
@@ -207,7 +207,7 @@ describe("AudioSummaryPlayer", () => {
 
     render(
       <React.StrictMode>
-        <AudioSummaryPlayer {...props} />
+        <AudioBriefingPlayer {...props} />
       </React.StrictMode>,
     );
 
@@ -229,7 +229,7 @@ describe("AudioSummaryPlayer", () => {
 
     render(
       <React.StrictMode>
-        <AudioSummaryPlayer {...props} />
+        <AudioBriefingPlayer {...props} />
       </React.StrictMode>,
     );
 
@@ -262,7 +262,7 @@ describe("AudioSummaryPlayer", () => {
 
     // Two: the spoken title, then the stream's first sentence. Counted with
     // allSpoken(), since unmounting cancels and so empties the live queue.
-    const { unmount } = render(<AudioSummaryPlayer {...props} />);
+    const { unmount } = render(<AudioBriefingPlayer {...props} />);
     await waitFor(() => expect(engine.allSpoken()).toHaveLength(2));
 
     unmount();
@@ -279,7 +279,7 @@ describe("AudioSummaryPlayer", () => {
   it("explains itself instead of crashing when the API is missing entirely", async () => {
     // No installSpeechEngine() call: jsdom has no speechSynthesis at all, which
     // is different from an engine that reports zero voices.
-    render(<AudioSummaryPlayer {...props} />);
+    render(<AudioBriefingPlayer {...props} />);
 
     expect(await screen.findByText(/no speech voices/i)).toBeInTheDocument();
     expect(
@@ -290,7 +290,7 @@ describe("AudioSummaryPlayer", () => {
   it("warns when no voice matches the article's language", async () => {
     installSpeechEngine([{ name: "Test Voice", lang: "en-US" }]);
 
-    render(<AudioSummaryPlayer {...props} language="de" />);
+    render(<AudioBriefingPlayer {...props} language="de" />);
 
     expect(await screen.findByText(/no German voice/i)).toBeInTheDocument();
     // The reader can still play it, knowing it will be mispronounced.
@@ -298,7 +298,7 @@ describe("AudioSummaryPlayer", () => {
   });
 });
 
-describe("AudioSummaryPlayer with server speech", () => {
+describe("AudioBriefingPlayer with server speech", () => {
   const serverProps = { ...props, engine: "server" as const };
 
   /** Answers the latest live request for `text` and lets playback react. */
@@ -319,7 +319,7 @@ describe("AudioSummaryPlayer with server speech", () => {
     const speech = installServerSpeech();
     const engine = installSpeechEngine();
 
-    render(<AudioSummaryPlayer {...serverProps} />);
+    render(<AudioBriefingPlayer {...serverProps} />);
 
     expect(speech.requested()).toEqual([SPOKEN_TITLE]);
     expect(engine.speak).not.toHaveBeenCalled();
@@ -328,7 +328,7 @@ describe("AudioSummaryPlayer with server speech", () => {
   it("shows a spinner while the first clip loads", () => {
     installServerSpeech();
 
-    render(<AudioSummaryPlayer {...serverProps} />);
+    render(<AudioBriefingPlayer {...serverProps} />);
 
     const button = screen.getByRole("button", { name: /pause/i });
     expect(within(button).getByRole("status")).toBeInTheDocument();
@@ -339,7 +339,7 @@ describe("AudioSummaryPlayer with server speech", () => {
     // No installSpeechEngine(): the browser has no voices at all.
     installServerSpeech();
 
-    render(<AudioSummaryPlayer {...serverProps} language="en" />);
+    render(<AudioBriefingPlayer {...serverProps} language="en" />);
 
     await screen.findByText(/It landed after 362 patches\./);
     expect(screen.queryByText(/no speech voices/i)).not.toBeInTheDocument();
@@ -348,7 +348,7 @@ describe("AudioSummaryPlayer with server speech", () => {
   it("highlights the sentence whose clip is playing", async () => {
     const speech = installServerSpeech();
 
-    render(<AudioSummaryPlayer {...serverProps} />);
+    render(<AudioBriefingPlayer {...serverProps} />);
     await screen.findByText(/Maintainers had warned for years\./);
 
     await respond(speech, SPOKEN_TITLE);
@@ -365,7 +365,7 @@ describe("AudioSummaryPlayer with server speech", () => {
   it("explains itself when the speech service fails", async () => {
     const speech = installServerSpeech();
 
-    render(<AudioSummaryPlayer {...serverProps} />);
+    render(<AudioBriefingPlayer {...serverProps} />);
     await act(async () => {
       speech.requests[0].fail();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -384,7 +384,7 @@ describe("AudioSummaryPlayer with server speech", () => {
 
     render(
       <React.StrictMode>
-        <AudioSummaryPlayer {...serverProps} />
+        <AudioBriefingPlayer {...serverProps} />
       </React.StrictMode>,
     );
     await respond(speech, SPOKEN_TITLE);
@@ -393,7 +393,7 @@ describe("AudioSummaryPlayer with server speech", () => {
   });
 });
 
-describe("AudioSummaryPlayer with streamed server speech", () => {
+describe("AudioBriefingPlayer with streamed server speech", () => {
   const serverProps = { ...props, engine: "server" as const };
 
   const respondToAll = async (
@@ -416,7 +416,7 @@ describe("AudioSummaryPlayer with streamed server speech", () => {
 
     render(
       <React.StrictMode>
-        <AudioSummaryPlayer {...serverProps} />
+        <AudioBriefingPlayer {...serverProps} />
       </React.StrictMode>,
     );
     await screen.findByText("Maintainers had warned for years.");

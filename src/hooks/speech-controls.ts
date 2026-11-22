@@ -1,5 +1,5 @@
 /**
- * What the audio summary player needs from a speech engine. Implemented by
+ * What the audio briefing player needs from a speech engine. Implemented by
  * `useSpeechSynthesis` (the browser's voices) and `useServerSpeech` (a TTS
  * service behind /api/speech), so the player is indifferent to which one reads.
  */

@@ -1,4 +1,4 @@
-import AudioSummaryPlayer from "@/components/article/audio-summary-player";
+import AudioBriefingPlayer from "@/components/article/audio-briefing-player";
 import SummaryArticleActions from "@/components/article/summary-article-actions";
 import IntlRelativeTime from "@/components/intl-relative-time";
 import BackButton from "@/components/navigation/back-button";
@@ -13,7 +13,7 @@ import { notFound } from "next/navigation";
 
 export const maxDuration = 30;
 
-const AudioSummary = async ({
+const AudioBriefingPage = async ({
   params,
 }: {
   params: Promise<{ feedId: string; articleId: string }>;
@@ -46,7 +46,7 @@ const AudioSummary = async ({
           { name: "Feeds", href: "/feed" },
           { name: article.feed.title, href: `/feed/${article.feed.id}` },
         ]}
-        page="Audio Summary"
+        page="Audio Briefing"
       />
 
       <article className="max-w-content mx-auto flex w-full flex-col gap-4">
@@ -66,7 +66,7 @@ const AudioSummary = async ({
           {article.title}
         </h2>
         {article.scrape ? (
-          <AudioSummaryPlayer
+          <AudioBriefingPlayer
             articleId={article.id}
             // A configured voice for the article's language reads it;
             // otherwise the browser's own voices do.
@@ -76,7 +76,7 @@ const AudioSummary = async ({
           />
         ) : (
           <Alert className="mx-auto my-12 max-w-md">
-            <AlertTitle>Audio summary unavailable</AlertTitle>
+            <AlertTitle>Audio briefing unavailable</AlertTitle>
             <AlertDescription>
               The article content could not be retrieved, so an audio briefing
               cannot be generated.
@@ -89,7 +89,7 @@ const AudioSummary = async ({
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:gap-2">
           <SummaryArticleActions
             article={article}
-            currentPage="audio-summary"
+            currentPage="audio-briefing"
           />
         </div>
       </article>
@@ -97,4 +97,4 @@ const AudioSummary = async ({
   );
 };
 
-export default AudioSummary;
+export default AudioBriefingPage;

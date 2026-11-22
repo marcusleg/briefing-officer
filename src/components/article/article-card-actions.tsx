@@ -1,6 +1,6 @@
 "use client";
 
-import AudioSummaryButton from "@/components/article/audio-summary-button";
+import AudioBriefingButton from "@/components/article/audio-briefing-button";
 import CommentsButton from "@/components/article/comments-button";
 import DismissButton from "@/components/article/dismiss-button";
 import NotInterestedButton from "@/components/article/not-interested-button";
@@ -21,7 +21,7 @@ type ReadingTime = ReturnType<typeof readingTime>;
 interface ArticleCardActionsProps {
   article: Article;
   /** The page rendering this row, so it can suppress its own entry. */
-  currentPage?: "text-summary" | "audio-summary";
+  currentPage?: "text-summary" | "audio-briefing";
   onAfterDismiss?: () => void;
 }
 
@@ -48,8 +48,8 @@ const IconActions = ({
       <NotInterestedButton article={article} variant={variant} />
     )}
     <CommentsButton article={article} variant={variant} />
-    {currentPage !== "audio-summary" && (
-      <AudioSummaryButton
+    {currentPage !== "audio-briefing" && (
+      <AudioBriefingButton
         feedId={article.feedId}
         articleId={article.id}
         variant={variant}
