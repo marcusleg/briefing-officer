@@ -9,8 +9,8 @@ import { expect, test } from "./fixtures";
     expectedUrl: "/feed/history",
   },
   {
-    linkText: "Starred",
-    expectedUrl: "/feed/starred-articles",
+    linkText: "Archived",
+    expectedUrl: "/feed/archived",
   },
   {
     linkText: "Filtered",

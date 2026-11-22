@@ -9,7 +9,7 @@ What the database holds for an article, and which action moves it where.
 | `status`          | `UNREAD` (default) · `READ_LATER` · `READ` · `FILTERED`                        |
 | `statusChangedAt` | When `status` last changed. For a `READ` article this _is_ the read timestamp. |
 | `filterReason`    | Why it was rejected. Only written alongside `FILTERED`, never cleared.         |
-| `starred`         | Independent of `status`. Starring never touches `status` or `statusChangedAt`. |
+| `archived`        | Independent of `status`. Archiving never touches `status` or `statusChangedAt`. |
 
 `UNREAD` and `READ_LATER` are the **inbox** (`isInInbox()` in
 `src/lib/article.ts`). `READ` and `FILTERED` are what an article leaves the
@@ -69,7 +69,7 @@ hands it back, so undoing a dismiss on a `READ_LATER` article returns it to
 - **Mark older than N days as read** (per feed or per category) — `UNREAD` →
   `READ` only. Never touches `READ_LATER`.
 - **Delete older than N days** — removes any article that is not `READ_LATER`
-  and not `starred`, regardless of status.
+  and not `archived`, regardless of status.
 
 ## Two rules the code depends on
 

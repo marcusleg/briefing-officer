@@ -8,8 +8,8 @@ vi.mock("@/lib/repository/articleRepository", () => ({
   restoreArticleStatus: vi.fn().mockResolvedValue(undefined),
   markArticleAsReadLater: vi.fn().mockResolvedValue(undefined),
   unmarkArticleAsReadLater: vi.fn().mockResolvedValue(undefined),
-  markArticleAsStarred: vi.fn().mockResolvedValue(undefined),
-  unmarkArticleAsStarred: vi.fn().mockResolvedValue(undefined),
+  archiveArticle: vi.fn().mockResolvedValue(undefined),
+  unarchiveArticle: vi.fn().mockResolvedValue(undefined),
   markArticleAsNotInteresting: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -33,7 +33,7 @@ const article = {
   link: "https://example.com/article",
   commentsLink: null,
   status: "UNREAD",
-  starred: false,
+  archived: false,
 } as any;
 
 describe("ArticleCardActions", () => {

@@ -6,7 +6,7 @@ import prisma from "@/lib/prismaClient";
 import { headers } from "next/headers";
 import FeedTitle from "../feed-title";
 
-const StarredArticlesPage = async () => {
+const ArchivedArticlesPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) {
@@ -20,7 +20,7 @@ const StarredArticlesPage = async () => {
       scrape: true,
     },
     where: {
-      starred: true,
+      archived: true,
       userId: session.user.id,
     },
     orderBy: {
@@ -32,10 +32,10 @@ const StarredArticlesPage = async () => {
     <div className="flex flex-col gap-4">
       <TopNavigation
         segments={[{ name: "Feeds", href: "/feed" }]}
-        page="Starred Articles"
+        page="Archived Articles"
       />
 
-      <FeedTitle title="Starred Articles" articleCount={articles.length} />
+      <FeedTitle title="Archived Articles" articleCount={articles.length} />
 
       <div className="flex flex-col gap-4">
         {articles.length > 0 ? (
@@ -45,7 +45,7 @@ const StarredArticlesPage = async () => {
             variant="p"
             className="text-muted-foreground my-8 text-center text-lg"
           >
-            You haven&apos;t starred any articles yet.
+            You haven&apos;t archived any articles yet.
           </Typography>
         )}
       </div>
@@ -53,4 +53,4 @@ const StarredArticlesPage = async () => {
   );
 };
 
-export default StarredArticlesPage;
+export default ArchivedArticlesPage;

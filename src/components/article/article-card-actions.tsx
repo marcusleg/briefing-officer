@@ -5,8 +5,8 @@ import CommentsButton from "@/components/article/comments-button";
 import DismissButton from "@/components/article/dismiss-button";
 import NotInterestedButton from "@/components/article/not-interested-button";
 import TextSummaryButton from "@/components/article/text-summary-button";
+import ToggleArchivedButton from "@/components/article/toggle-archived-button";
 import ToggleReadLaterButton from "@/components/article/toggle-read-later-button";
-import ToggleStarredButton from "@/components/article/toggle-starred-button";
 import VisitButton from "@/components/article/visit-button";
 import { Prisma } from "@/generated/prisma/client";
 import { ClockIcon } from "lucide-react";
@@ -43,7 +43,7 @@ const IconActions = ({
 }) => (
   <>
     <ToggleReadLaterButton article={article} variant={variant} />
-    <ToggleStarredButton article={article} variant={variant} />
+    <ToggleArchivedButton article={article} variant={variant} />
     {article.status !== "FILTERED" && (
       <NotInterestedButton article={article} variant={variant} />
     )}

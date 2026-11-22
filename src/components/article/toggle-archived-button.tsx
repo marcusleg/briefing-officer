@@ -7,39 +7,39 @@ import {
 } from "@/components/ui/tooltip";
 import { Article } from "@/generated/prisma/client";
 import {
-  markArticleAsStarred,
-  unmarkArticleAsStarred,
+  archiveArticle,
+  unarchiveArticle,
 } from "@/lib/repository/articleRepository";
-import { StarIcon } from "lucide-react";
+import { ArchiveIcon } from "lucide-react";
 import { toast } from "sonner";
 
-const ToggleStarredButton = ({
+const ToggleArchivedButton = ({
   article,
   variant = "secondary",
 }: {
   article: Article;
   variant?: "secondary" | "ghost";
 }) => {
-  const handleStarClick = async () => {
-    await markArticleAsStarred(article.id);
+  const handleArchiveClick = async () => {
+    await archiveArticle(article.id);
 
-    toast("Article Starred", {
+    toast("Article Archived", {
       description: <span className="italic">{article.title}</span>,
       action: {
         label: "Undo",
-        onClick: async () => await unmarkArticleAsStarred(article.id),
+        onClick: async () => await unarchiveArticle(article.id),
       },
     });
   };
 
-  const handleUnstarClick = async () => {
-    await unmarkArticleAsStarred(article.id);
+  const handleUnarchiveClick = async () => {
+    await unarchiveArticle(article.id);
 
-    toast("Article Unstarred", {
+    toast("Article Unarchived", {
       description: <span className="italic">{article.title}</span>,
       action: {
         label: "Undo",
-        onClick: async () => await markArticleAsStarred(article.id),
+        onClick: async () => await archiveArticle(article.id),
       },
     });
   };
@@ -51,18 +51,22 @@ const ToggleStarredButton = ({
           <Button
             variant={variant}
             size="icon"
-            onClick={article.starred ? handleUnstarClick : handleStarClick}
+            onClick={
+              article.archived ? handleUnarchiveClick : handleArchiveClick
+            }
             className="cursor-pointer"
           >
-            <StarIcon
-              className={`size-4 ${article.starred ? "fill-current" : "fill-transparent"}`}
+            <ArchiveIcon
+              className={`size-4 ${article.archived ? "fill-current" : "fill-transparent"}`}
             />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{article.starred ? "Unstar" : "Star"}</TooltipContent>
+        <TooltipContent>
+          {article.archived ? "Unarchive" : "Archive"}
+        </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
 };
 
-export default ToggleStarredButton;
+export default ToggleArchivedButton;

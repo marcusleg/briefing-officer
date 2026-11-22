@@ -13,7 +13,7 @@ import { searchDocuments, type SearchSort } from "@/lib/search/searchIndex";
 /** Guards against outliers such as long PDFs; real articles are far shorter. */
 export const ARTICLE_TEXT_LIMIT = 60_000;
 
-// Status and starred filters run after the index lookup, so ask for plenty.
+// Status and archived filters run after the index lookup, so ask for plenty.
 const CANDIDATES = 200;
 
 export interface ArticleSummary {
@@ -23,7 +23,7 @@ export interface ArticleSummary {
   /** `YYYY-MM-DD` */
   published: string;
   status: ArticleStatus;
-  starred: boolean;
+  archived: boolean;
   lead: string | null;
   path: string;
 }
@@ -34,7 +34,7 @@ export interface SearchArticlesInput {
   to?: string;
   sort: SearchSort;
   status?: ArticleStatus;
-  starred?: boolean;
+  archived?: boolean;
   limit: number;
 }
 
@@ -63,7 +63,7 @@ const summarize = (article: SummarizableArticle): ArticleSummary => ({
   feed: article.feed.title,
   published: article.publicationDate.toISOString().slice(0, 10),
   status: article.status,
-  starred: article.starred,
+  archived: article.archived,
   lead: article.lead?.text ?? null,
   path: articlePath(article),
 });
@@ -97,7 +97,7 @@ export const searchArticlesForUser = async (
       id: { in: hits.map((hit) => hit.articleId) },
       userId,
       status: input.status,
-      starred: input.starred,
+      archived: input.archived,
     },
     include: summaryInclude,
   });
@@ -137,7 +137,7 @@ export const getArticleForUser = async (
   };
 };
 
-/** The statuses the chat may set. Starring and Not Interested stay manual. */
+/** The statuses the chat may set. Archiving and Not Interested stay manual. */
 export const CHAT_STATUS_TARGETS = ["READ", "UNREAD", "READ_LATER"] as const;
 export type ChatStatusTarget = (typeof CHAT_STATUS_TARGETS)[number];
 

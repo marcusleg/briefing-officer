@@ -29,7 +29,7 @@ AI summaries for your favorite news feeds.
   only from your own feeds, with links to the articles they come from. Answers
   can be read aloud.
 - Summaries are written in the language the article itself is written in.
-- Save articles for later using the "Read Later" and "Star" feature.
+- Save articles for later with "Read Later", or keep them for good with "Archive".
 - Support for multiple AI providers (OpenAI, Azure OpenAI, Anthropic, and any
   OpenAI-compatible API).
 - Multi-user support.

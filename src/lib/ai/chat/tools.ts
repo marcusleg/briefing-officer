@@ -34,10 +34,10 @@ const searchArticlesInput = z.object({
     .describe(
       "Only articles with this reading status, e.g. READ for articles the reader has read.",
     ),
-  starred: z
+  archived: z
     .boolean()
     .optional()
-    .describe("Only starred (true) or only unstarred (false) articles."),
+    .describe("Only archived (true) or only unarchived (false) articles."),
   limit: z.number().int().min(1).max(25).default(10),
 });
 const setArticleStatusInput = z.object({
