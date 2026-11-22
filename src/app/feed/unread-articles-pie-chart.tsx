@@ -45,7 +45,7 @@ const UnreadArticlesPieChart = ({
   return (
     <ChartCard
       title="Articles to Explore"
-      description="Articles you haven’t dismissed or read yet"
+      description="Articles you haven’t dismissed yet"
       config={config}
       data={chartData}
       footer={

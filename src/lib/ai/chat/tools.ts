@@ -29,10 +29,10 @@ const searchArticlesInput = z.object({
     .default("relevance")
     .describe('"oldest" finds when something first appeared.'),
   status: z
-    .enum(["UNREAD", "READ_LATER", "READ", "FILTERED"])
+    .enum(["UNREAD", "READ_LATER", "DISMISSED", "FILTERED"])
     .optional()
     .describe(
-      "Only articles with this reading status, e.g. READ for articles the reader has read.",
+      "Only articles with this reading status, e.g. DISMISSED for articles the reader is done with.",
     ),
   archived: z
     .boolean()
@@ -49,7 +49,7 @@ const setArticleStatusInput = z.object({
   status: z
     .enum(CHAT_STATUS_TARGETS)
     .describe(
-      "READ marks as read, UNREAD puts back in the inbox (also off Read later), READ_LATER saves for later.",
+      "DISMISSED dismisses, UNREAD puts back in the inbox (also off Read later), READ_LATER saves for later.",
     ),
 });
 

@@ -1,6 +1,6 @@
 import DeleteCategoryButton from "@/app/feed/category/[categoryId]/delete-category-button";
+import DismissOlderCategoryButton from "@/app/feed/category/[categoryId]/dismiss-older-button";
 import EditCategoryButton from "@/app/feed/category/[categoryId]/edit-category-button";
-import MarkAsReadCategoryButton from "@/app/feed/category/[categoryId]/mark-as-read-button";
 import RefreshCategoryButton from "@/app/feed/category/[categoryId]/refresh-category-button";
 import FeedTitle from "@/app/feed/feed-title";
 import NoUnreadArticles from "@/app/feed/no-unread-articles";
@@ -63,7 +63,7 @@ const FeedCategory = async ({ params }: FeedCategoryProps) => {
 
         <div className="flex flex-row flex-wrap items-center gap-2">
           <RefreshCategoryButton categoryId={categoryId} />
-          <MarkAsReadCategoryButton
+          <DismissOlderCategoryButton
             disabled={articles.length === 0}
             categoryId={categoryId}
           />

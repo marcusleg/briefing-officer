@@ -31,10 +31,10 @@ describe("setArticleStatusForUser", () => {
       statusChangedAt: longAgo,
     });
 
-    await setArticleStatusForUser(userId, article.id, "READ");
+    await setArticleStatusForUser(userId, article.id, "DISMISSED");
 
     const updated = await reload(article.id);
-    expect(updated.status).toBe("READ");
+    expect(updated.status).toBe("DISMISSED");
     expect(updated.statusChangedAt.getTime()).toBeGreaterThan(
       longAgo.getTime(),
     );
@@ -62,7 +62,7 @@ describe("setArticleStatusForUser", () => {
     });
 
     await expect(
-      setArticleStatusForUser(userId, foreign.id, "READ"),
+      setArticleStatusForUser(userId, foreign.id, "DISMISSED"),
     ).rejects.toThrow();
     expect((await reload(foreign.id)).status).toBe("UNREAD");
   });

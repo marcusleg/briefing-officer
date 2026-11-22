@@ -53,9 +53,14 @@ describe("getInboxArticles", () => {
     ]);
   });
 
-  it("leaves out read and filtered articles", async () => {
+  it("leaves out dismissed and filtered articles", async () => {
     await createArticle({ userId, feedId, title: "unread" });
-    await createArticle({ userId, feedId, title: "read", status: "READ" });
+    await createArticle({
+      userId,
+      feedId,
+      title: "dismissed",
+      status: "DISMISSED",
+    });
     await createArticle({
       userId,
       feedId,

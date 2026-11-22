@@ -24,7 +24,8 @@ const NoUnreadArticles = async () => {
         </EmptyMedia>
         <EmptyTitle>All caught up!</EmptyTitle>
         <EmptyDescription>
-          You&apos;ve read all your unread articles. Great job staying informed!
+          You&apos;ve gone through all your unread articles. Great job staying
+          informed!
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

@@ -51,7 +51,7 @@ describe("compactToolOutput", () => {
 
   it("keeps a status change's output as it is", () => {
     const output = {
-      status: "READ",
+      status: "DISMISSED",
       changed: 2,
       alreadyInStatus: 1,
       notFound: 0,
@@ -121,7 +121,7 @@ describe("declineStaleApprovals", () => {
     type: "tool-setArticleStatus",
     toolCallId: `call-${state}`,
     state,
-    input: { ids: [1], status: "READ" },
+    input: { ids: [1], status: "DISMISSED" },
     ...extra,
   });
   const approved = statusPart("approval-responded", {
@@ -169,7 +169,12 @@ describe("declineStaleApprovals", () => {
     });
     const finished = statusPart("output-available", {
       approval: { id: "approval-4", approved: true },
-      output: { status: "READ", changed: 1, alreadyInStatus: 0, notFound: 0 },
+      output: {
+        status: "DISMISSED",
+        changed: 1,
+        alreadyInStatus: 0,
+        notFound: 0,
+      },
     });
     const messages = [
       user("u1", "Mark it read"),

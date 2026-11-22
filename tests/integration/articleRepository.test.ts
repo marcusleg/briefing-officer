@@ -1,10 +1,10 @@
 import prisma from "@/lib/prismaClient";
 import {
   archiveArticle,
+  dismissArticle,
+  dismissArticlesOlderThanXDays,
   markArticleAsNotInteresting,
-  markArticleAsRead,
   markArticleAsReadLater,
-  markArticlesOlderThanXDaysAsRead,
   restoreArticleStatus,
   restoreArticleToInbox,
   unarchiveArticle,
@@ -30,19 +30,19 @@ beforeEach(async () => {
 });
 
 describe("articleRepository", () => {
-  it("marks an article as read", async () => {
+  it("dismisses an article", async () => {
     const article = await createArticle({
       userId,
       feedId,
       status: "READ_LATER",
     });
 
-    await markArticleAsRead(article.id);
+    await dismissArticle(article.id);
 
     const updated = await prisma.article.findUniqueOrThrow({
       where: { id: article.id },
     });
-    expect(updated.status).toBe("READ");
+    expect(updated.status).toBe("DISMISSED");
   });
 
   it("marks an article as read later", async () => {
@@ -56,7 +56,7 @@ describe("articleRepository", () => {
     expect(updated.status).toBe("READ_LATER");
   });
 
-  it.each(["READ", "FILTERED"] as const)(
+  it.each(["DISMISSED", "FILTERED"] as const)(
     "returns a %s article to the inbox",
     async (status) => {
       const article = await createArticle({
@@ -99,7 +99,7 @@ describe("articleRepository", () => {
       statusChangedAt: longAgo,
     });
 
-    await markArticleAsRead(article.id);
+    await dismissArticle(article.id);
 
     const updated = await prisma.article.findUniqueOrThrow({
       where: { id: article.id },
@@ -132,30 +132,30 @@ describe("articleRepository", () => {
     ).rejects.toThrow();
   });
 
-  it("orders read articles most-recently-read first", async () => {
+  it("orders dismissed articles most recently dismissed first", async () => {
     const oldest = await createArticle({
       userId,
       feedId,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: new Date("2026-01-01T00:00:00.000Z"),
     });
     const newest = await createArticle({
       userId,
       feedId,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: new Date("2026-03-01T00:00:00.000Z"),
     });
     const middle = await createArticle({
       userId,
       feedId,
-      status: "READ",
+      status: "DISMISSED",
       statusChangedAt: new Date("2026-02-01T00:00:00.000Z"),
     });
     await createArticle({ userId, feedId, status: "UNREAD" });
     await createArticle({ userId, feedId, status: "READ_LATER" });
 
     const history = await prisma.article.findMany({
-      where: { status: "READ", userId },
+      where: { status: "DISMISSED", userId },
       orderBy: { statusChangedAt: "desc" },
     });
 
@@ -163,12 +163,12 @@ describe("articleRepository", () => {
   });
 
   it("does not move statusChangedAt when only archived changes", async () => {
-    const readAtTime = new Date("2026-01-01T00:00:00.000Z");
+    const dismissedAtTime = new Date("2026-01-01T00:00:00.000Z");
     const article = await createArticle({
       userId,
       feedId,
-      status: "READ",
-      statusChangedAt: readAtTime,
+      status: "DISMISSED",
+      statusChangedAt: dismissedAtTime,
     });
 
     await archiveArticle(article.id);
@@ -176,7 +176,7 @@ describe("articleRepository", () => {
     const updated = await prisma.article.findUniqueOrThrow({
       where: { id: article.id },
     });
-    expect(updated.statusChangedAt.getTime()).toBe(readAtTime.getTime());
+    expect(updated.statusChangedAt.getTime()).toBe(dismissedAtTime.getTime());
   });
 });
 
@@ -185,14 +185,17 @@ describe("articleRepository ownership", () => {
   // with any argument, so an article id alone must never be enough to change
   // someone else's article.
   it.each([
-    ["markArticleAsRead", markArticleAsRead],
+    ["dismissArticle", dismissArticle],
     ["markArticleAsReadLater", markArticleAsReadLater],
     ["markArticleAsNotInteresting", markArticleAsNotInteresting],
     ["restoreArticleToInbox", restoreArticleToInbox],
     ["unmarkArticleAsReadLater", unmarkArticleAsReadLater],
     ["archiveArticle", archiveArticle],
     ["unarchiveArticle", unarchiveArticle],
-    ["restoreArticleStatus", (id: number) => restoreArticleStatus(id, "READ")],
+    [
+      "restoreArticleStatus",
+      (id: number) => restoreArticleStatus(id, "DISMISSED"),
+    ],
   ])("%s refuses an article that belongs to someone else", async (_, act) => {
     const other = await createUser();
     const otherFeed = await createFeed({ userId: other.id });
@@ -215,7 +218,7 @@ describe("articleRepository ownership", () => {
     );
   });
 
-  it("markArticlesOlderThanXDaysAsRead leaves someone else's feed alone", async () => {
+  it("dismissArticlesOlderThanXDays leaves someone else's feed alone", async () => {
     const other = await createUser();
     const otherFeed = await createFeed({ userId: other.id });
     const theirs = await createArticle({
@@ -224,7 +227,7 @@ describe("articleRepository ownership", () => {
       publicationDate: new Date("2020-01-01T00:00:00.000Z"),
     });
 
-    expect(await markArticlesOlderThanXDaysAsRead(otherFeed.id, 1)).toBe(0);
+    expect(await dismissArticlesOlderThanXDays(otherFeed.id, 1)).toBe(0);
 
     const untouched = await prisma.article.findUniqueOrThrow({
       where: { id: theirs.id },

@@ -23,7 +23,7 @@ const part = (overrides: Record<string, unknown> = {}) =>
     type: "tool-setArticleStatus",
     toolCallId: "call-1",
     state: "approval-requested",
-    input: { ids: [1, 2], status: "READ" },
+    input: { ids: [1, 2], status: "DISMISSED" },
     approval: { id: "approval-1" },
     ...overrides,
   }) as unknown as StatusChangePart;
@@ -42,9 +42,7 @@ describe("StatusChangeCard", () => {
   it("lists the articles from the server and asks for approval", async () => {
     render(<StatusChangeCard part={part()} onRespond={onRespond} />);
 
-    expect(
-      await screen.findByText("Mark 2 articles as read?"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Dismiss 2 articles?")).toBeInTheDocument();
     expect(screen.getByText("Article 1")).toBeInTheDocument();
     expect(screen.getAllByText("Markets Daily · 2026-11-20")).toHaveLength(2);
     expect(getArticlesForStatusChange).toHaveBeenCalledWith([1, 2]);
@@ -65,7 +63,7 @@ describe("StatusChangeCard", () => {
     const user = userEvent.setup();
     render(<StatusChangeCard part={part()} onRespond={onRespond} />);
 
-    await screen.findByText("Mark 2 articles as read?");
+    await screen.findByText("Dismiss 2 articles?");
     await user.click(screen.getByRole("button", { name: "Apply" }));
     expect(onRespond).toHaveBeenCalledWith({
       id: "approval-1",
@@ -107,7 +105,7 @@ describe("StatusChangeCard", () => {
 
     render(
       <StatusChangeCard
-        part={part({ input: { ids, status: "READ" } })}
+        part={part({ input: { ids, status: "DISMISSED" } })}
         onRespond={onRespond}
       />,
     );
@@ -120,39 +118,37 @@ describe("StatusChangeCard", () => {
 
   it("counts articles not found and already in the target status", async () => {
     vi.mocked(getArticlesForStatusChange).mockResolvedValue({
-      articles: [article(1), article(2, "READ")],
+      articles: [article(1), article(2, "DISMISSED")],
       notFound: 2,
     } as never);
 
     render(
       <StatusChangeCard
-        part={part({ input: { ids: [1, 2, 3, 4], status: "READ" } })}
+        part={part({ input: { ids: [1, 2, 3, 4], status: "DISMISSED" } })}
         onRespond={onRespond}
       />,
     );
 
-    expect(
-      await screen.findByText("Mark 1 article as read?"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("1 already read")).toBeInTheDocument();
+    expect(await screen.findByText("Dismiss 1 article?")).toBeInTheDocument();
+    expect(screen.getByText("1 already dismissed")).toBeInTheDocument();
     expect(screen.getByText("2 articles not found")).toBeInTheDocument();
   });
 
   it("offers only Decline when nothing would change", async () => {
     vi.mocked(getArticlesForStatusChange).mockResolvedValue({
-      articles: [article(1, "READ")],
+      articles: [article(1, "DISMISSED")],
       notFound: 0,
     } as never);
 
     render(
       <StatusChangeCard
-        part={part({ input: { ids: [1], status: "READ" } })}
+        part={part({ input: { ids: [1], status: "DISMISSED" } })}
         onRespond={onRespond}
       />,
     );
 
     expect(
-      await screen.findByText("These articles are already read"),
+      await screen.findByText("These articles are already dismissed"),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Apply" }),
@@ -215,7 +211,7 @@ describe("StatusChangeCard", () => {
           state: "output-available",
           approval: { id: "approval-1", approved: true },
           output: {
-            status: "READ",
+            status: "DISMISSED",
             changed: 2,
             alreadyInStatus: 0,
             notFound: 0,
@@ -225,9 +221,7 @@ describe("StatusChangeCard", () => {
       />,
     );
 
-    expect(
-      await screen.findByText("Marked 2 articles as read"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Dismissed 2 articles")).toBeInTheDocument();
     expect(screen.queryByText("Article 1")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Show articles" }));
     expect(screen.getByText("Article 1")).toBeInTheDocument();
@@ -249,7 +243,7 @@ describe("StatusChangeCard", () => {
     );
 
     expect(
-      await screen.findByText("You declined: mark 2 articles as read"),
+      await screen.findByText("You declined: dismiss 2 articles"),
     ).toBeInTheDocument();
   });
 
@@ -277,14 +271,14 @@ describe("StatusChangeCard", () => {
 
   it("lists only the articles that will change while applying", async () => {
     vi.mocked(getArticlesForStatusChange).mockResolvedValue({
-      articles: [article(1), article(2, "READ")],
+      articles: [article(1), article(2, "DISMISSED")],
       notFound: 0,
     } as never);
 
     render(<StatusChangeCard part={part(approved)} onRespond={onRespond} />);
 
     expect(await screen.findByText("Article 1")).toBeInTheDocument();
-    expect(screen.getByText("Mark 1 article as read?")).toBeInTheDocument();
+    expect(screen.getByText("Dismiss 1 article?")).toBeInTheDocument();
     expect(screen.queryByText("Article 2")).not.toBeInTheDocument();
   });
 
@@ -315,7 +309,7 @@ describe("StatusChangeCard", () => {
     expect(
       await screen.findByText("Applies once you answer the other proposal."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Mark 2 articles as read?")).toBeInTheDocument();
+    expect(screen.getByText("Dismiss 2 articles?")).toBeInTheDocument();
     expect(screen.queryByText("Applying…")).not.toBeInTheDocument();
   });
 
@@ -338,7 +332,7 @@ describe("StatusChangeCard", () => {
 
   it("keeps saying nothing would change after a decline", async () => {
     vi.mocked(getArticlesForStatusChange).mockResolvedValue({
-      articles: [article(1, "READ"), article(2, "READ")],
+      articles: [article(1, "DISMISSED"), article(2, "DISMISSED")],
       notFound: 0,
     } as never);
 
@@ -353,7 +347,7 @@ describe("StatusChangeCard", () => {
     );
 
     expect(
-      await screen.findByText("These articles are already read"),
+      await screen.findByText("These articles are already dismissed"),
     ).toBeInTheDocument();
     expect(screen.queryByText(/You declined/)).not.toBeInTheDocument();
   });

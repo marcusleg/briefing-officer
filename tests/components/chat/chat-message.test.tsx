@@ -548,7 +548,7 @@ describe("messageText", () => {
                 type: "tool-setArticleStatus",
                 toolCallId: "call-1",
                 state: "approval-requested",
-                input: { ids: [1, 2], status: "READ" },
+                input: { ids: [1, 2], status: "DISMISSED" },
                 approval: { id: "approval-1" },
               },
             ],

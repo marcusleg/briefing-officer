@@ -39,7 +39,7 @@ export interface DatedArticle {
  * the stats layer.
  *
  * Callers pick which date an article is filed under — its publication date, or
- * the moment it became read or filtered — by mapping it into `at`.
+ * the moment it was dismissed or filtered — by mapping it into `at`.
  *
  * Articles of a feed missing from `knownFeedIds` are dropped.
  */

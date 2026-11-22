@@ -1,7 +1,7 @@
 import DeleteFeedButton from "@/app/feed/[feedId]/delete-feed-button";
+import DismissOlderButton from "@/app/feed/[feedId]/dismiss-older-button";
 import EditFeedButton from "@/app/feed/[feedId]/edit-feed-button";
 import FeedViewButton from "@/app/feed/[feedId]/feed-view-button";
-import MarkAsReadButton from "@/app/feed/[feedId]/mark-as-read-button";
 import NoFilteredArticles from "@/app/feed/[feedId]/no-filtered-articles";
 import NoUnreadArticles from "@/app/feed/[feedId]/no-unread-articles";
 import RefreshFeedButton from "@/app/feed/[feedId]/refresh-feed-button";
@@ -42,7 +42,7 @@ const FeedById = async (props: FeedByIdProps) => {
       feedId: feedId,
       status:
         showSearchParam === "all"
-          ? { in: ["UNREAD", "READ"] }
+          ? { in: ["UNREAD", "DISMISSED"] }
           : showSearchParam === "filtered"
             ? "FILTERED"
             : "UNREAD",
@@ -70,7 +70,7 @@ const FeedById = async (props: FeedByIdProps) => {
         <div className="flex flex-row flex-wrap items-center gap-2">
           <FeedViewButton />
           <RefreshFeedButton feedId={feedId} />
-          <MarkAsReadButton
+          <DismissOlderButton
             disabled={showSearchParam === "filtered" || articles.length === 0}
             feedId={feedId}
           />

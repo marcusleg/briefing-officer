@@ -7,31 +7,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { markCategoryArticlesOlderThanXDaysAsRead } from "@/lib/repository/articleRepository";
-import { BookCheck, ChevronDownIcon } from "lucide-react";
+import { dismissArticlesOlderThanXDays } from "@/lib/repository/articleRepository";
+import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-interface MarkAsReadCategoryProps {
+interface DismissOlderButtonProps {
   disabled?: boolean;
-  categoryId: number;
+  feedId: number;
 }
 
-const MarkAsReadCategoryButton = ({
-  disabled,
-  categoryId,
-}: MarkAsReadCategoryProps) => {
+const DismissOlderButton = ({ disabled, feedId }: DismissOlderButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = async (days: number) => {
     try {
-      const count = await markCategoryArticlesOlderThanXDaysAsRead(
-        categoryId,
-        days,
-      );
-      toast.message(`${count} articles marked as read.`);
+      const count = await dismissArticlesOlderThanXDays(feedId, days);
+
+      toast.message(`${count} articles dismissed.`);
     } catch (error) {
-      toast.error("An error occurred marking articles as read.");
+      toast.error("An error occurred dismissing articles.");
     }
   };
 
@@ -43,8 +38,8 @@ const MarkAsReadCategoryButton = ({
           disabled={disabled}
           variant="outline"
         >
-          <BookCheck className="mr-2 size-4" />
-          Mark as read
+          <CheckIcon className="mr-2 size-4" />
+          Dismiss
           {isOpen ? (
             <ChevronDownIcon className="ml-2 size-4 rotate-180 transition-transform" />
           ) : (
@@ -76,4 +71,4 @@ const MarkAsReadCategoryButton = ({
   );
 };
 
-export default MarkAsReadCategoryButton;
+export default DismissOlderButton;

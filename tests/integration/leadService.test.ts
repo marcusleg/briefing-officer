@@ -265,7 +265,7 @@ describe("relevance filtering", () => {
   });
 
   it("does not reclassify an article the reader already moved out of the inbox", async () => {
-    // A READ_LATER (or READ) article can still be missing a lead if
+    // A READ_LATER (or DISMISSED) article can still be missing a lead if
     // generation failed at ingest. article-card.tsx backfills it lazily on
     // render, which must not let a late "does not match" verdict flip the
     // article into FILTERED — it should stay exactly where the reader put it.

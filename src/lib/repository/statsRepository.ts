@@ -188,9 +188,9 @@ const getStatusChangesPerFeedPerDay = async (
   );
 };
 
-/** Articles the reader marked read. */
-export const getWeeklyArticlesRead = async (from: Date, to: Date) =>
-  getStatusChangesPerFeedPerDay("READ", from, to);
+/** Articles the reader dismissed. */
+export const getDismissedArticlesPerDay = async (from: Date, to: Date) =>
+  getStatusChangesPerFeedPerDay("DISMISSED", from, to);
 
 /**
  * Articles that never made it to the reader — whether the model filtered them

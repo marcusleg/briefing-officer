@@ -95,10 +95,10 @@ describe("enqueueMissingLeads", () => {
       feedId: feed.id,
       status: "READ_LATER",
     });
-    const read = await createArticle({
+    const dismissed = await createArticle({
       userId,
       feedId: feed.id,
-      status: "READ",
+      status: "DISMISSED",
     });
     const withLead = await createArticle({ userId, feedId: feed.id });
     await prisma.articleLead.create({
@@ -122,7 +122,7 @@ describe("enqueueMissingLeads", () => {
     expect(jobs.map((job) => job.targetId)).toEqual([
       unread.id,
       readLater.id,
-      read.id,
+      dismissed.id,
     ]);
   });
 });

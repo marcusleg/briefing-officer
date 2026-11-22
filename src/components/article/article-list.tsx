@@ -89,7 +89,7 @@ const ArticleList = ({ articles, readLaterHeading }: ArticleListProps) => {
       visible[selectedIndex].status === selection.status;
 
     if (!sameArticleSameStatus) {
-      // The selected article left the list (usually marked as read), or it's
+      // The selected article left the list (usually dismissed), or it's
       // still there but its status changed — it moved between unread and
       // Read Later. Either way, treat it as if it left its row: hand the
       // highlight to whatever article now occupies that row, so "n" carries

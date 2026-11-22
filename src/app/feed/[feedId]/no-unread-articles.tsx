@@ -31,7 +31,7 @@ const NoUnreadArticles = async ({ feed }: NoUnreadArticlesProps) => {
         </EmptyMedia>
         <EmptyTitle>All caught up!</EmptyTitle>
         <EmptyDescription>
-          You&apos;ve read all {feed.title} articles. Great job staying
+          You&apos;ve gone through all {feed.title} articles. Great job staying
           informed!
         </EmptyDescription>
       </EmptyHeader>

@@ -4,15 +4,15 @@ What the database holds for an article, and which action moves it where.
 
 ## The columns
 
-| Column            | Meaning                                                                        |
-| ----------------- | ------------------------------------------------------------------------------ |
-| `status`          | `UNREAD` (default) · `READ_LATER` · `READ` · `FILTERED`                        |
-| `statusChangedAt` | When `status` last changed. For a `READ` article this _is_ the read timestamp. |
-| `filterReason`    | Why it was rejected. Only written alongside `FILTERED`, never cleared.         |
-| `archived`        | Independent of `status`. Archiving never touches `status` or `statusChangedAt`. |
+| Column            | Meaning                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| `status`          | `UNREAD` (default) · `READ_LATER` · `DISMISSED` · `FILTERED`                        |
+| `statusChangedAt` | When `status` last changed. For a `DISMISSED` article this _is_ the dismissal time. |
+| `filterReason`    | Why it was filtered. Only written alongside `FILTERED`, never cleared.              |
+| `archived`        | Independent of `status`. Archiving never touches `status` or `statusChangedAt`.     |
 
 `UNREAD` and `READ_LATER` are the **inbox** (`isInInbox()` in
-`src/lib/article.ts`). `READ` and `FILTERED` are what an article leaves the
+`src/lib/article.ts`). `DISMISSED` and `FILTERED` are what an article leaves the
 inbox for.
 
 ## State machine
@@ -24,17 +24,17 @@ stateDiagram-v2
     UNREAD --> READ_LATER: read later
     READ_LATER --> UNREAD: read later (toggle off)
 
-    UNREAD --> READ: dismiss
-    READ_LATER --> READ: dismiss
+    UNREAD --> DISMISSED: dismiss
+    READ_LATER --> DISMISSED: dismiss
 
     UNREAD --> FILTERED: not interested / AI filter
     READ_LATER --> FILTERED: not interested
-    READ --> FILTERED: not interested
+    DISMISSED --> FILTERED: not interested
 
-    READ --> UNREAD: restore
+    DISMISSED --> UNREAD: restore
     FILTERED --> UNREAD: restore
 
-    READ --> READ_LATER: read later
+    DISMISSED --> READ_LATER: read later
     FILTERED --> READ_LATER: read later
 
     note right of FILTERED
@@ -50,7 +50,7 @@ Every arrow also writes `statusChangedAt = now()`.
 
 | Action             | Trigger                                                     | Writes                                                        |
 | ------------------ | ----------------------------------------------------------- | ------------------------------------------------------------- |
-| **Dismiss**        | `DismissButton` while in inbox, `m` or `v` hotkey           | `status = READ`                                               |
+| **Dismiss**        | `DismissButton` while in inbox, `m` or `v` hotkey           | `status = DISMISSED`                                          |
 | **Restore**        | Same button while _not_ in inbox, `m` hotkey                | `status = UNREAD`                                             |
 | **Read later**     | `ToggleReadLaterButton` (bookmark), from any status         | `status = READ_LATER`; toggling off writes `UNREAD`           |
 | **Not interested** | `NotInterestedButton` (thumbs down), hidden when `FILTERED` | `status = FILTERED`, `filterReason = READER_FILTER_REASON`    |
@@ -66,8 +66,8 @@ hands it back, so undoing a dismiss on a `READ_LATER` article returns it to
 
 ## Bulk and background writes
 
-- **Mark older than N days as read** (per feed or per category) — `UNREAD` →
-  `READ` only. Never touches `READ_LATER`.
+- **Dismiss older than N days** (per feed or per category) — `UNREAD` →
+  `DISMISSED` only. Never touches `READ_LATER`.
 - **Delete older than N days** — removes any article that is not `READ_LATER`
   and not `archived`, regardless of status.
 
@@ -76,7 +76,7 @@ hands it back, so undoing a dismiss on a `READ_LATER` article returns it to
 1. `setArticleStatus` in `src/lib/repository/articleRepository.ts` is the
    chokepoint: it always writes `status` and `statusChangedAt` together. Writing
    one without the other breaks History, which reads `statusChangedAt` as the
-   read timestamp.
+   dismissal time.
 2. There is exactly one deliberate exception: the AI filter verdict in
    `leadService.ts`, which writes both fields itself inside the same update that
    stores the lead. Don't add a second one without revisiting the design.
@@ -88,7 +88,7 @@ hands it back, so undoing a dismiss on a `READ_LATER` article returns it to
 - The AI filter is guarded on `status === "UNREAD"`. Leads are also backfilled
   lazily from the client for already-rendered articles; without that guard a
   late verdict could pull a `READ_LATER` article out of the queue or clobber a
-  read timestamp.
+  dismissal time.
 - `markArticleAsNotInteresting` deliberately does **not** revalidate. Its caller
-  keeps a popover open over the article it just dismissed and revalidates once
+  keeps a popover open over the article it just filtered and revalidates once
   that popover closes.

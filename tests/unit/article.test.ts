@@ -33,7 +33,7 @@ describe("isInInbox", () => {
   it.each([
     ["UNREAD", true],
     ["READ_LATER", true],
-    ["READ", false],
+    ["DISMISSED", false],
     ["FILTERED", false],
   ] as const)("for status %s, returns %s", (status, expected) => {
     expect(isInInbox(status)).toBe(expected);

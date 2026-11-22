@@ -6,7 +6,7 @@ import { Action, toast } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/repository/articleRepository", () => ({
-  markArticleAsRead: vi.fn().mockResolvedValue(undefined),
+  dismissArticle: vi.fn().mockResolvedValue(undefined),
   restoreArticleToInbox: vi.fn().mockResolvedValue(undefined),
   restoreArticleStatus: vi.fn().mockResolvedValue(undefined),
 }));
@@ -30,7 +30,7 @@ const unreadArticle = {
 } as any;
 
 describe("DismissButton", () => {
-  it("calls onAfterDismiss after marking as read", async () => {
+  it("calls onAfterDismiss after dismissing", async () => {
     const onAfterDismiss = vi.fn();
     render(
       <DismissButton article={unreadArticle} onAfterDismiss={onAfterDismiss} />,
@@ -41,11 +41,14 @@ describe("DismissButton", () => {
     expect(onAfterDismiss).toHaveBeenCalledOnce();
   });
 
-  it("does not call onAfterDismiss when unmarking as read", async () => {
+  it("does not call onAfterDismiss when restoring", async () => {
     const onAfterDismiss = vi.fn();
-    const readArticle = { ...unreadArticle, status: "READ" };
+    const dismissedArticle = { ...unreadArticle, status: "DISMISSED" };
     render(
-      <DismissButton article={readArticle} onAfterDismiss={onAfterDismiss} />,
+      <DismissButton
+        article={dismissedArticle}
+        onAfterDismiss={onAfterDismiss}
+      />,
     );
 
     await userEvent.click(screen.getByRole("button", { name: /restore/i }));
@@ -53,7 +56,7 @@ describe("DismissButton", () => {
     expect(onAfterDismiss).not.toHaveBeenCalled();
   });
 
-  it.each(["READ", "FILTERED"] as const)(
+  it.each(["DISMISSED", "FILTERED"] as const)(
     "offers Restore for a %s article",
     (status) => {
       render(<DismissButton article={{ ...unreadArticle, status }} />);

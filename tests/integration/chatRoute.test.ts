@@ -268,7 +268,7 @@ describe("POST /api/chat", () => {
     });
   });
 
-  const statusCall = (ids: number[], status = "READ") =>
+  const statusCall = (ids: number[], status = "DISMISSED") =>
     streamOf([
       {
         type: "tool-call",
@@ -318,7 +318,7 @@ describe("POST /api/chat", () => {
             type: "tool-setArticleStatus",
             toolCallId: "call-status",
             state: "approval-responded",
-            input: { ids, status: "READ" },
+            input: { ids, status: "DISMISSED" },
             approval: { id: "approval-1", ...approval },
           },
         ],
@@ -366,7 +366,7 @@ describe("POST /api/chat", () => {
     const updated = await prisma.article.findUniqueOrThrow({
       where: { id: article.id },
     });
-    expect(updated.status).toBe("READ");
+    expect(updated.status).toBe("DISMISSED");
     expect(JSON.stringify(model.doStreamCalls[0].prompt)).toContain(
       '"changed":1',
     );

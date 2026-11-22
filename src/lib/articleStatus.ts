@@ -3,8 +3,8 @@ import prisma from "@/lib/prismaClient";
 
 /**
  * The only writers of `status` and `statusChangedAt`. Pairing the two writes
- * here is what lets History treat `statusChangedAt` as the read timestamp: for
- * a READ article it is, by construction, the moment it became read. Anything
+ * here is what lets History treat `statusChangedAt` as the dismissal time: for a
+ * DISMISSED article it is, by construction, the moment it was dismissed. Anything
  * that writes one without the other breaks that.
  *
  * `filterReason` is optional and only ever set alongside `FILTERED`. It is
