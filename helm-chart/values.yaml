@@ -71,7 +71,7 @@ service:
 ## HTTPRoute. Requests to `/api/health` from outside the cluster are redirected
 ## to `/`.
 ##
-## Chat answers and summaries are streamed and can take minutes. Gateways apply
+## Chat answers and text summaries are streamed and can take minutes. Gateways apply
 ## their own default when no request timeout is set, which can cut these
 ## responses off, so the route sets one.
 ## @descriptionEnd

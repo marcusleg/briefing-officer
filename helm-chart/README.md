@@ -1,7 +1,7 @@
 # Briefing Officer Helm Chart
 
 Deploys [Briefing Officer](https://github.com/marcusleg/briefing-officer), AI
-summaries for your favorite news feeds, to Kubernetes.
+briefings on your favorite news feeds, to Kubernetes.
 
 The chart runs a single pod that serves the web app and refreshes feeds in the
 background. Data is stored in an SQLite database on a PersistentVolumeClaim.
@@ -177,7 +177,7 @@ Exposes the application through a [Gateway API](https://gateway-api.sigs.k8s.io/
 HTTPRoute. Requests to `/api/health` from outside the cluster are redirected
 to `/`.
 
-Chat answers and summaries are streamed and can take minutes. Gateways apply
+Chat answers and text summaries are streamed and can take minutes. Gateways apply
 their own default when no request timeout is set, which can cut these
 responses off, so the route sets one.
 
