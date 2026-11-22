@@ -2,6 +2,11 @@
 
 ## Workflow
 
+When the user asks for a new feature, weigh its complexity (new code, schema,
+configuration, ongoing maintenance) against its usefulness before building it.
+If the cost looks high for what it delivers, push back: say what it costs,
+propose a smaller version or skipping it, and build once the user decides.
+
 Get the user's approval before making any of these hard-to-undo changes:
 
 - database schema changes and migrations
