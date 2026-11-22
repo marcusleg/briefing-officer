@@ -1,5 +1,8 @@
 import {
+  changeArticleStatusForUser,
+  CHAT_STATUS_TARGETS,
   getArticleForUser,
+  MAX_STATUS_CHANGE_IDS,
   searchArticlesForUser,
 } from "@/lib/ai/chat/articleTools";
 import { tool, type InferUITools, type UIDataTypes, type UIMessage } from "ai";
@@ -37,10 +40,24 @@ const searchArticlesInput = z.object({
     .describe("Only starred (true) or only unstarred (false) articles."),
   limit: z.number().int().min(1).max(25).default(10),
 });
+const setArticleStatusInput = z.object({
+  ids: z
+    .array(z.number().int())
+    .min(1)
+    .max(MAX_STATUS_CHANGE_IDS)
+    .describe("Article ids from searchArticles or getArticle."),
+  status: z
+    .enum(CHAT_STATUS_TARGETS)
+    .describe(
+      "READ marks as read, UNREAD puts back in the inbox (also off Read later), READ_LATER saves for later.",
+    ),
+});
 
 /**
- * The chat's tools, bound to one user. The model can choose what to search
- * for but never whose articles: the user id is closed over here.
+ * The chat's tools, bound to one user. The model can choose what to search for
+ * and which articles to change, but never whose: the user id is closed over
+ * here. Changes run only after the reader approves them (see the route's
+ * toolApproval).
  */
 export const createChatTools = (userId: string) => ({
   searchArticles: tool({
@@ -56,6 +73,12 @@ export const createChatTools = (userId: string) => ({
       id: z.number().int().describe("An article id from searchArticles."),
     }),
     execute: ({ id }) => getArticleForUser(userId, id),
+  }),
+  setArticleStatus: tool({
+    description:
+      "Changes the reading status of the reader's articles. The reader sees the articles and approves or declines before anything changes. Returns how many changed, how many already had that status and how many were not found.",
+    inputSchema: setArticleStatusInput,
+    execute: (input) => changeArticleStatusForUser(userId, input),
   }),
 });
 

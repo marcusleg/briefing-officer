@@ -1,5 +1,6 @@
 import {
   ARTICLE_TEXT_LIMIT,
+  changeArticleStatusForUser,
   getArticleForUser,
   searchArticlesForUser,
   type SearchArticlesInput,
@@ -232,5 +233,118 @@ describe("getArticleForUser", () => {
     expect(await getArticleForUser(userId, 987_654)).toEqual({
       error: "not found",
     });
+  });
+});
+
+describe("changeArticleStatusForUser", () => {
+  const longAgo = new Date("2020-01-01T00:00:00Z");
+  const reload = (id: number) =>
+    prisma.article.findUniqueOrThrow({ where: { id } });
+
+  it.each([
+    ["READ", "UNREAD"],
+    ["UNREAD", "READ_LATER"],
+    ["READ_LATER", "READ"],
+    ["UNREAD", "FILTERED"],
+  ] as const)("sets %s on a %s article", async (target, from) => {
+    const article = await createArticle({
+      userId,
+      feedId,
+      status: from,
+      statusChangedAt: longAgo,
+    });
+
+    const output = await changeArticleStatusForUser(userId, {
+      ids: [article.id],
+      status: target,
+    });
+
+    expect(output).toEqual({
+      status: target,
+      changed: 1,
+      alreadyInStatus: 0,
+      notFound: 0,
+    });
+    const updated = await reload(article.id);
+    expect(updated.status).toBe(target);
+    expect(updated.statusChangedAt.getTime()).toBeGreaterThan(
+      longAgo.getTime(),
+    );
+  });
+
+  it("counts another user's article as not found and leaves it alone", async () => {
+    const otherUserId = (await createUser()).id;
+    const otherFeedId = (await createFeed({ userId: otherUserId })).id;
+    const foreign = await createArticle({
+      userId: otherUserId,
+      feedId: otherFeedId,
+    });
+
+    const output = await changeArticleStatusForUser(userId, {
+      ids: [foreign.id],
+      status: "READ",
+    });
+
+    expect(output).toEqual({
+      status: "READ",
+      changed: 0,
+      alreadyInStatus: 0,
+      notFound: 1,
+    });
+    expect((await reload(foreign.id)).status).toBe("UNREAD");
+  });
+
+  it("skips articles already in the target status so their read time stays", async () => {
+    const read = await createArticle({
+      userId,
+      feedId,
+      status: "READ",
+      statusChangedAt: longAgo,
+    });
+    const unread = await createArticle({ userId, feedId });
+
+    const output = await changeArticleStatusForUser(userId, {
+      ids: [read.id, unread.id],
+      status: "READ",
+    });
+
+    expect(output).toEqual({
+      status: "READ",
+      changed: 1,
+      alreadyInStatus: 1,
+      notFound: 0,
+    });
+    expect((await reload(read.id)).statusChangedAt).toEqual(longAgo);
+  });
+
+  it("counts deleted ids as not found and duplicates once", async () => {
+    const article = await createArticle({ userId, feedId });
+
+    const output = await changeArticleStatusForUser(userId, {
+      ids: [article.id, article.id, 999_999],
+      status: "READ",
+    });
+
+    expect(output).toEqual({
+      status: "READ",
+      changed: 1,
+      alreadyInStatus: 0,
+      notFound: 1,
+    });
+  });
+
+  it("returns an error instead of throwing when the update fails", async () => {
+    const article = await createArticle({ userId, feedId });
+    vi.spyOn(prisma.article, "findMany").mockRejectedValueOnce(
+      new Error("database is locked"),
+    );
+
+    const output = await changeArticleStatusForUser(userId, {
+      ids: [article.id],
+      status: "READ",
+    });
+
+    expect(output).toEqual({ error: "update failed" });
+    expect((await reload(article.id)).status).toBe("UNREAD");
   });
 });

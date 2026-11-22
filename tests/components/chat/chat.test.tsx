@@ -1,13 +1,17 @@
-import Chat, { transport } from "@/components/chat/chat";
+import Chat, { DECLINED_BY_REPLY, transport } from "@/components/chat/chat";
 import type { ChatUIMessage } from "@/lib/ai/chat/tools";
 import { useChat } from "@ai-sdk/react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { APICallError } from "ai";
+import { APICallError, type ChatInit } from "ai";
+import { useRouter } from "next/navigation";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { installServerSpeech } from "../../helpers/server-speech";
 
 vi.mock("@ai-sdk/react", () => ({ useChat: vi.fn() }));
+vi.mock("@/lib/repository/chatRepository", () => ({
+  getArticlesForStatusChange: vi.fn(() => new Promise(() => {})),
+}));
 
 const actions = {
   sendMessage: vi.fn(),
@@ -15,6 +19,7 @@ const actions = {
   regenerate: vi.fn(),
   setMessages: vi.fn(),
   clearError: vi.fn(),
+  addToolApprovalResponse: vi.fn(),
 };
 
 const mockChat = (state: object = {}) =>
@@ -366,5 +371,233 @@ describe("transport", () => {
       type: "text",
       text: "It beat estimates.",
     });
+  });
+});
+
+/** The options the component passed to `useChat`. */
+const chatOptions = () =>
+  vi.mocked(useChat).mock.calls[0][0] as ChatInit<ChatUIMessage>;
+
+const pendingChange = [
+  { id: "u1", role: "user", parts: [{ type: "text", text: "Mark them read" }] },
+  {
+    id: "a1",
+    role: "assistant",
+    parts: [
+      {
+        type: "tool-setArticleStatus",
+        toolCallId: "call-1",
+        state: "approval-requested",
+        input: { ids: [1], status: "READ" },
+        approval: { id: "approval-1" },
+      },
+    ],
+  },
+];
+
+describe("status changes", () => {
+  it("continues the conversation once every approval is answered", () => {
+    render(<Chat speechEngine="server" />);
+    const { sendAutomaticallyWhen } = chatOptions();
+
+    const answered = [
+      pendingChange[0],
+      {
+        ...pendingChange[1],
+        parts: [
+          {
+            ...pendingChange[1].parts[0],
+            state: "approval-responded",
+            approval: { id: "approval-1", approved: true },
+          },
+        ],
+      },
+    ];
+
+    expect(sendAutomaticallyWhen?.({ messages: answered as never })).toBe(true);
+    expect(sendAutomaticallyWhen?.({ messages: pendingChange as never })).toBe(
+      false,
+    );
+  });
+
+  it("declines a pending change before sending a typed reply, in one request", async () => {
+    const user = userEvent.setup();
+    mockChat({ messages: pendingChange });
+    let autoSendDuringDecline: unknown;
+    actions.addToolApprovalResponse.mockImplementation(async () => {
+      const { sendAutomaticallyWhen } = chatOptions();
+      autoSendDuringDecline = sendAutomaticallyWhen?.({
+        messages: [
+          pendingChange[0],
+          {
+            ...pendingChange[1],
+            parts: [
+              {
+                ...pendingChange[1].parts[0],
+                state: "approval-responded",
+                approval: { id: "approval-1", approved: false },
+              },
+            ],
+          },
+        ] as never,
+      });
+    });
+    render(<Chat speechEngine="server" />);
+
+    await user.type(box(), "Only the first one{Enter}");
+
+    await vi.waitFor(() =>
+      expect(actions.sendMessage).toHaveBeenCalledWith({
+        text: "Only the first one",
+      }),
+    );
+    expect(actions.addToolApprovalResponse).toHaveBeenCalledWith({
+      id: "approval-1",
+      approved: false,
+      reason: DECLINED_BY_REPLY,
+    });
+    expect(autoSendDuringDecline).toBe(false);
+    expect(
+      actions.addToolApprovalResponse.mock.invocationCallOrder[0],
+    ).toBeLessThan(actions.sendMessage.mock.invocationCallOrder[0]);
+  });
+
+  const twoPending = [
+    pendingChange[0],
+    {
+      ...pendingChange[1],
+      parts: [
+        pendingChange[1].parts[0],
+        {
+          ...pendingChange[1].parts[0],
+          toolCallId: "call-2",
+          approval: { id: "approval-2" },
+        },
+      ],
+    },
+  ];
+
+  it("declines every pending change before sending a typed reply", async () => {
+    const user = userEvent.setup();
+    mockChat({ messages: twoPending });
+    render(<Chat speechEngine="server" />);
+
+    await user.type(box(), "Only the first one{Enter}");
+
+    await vi.waitFor(() =>
+      expect(actions.sendMessage).toHaveBeenCalledWith({
+        text: "Only the first one",
+      }),
+    );
+    expect(actions.sendMessage).toHaveBeenCalledTimes(1);
+    expect(actions.addToolApprovalResponse.mock.calls).toEqual([
+      [{ id: "approval-1", approved: false, reason: DECLINED_BY_REPLY }],
+      [{ id: "approval-2", approved: false, reason: DECLINED_BY_REPLY }],
+    ]);
+    expect(
+      actions.addToolApprovalResponse.mock.invocationCallOrder[1],
+    ).toBeLessThan(actions.sendMessage.mock.invocationCallOrder[0]);
+  });
+
+  it("still sends a typed reply when declining fails", async () => {
+    const user = userEvent.setup();
+    mockChat({ messages: pendingChange });
+    actions.addToolApprovalResponse.mockRejectedValueOnce(new Error("busy"));
+    render(<Chat speechEngine="server" />);
+
+    await user.type(box(), "Only the first one{Enter}");
+
+    await vi.waitFor(() =>
+      expect(actions.sendMessage).toHaveBeenCalledWith({
+        text: "Only the first one",
+      }),
+    );
+  });
+
+  it("reports an approved change in an earlier answer as not applied", async () => {
+    mockChat({
+      messages: [
+        pendingChange[0],
+        {
+          ...pendingChange[1],
+          parts: [
+            {
+              ...pendingChange[1].parts[0],
+              state: "approval-responded",
+              approval: { id: "approval-1", approved: true },
+            },
+          ],
+        },
+        { id: "u2", role: "user", parts: [{ type: "text", text: "Hm?" }] },
+        {
+          id: "a2",
+          role: "assistant",
+          parts: [{ type: "text", text: "Yes?" }],
+        },
+      ],
+    });
+    render(<Chat speechEngine="server" />);
+
+    expect(
+      await screen.findByText("Couldn't update the articles."),
+    ).toBeInTheDocument();
+  });
+
+  it("passes Apply on the card to the chat", async () => {
+    const user = userEvent.setup();
+    mockChat({ messages: pendingChange });
+    const { getArticlesForStatusChange } =
+      await import("@/lib/repository/chatRepository");
+    vi.mocked(getArticlesForStatusChange).mockResolvedValue({
+      articles: [
+        {
+          id: 1,
+          title: "Article 1",
+          feed: "Feed",
+          published: "2026-11-20",
+          status: "UNREAD",
+        },
+      ],
+      notFound: 0,
+    } as never);
+    render(<Chat speechEngine="server" />);
+
+    await screen.findByText("Mark 1 article as read?");
+    await user.click(screen.getByRole("button", { name: "Apply" }));
+
+    expect(actions.addToolApprovalResponse).toHaveBeenCalledWith({
+      id: "approval-1",
+      approved: true,
+    });
+  });
+
+  it("refreshes the page once after an applied change", () => {
+    const refresh = vi.fn();
+    vi.mocked(useRouter).mockReturnValue({ refresh } as never);
+    const applied = [
+      pendingChange[0],
+      {
+        ...pendingChange[1],
+        parts: [
+          {
+            ...pendingChange[1].parts[0],
+            state: "output-available",
+            approval: { id: "approval-1", approved: true },
+            output: {
+              status: "READ",
+              changed: 1,
+              alreadyInStatus: 0,
+              notFound: 0,
+            },
+          },
+        ],
+      },
+    ];
+    mockChat({ messages: applied });
+
+    const { rerender } = render(<Chat speechEngine="server" />);
+    rerender(<Chat speechEngine="server" />);
+
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 });
