@@ -315,13 +315,26 @@ describe("Chat", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("offers no read aloud while the answer is being written", () => {
+  it("offers no read aloud or copy while the answer is being written", () => {
     mockChat({ messages: oneExchange, status: "streaming" });
     render(<Chat speechEngine="server" />);
 
     expect(
       screen.queryByRole("button", { name: "Read aloud" }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Copy" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("copies an answer", async () => {
+    mockChat({ messages: oneExchange });
+    const user = userEvent.setup();
+    render(<Chat speechEngine="server" />);
+
+    await user.click(screen.getByRole("button", { name: "Copy" }));
+
+    expect(await navigator.clipboard.readText()).toBe("Hello");
   });
 });
 
