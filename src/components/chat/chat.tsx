@@ -5,6 +5,7 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import { MessageActions } from "@/components/ai-elements/message";
 import {
   PromptInput,
   PromptInputFooter,
@@ -13,6 +14,7 @@ import {
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import ChatMessage, { messageText } from "@/components/chat/chat-message";
+import { CopyAnswer } from "@/components/chat/copy-answer";
 import { ReadAloud, type SpeechEngine } from "@/components/chat/read-aloud";
 import type { NewTabHref } from "@/components/markdown/safe-markdown";
 import { Alert } from "@/components/ui/alert";
@@ -401,30 +403,38 @@ const Chat = ({
       >
         <ConversationContent className="max-w-content mx-auto w-full gap-6 px-0">
           {header}
-          {messages.map((message, index) => (
-            <ChatMessage
-              key={message.id}
-              message={message}
-              answering={busy && index === messages.length - 1}
-              interrupted={
-                index < messages.length - 1 ||
-                (status === "error" && index === messages.length - 1)
-              }
-              onApprovalResponse={(response) =>
-                void addToolApprovalResponse(response)
-              }
-              newTabHref={newTabHref}
-              actions={
-                <ReadAloud
-                  engine={speechEngine}
-                  text={messageText(message)}
-                  reading={message.id === readingId}
-                  onRead={() => setReadingId(message.id)}
-                  onReadEnd={stopReading}
-                />
-              }
-            />
-          ))}
+          {messages.map((message, index) => {
+            const text = messageText(message);
+            return (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                answering={busy && index === messages.length - 1}
+                interrupted={
+                  index < messages.length - 1 ||
+                  (status === "error" && index === messages.length - 1)
+                }
+                onApprovalResponse={(response) =>
+                  void addToolApprovalResponse(response)
+                }
+                newTabHref={newTabHref}
+                actions={
+                  text.trim() !== "" && (
+                    <MessageActions>
+                      <CopyAnswer text={text} />
+                      <ReadAloud
+                        engine={speechEngine}
+                        text={text}
+                        reading={message.id === readingId}
+                        onRead={() => setReadingId(message.id)}
+                        onReadEnd={stopReading}
+                      />
+                    </MessageActions>
+                  )
+                }
+              />
+            );
+          })}
 
           {status === "submitted" && (
             <Spinner

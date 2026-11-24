@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  MessageAction,
-  MessageActions,
-} from "@/components/ai-elements/message";
+import { MessageAction } from "@/components/ai-elements/message";
 import { Spinner } from "@/components/ui/spinner";
 import type { SpeechControls } from "@/hooks/speech-controls";
 import { useServerSpeech } from "@/hooks/use-server-speech";
@@ -154,21 +151,21 @@ export const ReadAloud = ({
     return null;
   }
 
-  return (
-    <MessageActions>
-      {!reading ? (
-        <MessageAction
-          label="Read aloud"
-          aria-label="Read aloud"
-          onClick={onRead}
-        >
-          <Volume2Icon />
-        </MessageAction>
-      ) : engine === "server" ? (
-        <ServerChatSpeech sentences={sentences} onReadEnd={onReadEnd} />
-      ) : (
-        <BrowserChatSpeech sentences={sentences} onReadEnd={onReadEnd} />
-      )}
-    </MessageActions>
+  if (!reading) {
+    return (
+      <MessageAction
+        label="Read aloud"
+        aria-label="Read aloud"
+        onClick={onRead}
+      >
+        <Volume2Icon />
+      </MessageAction>
+    );
+  }
+
+  return engine === "server" ? (
+    <ServerChatSpeech sentences={sentences} onReadEnd={onReadEnd} />
+  ) : (
+    <BrowserChatSpeech sentences={sentences} onReadEnd={onReadEnd} />
   );
 };
